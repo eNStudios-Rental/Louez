@@ -14,7 +14,7 @@
 
 services:
   louez:
-    image: synapsr/louez:${LOUEZ_IMAGE_TAG:-latest}
+    image: ghcr.io/eNStudios-Rental/louez:${LOUEZ_IMAGE_TAG:-latest}
     # To run from source instead of the published image, replace `image:` with:
     # build:
     #   context: .
@@ -95,7 +95,7 @@ services:
     restart: unless-stopped
 
   background-removal:
-    image: synapsr/louez-background-removal:${LOUEZ_IMAGE_TAG:-latest}
+    image: ghcr.io/eNStudios-Rental/louez-background-removal:${LOUEZ_IMAGE_TAG:-latest}
     # The published image is pulled in normal installs. Keeping the build
     # definition makes source checkouts self-contained before a release exists.
     build:
@@ -156,6 +156,35 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    restart: unless-stopped
+
+  # One-shot bucket bootstrap. The bucket stays private: the app streams
+  # assets through /files with its own credentials.
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-louez}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-louez-minio-secret}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" &&
+        mc mb --ignore-existing local/louez
+    restart: "no"
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.docker/config.json:/config.json # Requires doing `docker login ghcr.io` on Debian first
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=300 # checks every 5 minutes
+      - WATCHTOWER_INCLUDE_STOPPED=true
+      - WATCHTOWER_REVIVE_STOPPED=false
     restart: unless-stopped
 
 volumes:
