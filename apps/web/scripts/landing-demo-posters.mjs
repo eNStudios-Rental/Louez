@@ -63,7 +63,9 @@ try {
     throw new Error("Use --start or --base-url http(s)://host.");
   browser = await chromium.launch({
     executablePath: browserPath,
-    args: ["--no-sandbox", "--disable-dev-shm-usage"],
+    // Docker's ARM64 build runs under emulation without a usable GPU process.
+    // Poster captures are static, so software rendering is sufficient.
+    args: ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
   });
   const context = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
