@@ -109,9 +109,11 @@ le zoom et le défilement horizontal restent disponibles. En grand ou sur une
 route ouverte seule, le défilement reste interne à l’app.
 
 Les captures sont dans `apps/web/public/demo-posters`. Le stage `demo-posters`
-de `docker/Dockerfile.web` les régénère depuis le build de production. Son
-serveur utilise les fixtures, sans URL de base de données ; Chromium reste
-dans le stage de build. Pour les régénérer après un build local :
+de `docker/Dockerfile.web` les régénère depuis le build de production sur
+amd64. Pour l’image arm64, il conserve les captures versionnées : Chromium ne
+peut pas démarrer son processus GPU de façon fiable sous l’émulation QEMU. Le
+serveur de capture utilise les fixtures, sans URL de base de données ; Chromium
+reste dans le stage de build. Pour les régénérer après un build local :
 
 ```sh
 pnpm --filter @louez/web demo:posters --start --browser /chemin/vers/chromium
