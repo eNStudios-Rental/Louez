@@ -33,10 +33,12 @@ const getStorefrontWildcard = (appDomain?: string): string | null => {
 
 const buildContentSecurityPolicy = ({
   appDomain,
+  appUrl,
   fromHelloApiUrl,
   isDevelopment,
   openReplayIngestPoint,
 }: SecurityHeadersOptions): string => {
+  const appUsesHttps = getOrigin(appUrl)?.startsWith("https://") ?? true;
   const fromHelloOrigin = getOrigin(fromHelloApiUrl);
   const openReplayOrigin = getOrigin(openReplayIngestPoint);
   const storefrontWildcard = getStorefrontWildcard(appDomain);
@@ -112,7 +114,7 @@ const buildContentSecurityPolicy = ({
     "base-uri": ["'self'"],
     "form-action": ["'self'"],
     "frame-ancestors": ["'self'"],
-    ...(!isDevelopment ? { "upgrade-insecure-requests": [] } : {}),
+    ...(!isDevelopment && appUsesHttps ? { "upgrade-insecure-requests": [] } : {}),
   };
 
   return Object.entries(directives)
