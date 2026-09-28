@@ -28,7 +28,7 @@ test('normalizes international numbers written with 00 prefix', () => {
 });
 
 test('uses default country for national input', () => {
-  assert.equal(normalizePhoneNumber('06 12 34 56 78'), '+33612345678');
+  assert.equal(normalizePhoneNumber('600 123 456'), '+48600123456');
   assert.equal(normalizePhoneNumber('91 23 45 67', 'NO'), '+4791234567');
 });
 
