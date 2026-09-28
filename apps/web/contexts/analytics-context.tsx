@@ -83,19 +83,38 @@ const getDeviceType = (): DeviceType => {
   return "desktop";
 };
 
-/** Per-tab session id, created once and kept in sessionStorage. */
-const getOrCreateSessionId = (): string => {
-  try {
-    const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
-    if (stored) {
-      return stored;
-    }
-    const sessionId = crypto.randomUUID();
-    sessionStorage.setItem(SESSION_STORAGE_KEY, sessionId);
-    return sessionId;
-  } catch {
-    return crypto.randomUUID();
+const createSessionId = (): string => {
+  const webCrypto = globalThis.crypto;
+
+  if (typeof webCrypto?.randomUUID === "function") {
+    return webCrypto.randomUUID();
   }
+
+  // Analytics-only fallback; never use for security tokens.
+  return `session-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
+
+/** Per-tab session id, persisted in sessionStorage when available. */
+const getOrCreateSessionId = (): string => {
+  let stored: string | null = null;
+
+  try {
+    stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
+  } catch {
+    // Storage can be unavailable in private or embedded browsing contexts.
+  }
+
+  if (stored) return stored;
+
+  const sessionId = createSessionId();
+
+  try {
+    sessionStorage.setItem(SESSION_STORAGE_KEY, sessionId);
+  } catch {
+    // Analytics can continue without persisted storage.
+  }
+
+  return sessionId;
 };
 
 /**
