@@ -171,6 +171,18 @@ export const createReservationInputSchema = z.object({
    * Reused as-is when the cart is unchanged, cancelled when it differs.
    */
   resumeReservationId: z.string().regex(RESERVATION_ID_REGEX).optional(),
+}).superRefine((input, context) => {
+  if (input.customer.customerType !== "business") return;
+
+  for (const field of ["companyNumber", "vatNumber"] as const) {
+    if (!input.customer[field]?.trim()) {
+      context.addIssue({
+        code: "custom",
+        message: `${field} is required for business customers`,
+        path: ["customer", field],
+      });
+    }
+  }
 });
 
 /** `storefront.promo.validate`: the code plus the cart lines to price server-side. */

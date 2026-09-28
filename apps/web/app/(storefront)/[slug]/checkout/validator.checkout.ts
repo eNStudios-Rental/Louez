@@ -78,10 +78,14 @@ export const createCheckoutValidator = (
           });
         }
 
-        // SIREN / VAT stay optional (the invoice degrades to B2C when absent),
-        // but a value that IS typed must be usable on an invoice.
         const companyNumber = data.companyNumber.trim();
-        if (companyNumber.length > 0 && !isValidCompanyNumber(options.country, companyNumber)) {
+        if (companyNumber.length === 0) {
+          ctx.addIssue({
+            code: "custom",
+            message: t("errors.required"),
+            path: ["companyNumber"],
+          });
+        } else if (!isValidCompanyNumber(options.country, companyNumber)) {
           ctx.addIssue({
             code: "custom",
             message: t("errors.invalidCompanyNumber"),
@@ -90,7 +94,13 @@ export const createCheckoutValidator = (
         }
 
         const vatNumber = data.vatNumber.trim();
-        if (vatNumber.length > 0 && !isPlausibleVatNumber(options.country, vatNumber)) {
+        if (vatNumber.length === 0) {
+          ctx.addIssue({
+            code: "custom",
+            message: t("errors.required"),
+            path: ["vatNumber"],
+          });
+        } else if (!isPlausibleVatNumber(options.country, vatNumber)) {
           ctx.addIssue({
             code: "custom",
             message: t("errors.invalidVatNumber"),

@@ -15,9 +15,8 @@ interface CheckoutBusinessFieldsProps {
 }
 
 /**
- * Company identity of a business buyer. Only the company name is required:
- * SIREN and VAT stay optional so a buyer in a hurry is never blocked; the
- * invoice simply degrades to B2C.
+ * Company identity of a business buyer. The company name, registration number,
+ * and VAT number are required to complete business checkout.
  */
 export const CheckoutBusinessFields = withForm({
   ...checkoutFormOptions,
