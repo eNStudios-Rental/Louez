@@ -356,7 +356,9 @@ jobs:
           context: .
           file: docker/Dockerfile.web
           target: app
-          platforms: linux/amd64,linux/arm64
+          # Next.js static generation currently crashes with SIGILL under QEMU
+          # when building the ARM64 variant on this x64 runner.
+          platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
