@@ -516,6 +516,7 @@ export async function createProduct(data: ProductInput) {
             id: nanoid(),
             productId: productId,
             identifier: unit.identifier.trim(),
+            serialNumber: unit.serialNumber?.trim() || null,
             notes: getNewUnitNotesInput(unit)?.trim() || null,
             purchasePrice: normalizeNullablePriceInput(getNewUnitPurchasePriceInput(unit)),
             purchasedAt: normalizeNullableDateInput(getNewUnitPurchasedAtInput(unit)),
@@ -928,6 +929,7 @@ export async function updateProduct(productId: string, data: ProductInput) {
       if (!existingUnit) return [];
 
       const identifier = unit.identifier.trim();
+      const serialNumber = unit.serialNumber?.trim() || null;
       const attributes = resolveUnitAttributes(bookingAttributeAxes, unit);
       const combinationKey = buildCombinationKey(bookingAttributeAxes, attributes);
       const changes: Record<string, { from: unknown; to: unknown }> = {};
@@ -936,6 +938,13 @@ export async function updateProduct(productId: string, data: ProductInput) {
         changes.identifier = {
           from: existingUnit.identifier,
           to: identifier,
+        };
+      }
+
+      if (serialNumber !== existingUnit.serialNumber) {
+        changes.serialNumber = {
+          from: existingUnit.serialNumber,
+          to: serialNumber,
         };
       }
 
@@ -962,6 +971,7 @@ export async function updateProduct(productId: string, data: ProductInput) {
           unitId: unit.id,
           values: {
             identifier,
+            serialNumber,
             attributes,
             combinationKey,
           },
@@ -982,6 +992,7 @@ export async function updateProduct(productId: string, data: ProductInput) {
         id: nanoid(),
         productId: productId,
         identifier: unit.identifier.trim(),
+        serialNumber: unit.serialNumber?.trim() || null,
         notes: getNewUnitNotesInput(unit)?.trim() || null,
         purchasePrice: normalizeNullablePriceInput(getNewUnitPurchasePriceInput(unit)),
         purchasedAt: normalizeNullableDateInput(getNewUnitPurchasedAtInput(unit)),

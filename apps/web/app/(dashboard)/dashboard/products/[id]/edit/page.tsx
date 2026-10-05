@@ -149,6 +149,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
           units: editableUnits.map((unit) => ({
             id: unit.id,
             identifier: unit.identifier,
+            serialNumber: unit.serialNumber,
             attributes: unit.attributes,
             hasActiveAssignment: assignedUnitIds.has(unit.id),
           })),
