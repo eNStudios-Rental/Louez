@@ -2317,6 +2317,9 @@
       "edit": {
         "button": "편집",
         "title": "예약 수정",
+        "internalTitle": "Internal reservation title",
+        "internalTitlePlaceholder": "e.g. Wedding equipment for a customer",
+        "internalTitleHelp": "Visible to your company in the reservations list; customers cannot see it.",
         "dates": "날짜",
         "startDate": "시작일",
         "endDate": "종료일",

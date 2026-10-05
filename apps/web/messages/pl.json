@@ -2278,6 +2278,9 @@
       "edit": {
         "button": "Edytuj",
         "title": "Edytuj rezerwację",
+        "internalTitle": "Wewnętrzny tytuł rezerwacji",
+        "internalTitlePlaceholder": "Np. sprzęt na wesele rodziny Kowalskich",
+        "internalTitleHelp": "Widoczny dla firmy na liście rezerwacji; klient go nie zobaczy.",
         "dates": "Daty",
         "startDate": "Data rozpoczęcia",
         "endDate": "Data zakończenia",

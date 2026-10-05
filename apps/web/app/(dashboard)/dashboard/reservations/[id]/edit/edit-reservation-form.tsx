@@ -291,6 +291,7 @@ export function EditReservationForm({
 
   // State
   const [isLoading, setIsLoading] = useState(false);
+  const [internalTitle, setInternalTitle] = useState(reservation.internalTitle ?? "");
   const [startDate, setStartDate] = useState<Date | undefined>(new Date(reservation.startDate));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date(reservation.endDate));
   const endMinTime =
@@ -812,6 +813,7 @@ export function EditReservationForm({
         payload: {
           startDate,
           endDate,
+          internalTitle,
           notifyCustomerByEmail,
           tulipInsuranceOptIn: effectiveTulipInsuranceOptIn,
           overrideTurnoverBuffer,
@@ -1026,6 +1028,7 @@ export function EditReservationForm({
   const hasItemChanges = currentItemsSignature !== originalItemsSignature;
 
   const hasChanges =
+    internalTitle.trim() !== (reservation.internalTitle ?? "") ||
     (startDate?.getTime() ?? 0) !== new Date(reservation.startDate).getTime() ||
     (endDate?.getTime() ?? 0) !== new Date(reservation.endDate).getTime() ||
     calculations.subtotal !== originalSubtotal ||
@@ -1174,6 +1177,22 @@ export function EditReservationForm({
           <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-4 sm:space-y-6 min-w-0">
+              <Card>
+                <CardContent className="p-4 sm:p-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="reservation-internal-title">{t("edit.internalTitle")}</Label>
+                    <Input
+                      id="reservation-internal-title"
+                      value={internalTitle}
+                      onChange={(event) => setInternalTitle(event.target.value)}
+                      placeholder={t("edit.internalTitlePlaceholder")}
+                      maxLength={255}
+                    />
+                    <p className="text-xs text-muted-foreground">{t("edit.internalTitleHelp")}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Dates Card */}
               <Card>
                 <CardContent className="p-4 sm:p-6">

@@ -2317,6 +2317,9 @@
       "edit": {
         "button": "Modifier",
         "title": "Modifier la réservation",
+        "internalTitle": "Intitulé interne de la réservation",
+        "internalTitlePlaceholder": "Ex. : matériel de mariage pour la famille Martin",
+        "internalTitleHelp": "Visible par votre entreprise dans la liste des réservations, jamais par les clients.",
         "dates": "Dates",
         "startDate": "Date de début",
         "endDate": "Date de fin",

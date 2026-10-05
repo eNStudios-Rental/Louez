@@ -162,6 +162,7 @@ export interface BaseContext {
     updateReservation?: (
       reservationId: string,
       data: {
+        internalTitle?: string | null;
         startDate?: Date;
         endDate?: Date;
         items?: Array<{

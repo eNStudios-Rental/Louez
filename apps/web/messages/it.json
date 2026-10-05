@@ -2278,6 +2278,9 @@
       "edit": {
         "button": "Modifica",
         "title": "Modifica prenotazione",
+        "internalTitle": "Titolo interno della prenotazione",
+        "internalTitlePlaceholder": "Es.: attrezzatura per il matrimonio della famiglia Rossi",
+        "internalTitleHelp": "Visibile alla tua azienda nell'elenco delle prenotazioni; i clienti non possono vederlo.",
         "dates": "Date",
         "startDate": "Data di inizio",
         "endDate": "Data di fine",

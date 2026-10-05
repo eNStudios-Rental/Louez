@@ -2278,6 +2278,9 @@
       "edit": {
         "button": "Bewerken",
         "title": "Reservering bewerken",
+        "internalTitle": "Interne reserveringstitel",
+        "internalTitlePlaceholder": "Bijv. trouwuitrusting voor familie Jansen",
+        "internalTitleHelp": "Zichtbaar voor je bedrijf in de reserveringslijst; klanten kunnen dit niet zien.",
         "dates": "Datums",
         "startDate": "Startdatum",
         "endDate": "Einddatum",

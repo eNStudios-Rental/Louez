@@ -2317,6 +2317,9 @@
       "edit": {
         "button": "編集",
         "title": "予約の編集",
+        "internalTitle": "Internal reservation title",
+        "internalTitlePlaceholder": "e.g. Wedding equipment for a customer",
+        "internalTitleHelp": "Visible to your company in the reservations list; customers cannot see it.",
         "dates": "日付",
         "startDate": "開始日",
         "endDate": "終了日",

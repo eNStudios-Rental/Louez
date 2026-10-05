@@ -2317,6 +2317,9 @@
       "edit": {
         "button": "Edit",
         "title": "Edit reservation",
+        "internalTitle": "Internal reservation title",
+        "internalTitlePlaceholder": "e.g. Wedding equipment for Smith family",
+        "internalTitleHelp": "Visible to your company in the reservations list; customers cannot see it.",
         "dates": "Dates",
         "startDate": "Start date",
         "endDate": "End date",

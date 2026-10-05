@@ -2317,6 +2317,9 @@
       "edit": {
         "button": "Bearbeiten",
         "title": "Reservierung bearbeiten",
+        "internalTitle": "Interner Reservierungstitel",
+        "internalTitlePlaceholder": "z. B. Hochzeitsausstattung für Familie Müller",
+        "internalTitleHelp": "Für Ihr Unternehmen in der Reservierungsliste sichtbar; Kunden sehen diesen Titel nicht.",
         "dates": "Daten",
         "startDate": "Startdatum",
         "endDate": "Enddatum",

@@ -2317,6 +2317,9 @@
       "edit": {
         "button": "Sunting",
         "title": "Edit reservasi",
+        "internalTitle": "Internal reservation title",
+        "internalTitlePlaceholder": "e.g. Wedding equipment for a customer",
+        "internalTitleHelp": "Visible to your company in the reservations list; customers cannot see it.",
         "dates": "Tanggal",
         "startDate": "Tanggal mulai",
         "endDate": "Tanggal akhir",

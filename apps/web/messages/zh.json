@@ -2317,6 +2317,9 @@
       "edit": {
         "button": "编辑",
         "title": "编辑预订",
+        "internalTitle": "Internal reservation title",
+        "internalTitlePlaceholder": "e.g. Wedding equipment for a customer",
+        "internalTitleHelp": "Visible to your company in the reservations list; customers cannot see it.",
         "dates": "枣子",
         "startDate": "开始日期",
         "endDate": "结束日期",

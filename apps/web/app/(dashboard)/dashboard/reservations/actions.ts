@@ -2105,6 +2105,7 @@ interface UpdateDeliveryLeg {
 }
 
 interface UpdateReservationData {
+  internalTitle?: string | null;
   startDate?: Date;
   endDate?: Date;
   notifyCustomerByEmail?: boolean;
@@ -3576,6 +3577,9 @@ export async function updateReservation(
         await tx
           .update(reservations)
           .set({
+            ...(data.internalTitle !== undefined
+              ? { internalTitle: data.internalTitle?.trim() || null }
+              : {}),
             startDate: newStartDate,
             endDate: newEndDate,
             subtotalAmount: newSubtotalAmount.toFixed(2),

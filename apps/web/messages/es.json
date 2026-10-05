@@ -2317,6 +2317,9 @@
       "edit": {
         "button": "Editar",
         "title": "Editar reserva",
+        "internalTitle": "Título interno de la reserva",
+        "internalTitlePlaceholder": "Ej.: equipo de boda para la familia García",
+        "internalTitleHelp": "Visible para tu empresa en la lista de reservas; los clientes no pueden verlo.",
         "dates": "Fechas",
         "startDate": "Fecha de inicio",
         "endDate": "Fecha de fin",
