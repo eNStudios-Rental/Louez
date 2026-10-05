@@ -202,7 +202,7 @@ try {
       waitUntil: "domcontentloaded",
     });
     await page.locator('[data-demo-ready="true"]').waitFor();
-    await page.evaluate(async () => {
+    const failedImages = await page.evaluate(async () => {
       // An image counts as visible when its centre is on screen: a lazy one that only grazes the
       // bottom edge, clipped by a scrolling parent, never loads and must not be waited for.
       const images = Array.from(document.images).filter((image) => {
@@ -213,10 +213,20 @@ try {
           rect.width > 0 && rect.height > 0 && x > 0 && x < innerWidth && y > 0 && y < innerHeight
         );
       });
+      const failedImages = [];
       let timeout;
       try {
         await Promise.race([
-          Promise.all([document.fonts.ready, ...images.map((image) => image.decode())]),
+          Promise.all([
+            document.fonts.ready,
+            ...images.map(async (image) => {
+              try {
+                await image.decode();
+              } catch {
+                failedImages.push(image.currentSrc || image.src);
+              }
+            }),
+          ]),
           new Promise((_, reject) => {
             timeout = setTimeout(
               () => reject(new Error("Timed out waiting for visible demo assets")),
@@ -227,7 +237,11 @@ try {
       } finally {
         clearTimeout(timeout);
       }
+      return failedImages;
     });
+    if (failedImages.length) {
+      console.warn(`${scene} (${locale}): could not decode demo image(s): ${failedImages.join(", ")}`);
+    }
     if (errors.length) {
       const hydration = errors.some((error) => /react\.dev\/errors\/(418|425)\b/.test(error));
       const details = hydration ? `\n${await describeTextMismatch(page)}` : "";
