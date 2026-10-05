@@ -170,6 +170,7 @@ export interface NewReservationFormValues {
   customerId: string;
   startDate: Date | undefined;
   endDate: Date | undefined;
+  internalTitle: string;
   internalNotes: string;
 }
 

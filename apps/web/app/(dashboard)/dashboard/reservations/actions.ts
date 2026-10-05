@@ -1013,6 +1013,7 @@ interface CreateReservationData {
       longitude?: number;
     };
   };
+  internalTitle?: string;
   internalNotes?: string;
   /** Flat commercial discount in currency units; clamped to the subtotal. */
   discountAmount?: number;
@@ -1728,6 +1729,7 @@ export async function createManualReservation(data: CreateReservationData) {
       depositAmount: depositAmount.toFixed(2),
       totalAmount: totalAmount.toFixed(2),
       discountAmount: manualDiscountAmount.toFixed(2),
+      internalTitle: data.internalTitle?.trim() || null,
       internalNotes: data.internalNotes || null,
       source: "manual",
       // Staff books on the customer's behalf: the profile's default identity

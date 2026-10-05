@@ -145,6 +145,7 @@ export function NewReservationForm({
   const queryClient = useQueryClient();
   const timezone = useStoreTimezone();
   const t = useTranslations("dashboard.reservations.manualForm");
+  const tReservation = useTranslations("dashboard.reservations");
   const tCommon = useTranslations("common");
   const tErrors = useTranslations("errors");
   const tValidation = useTranslations("validation");
@@ -437,6 +438,7 @@ export function NewReservationForm({
                   },
           },
           internalNotes: value.internalNotes || undefined,
+          internalTitle: value.internalTitle.trim() || undefined,
           discountAmount:
             globalDiscountAmount > 0 ? Math.round(globalDiscountAmount * 100) / 100 : undefined,
           depositOverride: depositOverride ?? undefined,
@@ -509,6 +511,7 @@ export function NewReservationForm({
       customerId: "",
       startDate: undefined as Date | undefined,
       endDate: undefined as Date | undefined,
+      internalTitle: "",
       internalNotes: "",
     },
     validationLogic: revalidateLogic({
@@ -1644,7 +1647,31 @@ export function NewReservationForm({
                 </div>
               )}
 
-              <div id="section-notes" className="scroll-mt-8">
+              <div id="section-notes" className="scroll-mt-8 space-y-4">
+                <Card>
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="reservation-internal-title">
+                        {tReservation("edit.internalTitle")}
+                        <span className="ml-1 text-muted-foreground">
+                          ({tCommon("optional")})
+                        </span>
+                      </Label>
+                      <form.AppField name="internalTitle">
+                        {(field) => (
+                          <field.Input
+                            id="reservation-internal-title"
+                            placeholder={tReservation("edit.internalTitlePlaceholder")}
+                            maxLength={255}
+                          />
+                        )}
+                      </form.AppField>
+                      <p className="text-xs text-muted-foreground">
+                        {tReservation("edit.internalTitleHelp")}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
                 <Card>
                   <CardHeader>
                     <CardTitle>{t("internalNotes")}</CardTitle>

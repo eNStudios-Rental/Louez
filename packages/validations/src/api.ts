@@ -635,6 +635,7 @@ export const dashboardReservationCreateManualReservationInputSchema = z.object({
       })
       .optional(),
     internalNotes: z.string().max(100000).optional(),
+    internalTitle: z.string().trim().max(255).optional(),
     discountAmount: z.number().min(0).optional(),
     depositOverride: z.number().min(0).optional(),
     tulipInsuranceOptIn: z.boolean().optional(),
