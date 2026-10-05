@@ -1286,6 +1286,8 @@ export const reservations = mysqlTable(
 
     // Reservation number (auto-incremented per store)
     number: varchar("number", { length: 50 }).notNull(),
+    // Company-only label to help identify a reservation in the dashboard.
+    internalTitle: varchar("internal_title", { length: 255 }),
 
     // Status
     status: reservationStatus.default("pending").notNull(),

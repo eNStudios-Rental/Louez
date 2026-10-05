@@ -2324,6 +2324,9 @@
       "edit": {
         "button": "Редактировать",
         "title": "Изменить бронирование",
+        "internalTitle": "Internal reservation title",
+        "internalTitlePlaceholder": "e.g. Wedding equipment for a customer",
+        "internalTitleHelp": "Visible to your company in the reservations list; customers cannot see it.",
         "dates": "Даты",
         "startDate": "Дата начала",
         "endDate": "Дата окончания",

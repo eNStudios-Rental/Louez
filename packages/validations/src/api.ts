@@ -479,6 +479,7 @@ export const dashboardReservationSendAccessLinkSmsInputSchema = z.object({
 export const dashboardReservationUpdateReservationInputSchema = z.object({
   reservationId: z.string().length(21),
   payload: z.object({
+    internalTitle: z.string().trim().max(255).nullable().optional(),
     startDate: z.union([dateTimeOrDateSchema, z.date()]).optional(),
     endDate: z.union([dateTimeOrDateSchema, z.date()]).optional(),
     notifyCustomerByEmail: z.boolean().optional(),

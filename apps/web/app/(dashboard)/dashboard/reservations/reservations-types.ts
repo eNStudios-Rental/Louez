@@ -29,6 +29,7 @@ export interface Payment {
 export interface Reservation {
   id: string
   number: string
+  internalTitle?: string | null
   source?: string | null
   status: ReservationStatus | null
   startDate: Date

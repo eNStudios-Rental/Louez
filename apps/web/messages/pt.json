@@ -2285,6 +2285,9 @@
       "edit": {
         "button": "Editar",
         "title": "Editar reserva",
+        "internalTitle": "Título interno da reserva",
+        "internalTitlePlaceholder": "Ex.: equipamento de casamento para a família Silva",
+        "internalTitleHelp": "Visível para a sua empresa na lista de reservas; os clientes não o podem ver.",
         "dates": "Datas",
         "startDate": "Data de inicio",
         "endDate": "Data de fim",
