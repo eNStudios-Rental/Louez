@@ -590,6 +590,7 @@ export const dashboardReservationCreateManualReservationInputSchema = z.object({
         productId: z.string().length(21),
         quantity: z.number().int().min(1),
         selectedAttributes: z.record(z.string(), z.string()).optional(),
+        selectedUnitId: z.string().length(21).optional(),
         priceOverride: z
           .object({
             unitPrice: z.number().min(0),

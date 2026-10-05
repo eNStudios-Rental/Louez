@@ -78,7 +78,10 @@ interface NewReservationStepProductsProps {
   originalSubtotal: number;
   totalSavings: number;
   deposit: number;
-  addProduct: (productId: string, options?: { allowUnavailable?: boolean }) => void;
+  addProduct: (
+    productId: string,
+    options?: { allowUnavailable?: boolean; selectedUnitId?: string },
+  ) => void;
   updateQuantity: (lineId: string, delta: number) => void;
   updateSelectedAttributes: (lineId: string, axisKey: string, value: string | undefined) => void;
   removeSelectedProductLine: (lineId: string) => void;
@@ -136,11 +139,14 @@ export function NewReservationStepProducts({
   const t = useTranslations("dashboard.reservations.manualForm");
   const tCommon = useTranslations("common");
   const tEdit = useTranslations("dashboard.reservations.edit");
-  const [confirmUnavailableProductId, setConfirmUnavailableProductId] = useState<string | null>(
-    null,
-  );
-  const confirmUnavailableProduct = confirmUnavailableProductId
-    ? products.find((product) => product.id === confirmUnavailableProductId)
+  const tInventory = useTranslations("dashboard.products.detail.inventory");
+  const tUnitTracking = useTranslations("dashboard.products.form.unitTracking");
+  const [confirmUnavailableProduct, setConfirmUnavailableProduct] = useState<{
+    productId: string;
+    selectedUnitId?: string;
+  } | null>(null);
+  const unavailableProduct = confirmUnavailableProduct
+    ? products.find((product) => product.id === confirmUnavailableProduct.productId)
     : undefined;
   const isTulipInsuranceEnabledForReservation =
     tulipInsuranceMode === "required" || (tulipInsuranceMode === "optional" && tulipInsuranceOptIn);
@@ -206,14 +212,14 @@ export function NewReservationStepProducts({
     return map;
   }, [selectedProducts]);
 
-  const handleAddFromCombobox = (productId: string) => {
+  const handleAddFromCombobox = (productId: string, selectedUnitId?: string) => {
     const remaining = availableQuantityByProduct.get(productId);
     if (remaining !== null && (remaining === undefined || remaining <= 0)) {
-      setConfirmUnavailableProductId(productId);
+      setConfirmUnavailableProduct({ productId, ...(selectedUnitId ? { selectedUnitId } : {}) });
       return;
     }
 
-    addProduct(productId);
+    addProduct(productId, { selectedUnitId });
   };
 
   // Adding items requires a rental period: instead of disabling the actions,
@@ -344,6 +350,8 @@ export function NewReservationStepProducts({
                   availableLabel={t("available")}
                   doneLabel={tCommon("done")}
                   selectedQuantityByProduct={selectedQuantityByProduct}
+                  identifierLabel={tInventory("identifier")}
+                  serialNumberLabel={tUnitTracking("serialNumber")}
                   onBeforeOpen={guardPeriodSelected}
                   className="min-w-0 flex-1"
                 />
@@ -452,6 +460,9 @@ export function NewReservationStepProducts({
 
                 return {
                   line,
+                  selectedUnit: line.selectedUnitId
+                    ? product.searchUnits?.find((unit) => unit.id === line.selectedUnitId)
+                    : undefined,
                   pricing,
                   constraints,
                 };
@@ -591,7 +602,7 @@ export function NewReservationStepProducts({
 
                   {productLines.length > 0 && (
                     <div className="mt-3 space-y-3 border-t pt-3">
-                      {lineStates.map(({ line, pricing, constraints }, index) => {
+                      {lineStates.map(({ line, selectedUnit, pricing, constraints }, index) => {
                         const lineMaxQuantity = constraints.lineMaxQuantity;
                         const canIncreaseLine =
                           lineMaxQuantity === null ||
@@ -611,6 +622,18 @@ export function NewReservationStepProducts({
                                 <span className="text-muted-foreground text-xs font-medium">
                                   {t("lineLabel", { index: index + 1 })}
                                 </span>
+                                {selectedUnit && (
+                                  <>
+                                    <Badge variant="expired" className="text-xs">
+                                      {tInventory("identifier")}: {selectedUnit.identifier}
+                                    </Badge>
+                                    {selectedUnit.serialNumber && (
+                                      <Badge variant="expired" className="text-xs">
+                                        {tUnitTracking("serialNumber")}: {selectedUnit.serialNumber}
+                                      </Badge>
+                                    )}
+                                  </>
+                                )}
                                 {line.selectedAttributes &&
                                   Object.entries(line.selectedAttributes)
                                     .sort(([a], [b]) => a.localeCompare(b, "en"))
@@ -625,26 +648,30 @@ export function NewReservationStepProducts({
                                     ))}
                               </div>
                               <div className="flex items-center gap-1 self-start sm:self-auto">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                  onClick={() => updateQuantity(line.lineId, -1)}
-                                >
-                                  <Minus className="h-3 w-3" />
-                                </Button>
+                                {!selectedUnit && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => updateQuantity(line.lineId, -1)}
+                                  >
+                                    <Minus className="h-3 w-3" />
+                                  </Button>
+                                )}
                                 <span className="w-8 text-center font-medium">{line.quantity}</span>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                  onClick={() => updateQuantity(line.lineId, 1)}
-                                  disabled={!canIncreaseLine}
-                                >
-                                  <Plus className="h-3 w-3" />
-                                </Button>
+                                {!selectedUnit && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => updateQuantity(line.lineId, 1)}
+                                    disabled={!canIncreaseLine}
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                  </Button>
+                                )}
                                 <Button
                                   type="button"
                                   variant="ghost"
@@ -657,7 +684,7 @@ export function NewReservationStepProducts({
                               </div>
                             </div>
 
-                            {hasBookingAttributes && (
+                            {hasBookingAttributes && !selectedUnit && (
                               <div className="space-y-2">
                                 <div className="grid gap-2 sm:grid-cols-2">
                                   {bookingAttributeAxes.map((axis) => (
@@ -846,6 +873,8 @@ export function NewReservationStepProducts({
                         availableLabel={t("available")}
                         doneLabel={tCommon("done")}
                         selectedQuantityByProduct={selectedQuantityByProduct}
+                        identifierLabel={tInventory("identifier")}
+                        serialNumberLabel={tUnitTracking("serialNumber")}
                       />
                     </div>
                   )}
@@ -1084,9 +1113,9 @@ export function NewReservationStepProducts({
       </Card>
 
       <Dialog
-        open={confirmUnavailableProductId !== null}
+        open={confirmUnavailableProduct !== null}
         onOpenChange={(open) => {
-          if (!open) setConfirmUnavailableProductId(null);
+          if (!open) setConfirmUnavailableProduct(null);
         }}
       >
         <DialogPopup className="sm:max-w-md">
@@ -1097,7 +1126,7 @@ export function NewReservationStepProducts({
             </DialogTitle>
             <DialogDescription>
               {t("addUnavailable.description", {
-                name: confirmUnavailableProduct?.name ?? "",
+                name: unavailableProduct?.name ?? "",
               })}
             </DialogDescription>
           </DialogHeader>
@@ -1105,7 +1134,7 @@ export function NewReservationStepProducts({
             <Button
               type="button"
               variant="outline"
-              onClick={() => setConfirmUnavailableProductId(null)}
+              onClick={() => setConfirmUnavailableProduct(null)}
             >
               {tCommon("cancel")}
             </Button>
@@ -1113,10 +1142,13 @@ export function NewReservationStepProducts({
               type="button"
               variant="destructive"
               onClick={() => {
-                if (confirmUnavailableProductId) {
-                  addProduct(confirmUnavailableProductId, { allowUnavailable: true });
+                if (confirmUnavailableProduct) {
+                  addProduct(confirmUnavailableProduct.productId, {
+                    allowUnavailable: true,
+                    selectedUnitId: confirmUnavailableProduct.selectedUnitId,
+                  });
                 }
-                setConfirmUnavailableProductId(null);
+                setConfirmUnavailableProduct(null);
               }}
             >
               {t("addUnavailable.confirm")}

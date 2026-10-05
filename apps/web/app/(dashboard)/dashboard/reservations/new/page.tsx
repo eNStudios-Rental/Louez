@@ -54,6 +54,8 @@ async function getProductsWithTiers(storeId: string) {
       units: {
         columns: {
           id: true,
+          identifier: true,
+          serialNumber: true,
           lifecycleStatus: true,
           attributes: true,
         },
@@ -82,6 +84,14 @@ async function getProductsWithTiers(storeId: string) {
         ? effectiveQuantities.get(p.id) ?? 0
         : p.quantity,
       tulipInsurable: Boolean(p.tulipMapping?.productId),
+      searchUnits: p.units
+        .filter((unit) => unit.lifecycleStatus === 'active')
+        .map((unit) => ({
+          id: unit.id,
+          identifier: unit.identifier,
+          serialNumber: unit.serialNumber,
+          attributes: unit.attributes ?? null,
+        })),
       units: p.units.map((unit) => ({
         lifecycleStatus: unit.lifecycleStatus,
         attributes: unit.attributes ?? null,

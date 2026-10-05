@@ -27,6 +27,13 @@ export interface ProductPricingTier {
   displayOrder: number | null;
 }
 
+export interface SearchableProductUnit {
+  id: string;
+  identifier: string;
+  serialNumber: string | null;
+  attributes: UnitAttributes | null;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -41,6 +48,7 @@ export interface Product {
   basePeriodMinutes?: number | null;
   enforceStrictTiers?: boolean;
   images: string[] | null;
+  searchUnits?: SearchableProductUnit[];
   trackUnits: boolean;
   bookingAttributeAxes: BookingAttributeAxis[] | null;
   units: Array<{
@@ -57,6 +65,7 @@ export interface SelectedProduct {
   productId: string;
   quantity: number;
   selectedAttributes?: UnitAttributes;
+  selectedUnitId?: string;
   priceOverride?: {
     unitPrice: number;
   };

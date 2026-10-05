@@ -749,9 +749,56 @@ export function NewReservationForm({
         ? Math.min(globalDiscount.value, discountBase)
         : Math.min((discountBase * globalDiscount.value) / 100, discountBase);
 
-  const addProduct = (productId: string, options: { allowUnavailable?: boolean } = {}) => {
+  const addProduct = (
+    productId: string,
+    options: { allowUnavailable?: boolean; selectedUnitId?: string } = {},
+  ) => {
     const product = products.find((item) => item.id === productId);
     if (!product) {
+      return;
+    }
+
+    if (options.selectedUnitId) {
+      const selectedUnit = product.searchUnits?.find(
+        (unit) => unit.id === options.selectedUnitId,
+      );
+      if (!selectedUnit) return;
+
+      setSelectedProducts((prev) => {
+        if (prev.some((line) => line.selectedUnitId === selectedUnit.id)) {
+          return prev;
+        }
+
+        const nextLine: SelectedProduct = {
+          lineId: createLineId(),
+          productId,
+          quantity: 1,
+          selectedUnitId: selectedUnit.id,
+          ...(selectedUnit.attributes && Object.keys(selectedUnit.attributes).length > 0
+            ? { selectedAttributes: selectedUnit.attributes }
+            : {}),
+        };
+        const productLines = [...prev.filter((line) => line.productId === productId), nextLine];
+        const constraints = getLineQuantityConstraints(
+          product,
+          nextLine,
+          productLines,
+          periodAvailability.reservedByProduct.get(product.id) || 0,
+          periodAvailability.reservedByProductCombination,
+          hasSelectedPeriod,
+          getPeriodProductAvailability(product.id),
+        );
+
+        if (
+          constraints.lineMaxQuantity !== null &&
+          constraints.lineMaxQuantity <= 0 &&
+          !options.allowUnavailable
+        ) {
+          return prev;
+        }
+
+        return [...prev, nextLine];
+      });
       return;
     }
 
