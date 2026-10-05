@@ -62,6 +62,7 @@ interface Customer {
 interface ReservationHeaderProps {
   reservationId: string;
   reservationNumber: string;
+  internalTitle?: string | null;
   status: ReservationStatus;
   createdAt: Date;
   startDate: Date;
@@ -88,6 +89,7 @@ interface ReservationHeaderProps {
 export function ReservationHeader({
   reservationId,
   reservationNumber,
+  internalTitle,
   status,
   createdAt: _createdAt,
   startDate: _startDate,
@@ -276,6 +278,7 @@ export function ReservationHeader({
 
             <ReservationIdentity
               reservationNumber={reservationNumber}
+              internalTitle={internalTitle}
               status={status}
               rentalAmount={rentalAmount}
               rentalPaid={rentalPaid}
