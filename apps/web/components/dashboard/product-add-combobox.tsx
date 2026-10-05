@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 
 import { ChevronsUpDown } from "lucide-react";
 
@@ -33,12 +33,17 @@ export interface ProductAddComboboxProduct {
   id: string;
   name: string;
   images?: string[] | null;
+  searchUnits?: Array<{
+    id: string;
+    identifier: string;
+    serialNumber: string | null;
+  }>;
 }
 
 interface ProductAddComboboxProps {
   products: ProductAddComboboxProduct[];
   availableQuantityByProduct: Map<string, StockQuantityLimit>;
-  onAddProduct: (productId: string) => void;
+  onAddProduct: (productId: string, unitId?: string) => void;
   placeholder: string;
   searchPlaceholder: string;
   emptyLabel: string;
@@ -48,6 +53,8 @@ interface ProductAddComboboxProps {
   doneLabel: string;
   /** Quantity already on the reservation, shown per row so the list doubles as a recap. */
   selectedQuantityByProduct?: Map<string, number>;
+  identifierLabel?: string;
+  serialNumberLabel?: string;
   disabled?: boolean;
   /** Return false to keep the popover closed (e.g. a prerequisite is missing). */
   onBeforeOpen?: () => boolean;
@@ -66,6 +73,8 @@ export function ProductAddCombobox({
   availableLabel,
   doneLabel,
   selectedQuantityByProduct,
+  identifierLabel,
+  serialNumberLabel,
   disabled = false,
   onBeforeOpen,
   className,
@@ -98,9 +107,34 @@ export function ProductAddCombobox({
     return () => cancelAnimationFrame(frame);
   }, [isMobile, open]);
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  const normalizedSearchQuery = searchQuery.trim().toLocaleLowerCase();
+  const filteredProducts = products.filter(
+    (product) =>
+      product.name.toLocaleLowerCase().includes(normalizedSearchQuery) ||
+      product.searchUnits?.some(
+        (unit) =>
+          unit.identifier.toLocaleLowerCase().includes(normalizedSearchQuery) ||
+          unit.serialNumber?.toLocaleLowerCase().includes(normalizedSearchQuery),
+      ),
   );
+  const commandItems = filteredProducts.flatMap((product) => {
+    const productMatches = product.name.toLocaleLowerCase().includes(normalizedSearchQuery);
+    const matchingUnits = normalizedSearchQuery
+      ? (product.searchUnits ?? []).filter(
+          (unit) =>
+            unit.identifier.toLocaleLowerCase().includes(normalizedSearchQuery) ||
+            unit.serialNumber?.toLocaleLowerCase().includes(normalizedSearchQuery),
+        )
+      : [];
+
+    return [
+      ...(productMatches ? [{ id: `product:${product.id}`, name: product.name }] : []),
+      ...matchingUnits.map((unit) => ({
+        id: `unit:${unit.id}`,
+        name: `${product.name} ${unit.identifier} ${unit.serialNumber ?? ""}`,
+      })),
+    ];
+  });
 
   // Adding leaves the list open, so the tap needs an answer inside the list
   // itself: the count badge pops, then settles back to rest.
@@ -141,7 +175,7 @@ export function ProductAddCombobox({
   );
 
   const command = (
-    <Command open items={filteredProducts} filter={null}>
+    <Command open items={commandItems} filter={null}>
       <CommandInput
         ref={searchInputRef}
         autoFocus={false}
@@ -159,11 +193,22 @@ export function ProductAddCombobox({
             const isUnavailable =
               remaining !== undefined && remaining !== null && remaining <= 0;
             const selectedQuantity = selectedQuantityByProduct?.get(product.id) ?? 0;
+            const matchesProductName = product.name
+              .toLocaleLowerCase()
+              .includes(normalizedSearchQuery);
+            const matchingUnits = normalizedSearchQuery
+              ? (product.searchUnits ?? []).filter(
+                  (unit) =>
+                    unit.identifier.toLocaleLowerCase().includes(normalizedSearchQuery) ||
+                    unit.serialNumber?.toLocaleLowerCase().includes(normalizedSearchQuery),
+                )
+              : [];
 
             return (
+              <Fragment key={product.id}>
+                {matchesProductName && (
               <CommandItem
-                key={product.id}
-                value={product.id}
+                value={`product:${product.id}`}
                 onClick={() => {
                   // Keep the popover open so several products can be
                   // added in a row; Escape or an outside click closes it.
@@ -214,6 +259,39 @@ export function ProductAddCombobox({
                   )
                 )}
               </CommandItem>
+                )}
+                {matchingUnits.map((unit) => (
+                  <CommandItem
+                    key={unit.id}
+                    value={`unit:${unit.id}`}
+                    onClick={() => {
+                      onAddProduct(product.id, unit.id);
+                      flagJustAdded(product.id);
+                      setSearchQuery("");
+                    }}
+                    className="flex items-center gap-2 pl-8 transition-transform duration-150 ease-out active:scale-[0.98] motion-reduce:active:scale-100"
+                  >
+                    <ProductImage
+                      src={product.images?.[0]}
+                      alt=""
+                      sizes="32px"
+                      containerClassName="w-8 shrink-0 rounded-md"
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm">{product.name}</span>
+                      <span className="text-muted-foreground block truncate text-xs">
+                        {identifierLabel ?? "Identifier"}: {unit.identifier}
+                        {unit.serialNumber && (
+                          <>
+                            {" · "}
+                            {serialNumberLabel ?? "Serial number"}: {unit.serialNumber}
+                          </>
+                        )}
+                      </span>
+                    </span>
+                  </CommandItem>
+                ))}
+              </Fragment>
             );
           })}
         </CommandGroup>

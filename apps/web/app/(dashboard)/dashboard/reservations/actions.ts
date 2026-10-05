@@ -984,6 +984,7 @@ interface CreateReservationData {
     productId: string;
     quantity: number;
     selectedAttributes?: UnitAttributes;
+    selectedUnitId?: string;
     priceOverride?: {
       unitPrice: number;
     };
@@ -1225,6 +1226,7 @@ export async function createManualReservation(data: CreateReservationData) {
       return {
         product,
         quantity: item.quantity,
+        selectedUnitId: item.selectedUnitId,
         unitPrice: effectiveUnitPrice.toFixed(2),
         depositPerUnit: product.deposit || "0",
         totalPrice: effectiveSubtotal.toFixed(2),
@@ -1468,6 +1470,20 @@ export async function createManualReservation(data: CreateReservationData) {
     const trackedProductIds = lockedProducts
       .filter((product) => product.trackUnits)
       .map((product) => product.id);
+    const requestedUnitIds = productDetails.flatMap((detail) =>
+      detail.selectedUnitId ? [detail.selectedUnitId] : [],
+    );
+    if (new Set(requestedUnitIds).size !== requestedUnitIds.length) {
+      return { ok: false as const, error: "errors.invalidUnits" as const, shortfalls: [] };
+    }
+    if (requestedUnitIds.length > 0) {
+      await tx
+        .select({ id: productUnits.id })
+        .from(productUnits)
+        .where(inArray(productUnits.id, [...requestedUnitIds].sort((a, b) => a.localeCompare(b))))
+        .orderBy(productUnits.id)
+        .for("update");
+    }
     const trackedUnits =
       trackedProductIds.length > 0
         ? await tx
@@ -1483,6 +1499,7 @@ export async function createManualReservation(data: CreateReservationData) {
             .select({
               id: productUnits.id,
               productId: productUnits.productId,
+              identifier: productUnits.identifier,
               combinationKey: productUnits.combinationKey,
               attributes: productUnits.attributes,
             })
@@ -1584,6 +1601,8 @@ export async function createManualReservation(data: CreateReservationData) {
     }
 
     const shortfalls: ManualReservationCapacityShortfall[] = [];
+    const requestedUnitsById = new Map(availableUnits.map((unit) => [unit.id, unit]));
+    const selectedUnitIds = new Set<string>();
 
     for (const detail of productDetails) {
       const product = productsById.get(detail.product.id);
@@ -1593,6 +1612,24 @@ export async function createManualReservation(data: CreateReservationData) {
           error: "errors.productNotFound" as const,
           shortfalls: [],
         };
+      }
+
+      if (detail.selectedUnitId) {
+        const selectedUnit = requestedUnitsById.get(detail.selectedUnitId);
+        if (
+          !product.trackUnits ||
+          detail.quantity !== 1 ||
+          !selectedUnit ||
+          selectedUnit.productId !== product.id ||
+          selectedUnitIds.has(selectedUnit.id)
+        ) {
+          return { ok: false as const, error: "errors.invalidUnits" as const, shortfalls: [] };
+        }
+
+        selectedUnitIds.add(selectedUnit.id);
+        detail.combinationKey = selectedUnit.combinationKey || DEFAULT_COMBINATION_KEY;
+        const attributes = normalizeUnitAttributes(selectedUnit.attributes);
+        detail.selectedAttributes = Object.keys(attributes).length > 0 ? attributes : null;
       }
 
       if (!product.trackUnits) {
@@ -1756,7 +1793,9 @@ export async function createManualReservation(data: CreateReservationData) {
 
     // Create reservation items for catalog products
     for (const detail of productDetails) {
+      const reservationItemId = nanoid();
       await tx.insert(reservationItems).values({
+        id: reservationItemId,
         reservationId,
         productId: detail.product.id,
         isCustomItem: false,
@@ -1775,6 +1814,30 @@ export async function createManualReservation(data: CreateReservationData) {
           selectedAttributes: detail.selectedAttributes,
         },
       });
+
+      if (detail.selectedUnitId) {
+        const selectedUnit = requestedUnitsById.get(detail.selectedUnitId);
+        if (selectedUnit) {
+          await tx.insert(reservationItemUnits).values({
+            id: nanoid(),
+            reservationItemId,
+            productUnitId: selectedUnit.id,
+            identifierSnapshot: selectedUnit.identifier,
+          });
+          await tx.insert(productUnitEvents).values(
+            buildUnitEvent({
+              productUnitId: selectedUnit.id,
+              event: {
+                storeId: store.id,
+                type: "assigned",
+                actorUserId: store.userId,
+                identifierSnapshot: selectedUnit.identifier,
+                payload: { reservationId, reservationItemId },
+              },
+            }),
+          );
+        }
+      }
     }
 
     // Create reservation items for custom items

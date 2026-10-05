@@ -1,24 +1,8 @@
-import type { UnitAttributes } from '@louez/types';
 import { formatCurrency } from '@louez/utils';
 
 import { formatDate } from '@/lib/utils';
 
 import type { ProductInventoryUnit } from '../../queries';
-
-export const formatUnitAttributes = (attributes: UnitAttributes | null) => {
-  if (!attributes) {
-    return null;
-  }
-
-  const entries = Object.entries(attributes).filter(([, value]) =>
-    value.trim(),
-  );
-  if (entries.length === 0) {
-    return null;
-  }
-
-  return entries.map(([key, value]) => `${key}: ${value}`).join(' · ');
-};
 
 export const getTranslatedActionError = (
   error: string,

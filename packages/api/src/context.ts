@@ -272,6 +272,7 @@ export interface BaseContext {
         productId: string;
         quantity: number;
         selectedAttributes?: Record<string, string>;
+        selectedUnitId?: string;
         priceOverride?: { unitPrice: number };
       }>;
       customItems?: Array<{
