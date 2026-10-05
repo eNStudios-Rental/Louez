@@ -132,10 +132,6 @@ export function ProductFormSectionStock({
           <UnitTrackingEditor
             currency={currency}
             trackUnits={option === "units"}
-            bookingAttributeAxes={watchedValues.bookingAttributeAxes || []}
-            onBookingAttributeAxesChange={(axes) =>
-              form.setFieldValue("bookingAttributeAxes", axes)
-            }
             units={watchedValues.units || []}
             onChange={(units) => form.setFieldValue("units", units)}
             quantity={watchedValues.quantity || "1"}

@@ -99,6 +99,7 @@ export const productTaxSettingsSchema = z.object({
 
 const productUnitBaseSchema = z.object({
   identifier: z.string().max(255, 'validation.maxLength'),
+  serialNumber: z.string().max(255, 'validation.maxLength').optional().or(z.literal('')),
   attributes: z.record(z.string(), z.string()).optional(),
   hasActiveAssignment: z.boolean().optional(),
 });
@@ -323,12 +324,22 @@ export const createProductSchema = (
           z.object({
             id: z.string().min(1),
             identifier: z.string().max(255, t('maxLength', { max: 255 })),
+            serialNumber: z
+              .string()
+              .max(255, t('maxLength', { max: 255 }))
+              .optional()
+              .or(z.literal('')),
             attributes: z.record(z.string(), z.string()).optional(),
             hasActiveAssignment: z.boolean().optional(),
           }),
           z.object({
             id: z.undefined().optional(),
             identifier: z.string().max(255, t('maxLength', { max: 255 })),
+            serialNumber: z
+              .string()
+              .max(255, t('maxLength', { max: 255 }))
+              .optional()
+              .or(z.literal('')),
             notes: z
               .string()
               .max(1000, t('maxLength', { max: 1000 }))

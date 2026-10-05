@@ -2485,8 +2485,11 @@ export const productUnits = mysqlTable(
     id: id(),
     productId: varchar("product_id", { length: 21 }).notNull(),
 
-    // User-defined identifier (serial number, asset tag, etc.)
+    // User-defined internal identifier for the rentable unit.
     identifier: varchar("identifier", { length: 255 }).notNull(),
+
+    // Optional manufacturer serial number, separate from the internal identifier.
+    serialNumber: varchar("serial_number", { length: 255 }),
 
     // Optional internal notes (e.g., "Blue frame", "New battery 2025")
     notes: text("notes"),
