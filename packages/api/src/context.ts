@@ -303,6 +303,7 @@ export interface BaseContext {
           longitude?: number;
         };
       };
+      internalTitle?: string;
       internalNotes?: string;
       discountAmount?: number;
       depositOverride?: number;
