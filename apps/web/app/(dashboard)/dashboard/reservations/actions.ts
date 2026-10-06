@@ -1758,9 +1758,31 @@ export async function createManualReservation(data: CreateReservationData) {
           detail.quantity !== 1 ||
           !selectedUnit ||
           selectedUnit.productId !== product.id ||
-          !selectableUnitIds.has(detail.selectedUnitId) ||
           selectedUnitIds.has(selectedUnit.id)
         ) {
+          return { ok: false as const, error: "errors.invalidUnits" as const, shortfalls: [] };
+        }
+
+        if (!selectableUnitIds.has(detail.selectedUnitId)) {
+          const conflictingReservation = overlappingReservations.find((reservation) =>
+            reservation.items.some((item) =>
+              item.assignedUnits.some((assignment) => assignment.productUnitId === selectedUnit.id),
+            ),
+          );
+
+          if (conflictingReservation) {
+            return {
+              ok: false as const,
+              error: "errors.invalidUnits" as const,
+              unitConflict: {
+                identifier: selectedUnit.identifier,
+                startDate: conflictingReservation.startDate.toISOString(),
+                endDate: conflictingReservation.endDate.toISOString(),
+              },
+              shortfalls: [],
+            };
+          }
+
           return { ok: false as const, error: "errors.invalidUnits" as const, shortfalls: [] };
         }
 
@@ -2020,6 +2042,7 @@ export async function createManualReservation(data: CreateReservationData) {
   if (!reservationWriteResult.ok) {
     return {
       error: reservationWriteResult.error,
+      unitConflict: reservationWriteResult.unitConflict,
       shortfalls: reservationWriteResult.shortfalls,
     };
   }

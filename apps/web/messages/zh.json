@@ -2472,6 +2472,7 @@
         "durationHours": "{count,plural,one{# 小时} other{# 小时}}",
         "durationWeeks": "{count,plural,one{# 周} other{# 周}}",
         "reservationCreated": "已创建预订",
+        "unitReservationConflict": "此设备（{identifier}）与 {start} 至 {end} 的另一项预订冲突。",
         "selectDatesError": "请选择日期",
         "addProductError": "请添加至少一种产品",
         "selectCustomerError": "请选择一位客户",

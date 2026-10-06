@@ -2472,6 +2472,7 @@
         "durationHours": "{count,plural,one{# 時間} other{# 時間}}",
         "durationWeeks": "{count,plural,one{# 週} other{# 週}}",
         "reservationCreated": "予約が作成されました",
+        "unitReservationConflict": "このユニット（{identifier}）は、{start}から{end}までの別の予約と重複しています。",
         "selectDatesError": "日付を選択してください",
         "addProductError": "少なくとも 1 つの製品を追加してください",
         "selectCustomerError": "お客様を選択してください",

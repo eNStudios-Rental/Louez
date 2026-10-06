@@ -2472,6 +2472,7 @@
         "durationHours": "{count, plural, one {# Stunde} other {# Stunden}}",
         "durationWeeks": "{count, plural, one {# Woche} other {# Wochen}}",
         "reservationCreated": "Reservierung erstellt",
+        "unitReservationConflict": "Diese Einheit ({identifier}) kollidiert mit einer anderen Reservierung vom {start} bis {end}.",
         "selectDatesError": "Bitte wählen Sie Daten aus",
         "addProductError": "Bitte fügen Sie mindestens ein Produkt hinzu",
         "selectCustomerError": "Bitte wählen Sie einen Kunden aus",
