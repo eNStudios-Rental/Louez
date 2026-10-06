@@ -2479,6 +2479,7 @@
         "durationHours": "{count,plural,one{# jam} other{# jam}}",
         "durationWeeks": "{count,plural,one{# minggu} other{# minggu}}",
         "reservationCreated": "Reservasi dibuat",
+        "unitReservationConflict": "Unit ini ({identifier}) bentrok dengan reservasi lain dari {start} hingga {end}.",
         "selectDatesError": "Silakan pilih tanggal",
         "addProductError": "Harap tambahkan setidaknya satu produk",
         "selectCustomerError": "Silakan pilih pelanggan",

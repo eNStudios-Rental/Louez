@@ -464,6 +464,33 @@ export function NewReservationForm({
         return;
       }
 
+      if ("unitConflict" in result && result.unitConflict) {
+        posthog.capture(productAnalyticsEvents.dashboardReservationCreationFailed, {
+          ...dashboardReservationAnalyticsBaseProperties,
+          error_code: result.error,
+          source: openReplaySource,
+        });
+        toastManager.add({
+          title: t("unitReservationConflict", {
+            identifier: result.unitConflict.identifier,
+            start: formatStoreDate(
+              result.unitConflict.startDate,
+              timezone,
+              "SHORT_DATETIME",
+              formatLocale,
+            ),
+            end: formatStoreDate(
+              result.unitConflict.endDate,
+              timezone,
+              "SHORT_DATETIME",
+              formatLocale,
+            ),
+          }),
+          type: "error",
+        });
+        return;
+      }
+
       if ("error" in result && result.error) {
         posthog.capture(productAnalyticsEvents.dashboardReservationCreationFailed, {
           ...dashboardReservationAnalyticsBaseProperties,

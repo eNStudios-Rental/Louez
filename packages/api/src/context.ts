@@ -315,6 +315,11 @@ export interface BaseContext {
       success?: boolean;
       reservationId?: string;
       error?: string;
+      unitConflict?: {
+        identifier: string;
+        startDate: string;
+        endDate: string;
+      };
       shortfalls?: Array<{
         productId: string;
         productName: string;

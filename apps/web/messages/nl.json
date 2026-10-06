@@ -2440,6 +2440,7 @@
         "durationHours": "{count, plural, one {# uur} other {# uren}}",
         "durationWeeks": "{count, plural, one {# week} other {# weken}}",
         "reservationCreated": "Reservering aangemaakt",
+        "unitReservationConflict": "Deze eenheid ({identifier}) overlapt met een andere reservering van {start} tot {end}.",
         "selectDatesError": "Selecteer data",
         "addProductError": "Voeg minimaal één product toe",
         "selectCustomerError": "Selecteer een klant",

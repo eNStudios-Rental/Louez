@@ -2479,6 +2479,7 @@
         "durationHours": "{count,plural,one{# 시간} other{# 시간}}",
         "durationWeeks": "{count,plural,one{# 주} other{# 주}}",
         "reservationCreated": "예약이 생성되었습니다",
+        "unitReservationConflict": "이 단위({identifier})는 {start}부터 {end}까지의 다른 예약과 충돌합니다.",
         "selectDatesError": "날짜를 선택하세요.",
         "addProductError": "제품을 하나 이상 추가하세요.",
         "selectCustomerError": "고객을 선택하세요.",

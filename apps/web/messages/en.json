@@ -2479,6 +2479,7 @@
         "durationHours": "{count, plural, one {# hour} other {# hours}}",
         "durationWeeks": "{count, plural, one {# week} other {# weeks}}",
         "reservationCreated": "Reservation created",
+        "unitReservationConflict": "This item ({identifier}) conflicts with another reservation from {start} to {end}.",
         "selectDatesError": "Please select dates",
         "addProductError": "Please add at least one product",
         "selectCustomerError": "Please select a customer",
