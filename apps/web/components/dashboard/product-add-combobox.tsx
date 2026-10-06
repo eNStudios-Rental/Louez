@@ -40,6 +40,11 @@ export interface ProductAddComboboxProduct {
   }>;
 }
 
+export interface ProductAddComboboxUnitAvailability {
+  status: "available" | "reserved" | "buffer" | "downtime";
+  downtimeReason?: "maintenance" | "repair" | "other";
+}
+
 interface ProductAddComboboxProps {
   products: ProductAddComboboxProduct[];
   availableQuantityByProduct: Map<string, StockQuantityLimit>;
@@ -53,6 +58,15 @@ interface ProductAddComboboxProps {
   doneLabel: string;
   /** Quantity already on the reservation, shown per row so the list doubles as a recap. */
   selectedQuantityByProduct?: Map<string, number>;
+  unitAvailabilityById?: ReadonlyMap<string, ProductAddComboboxUnitAvailability>;
+  unitAvailabilityLabels?: {
+    checking: string;
+    available: string;
+    reserved: string;
+    buffer: string;
+    downtime: string;
+    downtimeReasons: Record<"maintenance" | "repair" | "other", string>;
+  };
   identifierLabel?: string;
   serialNumberLabel?: string;
   disabled?: boolean;
@@ -73,6 +87,8 @@ export function ProductAddCombobox({
   availableLabel,
   doneLabel,
   selectedQuantityByProduct,
+  unitAvailabilityById,
+  unitAvailabilityLabels,
   identifierLabel,
   serialNumberLabel,
   disabled = false,
@@ -260,26 +276,46 @@ export function ProductAddCombobox({
                 )}
               </CommandItem>
                 )}
-                {matchingUnits.map((unit) => (
-                  <CommandItem
-                    key={unit.id}
-                    value={`unit:${unit.id}`}
-                    onClick={() => {
-                      onAddProduct(product.id, unit.id);
-                      flagJustAdded(product.id);
-                      setSearchQuery("");
-                    }}
-                    className="flex items-center gap-2 pl-8 transition-transform duration-150 ease-out active:scale-[0.98] motion-reduce:active:scale-100"
-                  >
-                    <ProductImage
-                      src={product.images?.[0]}
-                      alt=""
-                      sizes="32px"
-                      containerClassName="w-8 shrink-0 rounded-md"
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm">{product.name}</span>
-                      <span className="text-muted-foreground block truncate text-xs">
+                {matchingUnits.map((unit) => {
+                  const unitAvailability = unitAvailabilityById?.get(unit.id);
+                  const isUnitUnavailable =
+                    unitAvailabilityById !== undefined &&
+                    unitAvailability?.status !== "available";
+                  const unitAvailabilityLabel =
+                    !unitAvailability
+                      ? unitAvailabilityLabels?.checking
+                      : unitAvailability.status === "downtime"
+                        ? `${unitAvailabilityLabels?.downtime} - ${unitAvailabilityLabels?.downtimeReasons[unitAvailability.downtimeReason ?? "other"]}`
+                        : unitAvailability.status === "buffer"
+                          ? unitAvailabilityLabels?.buffer
+                          : unitAvailability.status === "reserved"
+                            ? unitAvailabilityLabels?.reserved
+                            : unitAvailabilityLabels?.available;
+
+                  return (
+                    <CommandItem
+                      key={unit.id}
+                      value={`unit:${unit.id}`}
+                      disabled={isUnitUnavailable}
+                      onClick={() => {
+                        onAddProduct(product.id, unit.id);
+                        flagJustAdded(product.id);
+                        setSearchQuery("");
+                      }}
+                      className={cn(
+                        "flex items-center gap-2 pl-8 transition-transform duration-150 ease-out active:scale-[0.98] motion-reduce:active:scale-100",
+                        isUnitUnavailable && "cursor-not-allowed opacity-60",
+                      )}
+                    >
+                      <ProductImage
+                        src={product.images?.[0]}
+                        alt=""
+                        sizes="32px"
+                        containerClassName="w-8 shrink-0 rounded-md"
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm">{product.name}</span>
+                        <span className="text-muted-foreground block truncate text-xs">
                         {identifierLabel ?? "Identifier"}: {unit.identifier}
                         {unit.serialNumber && (
                           <>
@@ -287,10 +323,19 @@ export function ProductAddCombobox({
                             {serialNumberLabel ?? "Serial number"}: {unit.serialNumber}
                           </>
                         )}
+                        </span>
                       </span>
-                    </span>
-                  </CommandItem>
-                ))}
+                      {unitAvailabilityLabel && (
+                        <Badge
+                          variant={isUnitUnavailable ? "pending" : "success"}
+                          className="shrink-0"
+                        >
+                          {unitAvailabilityLabel}
+                        </Badge>
+                      )}
+                    </CommandItem>
+                  );
+                })}
               </Fragment>
             );
           })}

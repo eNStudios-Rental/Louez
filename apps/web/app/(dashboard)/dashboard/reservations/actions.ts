@@ -12,7 +12,7 @@ import { validateReservationContract } from "@louez/api/services";
 import { resolveDateChangeRequests } from "@/lib/reservations/date-change-request.server";
 import { revalidatePath } from "next/cache";
 
-import { and, eq, inArray, not, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, isNull, lt, not, or, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 import {
@@ -45,6 +45,7 @@ import {
   payments,
   productSeasonalPricing,
   productSeasonalPricingTiers,
+  productUnitDowntimes,
   productUnitEvents,
   productUnits,
   products,
@@ -211,14 +212,130 @@ export async function getManualReservationAvailability(input: StorefrontAvailabi
   }
 
   try {
+    const productIds = validated.data.productIds ?? [];
     const availability = await getStorefrontAvailability({
       storeSlug: store.slug,
       startDate: validated.data.startDate,
       endDate: validated.data.endDate,
-      productIds: validated.data.productIds,
+      productIds,
     });
 
-    return { success: true, availability };
+    const unitRows =
+      productIds.length > 0
+        ? await db
+            .select({
+              id: productUnits.id,
+              productId: productUnits.productId,
+              combinationKey: productUnits.combinationKey,
+            })
+            .from(productUnits)
+            .innerJoin(products, eq(productUnits.productId, products.id))
+            .where(
+              and(
+                eq(products.storeId, store.id),
+                inArray(products.id, productIds),
+                eq(products.trackUnits, true),
+                eq(productUnits.lifecycleStatus, "active"),
+              ),
+            )
+        : [];
+    const unitIds = unitRows.map((unit) => unit.id);
+    const startDate = new Date(validated.data.startDate);
+    const endDate = new Date(validated.data.endDate);
+    const downtimes =
+      unitIds.length > 0
+        ? await db
+            .select({
+              unitId: productUnitDowntimes.productUnitId,
+              reason: productUnitDowntimes.reason,
+            })
+            .from(productUnitDowntimes)
+            .where(
+              and(
+                eq(productUnitDowntimes.storeId, store.id),
+                inArray(productUnitDowntimes.productUnitId, unitIds),
+                lt(productUnitDowntimes.startsAt, endDate),
+                or(isNull(productUnitDowntimes.endsAt), gt(productUnitDowntimes.endsAt, startDate)),
+              ),
+            )
+        : [];
+    const busyUnits =
+      unitIds.length > 0
+        ? await findBusyUnitIds(db, {
+            unitIds,
+            start: startDate,
+            end: endDate,
+            blockingStatuses: getBlockingReservationStatuses(
+              store.settings?.pendingBlocksAvailability ?? true,
+            ),
+            turnoverBufferMinutes: store.settings?.turnoverBufferMinutes ?? 0,
+          })
+        : new Map<string, "overlap" | "buffer">();
+    const downtimeByUnitId = new Map(
+      downtimes.map((downtime) => [downtime.unitId, downtime.reason]),
+    );
+    const availabilityByProduct = new Map(
+      availability.products.map((product) => [product.productId, product]),
+    );
+    const freeUnitsByProduct = new Map<string, Map<string, typeof unitRows>>();
+    const unitAvailabilityById = new Map<
+      string,
+      {
+        unitId: string;
+        status: "available" | "reserved" | "buffer" | "downtime";
+        downtimeReason?: "maintenance" | "repair" | "other";
+      }
+    >();
+    for (const unit of unitRows) {
+      const downtimeReason = downtimeByUnitId.get(unit.id);
+      if (downtimeReason) {
+        unitAvailabilityById.set(unit.id, {
+          unitId: unit.id,
+          status: "downtime",
+          downtimeReason,
+        });
+        continue;
+      }
+
+      const busyReason = busyUnits.get(unit.id);
+      if (busyReason) {
+        unitAvailabilityById.set(unit.id, {
+          unitId: unit.id,
+          status: busyReason === "buffer" ? "buffer" : "reserved",
+        });
+        continue;
+      }
+
+      const combinations =
+        freeUnitsByProduct.get(unit.productId) ?? new Map<string, typeof unitRows>();
+      const freeUnits = combinations.get(unit.combinationKey) ?? [];
+      freeUnits.push(unit);
+      combinations.set(unit.combinationKey, freeUnits);
+      freeUnitsByProduct.set(unit.productId, combinations);
+    }
+
+    for (const [productId, combinations] of freeUnitsByProduct) {
+      const product = availabilityByProduct.get(productId);
+      for (const [combinationKey, freeUnits] of combinations) {
+        const productCombination = product?.combinations?.find(
+          (combination) => combination.combinationKey === combinationKey,
+        );
+        const availableQuantity = productCombination?.availableQuantity ?? 0;
+
+        freeUnits
+          .sort((left, right) => left.id.localeCompare(right.id))
+          .forEach((unit, index) => {
+            unitAvailabilityById.set(unit.id, {
+              unitId: unit.id,
+              status: index < availableQuantity ? "available" : "reserved",
+            });
+          });
+      }
+    }
+
+    const unitAvailability = [...unitAvailabilityById.values()];
+
+    return { success: true, availability: { ...availability, unitAvailability } };
   } catch (error) {
     console.error("Error fetching manual reservation availability:", error);
     return { error: "errors.invalidData" };
@@ -1512,6 +1629,13 @@ export async function createManualReservation(data: CreateReservationData) {
               ),
             )
         : [];
+    const busyUnitsInPeriod = await findBusyUnitIds(tx, {
+      unitIds: availableUnits.map((unit) => unit.id),
+      start: data.startDate,
+      end: data.endDate,
+      blockingStatuses,
+      turnoverBufferMinutes,
+    });
     const availableUnitIds = new Set(availableUnits.map((unit) => unit.id));
     const excludedProductUnitIds = new Set(
       trackedUnits.filter((unit) => !availableUnitIds.has(unit.id)).map((unit) => unit.id),
@@ -1601,6 +1725,33 @@ export async function createManualReservation(data: CreateReservationData) {
       );
     }
 
+    const freeUnitsByProduct = new Map<string, Map<string, typeof availableUnits>>();
+    for (const unit of availableUnits) {
+      if (busyUnitsInPeriod.has(unit.id)) {
+        continue;
+      }
+
+      const combinations =
+        freeUnitsByProduct.get(unit.productId) ?? new Map<string, typeof availableUnits>();
+      const combinationKey = unit.combinationKey || DEFAULT_COMBINATION_KEY;
+      const units = combinations.get(combinationKey) ?? [];
+      units.push(unit);
+      combinations.set(combinationKey, units);
+      freeUnitsByProduct.set(unit.productId, combinations);
+    }
+
+    const selectableUnitIds = new Set<string>();
+    for (const [productId, combinations] of freeUnitsByProduct) {
+      for (const [combinationKey, units] of combinations) {
+        const key = getProductCombinationAvailabilityKey(productId, combinationKey);
+        const availableQuantity = remainingByProductCombination.get(key) ?? 0;
+        units
+          .sort((left, right) => left.id.localeCompare(right.id))
+          .slice(0, availableQuantity)
+          .forEach((unit) => selectableUnitIds.add(unit.id));
+      }
+    }
+
     const shortfalls: ManualReservationCapacityShortfall[] = [];
     const requestedUnitsById = new Map(availableUnits.map((unit) => [unit.id, unit]));
     const selectedUnitIds = new Set<string>();
@@ -1622,6 +1773,7 @@ export async function createManualReservation(data: CreateReservationData) {
           detail.quantity !== 1 ||
           !selectedUnit ||
           selectedUnit.productId !== product.id ||
+          !selectableUnitIds.has(detail.selectedUnitId) ||
           selectedUnitIds.has(selectedUnit.id)
         ) {
           return { ok: false as const, error: "errors.invalidUnits" as const, shortfalls: [] };
@@ -1661,7 +1813,10 @@ export async function createManualReservation(data: CreateReservationData) {
 
       if (detail.combinationKey) {
         const key = getProductCombinationAvailabilityKey(product.id, detail.combinationKey);
-        const available = Math.min(remainingByProductCombination.get(key) || 0, productRemaining);
+        const available = remainingByProductCombination.get(key) || 0;
+        if (detail.selectedUnitId && detail.quantity > available) {
+          return { ok: false as const, error: "errors.invalidUnits" as const, shortfalls: [] };
+        }
         if (detail.quantity > available) {
           shortfalls.push({
             productId: product.id,

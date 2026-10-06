@@ -34,6 +34,12 @@ export interface SearchableProductUnit {
   attributes: UnitAttributes | null;
 }
 
+export type ManualReservationUnitAvailability = {
+  unitId: string;
+  status: "available" | "reserved" | "buffer" | "downtime";
+  downtimeReason?: "maintenance" | "repair" | "other";
+};
+
 export interface Product {
   id: string;
   name: string;
