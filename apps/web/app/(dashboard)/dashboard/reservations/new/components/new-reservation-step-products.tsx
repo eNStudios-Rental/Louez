@@ -56,6 +56,7 @@ import type {
   Product,
   ProductPricingDetails,
   SelectedProduct,
+  ManualReservationUnitAvailability,
 } from "../types";
 import { buildProductCombinations, getLineQuantityConstraints } from "../utils/variant-lines";
 
@@ -72,6 +73,7 @@ interface NewReservationStepProductsProps {
   endDate: Date | undefined;
   availabilityWarnings: AvailabilityWarning[];
   periodAvailability: PeriodAvailability;
+  unitAvailabilityById: ReadonlyMap<string, ManualReservationUnitAvailability>;
   hasSelectedPeriod: boolean;
   hasItems: boolean;
   subtotal: number;
@@ -117,6 +119,7 @@ export function NewReservationStepProducts({
   endDate,
   availabilityWarnings,
   periodAvailability,
+  unitAvailabilityById,
   hasSelectedPeriod,
   hasItems,
   subtotal,
@@ -140,6 +143,9 @@ export function NewReservationStepProducts({
   const tCommon = useTranslations("common");
   const tEdit = useTranslations("dashboard.reservations.edit");
   const tInventory = useTranslations("dashboard.products.detail.inventory");
+  const tInventoryStates = useTranslations("dashboard.inventory.states");
+  const tDowntimeReasons = useTranslations("dashboard.inventory.downtimeReasons");
+  const tReservationSettings = useTranslations("dashboard.settings.reservationSettings");
   const tUnitTracking = useTranslations("dashboard.products.form.unitTracking");
   const [confirmUnavailableProduct, setConfirmUnavailableProduct] = useState<{
     productId: string;
@@ -350,6 +356,19 @@ export function NewReservationStepProducts({
                   availableLabel={t("available")}
                   doneLabel={tCommon("done")}
                   selectedQuantityByProduct={selectedQuantityByProduct}
+                  unitAvailabilityById={unitAvailabilityById}
+                  unitAvailabilityLabels={{
+                    checking: tCommon("loading"),
+                    available: tInventoryStates("available"),
+                    reserved: tInventoryStates("reserved"),
+                    buffer: tReservationSettings("turnoverBuffer"),
+                    downtime: tInventoryStates("in_downtime"),
+                    downtimeReasons: {
+                      maintenance: tDowntimeReasons("maintenance"),
+                      repair: tDowntimeReasons("repair"),
+                      other: tDowntimeReasons("other"),
+                    },
+                  }}
                   identifierLabel={tInventory("identifier")}
                   serialNumberLabel={tUnitTracking("serialNumber")}
                   onBeforeOpen={guardPeriodSelected}

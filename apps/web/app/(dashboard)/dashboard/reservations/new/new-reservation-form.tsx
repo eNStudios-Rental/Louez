@@ -73,6 +73,7 @@ import { useReservationDurationLabel } from "./hooks/use-reservation-duration-la
 import type {
   Customer,
   CustomItem,
+  ManualReservationUnitAvailability,
   NewReservationFormComponentApi,
   NewReservationFormProps,
   NewReservationFormValues,
@@ -588,15 +589,27 @@ export function NewReservationForm({
         throw new Error(result.error ?? "errors.invalidData");
       }
 
-      return result.availability.products;
+      return result.availability;
     },
     enabled: hasSelectedPeriod,
     staleTime: 30_000,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: "always",
   });
   const serviceAvailability =
     manualAvailabilityQuery.data && !manualAvailabilityQuery.isError
-      ? manualAvailabilityQuery.data
+      ? manualAvailabilityQuery.data.products
       : undefined;
+  const unitAvailabilityById = useMemo(
+    () =>
+      new Map<string, ManualReservationUnitAvailability>(
+        (manualAvailabilityQuery.data && !manualAvailabilityQuery.isError
+          ? manualAvailabilityQuery.data.unitAvailability
+          : []
+        ).map((unitAvailability) => [unitAvailability.unitId, unitAvailability] as const),
+      ),
+    [manualAvailabilityQuery.data, manualAvailabilityQuery.isError],
+  );
 
   const { periodWarnings, availabilityWarnings } = useNewReservationWarnings({
     startDate: watchStartDate,
@@ -1593,6 +1606,7 @@ export function NewReservationForm({
                   endDate={watchEndDate}
                   availabilityWarnings={availabilityWarnings}
                   periodAvailability={periodAvailability}
+                  unitAvailabilityById={unitAvailabilityById}
                   hasSelectedPeriod={hasSelectedPeriod}
                   hasItems={hasItems}
                   subtotal={subtotal}
