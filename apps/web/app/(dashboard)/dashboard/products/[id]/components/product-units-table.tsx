@@ -17,7 +17,6 @@ import {
   TableRow,
   toastManager,
 } from '@louez/ui';
-import type { UnitAttributes } from '@louez/types';
 
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatDate } from '@/lib/utils';
@@ -31,23 +30,17 @@ import { IndicatorsCell } from './inventory/indicators-cell';
 import { RetireDialog } from './inventory/retire-dialog';
 import { UnitHistorySheet } from './inventory/unit-history-sheet';
 import { UnitRowActions } from './inventory/unit-row-actions';
-import {
-  formatUnitAttributes,
-  getTranslatedActionError,
-} from './inventory/util.inventory-format';
+import { getTranslatedActionError } from './inventory/util.inventory-format';
 
 interface ProductUnitsTableProps {
   units: ProductInventoryUnit[];
   readOnly?: boolean;
 }
 
-function isUnitAttributes(value: unknown): value is UnitAttributes {
-  return typeof value === 'object' && value !== null;
-}
-
 export const ProductUnitsTable = ({ units, readOnly = false }: ProductUnitsTableProps) => {
   const { intl: formatLocale } = useFormatLocale();
   const t = useTranslations('dashboard.products.detail.inventory');
+  const tUnitTracking = useTranslations('dashboard.products.form.unitTracking');
   const tInventory = useTranslations('dashboard.inventory');
   const tErrors = useTranslations('errors');
   const router = useRouter();
@@ -127,7 +120,7 @@ export const ProductUnitsTable = ({ units, readOnly = false }: ProductUnitsTable
           <TableHeader>
             <TableRow>
               <TableHead>{t('identifier')}</TableHead>
-              <TableHead>{t('attributes')}</TableHead>
+              <TableHead>{tUnitTracking('serialNumber')}</TableHead>
               <TableHead>{t('unitStatus')}</TableHead>
               <TableHead>{t('lifecycle')}</TableHead>
               <TableHead className="text-center">
@@ -138,9 +131,6 @@ export const ProductUnitsTable = ({ units, readOnly = false }: ProductUnitsTable
           </TableHeader>
           <TableBody>
             {units.map((unit) => {
-              const attributesLabel = formatUnitAttributes(
-                isUnitAttributes(unit.attributes) ? unit.attributes : null,
-              );
               const isRetired = unit.lifecycleStatus === 'retired';
 
               return (
@@ -154,7 +144,7 @@ export const ProductUnitsTable = ({ units, readOnly = false }: ProductUnitsTable
                     </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {attributesLabel || '—'}
+                    {unit.serialNumber || '—'}
                   </TableCell>
                   <TableCell>
                     {isRetired ? (

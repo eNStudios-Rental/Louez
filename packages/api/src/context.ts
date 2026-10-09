@@ -162,6 +162,7 @@ export interface BaseContext {
     updateReservation?: (
       reservationId: string,
       data: {
+        internalTitle?: string | null;
         startDate?: Date;
         endDate?: Date;
         items?: Array<{
@@ -271,6 +272,7 @@ export interface BaseContext {
         productId: string;
         quantity: number;
         selectedAttributes?: Record<string, string>;
+        selectedUnitId?: string;
         priceOverride?: { unitPrice: number };
       }>;
       customItems?: Array<{
@@ -301,6 +303,7 @@ export interface BaseContext {
           longitude?: number;
         };
       };
+      internalTitle?: string;
       internalNotes?: string;
       discountAmount?: number;
       depositOverride?: number;
@@ -312,6 +315,11 @@ export interface BaseContext {
       success?: boolean;
       reservationId?: string;
       error?: string;
+      unitConflict?: {
+        identifier: string;
+        startDate: string;
+        endDate: string;
+      };
       shortfalls?: Array<{
         productId: string;
         productName: string;

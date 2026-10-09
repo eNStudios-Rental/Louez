@@ -261,6 +261,7 @@ export function ReservationDetailClient({
         onPreviewEmail={onPreviewEmail}
         reservationId={reservation.id}
         reservationNumber={reservation.number}
+        internalTitle={reservation.internalTitle}
         status={status}
         createdAt={toDate(reservation.createdAt) || new Date()}
         startDate={startDate}

@@ -255,6 +255,7 @@ export async function getDashboardReservationEditContext(params: {
     reservation: {
       id: reservation.id,
       number: reservation.number,
+      internalTitle: reservation.internalTitle,
       status: reservation.status,
       updatedAt: reservation.updatedAt,
       startDate: reservation.startDate,

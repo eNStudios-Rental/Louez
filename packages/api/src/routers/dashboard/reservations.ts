@@ -228,6 +228,12 @@ const createManualReservation = requirePermission("write")
           shortfalls: result.shortfalls || [],
         };
       }
+      if (result.error === "errors.invalidUnits" && result.unitConflict) {
+        return {
+          error: result.error,
+          unitConflict: result.unitConflict,
+        };
+      }
       if (result.error) {
         throw new ORPCError("BAD_REQUEST", { message: result.error });
       }

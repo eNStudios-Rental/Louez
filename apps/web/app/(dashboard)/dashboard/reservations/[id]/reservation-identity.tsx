@@ -10,11 +10,13 @@ export interface ReservationIdentityProps extends Omit<
   "className" | "showDetails"
 > {
   reservationNumber: string;
+  internalTitle?: string | null;
   status: keyof typeof STATUS_CONFIG;
 }
 
 export const ReservationIdentity = ({
   reservationNumber,
+  internalTitle,
   status,
   rentalAmount,
   rentalPaid,
@@ -28,6 +30,9 @@ export const ReservationIdentity = ({
       {/* Reservation number + Status badges */}
       <div className="flex items-center gap-2 flex-wrap">
         <h1 className="text-2xl font-bold tracking-tight">#{reservationNumber}</h1>
+        {internalTitle?.trim() && (
+          <span className="text-base font-medium text-muted-foreground">{internalTitle}</span>
+        )}
         <Badge variant={STATUS_CONFIG[status].badgeVariant} className="font-medium">
           {t(`status.${status}`)}
         </Badge>

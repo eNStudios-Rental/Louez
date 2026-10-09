@@ -285,6 +285,7 @@ export function ProductForm({
     product?.units?.map((unit) => ({
       id: unit.id,
       identifier: unit.identifier,
+      serialNumber: unit.serialNumber ?? "",
       attributes: unit.attributes || {},
       hasActiveAssignment: unit.hasActiveAssignment ?? false,
     })) ?? [];

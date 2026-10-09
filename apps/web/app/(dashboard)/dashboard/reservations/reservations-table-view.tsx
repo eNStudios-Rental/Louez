@@ -232,6 +232,11 @@ export function ReservationsTableView({
                         >
                           #{reservation.number}
                         </Link>
+                        {reservation.internalTitle && (
+                          <span className="max-w-48 truncate font-sans text-xs text-muted-foreground">
+                            {reservation.internalTitle}
+                          </span>
+                        )}
                         {reservation.source === "marketplace" && (
                           <Badge variant="submitted" className="font-sans text-[10px]">
                             {t("sourceMarketplace")}

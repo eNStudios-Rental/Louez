@@ -139,6 +139,11 @@ export function ReservationsCardView({
                         <span className="font-mono text-sm font-semibold">
                           #{reservation.number}
                         </span>
+                        {reservation.internalTitle && (
+                          <span className="max-w-48 truncate text-sm font-medium text-foreground">
+                            {reservation.internalTitle}
+                          </span>
+                        )}
                         {reservation.source === "marketplace" && (
                           <Badge variant="submitted" className="text-[10px]">
                             {t("sourceMarketplace")}

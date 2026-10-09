@@ -94,6 +94,7 @@ export interface RateTierInput {
 export interface ProductUnitData {
   id: string;
   identifier: string;
+  serialNumber?: string | null;
   attributes?: Record<string, string> | null;
   hasActiveAssignment?: boolean;
 }

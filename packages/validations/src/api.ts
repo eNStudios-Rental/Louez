@@ -479,6 +479,7 @@ export const dashboardReservationSendAccessLinkSmsInputSchema = z.object({
 export const dashboardReservationUpdateReservationInputSchema = z.object({
   reservationId: z.string().length(21),
   payload: z.object({
+    internalTitle: z.string().trim().max(255).nullable().optional(),
     startDate: z.union([dateTimeOrDateSchema, z.date()]).optional(),
     endDate: z.union([dateTimeOrDateSchema, z.date()]).optional(),
     notifyCustomerByEmail: z.boolean().optional(),
@@ -589,6 +590,7 @@ export const dashboardReservationCreateManualReservationInputSchema = z.object({
         productId: z.string().length(21),
         quantity: z.number().int().min(1),
         selectedAttributes: z.record(z.string(), z.string()).optional(),
+        selectedUnitId: z.string().length(21).optional(),
         priceOverride: z
           .object({
             unitPrice: z.number().min(0),
@@ -633,6 +635,7 @@ export const dashboardReservationCreateManualReservationInputSchema = z.object({
       })
       .optional(),
     internalNotes: z.string().max(100000).optional(),
+    internalTitle: z.string().trim().max(255).optional(),
     discountAmount: z.number().min(0).optional(),
     depositOverride: z.number().min(0).optional(),
     tulipInsuranceOptIn: z.boolean().optional(),

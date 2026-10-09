@@ -320,6 +320,7 @@ export type ProductInventoryDetail =
       units: Array<{
         id: string;
         identifier: string;
+        serialNumber: string | null;
         attributes: unknown;
         lifecycleStatus: "active" | "retired";
         retiredAt: Date | null;
@@ -458,6 +459,7 @@ export async function getProductInventoryDetail(params: {
       return {
         id: unit.id,
         identifier: unit.identifier,
+        serialNumber: unit.serialNumber,
         attributes: unit.attributes,
         lifecycleStatus: unit.lifecycleStatus,
         retiredAt: unit.retiredAt,

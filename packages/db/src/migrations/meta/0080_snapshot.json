@@ -1,8 +1,8 @@
 {
     "version":  "5",
     "dialect":  "mysql",
-    "id":  "13394bea-30b4-4274-9319-db320bbf71d6",
-    "prevId":  "8b5f5a04-176d-417b-8f12-260f3d55b108",
+    "id":  "de754004-b935-43f8-9ddd-7c1968d865d1",
+    "prevId":  "13394bea-30b4-4274-9319-db320bbf71d6",
     "tables":  {
                    "account_departure_reason_counters":  {
                                                              "name":  "account_departure_reason_counters",
@@ -5666,6 +5666,13 @@
                                                                             "notNull":  true,
                                                                             "autoincrement":  false
                                                                         },
+                                                         "serial_number":  {
+                                                                              "name":  "serial_number",
+                                                                              "type":  "varchar(255)",
+                                                                              "primaryKey":  false,
+                                                                              "notNull":  false,
+                                                                              "autoincrement":  false
+                                                                          },
                                                          "notes":  {
                                                                        "name":  "notes",
                                                                        "type":  "text",

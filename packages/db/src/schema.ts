@@ -1286,6 +1286,8 @@ export const reservations = mysqlTable(
 
     // Reservation number (auto-incremented per store)
     number: varchar("number", { length: 50 }).notNull(),
+    // Company-only label to help identify a reservation in the dashboard.
+    internalTitle: varchar("internal_title", { length: 255 }),
 
     // Status
     status: reservationStatus.default("pending").notNull(),
@@ -2483,8 +2485,11 @@ export const productUnits = mysqlTable(
     id: id(),
     productId: varchar("product_id", { length: 21 }).notNull(),
 
-    // User-defined identifier (serial number, asset tag, etc.)
+    // User-defined internal identifier for the rentable unit.
     identifier: varchar("identifier", { length: 255 }).notNull(),
+
+    // Optional manufacturer serial number, separate from the internal identifier.
+    serialNumber: varchar("serial_number", { length: 255 }),
 
     // Optional internal notes (e.g., "Blue frame", "New battery 2025")
     notes: text("notes"),

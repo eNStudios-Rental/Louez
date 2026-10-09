@@ -73,6 +73,7 @@ import { useReservationDurationLabel } from "./hooks/use-reservation-duration-la
 import type {
   Customer,
   CustomItem,
+  ManualReservationUnitAvailability,
   NewReservationFormComponentApi,
   NewReservationFormProps,
   NewReservationFormValues,
@@ -145,6 +146,7 @@ export function NewReservationForm({
   const queryClient = useQueryClient();
   const timezone = useStoreTimezone();
   const t = useTranslations("dashboard.reservations.manualForm");
+  const tReservation = useTranslations("dashboard.reservations");
   const tCommon = useTranslations("common");
   const tErrors = useTranslations("errors");
   const tValidation = useTranslations("validation");
@@ -437,6 +439,7 @@ export function NewReservationForm({
                   },
           },
           internalNotes: value.internalNotes || undefined,
+          internalTitle: value.internalTitle.trim() || undefined,
           discountAmount:
             globalDiscountAmount > 0 ? Math.round(globalDiscountAmount * 100) / 100 : undefined,
           depositOverride: depositOverride ?? undefined,
@@ -457,6 +460,33 @@ export function NewReservationForm({
         setOverbookingDialog({
           isOpen: true,
           shortfalls: result.shortfalls,
+        });
+        return;
+      }
+
+      if ("unitConflict" in result && result.unitConflict) {
+        posthog.capture(productAnalyticsEvents.dashboardReservationCreationFailed, {
+          ...dashboardReservationAnalyticsBaseProperties,
+          error_code: result.error,
+          source: openReplaySource,
+        });
+        toastManager.add({
+          title: t("unitReservationConflict", {
+            identifier: result.unitConflict.identifier,
+            start: formatStoreDate(
+              result.unitConflict.startDate,
+              timezone,
+              "SHORT_DATETIME",
+              formatLocale,
+            ),
+            end: formatStoreDate(
+              result.unitConflict.endDate,
+              timezone,
+              "SHORT_DATETIME",
+              formatLocale,
+            ),
+          }),
+          type: "error",
         });
         return;
       }
@@ -509,6 +539,7 @@ export function NewReservationForm({
       customerId: "",
       startDate: undefined as Date | undefined,
       endDate: undefined as Date | undefined,
+      internalTitle: "",
       internalNotes: "",
     },
     validationLogic: revalidateLogic({
@@ -585,15 +616,27 @@ export function NewReservationForm({
         throw new Error(result.error ?? "errors.invalidData");
       }
 
-      return result.availability.products;
+      return result.availability;
     },
     enabled: hasSelectedPeriod,
     staleTime: 30_000,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: "always",
   });
   const serviceAvailability =
     manualAvailabilityQuery.data && !manualAvailabilityQuery.isError
-      ? manualAvailabilityQuery.data
+      ? manualAvailabilityQuery.data.products
       : undefined;
+  const unitAvailabilityById = useMemo(
+    () =>
+      new Map<string, ManualReservationUnitAvailability>(
+        (manualAvailabilityQuery.data && !manualAvailabilityQuery.isError
+          ? manualAvailabilityQuery.data.unitAvailability
+          : []
+        ).map((unitAvailability) => [unitAvailability.unitId, unitAvailability] as const),
+      ),
+    [manualAvailabilityQuery.data, manualAvailabilityQuery.isError],
+  );
 
   const { periodWarnings, availabilityWarnings } = useNewReservationWarnings({
     startDate: watchStartDate,
@@ -749,9 +792,56 @@ export function NewReservationForm({
         ? Math.min(globalDiscount.value, discountBase)
         : Math.min((discountBase * globalDiscount.value) / 100, discountBase);
 
-  const addProduct = (productId: string, options: { allowUnavailable?: boolean } = {}) => {
+  const addProduct = (
+    productId: string,
+    options: { allowUnavailable?: boolean; selectedUnitId?: string } = {},
+  ) => {
     const product = products.find((item) => item.id === productId);
     if (!product) {
+      return;
+    }
+
+    if (options.selectedUnitId) {
+      const selectedUnit = product.searchUnits?.find(
+        (unit) => unit.id === options.selectedUnitId,
+      );
+      if (!selectedUnit) return;
+
+      setSelectedProducts((prev) => {
+        if (prev.some((line) => line.selectedUnitId === selectedUnit.id)) {
+          return prev;
+        }
+
+        const nextLine: SelectedProduct = {
+          lineId: createLineId(),
+          productId,
+          quantity: 1,
+          selectedUnitId: selectedUnit.id,
+          ...(selectedUnit.attributes && Object.keys(selectedUnit.attributes).length > 0
+            ? { selectedAttributes: selectedUnit.attributes }
+            : {}),
+        };
+        const productLines = [...prev.filter((line) => line.productId === productId), nextLine];
+        const constraints = getLineQuantityConstraints(
+          product,
+          nextLine,
+          productLines,
+          periodAvailability.reservedByProduct.get(product.id) || 0,
+          periodAvailability.reservedByProductCombination,
+          hasSelectedPeriod,
+          getPeriodProductAvailability(product.id),
+        );
+
+        if (
+          constraints.lineMaxQuantity !== null &&
+          constraints.lineMaxQuantity <= 0 &&
+          !options.allowUnavailable
+        ) {
+          return prev;
+        }
+
+        return [...prev, nextLine];
+      });
       return;
     }
 
@@ -1543,6 +1633,7 @@ export function NewReservationForm({
                   endDate={watchEndDate}
                   availabilityWarnings={availabilityWarnings}
                   periodAvailability={periodAvailability}
+                  unitAvailabilityById={unitAvailabilityById}
                   hasSelectedPeriod={hasSelectedPeriod}
                   hasItems={hasItems}
                   subtotal={subtotal}
@@ -1597,7 +1688,31 @@ export function NewReservationForm({
                 </div>
               )}
 
-              <div id="section-notes" className="scroll-mt-8">
+              <div id="section-notes" className="scroll-mt-8 space-y-4">
+                <Card>
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="reservation-internal-title">
+                        {tReservation("edit.internalTitle")}
+                        <span className="ml-1 text-muted-foreground">
+                          ({tCommon("optional")})
+                        </span>
+                      </Label>
+                      <form.AppField name="internalTitle">
+                        {(field) => (
+                          <field.Input
+                            id="reservation-internal-title"
+                            placeholder={tReservation("edit.internalTitlePlaceholder")}
+                            maxLength={255}
+                          />
+                        )}
+                      </form.AppField>
+                      <p className="text-xs text-muted-foreground">
+                        {tReservation("edit.internalTitleHelp")}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
                 <Card>
                   <CardHeader>
                     <CardTitle>{t("internalNotes")}</CardTitle>
