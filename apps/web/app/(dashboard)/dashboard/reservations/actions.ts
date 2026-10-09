@@ -1752,6 +1752,33 @@ export async function createManualReservation(data: CreateReservationData) {
       }
     }
 
+    const freeUnitsByProduct = new Map<string, Map<string, typeof availableUnits>>();
+    for (const unit of availableUnits) {
+      if (busyUnitsInPeriod.has(unit.id)) {
+        continue;
+      }
+
+      const combinations =
+        freeUnitsByProduct.get(unit.productId) ?? new Map<string, typeof availableUnits>();
+      const combinationKey = unit.combinationKey || DEFAULT_COMBINATION_KEY;
+      const units = combinations.get(combinationKey) ?? [];
+      units.push(unit);
+      combinations.set(combinationKey, units);
+      freeUnitsByProduct.set(unit.productId, combinations);
+    }
+
+    const selectableUnitIds = new Set<string>();
+    for (const [productId, combinations] of freeUnitsByProduct) {
+      for (const [combinationKey, units] of combinations) {
+        const key = getProductCombinationAvailabilityKey(productId, combinationKey);
+        const availableQuantity = remainingByProductCombination.get(key) ?? 0;
+        units
+          .sort((left, right) => left.id.localeCompare(right.id))
+          .slice(0, availableQuantity)
+          .forEach((unit) => selectableUnitIds.add(unit.id));
+      }
+    }
+
     const shortfalls: ManualReservationCapacityShortfall[] = [];
     const requestedUnitsById = new Map(availableUnits.map((unit) => [unit.id, unit]));
     const selectedUnitIds = new Set<string>();
