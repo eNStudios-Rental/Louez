@@ -69,6 +69,7 @@ export const createDemoProductDetail = (
   const units: ProductInventoryUnit[] = Array.from({ length: product.quantity }, (_, index) => ({
     id: `${product.id}-unit-${index + 1}`,
     identifier: `${product.id === "demo-city-bike" ? "VDV" : "VEL"}-${String(index + 1).padStart(2, "0")}`,
+    serialNumber: null,
     attributes: null,
     lifecycleStatus: "active",
     retiredAt: null,

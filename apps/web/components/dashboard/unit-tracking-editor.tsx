@@ -26,19 +26,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@louez
 import { toastManager } from "@louez/ui";
 import { cn, getCurrencySymbol, toDatePickerValue } from "@louez/utils";
 
-import {
-  buildVariantRegistry,
-  type VariantCatalogDefinition,
-  type VariantRegistryEntry,
-} from "@/components/dashboard/util.variant-registry";
-import {
-  VariantManagerDrawer,
-  type WithdrawnVariant,
-} from "@/components/dashboard/variant-manager";
 import { ReservationDatePickerControl } from "@/components/form/form-reservation-date-picker";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { IMAGE_UPLOAD_MIME_TYPES } from "@/lib/uploads/image-upload";
-import { resolveVariantPresets } from "@/lib/variant-presets";
 
 interface ProductUnitInput {
   id?: string;
@@ -381,76 +371,6 @@ export function UnitTrackingEditor({
   const newRefInputRef = useRef<HTMLInputElement>(null);
   const [generatorOpen, setGeneratorOpen] = useState(seedsGenerator && declaredQuantity > 1);
 
-  // Store-level shared variant catalog
-  const queryClient = useQueryClient();
-  const variantCatalogQuery = useQuery(orpc.dashboard.variants.list.queryOptions());
-  const variantCatalog: VariantCatalogDefinition[] = variantCatalogQuery.data ?? [];
-  const ensureDefinitionMutation = useMutation(
-    orpc.dashboard.variants.ensureDefinition.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: orpc.dashboard.variants.key(),
-        });
-      },
-    }),
-  );
-  const createValueMutation = useMutation(
-    orpc.dashboard.variants.createValue.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: orpc.dashboard.variants.key(),
-        });
-      },
-    }),
-  );
-
-  const [variantManagerOpen, setVariantManagerOpen] = useState(false);
-
-  // System presets resolved with the current locale's labels
-  const resolvedPresets = useMemo(() => resolveVariantPresets((key) => String(t.raw(key))), [t]);
-  // Everything selectable in the row combobox: the product's own axes, active
-  // definitions, and default presets without a saved preference.
-  const variantRegistry = useMemo(
-    () => buildVariantRegistry(bookingAttributeAxes, variantCatalog, resolvedPresets),
-    [bookingAttributeAxes, resolvedPresets, variantCatalog],
-  );
-
-  const registryByKey = useMemo(
-    () => new Map(variantRegistry.map((entry) => [entry.key, entry])),
-    [variantRegistry],
-  );
-
-  const ensureVariantDefinition = async (input: EnsureDefinitionInput) => {
-    try {
-      return await ensureDefinitionMutation.mutateAsync(input);
-    } catch {
-      toastManager.add({ title: tCommon("error"), type: "error" });
-      return null;
-    }
-  };
-
-  const adoptRegistryEntry = (entry: VariantRegistryEntry) =>
-    ensureVariantDefinition({
-      key: entry.catalogKey,
-      label: entry.label,
-      kind: entry.kind,
-      values: entry.values.map((value) => ({
-        label: value.label,
-        colorHex: value.colorHex ?? undefined,
-      })),
-    });
-
-  const persistVariantValue = async (axisKey: string, label: string) => {
-    const entry = registryByKey.get(axisKey);
-    if (!entry) return;
-    if (entry.values.some((value) => value.label.toLowerCase() === label.toLowerCase())) return;
-    let definitionId = entry.definitionId;
-    if (!definitionId) {
-      definitionId = (await adoptRegistryEntry(entry))?.id;
-    }
-    if (definitionId) createValueMutation.mutate({ definitionId, label });
-  };
-
   const effectivePrefix = genPrefix || defaultPrefix;
 
   const trackedUnitsCount = units.length;
@@ -468,40 +388,6 @@ export function UnitTrackingEditor({
     return duplicates;
   }, [units]);
 
-  const existingValuesByAxis = useMemo(() => {
-    const map: Record<string, string[]> = {};
-    for (const axis of bookingAttributeAxes) {
-      const uniqueValues = new Set<string>();
-      for (const unit of units) {
-        const val = unit.attributes?.[axis.key]?.trim();
-        if (val) uniqueValues.add(val);
-      }
-      map[axis.key] = Array.from(uniqueValues).sort();
-    }
-    return map;
-  }, [bookingAttributeAxes, units]);
-
-  const newRefVariantRegistry = variantRegistry.filter((entry) =>
-    bookingAttributeAxes.some((axis) => axis.key === entry.key),
-  );
-  const newRefValuesByAxis = Object.fromEntries(
-    bookingAttributeAxes.map((axis) => [
-      axis.key,
-      [...(existingValuesByAxis[axis.key] ?? []), newRefAttributes[axis.key]].filter(
-        (value): value is string => Boolean(value),
-      ),
-    ]),
-  );
-  const hasRequiredVariants = bookingAttributeAxes.length > 0;
-  const newRefHasRequiredVariants = hasCompleteAttributes(bookingAttributeAxes, newRefAttributes);
-
-  const missingAttributeCount = useMemo(() => {
-    if (bookingAttributeAxes.length === 0) return 0;
-    return units.filter((unit) => {
-      return bookingAttributeAxes.some((axis) => !unit.attributes?.[axis.key]?.trim());
-    }).length;
-  }, [bookingAttributeAxes, units]);
-
   const generationPreview = useMemo(() => {
     const count = Math.min(parseInt(genCount, 10) || 0, MAX_GENERATED_UNITS);
     if (!effectivePrefix.trim() || count < 1) return null;
@@ -517,11 +403,6 @@ export function UnitTrackingEditor({
   const commitNewRef = () => {
     const identifier = newRef.trim();
     if (disabled || !identifier) return;
-    if (!newRefHasRequiredVariants) {
-      newRefVariantsInputRef.current?.focus();
-      return;
-    }
-    const attributes = canonicalizeAttributes(bookingAttributeAxes, newRefAttributes);
     onChange([
       ...units,
       {
@@ -563,74 +444,6 @@ export function UnitTrackingEditor({
             },
       ),
     );
-  };
-
-  /**
-   * Applies a variant patch coming from a row combobox. Selecting a value of
-   * a variant not yet on the product implicitly adds the axis (adopting the
-   * preset into the catalog when needed), capped at 3 axes.
-   */
-  const applyVariantPatch = (index: number, patch: Record<string, string>) => {
-    const nextPatch: Record<string, string> = {};
-    let axes = bookingAttributeAxes;
-
-    for (const [key, value] of Object.entries(patch)) {
-      const existingAxis = findMatchingVariant(key, axes);
-      if (!existingAxis) {
-        if (!value) continue;
-        if (axes.length >= 3) {
-          toastManager.add({ title: t("variantsMaxReached"), type: "error" });
-          continue;
-        }
-        const entry = registryByKey.get(key);
-        if (!entry) continue;
-        if (!entry.definitionId) {
-          // Preset: adopt it into the shared catalog (idempotent).
-          void adoptRegistryEntry(entry);
-        }
-        axes = [...axes, { key, label: entry.label, position: axes.length }];
-      }
-      nextPatch[existingAxis?.key ?? key] = value;
-    }
-
-    if (axes !== bookingAttributeAxes) onBookingAttributeAxesChange(axes);
-    if (Object.keys(nextPatch).length > 0) updateUnitAttributes(index, nextPatch);
-  };
-
-  const removeBookingAxis = (key: string) => {
-    const nextAxes = bookingAttributeAxes
-      .filter((axis) => axis.key !== key)
-      .map((axis, index) => ({ ...axis, position: index }));
-    onBookingAttributeAxesChange(nextAxes);
-
-    if (units.length > 0) {
-      const nextUnits = units.map((unit) => {
-        const attributes = { ...unit.attributes };
-        delete attributes[key];
-        return { ...unit, attributes };
-      });
-      onChange(nextUnits);
-    }
-  };
-
-  // The catalogue drawer opens inside this form: a variant withdrawn there
-  // must leave the draft too, or saving would put it straight back.
-  const withdrawVariantFromDraft = (variant: WithdrawnVariant) => {
-    const matches = (key: string) => findMatchingVariant(key, [variant]) !== undefined;
-    const nextAxes = bookingAttributeAxes.filter((axis) => !matches(axis.key));
-    if (nextAxes.length !== bookingAttributeAxes.length) {
-      onBookingAttributeAxesChange(nextAxes.map((axis, index) => ({ ...axis, position: index })));
-    }
-    if (units.some((unit) => Object.keys(unit.attributes ?? {}).some(matches))) {
-      onChange(
-        units.map((unit) => ({
-          ...unit,
-          attributes: Object.fromEntries(
-            Object.entries(unit.attributes ?? {}).filter(([key]) => !matches(key)),
-          ),
-        })),
-      );
-    }
   };
 
   const handleGenerate = () => {
@@ -689,35 +502,6 @@ export function UnitTrackingEditor({
             </Badge>
           </div>
 
-          {/* Declared variants, colored to match the chips on unit rows */}
-          {bookingAttributeAxes.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-muted-foreground text-xs">{t("variantsTitle")} :</span>
-              {bookingAttributeAxes.map((axis) => (
-                <Badge
-                  key={axis.key}
-                  variant={
-                    AXIS_BADGE_VARIANTS[
-                      (registryByKey.get(axis.key)?.colorIndex ?? 0) % AXIS_BADGE_VARIANTS.length
-                    ]
-                  }
-                  className="gap-1 pr-1"
-                >
-                  {axis.label}
-                  <button
-                    type="button"
-                    className="rounded-sm px-0.5 hover:bg-black/10 dark:hover:bg-white/10"
-                    onClick={() => removeBookingAxis(axis.key)}
-                    disabled={disabled}
-                    aria-label={`${t("variantsTitle")} — ${axis.label} ×`}
-                  >
-                    &times;
-                  </button>
-                </Badge>
-              ))}
-            </div>
-          )}
-
           {/* Unit rows */}
           {units.length === 0 ? (
             <p className="text-muted-foreground text-sm">{/* {t("noUnitsHint")} */}</p>
@@ -736,9 +520,6 @@ export function UnitTrackingEditor({
                     unit={unit}
                     index={index}
                     unitCount={units.length}
-                    bookingAttributeAxes={bookingAttributeAxes}
-                    existingValuesByAxis={existingValuesByAxis}
-                    variantRegistry={variantRegistry}
                     isDuplicate={!!isDuplicate}
                     isEmpty={isEmpty}
                     disabled={disabled}
@@ -852,13 +633,6 @@ export function UnitTrackingEditor({
 
         </>
       )}
-
-      {/* Shared variant catalog manager */}
-      <VariantManagerDrawer
-        open={variantManagerOpen}
-        onOpenChange={setVariantManagerOpen}
-        onWithdrawn={withdrawVariantFromDraft}
-      />
     </div>
   );
 }

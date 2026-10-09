@@ -93,6 +93,7 @@ export interface ReservationDelivery {
 export interface Reservation {
   id: string;
   number: string;
+  internalTitle?: string | null;
   status: string;
   startDate: Date;
   endDate: Date;

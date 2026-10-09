@@ -529,7 +529,8 @@ export function UnitAssignmentSelector({
                     <CommandInput 
                       placeholder={t('selectUnit')} 
                       value={scanValues[index] || ''}
-                      onValueChange={(val) => {
+                      onChange={(e) => {
+                        const val = e.target.value;
                         setScanValues((prev) => ({ ...prev, [index]: val }));
                         if (!val) return;
                         const match = availableForSlot.find(

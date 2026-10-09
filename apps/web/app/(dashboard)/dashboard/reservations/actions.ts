@@ -1728,6 +1728,15 @@ export async function createManualReservation(data: CreateReservationData) {
     const shortfalls: ManualReservationCapacityShortfall[] = [];
     const requestedUnitsById = new Map(availableUnits.map((unit) => [unit.id, unit]));
     const selectedUnitIds = new Set<string>();
+    
+    const reservedUnitIds = new Set(
+      overlappingReservations.flatMap((r) =>
+        r.items.flatMap((i) => i.assignedUnits.map((u) => u.productUnitId)),
+      ),
+    );
+    const selectableUnitIds = new Set(
+      availableUnits.filter((u) => !reservedUnitIds.has(u.id)).map((u) => u.id),
+    );
 
     for (const detail of productDetails) {
       const product = productsById.get(detail.product.id);
