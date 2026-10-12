@@ -42,8 +42,8 @@ export const PricingEditor = ({ period }: Pick<FeatureSceneProps, "period">) => 
           <ProductFormStepPricing
             form={form}
             watchedValues={values}
-            currency="EUR"
-            currencySymbol="€"
+            currency="PLN"
+            currencySymbol="zł"
             storeTimezone={DEMO_RULES.timezone}
             isSaving={false}
             availableAccessories={[]}

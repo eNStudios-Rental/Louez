@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useTranslations, useLocale } from 'next-intl'
-import Link from 'next/link'
-import { CreditCard, Sparkles, Check, X, ArrowRight } from 'lucide-react'
+import { useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
+import Link from "next/link";
+import { CreditCard, Sparkles, Check, X, ArrowRight } from "lucide-react";
 
 import {
   Dialog,
@@ -12,65 +12,65 @@ import {
   DialogPanel,
   DialogPopup,
   DialogTitle,
-} from '@louez/ui'
-import { Button } from '@louez/ui'
-import { cn } from '@louez/utils'
+} from "@louez/ui";
+import { Button } from "@louez/ui";
+import { cn } from "@louez/utils";
 
-import { DashboardIconTile } from '@/components/dashboard/shared/dashboard-icon-tile'
-import { SMS_TOPUP_PACKAGES } from '@/lib/sms/sms-topup.constants'
+import { DashboardIconTile } from "@/components/dashboard/shared/dashboard-icon-tile";
+import { SMS_TOPUP_PACKAGES } from "@/lib/sms/sms-topup.constants";
 
-import { createTopupCheckout } from './actions'
+import { createTopupCheckout } from "./actions";
 
 interface TopupModalProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  priceCents: number
-  planSlug: string
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  priceCents: number;
+  planSlug: string;
 }
 
 // Plan details for comparison
 const PLAN_DETAILS = {
-  pro: { smsIncluded: 50, topupPrice: '0,15€', price: 29 },
-  ultra: { smsIncluded: 500, topupPrice: '0,07€', price: 79 },
-}
+  pro: { smsIncluded: 50, topupPrice: "0,15 zł", price: 29 },
+  ultra: { smsIncluded: 500, topupPrice: "0,07 zł", price: 79 },
+};
 
 export function TopupModal({ open, onOpenChange, priceCents, planSlug }: TopupModalProps) {
-  const t = useTranslations('dashboard.sms.topup')
-  const locale = useLocale()
-  const [selectedPackage, setSelectedPackage] = useState<number>(100)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [showUpsell, setShowUpsell] = useState(true)
+  const t = useTranslations("dashboard.sms.topup");
+  const locale = useLocale();
+  const [selectedPackage, setSelectedPackage] = useState<number>(100);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showUpsell, setShowUpsell] = useState(true);
 
-  const priceEuros = priceCents / 100
-  const isPro = planSlug === 'pro'
+  const priceEuros = priceCents / 100;
+  const isPro = planSlug === "pro";
   const planLabel =
-    planSlug === 'pay_as_you_go'
-      ? 'Pay as you go'
-      : planSlug.charAt(0).toUpperCase() + planSlug.slice(1)
+    planSlug === "pay_as_you_go"
+      ? "Pay as you go"
+      : planSlug.charAt(0).toUpperCase() + planSlug.slice(1);
 
   const handlePurchase = async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
-      const result = await createTopupCheckout(selectedPackage, locale)
+      const result = await createTopupCheckout(selectedPackage, locale);
 
       if (result.success && result.url) {
-        window.location.href = result.url
+        window.location.href = result.url;
       } else {
-        setError(result.error || t('errors.generic'))
+        setError(result.error || t("errors.generic"));
       }
     } catch {
-      setError(t('errors.generic'))
+      setError(t("errors.generic"));
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const formatPrice = (cents: number) => {
-    return (cents / 100).toFixed(2).replace('.', ',') + '€'
-  }
+    return (cents / 100).toFixed(2).replace(".", ",") + " zł";
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -78,11 +78,11 @@ export function TopupModal({ open, onOpenChange, priceCents, planSlug }: TopupMo
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2.5">
             <DashboardIconTile icon={CreditCard} accent="primary" />
-            {t('title')}
+            {t("title")}
           </DialogTitle>
           <DialogDescription>
-            {t('description', {
-              price: priceEuros.toFixed(2).replace('.', ','),
+            {t("description", {
+              price: priceEuros.toFixed(2).replace(".", ","),
               plan: planLabel,
             })}
           </DialogDescription>
@@ -107,9 +107,9 @@ export function TopupModal({ open, onOpenChange, priceCents, planSlug }: TopupMo
                     className="mt-0.5"
                   />
                   <div className="flex-1 space-y-2">
-                    <p className="text-sm font-medium text-primary">{t('upsell.didYouKnow')}</p>
+                    <p className="text-sm font-medium text-primary">{t("upsell.didYouKnow")}</p>
                     <p className="text-xs leading-relaxed text-muted-foreground">
-                      {t('upsell.ultraBenefit', {
+                      {t("upsell.ultraBenefit", {
                         price: PLAN_DETAILS.ultra.topupPrice,
                         count: PLAN_DETAILS.ultra.smsIncluded,
                       })}
@@ -119,7 +119,7 @@ export function TopupModal({ open, onOpenChange, priceCents, planSlug }: TopupMo
                       className="h-7 border-primary/20 text-xs hover:bg-primary/5 hover:text-primary"
                       render={<Link href="/dashboard/settings/subscription" />}
                     >
-                      {t('upsell.upgradeToUltra')}
+                      {t("upsell.upgradeToUltra")}
                       <ArrowRight className="ml-1.5 h-3 w-3" />
                     </Button>
                   </div>
@@ -130,24 +130,24 @@ export function TopupModal({ open, onOpenChange, priceCents, planSlug }: TopupMo
             {/* Package selection */}
             <div className="grid grid-cols-2 gap-3">
               {SMS_TOPUP_PACKAGES.map((pkg) => {
-                const totalCents = pkg * priceCents
-                const isSelected = selectedPackage === pkg
-                const isPopular = pkg === 100
+                const totalCents = pkg * priceCents;
+                const isSelected = selectedPackage === pkg;
+                const isPopular = pkg === 100;
 
                 return (
                   <button
                     key={pkg}
                     onClick={() => setSelectedPackage(pkg)}
                     className={cn(
-                      'relative flex flex-col items-center justify-center rounded-xl border p-4 transition-all',
+                      "relative flex flex-col items-center justify-center rounded-xl border p-4 transition-all",
                       isSelected
-                        ? 'border-primary bg-gradient-to-br from-primary/5 to-primary/10 shadow-sm shadow-primary/10'
-                        : 'border-border bg-card hover:border-primary/30 hover:shadow-sm',
+                        ? "border-primary bg-gradient-to-br from-primary/5 to-primary/10 shadow-sm shadow-primary/10"
+                        : "border-border bg-card hover:border-primary/30 hover:shadow-sm",
                     )}
                   >
                     {isPopular && (
                       <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-medium text-primary-foreground shadow-sm">
-                        {t('popular')}
+                        {t("popular")}
                       </span>
                     )}
                     {isSelected && (
@@ -157,15 +157,15 @@ export function TopupModal({ open, onOpenChange, priceCents, planSlug }: TopupMo
                         </div>
                       </div>
                     )}
-                    <span className={cn('text-2xl font-bold', isSelected && 'text-primary')}>
+                    <span className={cn("text-2xl font-bold", isSelected && "text-primary")}>
                       {pkg}
                     </span>
                     <span className="text-xs text-muted-foreground">SMS</span>
-                    <span className={cn('mt-2 font-semibold', isSelected && 'text-primary')}>
+                    <span className={cn("mt-2 font-semibold", isSelected && "text-primary")}>
                       {formatPrice(totalCents)}
                     </span>
                   </button>
-                )
+                );
               })}
             </div>
 
@@ -174,7 +174,7 @@ export function TopupModal({ open, onOpenChange, priceCents, planSlug }: TopupMo
               <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
                 <Sparkles className="h-3 w-3 text-primary" />
               </div>
-              <p className="text-xs leading-relaxed text-muted-foreground">{t('info')}</p>
+              <p className="text-xs leading-relaxed text-muted-foreground">{t("info")}</p>
             </div>
 
             {/* Error message */}
@@ -192,16 +192,16 @@ export function TopupModal({ open, onOpenChange, priceCents, planSlug }: TopupMo
                 className="flex-1"
                 disabled={loading}
               >
-                {t('cancel')}
+                {t("cancel")}
               </Button>
               <Button
                 onClick={handlePurchase}
                 isPending={loading}
-                pendingContent={t('processing')}
+                pendingContent={t("processing")}
                 className="flex-1 shadow-sm shadow-primary/20"
               >
                 <CreditCard data-slot="icon" />
-                {t('pay', {
+                {t("pay", {
                   amount: formatPrice(selectedPackage * priceCents),
                 })}
               </Button>
@@ -210,5 +210,5 @@ export function TopupModal({ open, onOpenChange, priceCents, planSlug }: TopupMo
         </DialogPanel>
       </DialogPopup>
     </Dialog>
-  )
+  );
 }

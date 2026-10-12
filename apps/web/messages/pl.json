@@ -225,7 +225,7 @@
     "review3Quote": "Louez.io to niezawodna, przejrzysta i precyzyjna platforma. Zarządzanie sezonem będzie znacznie prostsze i szybsze.",
     "review3Role": "Współzałożyciel · Les Frères Complices",
     "perk1": "Pierwsze 15 rezerwacji za darmo",
-    "perk2": "Maks. 1 € za rezerwację, im więcej, tym taniej, 0% prowizji, bez abonamentu",
+    "perk2": "Maks. 1 zł za rezerwację, im więcej, tym taniej, 0% prowizji, bez abonamentu",
     "perk3": "Twój sklep online gotowy w 5 minut",
     "visitShop": "Zobacz sklep",
     "name": "Imię",
@@ -688,7 +688,7 @@
           "notEligible": "Twój plan nie pozwala na doładowanie SMS"
         },
         "stripeProductName": "Doładowanie SMS - {quantity} kredytów",
-        "stripeProductDescription": "Pakiet {quantity} SMS po {price}€/SMS (Plan {plan})",
+        "stripeProductDescription": "Pakiet {quantity} SMS po {price} zł/SMS (Plan {plan})",
         "upsell": {
           "didYouKnow": "Czy wiesz, że?",
           "ultraBenefit": "Z Ultra płacisz tylko {price} za SMS i otrzymujesz {count} SMS w pakiecie co miesiąc.",
@@ -917,7 +917,7 @@
       },
       "reeentStripe": {
         "title": "Twój sklep nie jest jeszcze widoczny na <reeent>reeent</reeent>",
-        "description": "Dopóki płatności online nie są aktywne, reeent nie publikuje Twojego sklepu. Oferta startowa (0 € prowizji reeent na zawsze) obowiązuje od publikacji, dopóki są wolne miejsca.",
+        "description": "Dopóki płatności online nie są aktywne, reeent nie publikuje Twojego sklepu. Oferta startowa (0 zł prowizji reeent na zawsze) obowiązuje od publikacji, dopóki są wolne miejsca.",
         "continueSetup": "Kontynuuj konfigurację Stripe",
         "activate": "Aktywuj płatności online",
         "paymentSettings": "Ustawienia płatności"
@@ -1443,10 +1443,10 @@
               "intro": "Gdy klient wynajmuje na okres między dwoma progami — jak obliczana jest cena?",
               "withoutTitle": "Bez — Stałe progi",
               "withoutText": "Klient musi wybrać dokładny okres z progów. W przypadku okresu pośredniego płaci cenę najbliższego wyższego progu.",
-              "withoutExample": "Progi: 1 dzień za 50 €, 3 dni za 120 €. Wynajem 2 dni → klient płaci 120 € (próg 3 dni).",
+              "withoutExample": "Progi: 1 dzień za 50 zł, 3 dni za 120 zł. Wynajem 2 dni → klient płaci 120 zł (próg 3 dni).",
               "withTitle": "Z — Progresywna wycena",
               "withText": "Cena jest obliczana proporcjonalnie między dwoma najbliższymi progami. Klient płaci uczciwą cenę za swój dokładny okres.",
-              "withExample": "Progi: 1 dzień za 50 €, 3 dni za 120 €. Wynajem 2 dni → klient płaci ~85 € (interpolowane)."
+              "withExample": "Progi: 1 dzień za 50 zł, 3 dni za 120 zł. Wynajem 2 dni → klient płaci ~85 zł (interpolowane)."
             }
           },
           "chart": {
@@ -4665,8 +4665,8 @@
         "displayModeInclusiveDescription": "Wyświetlane ceny zawierają podatek. Zalecane dla klientów indywidualnych (B2C).",
         "displayModeExclusive": "Ceny netto (bez VAT)",
         "displayModeExclusiveDescription": "Wyświetlane ceny nie zawierają podatku. Zalecane dla klientów firmowych (B2B).",
-        "exampleInclusive": "Produkt za {price} € brutto z {rate}% VAT = {ht} € netto + {tva} € VAT",
-        "exampleExclusive": "Produkt za {price} € netto z {rate}% VAT = {price} € + {tva} € VAT = {ttc} € brutto",
+        "exampleInclusive": "Produkt za {price} zł brutto z {rate}% VAT = {ht} zł netto + {tva} zł VAT",
+        "exampleExclusive": "Produkt za {price} zł netto z {rate}% VAT = {price} zł + {tva} zł VAT = {ttc} zł brutto",
         "optionalSection": "Ustawienia opcjonalne",
         "optionalSectionDescription": "Dostosuj wyświetlanie podatków",
         "taxLabel": "Etykieta podatku",
@@ -5982,10 +5982,10 @@
           "termsAccepted": "Warunki marketplace zaakceptowane."
         },
         "cohort": {
-          "memberTitle": "Oferta reeent na zawsze — 0 € prowizji reeent",
+          "memberTitle": "Oferta reeent na zawsze — 0 zł prowizji reeent",
           "memberRank": "Członek nr {rank} kohorty startowej",
           "incentiveBadge": "Oferta startowa",
-          "incentiveLine": "jeszcze {remaining} miejsc z 0 € prowizji reeent na zawsze"
+          "incentiveLine": "jeszcze {remaining} miejsc z 0 zł prowizji reeent na zawsze"
         }
       },
       "extensions": {
@@ -8070,13 +8070,13 @@
         },
         "offer": {
           "title": "Oferta na start",
-          "body": "Pierwszych {total} wynajmujących opublikowanych na reeent zachowuje 0 € prowizji reeent, na zawsze.",
+          "body": "Pierwszych {total} wynajmujących opublikowanych na reeent zachowuje 0 zł prowizji reeent, na zawsze.",
           "remaining": "Zostało {remaining} miejsc z {total}.",
           "closedBody": "Oferta na start jest wyczerpana. Publikacja na reeent nadal jest najprostszym sposobem, by być widocznym."
         },
         "pricing": {
           "title": "Ile kosztuje Louez",
-          "amount": "1 €",
+          "amount": "1 zł",
           "amountUnit": "za rezerwację",
           "amountDetail": "Taniej przy większej liczbie.",
           "quietMonth": "Miesiąc bez wynajmu: nic do zapłaty.",

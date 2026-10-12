@@ -310,7 +310,7 @@ const STRIPE_TRANSLATIONS: Record<string, { productName: string; productDescript
   },
   pl: {
     productName: "Doładowanie SMS - {quantity} kredytów",
-    productDescription: "Pakiet {quantity} SMS po {price}€/SMS (Plan {plan})",
+    productDescription: "Pakiet {quantity} SMS po {price} zł/SMS (Plan {plan})",
   },
   pt: {
     productName: "Recarga SMS - {quantity} créditos",

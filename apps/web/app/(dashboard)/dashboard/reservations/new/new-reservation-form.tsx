@@ -802,9 +802,7 @@ export function NewReservationForm({
     }
 
     if (options.selectedUnitId) {
-      const selectedUnit = product.searchUnits?.find(
-        (unit) => unit.id === options.selectedUnitId,
-      );
+      const selectedUnit = product.searchUnits?.find((unit) => unit.id === options.selectedUnitId);
       if (!selectedUnit) return;
 
       setSelectedProducts((prev) => {
@@ -932,10 +930,10 @@ export function NewReservationForm({
         ? existingLine.quantity + 1
         : constraints.lineMaxQuantity === null
           ? existingLine.quantity + 1
-        : Math.min(
-            existingLine.quantity + 1,
-            Math.max(existingLine.quantity, constraints.lineMaxQuantity),
-          );
+          : Math.min(
+              existingLine.quantity + 1,
+              Math.max(existingLine.quantity, constraints.lineMaxQuantity),
+            );
 
       return prev.map((line) => {
         if (line.lineId !== existingLine.lineId) {
@@ -1009,10 +1007,7 @@ export function NewReservationForm({
           ? Math.max(1, currentLine.quantity + delta)
           : Math.max(
               1,
-              Math.min(
-                currentLine.quantity + delta,
-                Math.max(1, constraints.lineMaxQuantity),
-              ),
+              Math.min(currentLine.quantity + delta, Math.max(1, constraints.lineMaxQuantity)),
             );
 
       if (nextQuantity === currentLine.quantity) {
@@ -1521,12 +1516,7 @@ export function NewReservationForm({
                               )}
                             </p>
                             <p className="text-muted-foreground text-[11px] tabular-nums">
-                              {formatStoreDate(
-                                watchStartDate,
-                                timezone,
-                                "HH:mm",
-                                formatLocale,
-                              )}
+                              {formatStoreDate(watchStartDate, timezone, "HH:mm", formatLocale)}
                             </p>
                           </div>
 
@@ -1569,20 +1559,10 @@ export function NewReservationForm({
 
                           <div className="min-w-0 text-right">
                             <p className="text-xs font-medium tabular-nums">
-                              {formatStoreDate(
-                                watchEndDate,
-                                timezone,
-                                "d MMM yyyy",
-                                formatLocale,
-                              )}
+                              {formatStoreDate(watchEndDate, timezone, "d MMM yyyy", formatLocale)}
                             </p>
                             <p className="text-muted-foreground text-[11px] tabular-nums">
-                              {formatStoreDate(
-                                watchEndDate,
-                                timezone,
-                                "HH:mm",
-                                formatLocale,
-                              )}
+                              {formatStoreDate(watchEndDate, timezone, "HH:mm", formatLocale)}
                             </p>
                           </div>
                         </div>
@@ -1694,9 +1674,7 @@ export function NewReservationForm({
                     <div className="space-y-2">
                       <Label htmlFor="reservation-internal-title">
                         {tReservation("edit.internalTitle")}
-                        <span className="ml-1 text-muted-foreground">
-                          ({tCommon("optional")})
-                        </span>
+                        <span className="ml-1 text-muted-foreground">({tCommon("optional")})</span>
                       </Label>
                       <form.AppField name="internalTitle">
                         {(field) => (
@@ -1912,7 +1890,7 @@ export function NewReservationForm({
                       className="pr-8"
                     />
                     <span className="text-muted-foreground absolute top-1/2 right-3 -translate-y-1/2 text-sm">
-                      €
+                      zł
                     </span>
                   </div>
                 </div>
@@ -1980,7 +1958,7 @@ export function NewReservationForm({
                           className="pr-8"
                         />
                         <span className="text-muted-foreground absolute top-1/2 right-3 -translate-y-1/2 text-sm">
-                          €
+                          zł
                         </span>
                       </div>
                     </div>
@@ -2001,7 +1979,7 @@ export function NewReservationForm({
                           className="pr-12"
                         />
                         <span className="text-muted-foreground absolute top-1/2 right-3 -translate-y-1/2 text-sm">
-                          €/
+                          zł/
                           {customItemForm.pricingMode === "hour"
                             ? t("perHour")
                             : customItemForm.pricingMode === "week"
@@ -2094,9 +2072,9 @@ export function NewReservationForm({
                   placeholder={t("priceOverride.newPricePlaceholder")}
                   suffix={
                     priceOverrideDialog.mode === "unit"
-                      ? `€/${getPricingUnitLabel(priceOverrideDialog.pricingMode)}`
+                      ? `zł/${getPricingUnitLabel(priceOverrideDialog.pricingMode)}`
                       : priceOverrideDialog.mode === "total"
-                        ? "€"
+                        ? "zł"
                         : "%"
                   }
                   ariaLabel={t("priceOverride.newPrice")}

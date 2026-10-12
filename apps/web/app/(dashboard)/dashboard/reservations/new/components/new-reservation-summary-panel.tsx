@@ -277,8 +277,8 @@ export function NewReservationSummaryPanel({
                     if (mode) onDiscountChange({ mode, value: discount.value });
                   }}
                 >
-                  <ToggleGroupItem value="amount" aria-label="€">
-                    €
+                  <ToggleGroupItem value="amount" aria-label="zł">
+                    zł
                   </ToggleGroupItem>
                   <ToggleGroupItem value="percent" aria-label="%">
                     %
@@ -292,7 +292,7 @@ export function NewReservationSummaryPanel({
                   }
                   onEmptyCommitted={() => onDiscountChange({ mode: discount.mode, value: null })}
                   placeholder="0.00"
-                  suffix={discount.mode === "amount" ? "€" : "%"}
+                  suffix={discount.mode === "amount" ? "zł" : "%"}
                   ariaLabel={t("globalDiscount.label")}
                   className="min-w-0 flex-1"
                 />
@@ -319,7 +319,7 @@ export function NewReservationSummaryPanel({
                   setIsEditingDeposit(false);
                 }}
                 placeholder="0.00"
-                suffix="€"
+                suffix="zł"
                 ariaLabel={t("deposit")}
                 className="w-32"
               />

@@ -49,7 +49,7 @@ function fmtCredits(n: number): string {
   return Number.isInteger(r) ? String(r) : r.toFixed(1);
 }
 function fmtPrice(cents: number): string {
-  return (cents / 100).toFixed(2).replace(".", ",") + "€";
+  return (cents / 100).toFixed(2).replace(".", ",") + " zł";
 }
 
 export function AiCreditsSection({

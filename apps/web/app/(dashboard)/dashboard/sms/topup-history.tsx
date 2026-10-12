@@ -32,7 +32,7 @@ export function TopupHistory({ transactions }: TopupHistoryProps) {
   const dateLocale = resolveFormatLocale(locale).dateFns;
 
   const formatPrice = (cents: number) => {
-    return (cents / 100).toFixed(2).replace(".", ",") + "€";
+    return (cents / 100).toFixed(2).replace(".", ",") + " zł";
   };
 
   const getStatusBadge = (status: TopupTransaction["status"]) => {

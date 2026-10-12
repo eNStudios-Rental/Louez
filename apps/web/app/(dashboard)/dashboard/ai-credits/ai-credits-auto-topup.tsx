@@ -20,7 +20,7 @@ interface AiCreditsAutoTopupProps {
   packages: AiCreditPackage[];
 }
 
-const formatPrice = (cents: number) => `${(cents / 100).toFixed(2).replace(".", ",")}€`;
+const formatPrice = (cents: number) => `${(cents / 100).toFixed(2).replace(".", ",")} zł`;
 
 /**
  * Off-session refill: below the threshold, the saved card buys the chosen pack

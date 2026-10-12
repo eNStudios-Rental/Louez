@@ -8,7 +8,7 @@ export interface FormatCurrencyOptions {
 
 export function formatCurrency(
   amount: number,
-  currency: string = "EUR",
+  currency: string = "PLN",
   locale?: string,
   options?: FormatCurrencyOptions,
 ): string {
@@ -69,7 +69,7 @@ export function formatCurrency(
  */
 export function formatCurrencyForSms(
   amount: number,
-  currency: string = "EUR",
+  currency: string = "PLN",
   locale: string = DEFAULT_FORMAT_LOCALE,
 ): string {
   const formatted = new Intl.NumberFormat(locale, {
@@ -248,7 +248,7 @@ export function formatDurationHuman(days: number): string {
 }
 
 // Get currency symbol
-export function getCurrencySymbol(currency: string = "EUR"): string {
+export function getCurrencySymbol(currency: string = "PLN"): string {
   const symbolMap: Record<string, string> = {
     EUR: "€",
     USD: "$",
@@ -290,10 +290,10 @@ export function getCurrencySymbol(currency: string = "EUR"): string {
   return symbolMap[currency] || currency;
 }
 
-// Format amount with symbol suffix (e.g., "10.50€")
+// Format amount with symbol suffix (e.g., "10.50 zł")
 export function formatAmountWithSymbol(
   amount: number,
-  currency: string = "EUR",
+  currency: string = "PLN",
   decimals: number = 2,
 ): string {
   const symbol = getCurrencySymbol(currency);

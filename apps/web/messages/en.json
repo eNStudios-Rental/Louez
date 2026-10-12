@@ -225,7 +225,7 @@
     "review3Quote": "Louez.io is a reliable, clear and precise platform. Managing the season will be so much simpler and faster.",
     "review3Role": "Co-founder · Les Frères Complices",
     "perk1": "Your first 15 reservations are free",
-    "perk2": "Max €1 per reservation, less as you grow, 0% commission, no subscription",
+    "perk2": "Max 1 zł per reservation, less as you grow, 0% commission, no subscription",
     "perk3": "Your online store ready in 5 minutes",
     "visitShop": "Visit the store",
     "name": "Name",
@@ -688,7 +688,7 @@
           "notEligible": "Your plan does not allow SMS top-up"
         },
         "stripeProductName": "SMS Top-up - {quantity} credits",
-        "stripeProductDescription": "Pack of {quantity} SMS at {price}€/SMS ({plan} Plan)",
+        "stripeProductDescription": "Pack of {quantity} SMS at {price} zł/SMS ({plan} Plan)",
         "upsell": {
           "didYouKnow": "Did you know?",
           "ultraBenefit": "With Ultra, pay only {price} per SMS and get {count} SMS included every month.",
@@ -956,7 +956,7 @@
       },
       "reeentStripe": {
         "title": "Your store isn't visible on <reeent>reeent</reeent> yet",
-        "description": "Until online payments are active, reeent does not publish your store. The launch offer (0 € reeent commission for life) applies from publication, as long as spots remain.",
+        "description": "Until online payments are active, reeent does not publish your store. The launch offer (0 zł reeent commission for life) applies from publication, as long as spots remain.",
         "continueSetup": "Continue Stripe setup",
         "activate": "Activate online payments",
         "paymentSettings": "Payment settings"
@@ -1482,10 +1482,10 @@
               "intro": "When a customer rents for a duration between two of your tiers, how is the price calculated?",
               "withoutTitle": "Without — Fixed tiers",
               "withoutText": "The customer must choose an exact duration from your tiers. For an intermediate duration, they pay the price of the next higher tier.",
-              "withoutExample": "Tiers: 1 day at €50, 3 days at €120. 2-day rental → customer pays €120 (3-day tier).",
+              "withoutExample": "Tiers: 1 day at 50 zł, 3 days at 120 zł. 2-day rental → customer pays 120 zł (3-day tier).",
               "withTitle": "With — Progressive pricing",
               "withText": "The price is calculated proportionally between the two closest tiers. The customer pays a fair price for their exact duration.",
-              "withExample": "Tiers: 1 day at €50, 3 days at €120. 2-day rental → customer pays ~€85 (interpolated)."
+              "withExample": "Tiers: 1 day at 50 zł, 3 days at 120 zł. 2-day rental → customer pays ~85 zł (interpolated)."
             }
           },
           "chart": {
@@ -4802,8 +4802,8 @@
         "displayModeInclusiveDescription": "Displayed prices include tax. Recommended for individual customers (B2C).",
         "displayModeExclusive": "Tax exclusive prices",
         "displayModeExclusiveDescription": "Displayed prices exclude tax. Recommended for business customers (B2B).",
-        "exampleInclusive": "Product at {price} € incl. tax with {rate}% VAT = {ht} € excl. tax + {tva} € VAT",
-        "exampleExclusive": "Product at {price} € excl. tax with {rate}% VAT = {price} € + {tva} € VAT = {ttc} € incl. tax",
+        "exampleInclusive": "Product at {price} zł incl. tax with {rate}% VAT = {ht} zł excl. tax + {tva} zł VAT",
+        "exampleExclusive": "Product at {price} zł excl. tax with {rate}% VAT = {price} zł + {tva} zł VAT = {ttc} zł incl. tax",
         "optionalSection": "Optional settings",
         "optionalSectionDescription": "Customize tax display",
         "taxLabel": "Tax label",
@@ -5982,10 +5982,10 @@
           "termsAccepted": "Marketplace terms accepted."
         },
         "cohort": {
-          "memberTitle": "reeent lifetime offer — 0 € reeent commission",
+          "memberTitle": "reeent lifetime offer — 0 zł reeent commission",
           "memberRank": "Member no. {rank} of the launch cohort",
           "incentiveBadge": "Launch offer",
-          "incentiveLine": "{remaining} spots left with 0 € reeent commission for life"
+          "incentiveLine": "{remaining} spots left with 0 zł reeent commission for life"
         }
       },
       "extensions": {
@@ -8070,13 +8070,13 @@
         },
         "offer": {
           "title": "Launch offer",
-          "body": "The first {total} owners published on reeent keep 0 € reeent commission, forever.",
+          "body": "The first {total} owners published on reeent keep 0 zł reeent commission, forever.",
           "remaining": "{remaining} spots left out of {total}.",
           "closedBody": "The launch offer is full. Publishing on reeent is still the simplest way to get seen."
         },
         "pricing": {
           "title": "What Louez costs",
-          "amount": "1 €",
+          "amount": "1 zł",
           "amountUnit": "per booking",
           "amountDetail": "Decreasing with volume.",
           "quietMonth": "A month without rentals: nothing to pay.",

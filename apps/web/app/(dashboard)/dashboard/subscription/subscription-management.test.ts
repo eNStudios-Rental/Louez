@@ -30,7 +30,7 @@ test("keeps subscription plan display helpers client-safe", () => {
   } satisfies Pick<Plan, "price" | "stripePrices">;
 
   assert.deepEqual(SUPPORTED_CURRENCIES, ["eur", "usd"]);
-  assert.equal(CURRENCY_SYMBOLS.eur, "€");
+  assert.equal(CURRENCY_SYMBOLS.eur, "zł");
   assert.equal(getYearlyPrice(plan), 490);
   assert.equal(isPlanAvailable(plan, "monthly", "eur"), true);
   assert.equal(isPlanAvailable(plan, "monthly", "usd"), false);
