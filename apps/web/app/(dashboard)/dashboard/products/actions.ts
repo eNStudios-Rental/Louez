@@ -456,6 +456,7 @@ export async function createProduct(data: ProductInput) {
         promotion: validated.data.promotion,
         enforceStrictTiers:
           pricingKind === "fixed" ? false : validated.data.enforceStrictTiers || false,
+        priceNegotiable: validated.data.priceNegotiable ?? false,
         trackUnits: trackUnits,
         bookingAttributeAxes:
           trackUnits && bookingAttributeAxes.length > 0 ? bookingAttributeAxes : null,
@@ -924,6 +925,7 @@ export async function updateProduct(productId: string, data: ProductInput) {
           promotion: validated.data.promotion,
           enforceStrictTiers:
             pricingKind === "fixed" ? false : validated.data.enforceStrictTiers || false,
+          priceNegotiable: validated.data.priceNegotiable ?? false,
           trackUnits: trackUnits,
           bookingAttributeAxes:
             trackUnits && bookingAttributeAxes.length > 0 ? bookingAttributeAxes : null,
@@ -1291,6 +1293,7 @@ export async function duplicateProduct(productId: string) {
     videoUrl: product.videoUrl,
     taxSettings: product.taxSettings,
     enforceStrictTiers: product.pricingKind === "fixed" ? false : product.enforceStrictTiers,
+    priceNegotiable: product.priceNegotiable,
     trackUnits: false, // Units cannot be duplicated - they have unique identifiers
     bookingAttributeAxes: null,
   });

@@ -191,6 +191,7 @@ export const getFeaturedProducts = async (storeId: string): Promise<StorefrontCa
       pricingMode: row.pricingMode,
       basePeriodMinutes: row.basePeriodMinutes,
       enforceStrictTiers: row.enforceStrictTiers,
+      priceNegotiable: row.priceNegotiable ?? false,
       pricingTiers: row.pricingTiers,
       category: row.category ? { id: row.category.id, name: row.category.name } : null,
       trackUnits: row.trackUnits,

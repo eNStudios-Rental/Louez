@@ -1787,6 +1787,8 @@
         "horizonAuto": "Auto",
         "depositAndVat": "Deposit and VAT",
         "vatLabel": "VAT",
+        "priceNegotiableLabel": "Pricing",
+        "priceNegotiableDescription": "Price negotiable (displays notice instead of price in store)",
         "seasonActions": "Season actions",
         "productCreatedCopyReady": "The pre-filled copy is ready to edit.",
         "copySuffix": "(copy)",
@@ -6501,6 +6503,7 @@
       "perWeek": "week",
       "startingFrom": "From",
       "fixedPricingLabel": "Flat rate",
+      "priceNegotiable": "Price negotiable",
       "pricingUnit": {
         "day": {
           "singular": "day",

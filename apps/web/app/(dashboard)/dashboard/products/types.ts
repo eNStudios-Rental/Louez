@@ -128,6 +128,7 @@ export interface Product {
   taxSettings?: ProductTaxSettings | null;
   promotion?: ProductPromotion | null;
   enforceStrictTiers?: boolean;
+  priceNegotiable?: boolean;
   accessories?: ProductAccessoryLinkInput[];
   trackUnits?: boolean;
   units?: ProductUnitData[];

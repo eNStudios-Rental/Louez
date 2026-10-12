@@ -380,6 +380,7 @@ export function ProductForm({
       pricingTiers: initialPricingTiers,
       rateTiers: initialRateTiers,
       enforceStrictTiers: product?.enforceStrictTiers ?? true,
+      priceNegotiable: product?.priceNegotiable ?? false,
       taxSettings: product?.taxSettings ?? { inheritFromStore: true },
       promotion: product?.promotion ?? null,
       videoUrl: product?.videoUrl || "",

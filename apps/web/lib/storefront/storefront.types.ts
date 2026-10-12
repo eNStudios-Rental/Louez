@@ -30,6 +30,7 @@ export interface StorefrontProductPricing {
   pricingMode?: PricingMode | null;
   basePeriodMinutes?: number | null;
   enforceStrictTiers?: boolean | null;
+  priceNegotiable?: boolean | null;
   pricingTiers?: StorefrontPricingTier[] | null;
   seasonalPricings?: SeasonalPricingConfig[] | null;
 }

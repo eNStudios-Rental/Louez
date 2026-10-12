@@ -62,6 +62,7 @@ export const getDemoProductPage = (
     pricingMode: "day",
     basePeriodMinutes: source.id === "demo-city-bike" ? null : 1440,
     enforceStrictTiers: false,
+    priceNegotiable: false,
     seasonalPricings: [],
     stockKind: "returnable",
     trackUnits: false,

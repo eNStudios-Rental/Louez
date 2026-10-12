@@ -93,6 +93,22 @@ export function PricingSecondaryOptions({
               </div>
             </SecondaryField>
           )}
+
+          <SecondaryField label={t("priceNegotiableLabel")}>
+            <div className="flex min-h-8.5 items-center">
+              <form.Field name="priceNegotiable">
+                {(field) => (
+                  <Label className="flex cursor-pointer items-center gap-2.5 text-sm font-normal">
+                    <Switch
+                      checked={field.state.value ?? false}
+                      onCheckedChange={(checked: boolean) => field.handleChange(checked)}
+                    />
+                    {t("priceNegotiableDescription")}
+                  </Label>
+                )}
+              </form.Field>
+            </div>
+          </SecondaryField>
         </div>
       </CollapsiblePanel>
     </Collapsible>

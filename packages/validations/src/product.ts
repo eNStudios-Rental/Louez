@@ -306,6 +306,7 @@ export const createProductSchema = (
         }),
       ),
       enforceStrictTiers: z.boolean(),
+      priceNegotiable: z.boolean(),
       promotion: createProductPromotionSchema(t).nullable(),
       taxSettings: productTaxSettingsSchema,
       videoUrl: z
@@ -585,6 +586,7 @@ export const productSchema = z
     pricingTiers: z.array(pricingTierSchema).optional(),
     rateTiers: z.array(rateTierSchema).optional(),
     enforceStrictTiers: z.boolean().optional(),
+    priceNegotiable: z.boolean().optional(),
     promotion: productPromotionSchema.nullable().optional(),
     taxSettings: productTaxSettingsSchema.optional(),
     videoUrl: z

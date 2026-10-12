@@ -1748,6 +1748,8 @@
         "horizonAuto": "Auto",
         "depositAndVat": "Kaucja i VAT",
         "vatLabel": "VAT",
+        "priceNegotiableLabel": "Cena",
+        "priceNegotiableDescription": "Cena do negocjacji (wyświetla informację zamiast ceny w sklepie)",
         "seasonActions": "Akcje sezonu",
         "productCreatedCopyReady": "Wstępnie wypełniona kopia jest gotowa do edycji.",
         "copySuffix": "(kopia)",
@@ -6497,6 +6499,7 @@
       "perWeek": "tydzień",
       "startingFrom": "Od",
       "fixedPricingLabel": "Ryczałt",
+      "priceNegotiable": "Cena do negocjacji",
       "pricingUnit": {
         "day": {
           "singular": "dzień",

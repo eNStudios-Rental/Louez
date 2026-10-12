@@ -83,17 +83,25 @@ export const ProductSummary = ({
         {product.name}
       </h1>
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        {headline.mode === "from" ? (
-          <span className="text-sm text-muted-foreground">{ts("from")}</span>
-        ) : null}
-        <Price
-          amount={offer.subtotal}
-          compareAt={showsOffer ? headline.amount : null}
-          per={per}
-          label={isFixed ? t("fixedPricingLabel") : null}
-          size="xl"
-        />
-        {showsOffer && <Badge variant="promo">−{offer.promotion?.percentage}%</Badge>}
+        {product.priceNegotiable ? (
+          <span className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+            {t("priceNegotiable")}
+          </span>
+        ) : (
+          <>
+            {headline.mode === "from" ? (
+              <span className="text-sm text-muted-foreground">{ts("from")}</span>
+            ) : null}
+            <Price
+              amount={offer.subtotal}
+              compareAt={showsOffer ? headline.amount : null}
+              per={per}
+              label={isFixed ? t("fixedPricingLabel") : null}
+              size="xl"
+            />
+            {showsOffer && <Badge variant="promo">−{offer.promotion?.percentage}%</Badge>}
+          </>
+        )}
       </div>
       {headline.mode === "season" ? (
         <p className="text-sm text-muted-foreground">{headline.seasonName ?? ts("baseSeason")}</p>

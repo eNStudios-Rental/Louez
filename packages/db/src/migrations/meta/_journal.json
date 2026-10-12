@@ -610,6 +610,13 @@
       "when": 1791192000000,
       "tag": "0081_category_parent_id",
       "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "5",
+      "when": 1791193000000,
+      "tag": "0082_product_price_negotiable",
+      "breakpoints": true
     }
   ]
 }

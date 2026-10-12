@@ -84,6 +84,7 @@ export interface ProductPageProduct {
   pricingMode: PricingMode;
   basePeriodMinutes: number | null;
   enforceStrictTiers: boolean;
+  priceNegotiable: boolean;
   pricingTiers: StorefrontPricingTier[];
   seasonalPricings: SeasonalPricingConfig[];
   stockKind: StockKind;
@@ -396,6 +397,7 @@ export const loadProductPage = cache(
         pricingMode: product.pricingMode ?? "day",
         basePeriodMinutes: product.basePeriodMinutes,
         enforceStrictTiers: product.enforceStrictTiers ?? false,
+        priceNegotiable: product.priceNegotiable ?? false,
         pricingTiers: product.pricingTiers,
         seasonalPricings,
         stockKind: product.stockKind,

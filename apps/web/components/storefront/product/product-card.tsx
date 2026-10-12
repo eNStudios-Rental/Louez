@@ -162,13 +162,19 @@ export const ProductCard = ({
             </StorefrontLink>
           )}
         </h3>
-        <Price
-          amount={pricing.amount}
-          compareAt={pricing.compareAt}
-          per={pricing.per}
-          label={pricing.label}
-          size="md"
-        />
+        {product.priceNegotiable ? (
+          <span className="text-sm font-medium text-muted-foreground">
+            {t("product.priceNegotiable")}
+          </span>
+        ) : (
+          <Price
+            amount={pricing.amount}
+            compareAt={pricing.compareAt}
+            per={pricing.per}
+            label={pricing.label}
+            size="md"
+          />
+        )}
       </div>
 
       {/* Last child: an inset ring is painted under the children, and the
