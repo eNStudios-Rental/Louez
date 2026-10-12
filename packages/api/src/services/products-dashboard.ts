@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, inArray, like, ne } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, like, ne, or, type SQL } from 'drizzle-orm';
 
 import {
   categories,
@@ -39,7 +39,7 @@ export async function getDashboardProductsList({
   // Scope = store + categories + search. Status is applied on top of it for
   // the table, but not for the counts, so the tabs keep showing how many
   // products each status holds within the current selection.
-  const scopeConditions = [eq(products.storeId, storeId)];
+  const scopeConditions: SQL[] = [eq(products.storeId, storeId)];
 
   const selectedCategoryIds = categoryIds?.filter(Boolean) ?? [];
   if (selectedCategoryIds.length > 0) {
@@ -55,9 +55,19 @@ export async function getDashboardProductsList({
   }
 
   // The column collation already ignores case and accents.
+  // Split query into keywords so multi-word searches (e.g. "kask mtb") match across name & description.
   const searchTerm = search?.trim();
   if (searchTerm) {
-    scopeConditions.push(like(products.name, `%${searchTerm}%`));
+    const tokens = searchTerm.split(/\s+/).filter(Boolean);
+    for (const token of tokens) {
+      const matchCondition = or(
+        like(products.name, `%${token}%`),
+        like(products.description, `%${token}%`),
+      );
+      if (matchCondition) {
+        scopeConditions.push(matchCondition);
+      }
+    }
   }
 
   const conditions = [...scopeConditions];

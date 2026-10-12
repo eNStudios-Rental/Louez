@@ -240,6 +240,7 @@ export const loadCatalogCategories = cache(
       db
         .select({
           id: categories.id,
+          parentId: categories.parentId,
           name: categories.name,
           slug: categories.slug,
           description: categories.description,
@@ -277,6 +278,7 @@ export const loadCatalogCategories = cache(
         const productIds = productIdsByCategoryId.get(row.id) ?? [];
         return {
           id: row.id,
+          parentId: row.parentId,
           name: row.name,
           slug: row.slug,
           description: row.description,
@@ -455,21 +457,36 @@ const buildProductConditions = ({
       ),
     );
   } else if (category && category !== ALL_CATEGORIES_VALUE && !isReservedCategoryValue(category)) {
+    // Include both the selected category and any descendant subcategories
+    const categoryIds = [category];
+    const subCategories = db
+      .select({ id: categories.id })
+      .from(categories)
+      .where(and(eq(categories.storeId, storeId), eq(categories.parentId, category)));
+
     conditions.push(
       inArray(
         products.id,
         db
           .select({ id: productCategories.productId })
           .from(productCategories)
-          .where(eq(productCategories.categoryId, category)),
+          .where(
+            or(
+              eq(productCategories.categoryId, category),
+              inArray(productCategories.categoryId, subCategories),
+            ),
+          ),
       ),
     );
   }
 
   const term = search.trim();
   if (term) {
-    const pattern = `%${escapeLikePattern(term)}%`;
-    conditions.push(or(like(products.name, pattern), like(products.description, pattern)));
+    const tokens = term.split(/\s+/).filter(Boolean);
+    for (const token of tokens) {
+      const pattern = `%${escapeLikePattern(token)}%`;
+      conditions.push(or(like(products.name, pattern), like(products.description, pattern)));
+    }
   }
 
   // Narrow by fleet size first; dated availability is checked before pagination.

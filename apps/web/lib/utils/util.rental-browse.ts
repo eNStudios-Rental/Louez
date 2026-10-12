@@ -33,6 +33,7 @@ export type CatalogAttributeFilters = Readonly<Record<string, readonly string[]>
 
 export interface BrowsableCategory {
   id: string;
+  parentId?: string | null;
   name: string;
   /** URL token of the category (`?category=velos`); null falls back to the id. */
   slug?: string | null;

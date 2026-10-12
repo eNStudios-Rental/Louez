@@ -700,6 +700,7 @@ export const productSchema = z
   });
 
 export const categorySchema = z.object({
+  parentId: z.string().trim().min(1).nullable().optional(),
   name: z
     .string()
     .trim()

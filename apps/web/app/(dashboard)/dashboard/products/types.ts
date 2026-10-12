@@ -17,6 +17,7 @@ import type { ProductAccessoryLinkInput, ProductInput } from "@louez/validations
 export interface Category {
   id: string;
   name: string;
+  parentId?: string | null;
 }
 
 export const PRODUCT_STATUS_FILTERS = ["all", "active", "draft", "archived"] as const;

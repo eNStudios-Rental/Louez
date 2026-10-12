@@ -8122,7 +8122,9 @@
     },
     "addImage": "Add image",
     "changeImage": "Change image",
-    "removeImage": "Remove image"
+    "removeImage": "Remove image",
+    "parentCategory": "Parent category",
+    "noneParent": "None (root category)"
   },
   "contract": {
     "documentType": "Rental Agreement",

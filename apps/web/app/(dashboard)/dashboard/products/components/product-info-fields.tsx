@@ -65,10 +65,15 @@ export function ProductInfoFields({
                 multiple
                 label={t("categories")}
                 labelHelper={t("categoryOptional")}
-                options={categories.map((category) => ({
-                  value: category.id,
-                  label: category.name,
-                }))}
+                options={categories.map((category) => {
+                  const parent = category.parentId
+                    ? categories.find((c) => c.id === category.parentId)
+                    : null;
+                  return {
+                    value: category.id,
+                    label: parent ? `${parent.name} > ${category.name}` : category.name,
+                  };
+                })}
                 placeholder={t("categorySearchPlaceholder")}
                 emptyText={t("categoryNoResults")}
                 onCreateOption={onCreateCategory}

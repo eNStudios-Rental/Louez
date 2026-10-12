@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 
 import { cn } from "@louez/utils";
@@ -42,6 +43,67 @@ export const CatalogCategoryList = ({
   const t = useTranslations("storefront");
   const isAllSelected = selected === null || selected === ALL_CATEGORIES_VALUE;
 
+  const categoryRows = useMemo(() => {
+    // Separate root categories and map children
+    const roots = categories.filter((c) => !c.parentId);
+    const childrenByParent = new Map<string, BrowsableCategory[]>();
+    for (const c of categories) {
+      if (c.parentId) {
+        const list = childrenByParent.get(c.parentId) ?? [];
+        list.push(c);
+        childrenByParent.set(c.parentId, list);
+      }
+    }
+
+    const result: Array<{
+      id: string;
+      label: string;
+      count: number;
+      available: number | null;
+      isSelected: boolean;
+      level: number;
+    }> = [];
+
+    const addCategory = (category: BrowsableCategory, level: number) => {
+      if (category.productCount > 0) {
+        result.push({
+          id: category.id,
+          label: category.name,
+          count: category.productCount,
+          available: availableCounts?.byCategoryId.get(category.id) ?? null,
+          isSelected: selected === category.id,
+          level,
+        });
+      }
+      const children = childrenByParent.get(category.id) ?? [];
+      for (const child of children) {
+        addCategory(child, level + 1);
+      }
+    };
+
+    for (const root of roots) {
+      addCategory(root, 0);
+    }
+
+    // Include any categories whose parent wasn't found in roots
+    for (const c of categories) {
+      if (c.parentId && !categories.some((p) => p.id === c.parentId) && c.productCount > 0) {
+        if (!result.some((r) => r.id === c.id)) {
+          result.push({
+            id: c.id,
+            label: c.name,
+            count: c.productCount,
+            available: availableCounts?.byCategoryId.get(c.id) ?? null,
+            isSelected: selected === c.id,
+            level: 0,
+          });
+        }
+      }
+    }
+
+    return result;
+  }, [categories, availableCounts, selected]);
+
   const rows = [
     {
       id: null,
@@ -49,16 +111,9 @@ export const CatalogCategoryList = ({
       count: totalCount,
       available: availableCounts?.total ?? null,
       isSelected: isAllSelected,
+      level: 0,
     },
-    ...categories
-      .filter((category) => category.productCount > 0)
-      .map((category) => ({
-        id: category.id,
-        label: category.name,
-        count: category.productCount,
-        available: availableCounts?.byCategoryId.get(category.id) ?? null,
-        isSelected: selected === category.id,
-      })),
+    ...categoryRows,
     ...(uncategorizedCount > 0
       ? [
           {
@@ -67,6 +122,7 @@ export const CatalogCategoryList = ({
             count: uncategorizedCount,
             available: availableCounts?.uncategorized ?? null,
             isSelected: selected === UNCATEGORIZED_CATEGORY_VALUE,
+            level: 0,
           },
         ]
       : []),
@@ -88,12 +144,16 @@ export const CatalogCategoryList = ({
               onClick={() => onSelect(row.id)}
               className={cn(
                 "flex w-full items-center justify-between gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors lg:py-2",
+                row.level > 0 && "pl-6 text-xs text-muted-foreground",
                 "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
                 row.isSelected ? "bg-muted font-medium text-foreground" : "text-muted-foreground",
                 isExhausted && !row.isSelected && "opacity-60",
               )}
             >
-              <span className="min-w-0 truncate">{row.label}</span>
+              <span className="min-w-0 truncate">
+                {row.level > 0 && <span className="mr-1.5 opacity-60">↳</span>}
+                {row.label}
+              </span>
               <span
                 className="shrink-0 text-xs tabular-nums text-muted-foreground"
                 aria-label={

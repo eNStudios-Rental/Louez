@@ -8122,7 +8122,9 @@
     },
     "addImage": "Dodaj zdjęcie",
     "changeImage": "Zmień zdjęcie",
-    "removeImage": "Usuń zdjęcie"
+    "removeImage": "Usuń zdjęcie",
+    "parentCategory": "Kategoria nadrzędna",
+    "noneParent": "Brak (kategoria główna)"
   },
   "contract": {
     "documentType": "Umowa najmu",

@@ -900,6 +900,7 @@ export const categories = mysqlTable(
   {
     id: id(),
     storeId: varchar("store_id", { length: 21 }).notNull(),
+    parentId: varchar("parent_id", { length: 21 }),
     name: varchar("name", { length: 255 }).notNull(),
     /**
      * URL segment of the storefront category page (`?category=velos`),
@@ -915,6 +916,7 @@ export const categories = mysqlTable(
   },
   (table) => ({
     storeIdx: index("categories_store_idx").on(table.storeId),
+    parentIdx: index("categories_parent_idx").on(table.parentId),
     storeSlugIdx: unique("categories_store_slug_idx").on(table.storeId, table.slug),
   }),
 );
@@ -2361,6 +2363,14 @@ export const categoriesRelations = relations(categories, ({ one, many }) => ({
   store: one(stores, {
     fields: [categories.storeId],
     references: [stores.id],
+  }),
+  parent: one(categories, {
+    fields: [categories.parentId],
+    references: [categories.id],
+    relationName: "category_parent",
+  }),
+  children: many(categories, {
+    relationName: "category_parent",
   }),
   products: many(products),
   productLinks: many(productCategories),

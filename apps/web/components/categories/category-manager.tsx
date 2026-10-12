@@ -58,6 +58,7 @@ const KEEP_EXISTING_CATEGORIES_VALUE = '__keep_existing_categories__';
 
 export interface CategoryManagerItem {
   id: string;
+  parentId?: string | null;
   name: string;
   description?: string | null;
   imageUrl?: string | null;
@@ -87,6 +88,7 @@ export const CategoryManager = ({
 
   const [search, setSearch] = useState('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [newCategoryParentId, setNewCategoryParentId] = useState<string | null>(null);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryDescription, setNewCategoryDescription] = useState('');
   const [newCategoryImageUrl, setNewCategoryImageUrl] = useState<string | null>(
@@ -94,6 +96,7 @@ export const CategoryManager = ({
   );
   const [editingCategory, setEditingCategory] =
     useState<CategoryManagerItem | null>(null);
+  const [editCategoryParentId, setEditCategoryParentId] = useState<string | null>(null);
   const [editCategoryName, setEditCategoryName] = useState('');
   const [editCategoryDescription, setEditCategoryDescription] = useState('');
   const [editCategoryImageUrl, setEditCategoryImageUrl] = useState<
@@ -134,6 +137,7 @@ export const CategoryManager = ({
     setNewCategoryName('');
     setNewCategoryDescription('');
     setNewCategoryImageUrl(null);
+    setNewCategoryParentId(null);
     setCreateDialogOpen(false);
   };
 
@@ -145,6 +149,7 @@ export const CategoryManager = ({
       deleteUploadedImage(editCategoryImageUrl);
     }
     setEditingCategory(null);
+    setEditCategoryParentId(null);
     setEditCategoryName('');
     setEditCategoryDescription('');
     setEditCategoryImageUrl(null);
@@ -207,6 +212,7 @@ export const CategoryManager = ({
     try {
       const created = await createMutation.mutateAsync({
         name,
+        parentId: newCategoryParentId,
         description,
         imageUrl: newCategoryImageUrl,
       });
@@ -226,6 +232,7 @@ export const CategoryManager = ({
       setNewCategoryName('');
       setNewCategoryDescription('');
       setNewCategoryImageUrl(null);
+      setNewCategoryParentId(null);
       setCreateDialogOpen(false);
       toastManager.add({
         title: t('categories.categoryCreated'),
@@ -245,6 +252,7 @@ export const CategoryManager = ({
       const updated = await updateMutation.mutateAsync({
         id: editingCategory.id,
         name,
+        parentId: editCategoryParentId,
         description,
         imageUrl: editCategoryImageUrl,
       });
@@ -263,6 +271,7 @@ export const CategoryManager = ({
         deleteUploadedImage(editingCategory.imageUrl);
       }
       setEditingCategory(null);
+      setEditCategoryParentId(null);
       setEditCategoryName('');
       setEditCategoryDescription('');
       setEditCategoryImageUrl(null);
@@ -309,6 +318,7 @@ export const CategoryManager = ({
 
   const openEditDialog = (category: CategoryManagerItem) => {
     setEditingCategory(category);
+    setEditCategoryParentId(category.parentId ?? null);
     setEditCategoryName(category.name);
     setEditCategoryDescription(category.description ?? '');
     setEditCategoryImageUrl(category.imageUrl ?? null);
@@ -387,7 +397,14 @@ export const CategoryManager = ({
                     <DashboardIconTile icon={FolderOpen} />
                   )}
                   <div className="min-w-0">
-                    <p className="truncate font-medium">{category.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="truncate font-medium">{category.name}</p>
+                      {category.parentId && (
+                        <span className="bg-muted text-muted-foreground inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium">
+                          ↳ {categories.find((c) => c.id === category.parentId)?.name ?? t('categories.parentCategory')}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-muted-foreground text-sm">
                       {t('categories.productCount', {
                         count: category.productCount ?? 0,
@@ -457,6 +474,29 @@ export const CategoryManager = ({
                 }
               }}
             />
+            <div className="space-y-2">
+              <Label>{t('categories.parentCategory')}</Label>
+              <Select
+                value={newCategoryParentId ?? 'none'}
+                onValueChange={(val) =>
+                  setNewCategoryParentId(val === 'none' ? null : val)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectPopup>
+                  <SelectItem value="none">
+                    {t('categories.noneParent')}
+                  </SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectPopup>
+              </Select>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="new-category-description">
                 {t('categories.categoryDescription')}
@@ -531,6 +571,31 @@ export const CategoryManager = ({
                 }
               }}
             />
+            <div className="space-y-2">
+              <Label>{t('categories.parentCategory')}</Label>
+              <Select
+                value={editCategoryParentId ?? 'none'}
+                onValueChange={(val) =>
+                  setEditCategoryParentId(val === 'none' ? null : val)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectPopup>
+                  <SelectItem value="none">
+                    {t('categories.noneParent')}
+                  </SelectItem>
+                  {categories
+                    .filter((c) => c.id !== editingCategory?.id)
+                    .map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                </SelectPopup>
+              </Select>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="edit-category-description">
                 {t('categories.categoryDescription')}

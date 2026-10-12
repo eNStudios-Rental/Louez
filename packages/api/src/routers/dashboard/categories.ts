@@ -8,6 +8,7 @@ import { dashboardProcedure } from '../../procedures';
 
 const categoryOutputSchema = z.object({
   id: z.string(),
+  parentId: z.string().nullable().optional(),
   name: z.string(),
   description: z.string().nullable().optional(),
   imageUrl: z.string().nullable().optional(),
@@ -20,6 +21,7 @@ const list = dashboardProcedure
     return db
       .select({
         id: categories.id,
+        parentId: categories.parentId,
         name: categories.name,
         description: categories.description,
         imageUrl: categories.imageUrl,
@@ -33,6 +35,7 @@ const list = dashboardProcedure
       .where(eq(categories.storeId, context.store.id))
       .groupBy(
         categories.id,
+        categories.parentId,
         categories.name,
         categories.description,
         categories.imageUrl,
@@ -46,8 +49,22 @@ const create = dashboardProcedure
   .output(categoryOutputSchema)
   .handler(async ({ context, input }) => {
     const name = input.name;
+    const parentId = input.parentId?.trim() || null;
     const description = input.description?.trim() || null;
     const imageUrl = input.imageUrl || null;
+
+    if (parentId) {
+      const parent = await db.query.categories.findFirst({
+        columns: { id: true },
+        where: and(
+          eq(categories.id, parentId),
+          eq(categories.storeId, context.store.id),
+        ),
+      });
+      if (!parent) {
+        throw new ORPCError('BAD_REQUEST', { message: 'errors.categoryNotFound' });
+      }
+    }
 
     if (
       imageUrl &&
@@ -60,6 +77,7 @@ const create = dashboardProcedure
     const existing = await db
       .select({
         id: categories.id,
+        parentId: categories.parentId,
         name: categories.name,
         description: categories.description,
         imageUrl: categories.imageUrl,
@@ -85,6 +103,7 @@ const create = dashboardProcedure
       .insert(categories)
       .values({
         storeId: context.store.id,
+        parentId,
         name,
         slug: await nextCategorySlug(db, context.store.id, name),
         description,
@@ -93,7 +112,7 @@ const create = dashboardProcedure
       })
       .$returningId();
 
-    return { id: created.id, name, description, imageUrl, productCount: 0 };
+    return { id: created.id, parentId, name, description, imageUrl, productCount: 0 };
   });
 
 const update = dashboardProcedure
@@ -101,7 +120,7 @@ const update = dashboardProcedure
   .output(categoryOutputSchema)
   .handler(async ({ context, input }) => {
     const category = await db.query.categories.findFirst({
-      columns: { id: true, description: true, imageUrl: true },
+      columns: { id: true, parentId: true, description: true, imageUrl: true },
       where: and(
         eq(categories.id, input.id),
         eq(categories.storeId, context.store.id),
@@ -110,6 +129,44 @@ const update = dashboardProcedure
 
     if (!category) {
       throw new ORPCError('NOT_FOUND', { message: 'errors.categoryNotFound' });
+    }
+
+    let parentId = category.parentId;
+    if (input.parentId !== undefined) {
+      const candidateParentId = input.parentId?.trim() || null;
+      if (candidateParentId === input.id) {
+        throw new ORPCError('BAD_REQUEST', { message: 'errors.invalidData' });
+      }
+
+      if (candidateParentId) {
+        // Prevent assigning a child/descendant as parent (avoid cycles)
+        const allCategories = await db.query.categories.findMany({
+          columns: { id: true, parentId: true },
+          where: eq(categories.storeId, context.store.id),
+        });
+
+        const isDescendant = (checkId: string, targetId: string): boolean => {
+          let curr: string | null = checkId;
+          const visited = new Set<string>();
+          while (curr && !visited.has(curr)) {
+            visited.add(curr);
+            if (curr === targetId) return true;
+            const parentNode = allCategories.find((c) => c.id === curr);
+            curr = parentNode?.parentId ?? null;
+          }
+          return false;
+        };
+
+        if (isDescendant(candidateParentId, input.id)) {
+          throw new ORPCError('BAD_REQUEST', { message: 'errors.invalidData' });
+        }
+
+        const parent = allCategories.find((c) => c.id === candidateParentId);
+        if (!parent) {
+          throw new ORPCError('BAD_REQUEST', { message: 'errors.categoryNotFound' });
+        }
+      }
+      parentId = candidateParentId;
     }
 
     const description =
@@ -146,6 +203,7 @@ const update = dashboardProcedure
     await db
       .update(categories)
       .set({
+        parentId,
         name: input.name,
         description,
         imageUrl,
@@ -158,7 +216,7 @@ const update = dashboardProcedure
         ),
       );
 
-    return { id: input.id, name: input.name, description, imageUrl };
+    return { id: input.id, parentId, name: input.name, description, imageUrl };
   });
 
 const remove = dashboardProcedure
@@ -279,6 +337,16 @@ const remove = dashboardProcedure
             );
         }
       }
+
+      await tx
+        .update(categories)
+        .set({ parentId: null })
+        .where(
+          and(
+            eq(categories.parentId, input.id),
+            eq(categories.storeId, context.store.id),
+          ),
+        );
 
       await tx
         .delete(categories)

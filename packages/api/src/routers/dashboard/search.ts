@@ -57,7 +57,12 @@ const global = dashboardProcedure
             images: products.images,
           })
           .from(products)
-          .where(and(eq(products.storeId, storeId), like(products.name, term)))
+          .where(
+            and(
+              eq(products.storeId, storeId),
+              or(like(products.name, term), like(products.description, term)),
+            ),
+          )
           .orderBy(products.name)
           .limit(RESULT_LIMIT),
         db

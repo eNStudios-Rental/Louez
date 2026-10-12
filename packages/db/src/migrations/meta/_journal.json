@@ -603,6 +603,13 @@
       "when": 1791191898879,
       "tag": "0080_product_unit_serial_number",
       "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "5",
+      "when": 1791192000000,
+      "tag": "0081_category_parent_id",
+      "breakpoints": true
     }
   ]
 }
