@@ -16,13 +16,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@louez/ui'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@louez/ui'
 import { customerSchema } from '@louez/validations'
 import { createCustomer, updateCustomer } from './actions'
 import { useAppForm } from '@/hooks/form/form'
@@ -56,15 +49,12 @@ interface CustomerFormProps {
   openReplaySource?: DashboardCreationSource
 }
 
-const COUNTRY_CODES = ['FR', 'BE', 'CH', 'LU', 'MC', 'CA'] as const
-
-export function CustomerForm({
+export const CustomerForm = ({
   customer,
   openReplaySource = 'direct',
-}: CustomerFormProps) {
+}: CustomerFormProps) => {
   const router = useRouter()
   const t = useTranslations('dashboard.customers.form')
-  const tCountries = useTranslations('dashboard.customers.countries')
   const tCommon = useTranslations('common')
   const [isPending, startTransition] = useTransition()
   const isEditing = !!customer
@@ -323,35 +313,15 @@ export function CustomerForm({
               {(field) => <field.Input label={t('city')} placeholder={t('cityPlaceholder')} />}
             </form.AppField>
 
-            <form.Field name="country">
+            <form.AppField name="country">
               {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor={field.name}>{t('country')}</Label>
-                  <Select
-                    value={field.state.value || undefined}
-                    onValueChange={(value) => { if (value !== null) field.handleChange(value || undefined) }}
-                  >
-                    <SelectTrigger id={field.name}>
-                      <SelectValue placeholder={t('selectCountry')}>
-                        {field.state.value ? tCountries(field.state.value) : undefined}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {COUNTRY_CODES.map((code) => (
-                        <SelectItem key={code} value={code} label={tCountries(code)}>
-                          {tCountries(code)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {field.state.meta.errors.length > 0 && (
-                    <p className="text-sm font-medium text-destructive">
-                      {getFieldError(field.state.meta.errors[0])}
-                    </p>
-                  )}
-                </div>
+                <field.CountrySelect
+                  label={t('country')}
+                  placeholder={t('selectCountry')}
+                  allCountries
+                />
               )}
-            </form.Field>
+            </form.AppField>
           </div>
         </CardContent>
       </Card>

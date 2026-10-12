@@ -7,7 +7,12 @@ import { useLocale } from "next-intl";
 import { Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@louez/ui";
 import { CountryFlag } from "@louez/ui/icons/flags";
 
-import { getCountriesSortedByName, getCountryName, type Country } from "@/lib/utils/countries";
+import {
+  getAllCountriesSortedByName,
+  getCountriesSortedByName,
+  getCountryName,
+  type Country,
+} from "@/lib/utils/countries";
 
 import { getFieldError, useFieldContext } from "@/hooks/form/form-context";
 
@@ -17,6 +22,7 @@ interface FormCountrySelectProps {
   placeholder?: string;
   locale?: string;
   countries?: readonly Country[];
+  allCountries?: boolean;
   onValueChange?: (countryCode: string) => void;
 }
 
@@ -26,6 +32,7 @@ export const FormCountrySelect = ({
   placeholder,
   locale: localeOverride,
   countries,
+  allCountries,
   onValueChange,
 }: FormCountrySelectProps) => {
   const field = useFieldContext<string>();
@@ -35,20 +42,24 @@ export const FormCountrySelect = ({
   const error = errors[0];
   const errorId = `${field.name}-error`;
   const sortedCountries = useMemo(
-    () =>
-      countries
-        ? [...countries].sort((firstCountry, secondCountry) =>
-            getCountryName(firstCountry.code, locale).localeCompare(
-              getCountryName(secondCountry.code, locale),
-              locale,
-            ),
-          )
-        : getCountriesSortedByName(locale),
-    [countries, locale],
+    () => {
+      if (countries) {
+        return [...countries].sort((firstCountry, secondCountry) =>
+          getCountryName(firstCountry.code, locale).localeCompare(
+            getCountryName(secondCountry.code, locale),
+            locale,
+          ),
+        );
+      }
+      if (allCountries) {
+        return getAllCountriesSortedByName(locale);
+      }
+      return getCountriesSortedByName(locale);
+    },
+    [countries, allCountries, locale],
   );
-  const selectedCountry = sortedCountries.find((country) => country.code === field.state.value);
-  const selectedCountryName = selectedCountry
-    ? getCountryName(selectedCountry.code, locale)
+  const selectedCountryName = field.state.value
+    ? getCountryName(field.state.value, locale)
     : undefined;
 
   const handleValueChange = (countryCode: string | null) => {
@@ -59,7 +70,7 @@ export const FormCountrySelect = ({
   };
 
   return (
-    <div className="grid gap-2">
+    <div className="flex flex-col gap-2 min-w-0">
       {label && (
         <Label htmlFor={field.name} data-error={errors.length > 0}>
           {label}
@@ -72,10 +83,10 @@ export const FormCountrySelect = ({
           aria-invalid={errors.length > 0}
         >
           <SelectValue placeholder={placeholder}>
-            {selectedCountry && selectedCountryName && (
+            {field.state.value && selectedCountryName && (
               <span className="inline-flex items-center gap-2">
                 <CountryFlag
-                  country={selectedCountry.code}
+                  country={field.state.value}
                   countryName={selectedCountryName}
                   className="h-4 w-6 shrink-0 rounded-md [&_img]:size-full [&_svg]:size-full"
                 />
