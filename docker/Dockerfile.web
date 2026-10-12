@@ -68,6 +68,7 @@ WORKDIR /app
 # Build-time env vars forwarded by EasyPanel (`--build-arg ...`)
 ARG SKIP_ENV_VALIDATION=true
 ARG DATABASE_URL
+ARG REBUILD_DEMO_DOCUMENTS=false
 
 # Public deployment config is read by the server at runtime and passed to the
 # browser through PublicEnvProvider. The artifact version is intentionally
@@ -105,11 +106,15 @@ ENV DATABASE_URL=${DATABASE_URL}
 COPY --from=deps /root/.cache/node/corepack /root/.cache/node/corepack
 
 # The contract demo shows the pages of the real contract PDF as images. Its scenes import the
-# date snapshot written alongside them, so both are generated before the app is bundled: images
-# and scenes then carry the same dates, those of the build.
-RUN apk add --no-cache poppler-utils && \
-    corepack enable pnpm && \
-    pnpm --filter=@louez/web demo:documents
+# date snapshot written alongside them. Pre-rendered assets are committed under public/demo-documents.
+# Set REBUILD_DEMO_DOCUMENTS=true to refresh them during build (requires poppler-utils).
+RUN if [ "$REBUILD_DEMO_DOCUMENTS" = "true" ]; then \
+      apk add --no-cache poppler-utils && \
+      corepack enable pnpm && \
+      pnpm --filter=@louez/web demo:documents; \
+    else \
+      echo "Using committed demo documents under public/demo-documents"; \
+    fi
 
 # Build the application using Turborepo. CI supplies the commit SHA; direct
 # EasyPanel builds fall back to a unique build identifier without manual input.

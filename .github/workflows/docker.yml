@@ -40,11 +40,10 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Boots the production image against an empty MySQL and verifies the app
+  # Boots the production web image against an empty MySQL and verifies the app
   # actually sets up its schema and reports healthy. Catches the class of bug
-  # where something works in dev but is missing from the pruned standalone
-  # image (see issue #28).
-  smoke-test:
+  # where something works in dev but is missing from the pruned standalone image.
+  smoke-test-web:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -53,7 +52,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Build image for smoke test
+      - name: Build web image for smoke test
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -66,17 +65,6 @@ jobs:
             NEXT_PUBLIC_APP_VERSION=${{ github.sha }}
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web
-
-      - name: Build background-removal image for smoke test
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: apps/background-removal/Dockerfile
-          platforms: linux/amd64
-          load: true
-          tags: louez-background-removal:smoke
-          cache-from: type=gha,scope=background-removal
-          cache-to: type=gha,mode=max,scope=background-removal
 
       - name: Verify the web image contains no runtime marker
         run: |
@@ -106,38 +94,6 @@ jobs:
           docker logs louez-db
           exit 1
 
-      - name: Start and verify background-removal worker
-        run: |
-          docker run -d --name louez-background-removal \
-            --network louez-net -p 7000:7000 \
-            -e BACKGROUND_REMOVAL_API_TOKEN=smoke-test-background-removal-token \
-            louez-background-removal:smoke
-          echo "Waiting for the background-removal model to load..."
-          for i in $(seq 1 90); do
-            if curl -fsS http://localhost:7000/health >/dev/null; then
-              break
-            fi
-            if [ "$i" = "90" ]; then
-              echo "Background-removal worker never became healthy"
-              docker logs louez-background-removal
-              exit 1
-            fi
-            sleep 2
-          done
-          test "$(curl -sS -o /dev/null -w '%{http_code}' \
-            -F "file=@apps/web/public/favicon-32x32.png;type=image/png" \
-            -F "model=u2netp" \
-            http://localhost:7000/api/remove)" = "401"
-          curl -fsS \
-            -H "Authorization: Bearer smoke-test-background-removal-token" \
-            -F "file=@apps/web/public/favicon-32x32.png;type=image/png" \
-            -F "model=u2netp" \
-            http://localhost:7000/api/remove \
-            --output /tmp/background-removed.png
-          test -s /tmp/background-removed.png
-          test "$(file --brief --mime-type /tmp/background-removed.png)" = "image/png"
-          echo "✅ Background removal worker OK"
-
       - name: Boot app against empty database
         run: |
           docker run -d --name louez-app --network louez-net -p 3000:3000 \
@@ -155,8 +111,6 @@ jobs:
             -e NEXT_PUBLIC_GLEAP_API_KEY=runtime-public-config-smoke-standalone \
             -e NEXT_PUBLIC_FROMHELLO_API_URL=https://runtime-public-config-smoke-standalone.example.invalid \
             -e NEXT_PUBLIC_OPENREPLAY_INGEST_POINT=https://runtime-public-config-smoke-replay-standalone.example.invalid/ingest \
-            -e AI_IMAGE_BACKGROUND_REMOVAL_URL=http://louez-background-removal:7000 \
-            -e AI_IMAGE_BACKGROUND_REMOVAL_TOKEN=smoke-test-background-removal-token \
             louez-web:smoke
 
       - name: Wait for app to report healthy
@@ -297,6 +251,63 @@ jobs:
         run: |
           docker logs louez-app 2>&1 || true
           docker logs louez-app-platform 2>&1 || true
+
+  # Smoke-tests the background-removal sidecar service independently.
+  smoke-test-background-removal:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build background-removal image for smoke test
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: apps/background-removal/Dockerfile
+          target: app
+          platforms: linux/amd64
+          load: true
+          tags: louez-background-removal:smoke
+          cache-from: type=gha,scope=background-removal
+          cache-to: type=gha,mode=max,scope=background-removal
+
+      - name: Start and verify background-removal worker
+        run: |
+          docker run -d --name louez-background-removal -p 7000:7000 \
+            -e BACKGROUND_REMOVAL_API_TOKEN=smoke-test-background-removal-token \
+            louez-background-removal:smoke
+          echo "Waiting for the background-removal model to load..."
+          for i in $(seq 1 90); do
+            if curl -fsS http://localhost:7000/health >/dev/null; then
+              break
+            fi
+            if [ "$i" = "90" ]; then
+              echo "Background-removal worker never became healthy"
+              docker logs louez-background-removal
+              exit 1
+            fi
+            sleep 2
+          done
+          test "$(curl -sS -o /dev/null -w '%{http_code}' \
+            -F "file=@apps/web/public/favicon-32x32.png;type=image/png" \
+            -F "model=u2netp" \
+            http://localhost:7000/api/remove)" = "401"
+          curl -fsS \
+            -H "Authorization: Bearer smoke-test-background-removal-token" \
+            -F "file=@apps/web/public/favicon-32x32.png;type=image/png" \
+            -F "model=u2netp" \
+            http://localhost:7000/api/remove \
+            --output /tmp/background-removed.png
+          test -s /tmp/background-removed.png
+          test "$(file --brief --mime-type /tmp/background-removed.png)" = "image/png"
+          echo "✅ Background removal worker OK"
+
+      - name: Dump worker logs
+        if: always()
+        run: |
           docker logs louez-background-removal 2>&1 || true
 
   # Runs the README's `docker compose up -d` exactly as a self-hoster would,
@@ -336,18 +347,33 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs: smoke-test
+    needs: [smoke-test-web, smoke-test-background-removal]
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     permissions:
       contents: read
       packages: write
 
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: web
+            image-suffix: ""
+            file: docker/Dockerfile.web
+            target: app
+            scope: web
+            build-args: |
+              NEXT_PUBLIC_APP_VERSION=${{ github.sha }}
+          - name: background-removal
+            image-suffix: -background-removal
+            file: apps/background-removal/Dockerfile
+            target: app
+            scope: background-removal
+            build-args: ""
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -364,7 +390,7 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: |
-            ${{ env.REGISTRY_GITHUB }}/${{ github.repository }}
+            ${{ env.REGISTRY_GITHUB }}/${{ github.repository }}${{ matrix.image-suffix }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -372,42 +398,16 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=${{ inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' }}
 
-      - name: Extract background-removal metadata
-        id: background-meta
-        uses: docker/metadata-action@v6
-        with:
-          images: |
-            ${{ env.REGISTRY_GITHUB }}/${{ github.repository }}-background-removal
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=${{ inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' }}
-
-      - name: Build and push web image
+      - name: Build and push ${{ matrix.name }} image
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: docker/Dockerfile.web
-          target: app
+          file: ${{ matrix.file }}
+          target: ${{ matrix.target }}
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            NEXT_PUBLIC_APP_VERSION=${{ github.sha }}
-          cache-from: type=gha,scope=web
-          cache-to: type=gha,mode=max,scope=web
-
-      - name: Build and push background-removal image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: apps/background-removal/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.background-meta.outputs.tags }}
-          labels: ${{ steps.background-meta.outputs.labels }}
-          cache-from: type=gha,scope=background-removal
-          cache-to: type=gha,mode=max,scope=background-removal
+          build-args: ${{ matrix.build-args }}
+          cache-from: type=gha,scope=${{ matrix.scope }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.scope }}

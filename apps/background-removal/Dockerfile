@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12-slim AS app
 
 ARG REMBG_VERSION=2.0.75
 ARG REMBG_MODEL=isnet-general-use
