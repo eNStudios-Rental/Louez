@@ -204,7 +204,6 @@ export const ProductInfoSectionView = ({
               </ul>
             </div>
           )}
-          )}
         </div>
 
         <Separator />
