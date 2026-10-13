@@ -78,6 +78,27 @@ export function useNewReservationPricing({
             ? calculateDurationForMode(startDate, endDate, productPricingMode)
             : 0;
 
+      if (product.priceNegotiable && !hasPriceOverride) {
+        return {
+          productPricingMode,
+          productDuration,
+          basePrice,
+          calculatedPrice: basePrice,
+          effectivePrice: 0,
+          hasPriceOverride: false,
+          hasDiscount: false,
+          applicableTierDiscountPercent: null,
+          hasTieredPricing: false,
+          isRateBased: rateBased,
+          lineSubtotal: 0,
+          lineOriginalSubtotal: 0,
+          lineSavings: 0,
+          reductionPercent: null,
+          ratePlan: null,
+          basePeriodMinutes: product.basePeriodMinutes ?? null,
+        };
+      }
+
       if (product.pricingKind === "fixed") {
         const fixedResult = calculateFixedPrice(
           {

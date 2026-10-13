@@ -1467,6 +1467,7 @@ export const reservationItems = mysqlTable(
 
     // Flag for custom items (not from catalog)
     isCustomItem: boolean("is_custom_item").default(false).notNull(),
+    pricePending: boolean("price_pending").default(false).notNull(),
 
     // Quantity and price at reservation time
     quantity: int("quantity").notNull(),

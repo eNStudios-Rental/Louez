@@ -3,6 +3,7 @@ export type ReservationStatus = 'pending' | 'confirmed' | 'ongoing' | 'completed
 export interface ReservationItem {
   id: string
   quantity: number
+  pricePending?: boolean
   isCustomItem: boolean
   productSnapshot: {
     name: string

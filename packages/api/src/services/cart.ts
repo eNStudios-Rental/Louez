@@ -351,6 +351,7 @@ export async function resolveStorefrontCart(
       productName: product.name,
       productImage: getPrimaryProductImage(product.images),
       price: Number(product.price),
+      priceNegotiable: product.priceNegotiable,
       promotion: product.promotion,
       deposit: Number(product.deposit || 0),
       maxQuantity: maxQuantity === null ? null : Math.max(1, maxQuantity),

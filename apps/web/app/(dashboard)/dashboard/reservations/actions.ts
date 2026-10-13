@@ -568,6 +568,10 @@ export async function updateReservationStatus(
     return { error: "errors.reservationNotFound" };
   }
 
+  if (status === "confirmed" && reservation.items.some((item) => item.pricePending)) {
+    return { error: "errors.negotiablePricePending" };
+  }
+
   const validationWarnings =
     status === "confirmed"
       ? evaluateReservationRules({
@@ -612,6 +616,22 @@ export async function updateReservationStatus(
 
         if (!canTransitionReservationStatus(lockedReservation.status, status)) {
           return { ok: false as const, error: "errors.reservationStatusChanged" as const };
+        }
+
+        if (status === "confirmed") {
+          const [pendingItem] = await tx
+            .select({ id: reservationItems.id })
+            .from(reservationItems)
+            .where(
+              and(
+                eq(reservationItems.reservationId, reservationId),
+                eq(reservationItems.pricePending, true),
+              ),
+            )
+            .limit(1);
+          if (pendingItem) {
+            return { ok: false as const, error: "errors.negotiablePricePending" as const };
+          }
         }
 
         if (
@@ -1338,6 +1358,12 @@ export async function createManualReservation(data: CreateReservationData) {
         };
       }
 
+      const pricePending = Boolean(product.priceNegotiable && !hasPriceOverride);
+      if (pricePending) {
+        effectiveUnitPrice = 0;
+        effectiveSubtotal = 0;
+      }
+
       subtotalAmount += effectiveSubtotal;
       depositAmount += priceResult.deposit;
 
@@ -1348,6 +1374,7 @@ export async function createManualReservation(data: CreateReservationData) {
         unitPrice: effectiveUnitPrice.toFixed(2),
         depositPerUnit: product.deposit || "0",
         totalPrice: effectiveSubtotal.toFixed(2),
+        pricePending,
         pricingBreakdown,
         combinationKey,
         selectedAttributes: hasSelectedAttributes ? normalizedSelectedAttributes : null,
@@ -1905,7 +1932,11 @@ export async function createManualReservation(data: CreateReservationData) {
       storeId: store.id,
       customerId,
       number: reservationNumber,
-      status: data.sendAsQuote ? "quote" : "confirmed",
+      status: data.sendAsQuote
+        ? "quote"
+        : productDetails.some((detail) => detail.pricePending)
+          ? "pending"
+          : "confirmed",
       startDate: data.startDate,
       endDate: data.endDate,
       subtotalAmount: subtotalAmount.toFixed(2),
@@ -1961,6 +1992,7 @@ export async function createManualReservation(data: CreateReservationData) {
         unitPrice: detail.unitPrice,
         depositPerUnit: detail.depositPerUnit,
         totalPrice: detail.totalPrice,
+        pricePending: detail.pricePending,
         pricingBreakdown: detail.pricingBreakdown,
         combinationKey: detail.combinationKey,
         selectedAttributes: detail.selectedAttributes,
@@ -2034,7 +2066,7 @@ export async function createManualReservation(data: CreateReservationData) {
       });
     }
 
-    if (!data.sendAsQuote) {
+    if (!data.sendAsQuote && !productDetails.some((detail) => detail.pricePending)) {
       await consumeReservationStock(tx, reservationId, store.id);
       await validateReservationContract(tx, reservationId, store.id, "confirmation");
     }
@@ -2057,11 +2089,17 @@ export async function createManualReservation(data: CreateReservationData) {
     reservationWriteResult.overbookingShortfalls.length > 0
       ? reservationWriteResult.overbookingShortfalls
       : null;
+  const hasPendingNegotiablePrice = productDetails.some((detail) => detail.pricePending);
+  const initialReservationStatus = data.sendAsQuote
+    ? "quote"
+    : hasPendingNegotiablePrice
+      ? "pending"
+      : "confirmed";
 
   // Log activity for manual reservation creation
   await logReservationActivity(reservationId, "created", {
     source: "manual",
-    status: data.sendAsQuote ? "quote" : "confirmed",
+    status: initialReservationStatus,
     tulipInsuranceOptIn: appliedTulipInsuranceOptIn,
     tulipInsuranceAmount,
     ...(overbookingShortfalls && {
@@ -2073,7 +2111,7 @@ export async function createManualReservation(data: CreateReservationData) {
 
   const catalogQuantity = productDetails.reduce((total, detail) => total + detail.quantity, 0);
   const customQuantity = customItemDetails.reduce((total, detail) => total + detail.quantity, 0);
-  const shouldSendEmail = data.sendConfirmationEmail !== false;
+  const shouldSendEmail = data.sendConfirmationEmail !== false && !hasPendingNegotiablePrice;
 
   await captureProductServerEvent({
     distinctId: store.userId,
@@ -2085,7 +2123,7 @@ export async function createManualReservation(data: CreateReservationData) {
       reservation_id: reservationId,
       customer_id: customerId,
       source: "dashboard_manual",
-      reservation_status: data.sendAsQuote ? "quote" : "confirmed",
+      reservation_status: initialReservationStatus,
       catalog_line_count: productDetails.length,
       custom_line_count: customItemDetails.length,
       total_line_count:
@@ -2109,7 +2147,7 @@ export async function createManualReservation(data: CreateReservationData) {
 
   // Pay-as-you-go: a manually created reservation that is immediately confirmed
   // counts as a billable location (quotes are billed when later accepted).
-  if (!data.sendAsQuote) {
+  if (!data.sendAsQuote && !hasPendingNegotiablePrice) {
     try {
       await recordReservationFee({
         storeId: store.id,
@@ -2124,16 +2162,18 @@ export async function createManualReservation(data: CreateReservationData) {
     }
   }
 
-  try {
-    await createTulipContractForReservation({
-      reservationId,
-      source: "dashboard_manual_reservation_creation",
-    });
-  } catch (error) {
-    console.error("[tulip] Failed to create contract for manual reservation:", {
-      reservationId,
-      error,
-    });
+  if (!hasPendingNegotiablePrice) {
+    try {
+      await createTulipContractForReservation({
+        reservationId,
+        source: "dashboard_manual_reservation_creation",
+      });
+    } catch (error) {
+      console.error("[tulip] Failed to create contract for manual reservation:", {
+        reservationId,
+        error,
+      });
+    }
   }
 
   // Send email for manual reservations (if enabled)
@@ -2400,6 +2440,7 @@ type ReservationItemUpdateValues = Pick<
   | "depositPerUnit"
   | "totalPrice"
   | "pricingBreakdown"
+  | "pricePending"
 >;
 
 type ReservationItemWrite =
@@ -2420,6 +2461,7 @@ function hasReservationItemChanges(
     depositPerUnit: string;
     totalPrice: string;
     pricingBreakdown: PricingBreakdown | null;
+    pricePending: boolean;
   },
   next: ReservationItemUpdateValues,
 ) {
@@ -2430,6 +2472,7 @@ function hasReservationItemChanges(
     normalizeMoney(current.unitPrice) !== normalizeMoney(next.unitPrice) ||
     normalizeMoney(current.depositPerUnit) !== normalizeMoney(next.depositPerUnit) ||
     normalizeMoney(current.totalPrice) !== normalizeMoney(next.totalPrice) ||
+    current.pricePending !== next.pricePending ||
     JSON.stringify(current.pricingBreakdown) !== JSON.stringify(next.pricingBreakdown)
   );
 }
@@ -2886,7 +2929,9 @@ export async function updateReservation(
 
     // Insert new items
     for (const item of reservationItemsWithoutLegacyInsurance) {
+      const existingItem = existingItemsById.get(item.id ?? "");
       let pricingBreakdown: PricingBreakdown | null = null;
+      let pricePending = !item.isManualPrice && existingItem?.pricePending === true;
       let finalUnitPrice = item.unitPrice;
       let itemPricingMode: PricingMode = toPricingMode(item.pricingMode);
       let duration = calculateDuration(newStartDate, newEndDate, itemPricingMode);
@@ -2980,6 +3025,16 @@ export async function updateReservation(
           });
           finalUnitPrice = priceResult.subtotal / Math.max(1, item.quantity);
           totalPrice = priceResult.subtotal;
+          pricePending = !item.isManualPrice && existingItem?.pricePending === true;
+          if (pricePending || (!item.isManualPrice && !existingItem && product.priceNegotiable)) {
+            pricePending = true;
+            finalUnitPrice = 0;
+            totalPrice = 0;
+          } else if (!item.isManualPrice && existingItem && product.priceNegotiable) {
+            finalUnitPrice = Number(existingItem.unitPrice);
+            totalPrice = finalUnitPrice * item.quantity;
+            pricingBreakdown = existingItem.pricingBreakdown;
+          }
         }
       } else if (item.isManualPrice) {
         pricingBreakdown = {
@@ -3016,6 +3071,7 @@ export async function updateReservation(
         depositPerUnit: item.depositPerUnit.toFixed(2),
         totalPrice: totalPrice.toFixed(2),
         pricingBreakdown,
+        pricePending,
       } satisfies ReservationItemUpdateValues;
       const productSnapshot = {
         name: item.productSnapshot.name,
@@ -3121,6 +3177,13 @@ export async function updateReservation(
           });
           finalUnitPrice = seasonalResultForDate.subtotal / Math.max(1, item.quantity);
           totalPrice = seasonalResultForDate.subtotal;
+          if (item.pricePending) {
+            finalUnitPrice = 0;
+            totalPrice = 0;
+          } else if (product.priceNegotiable) {
+            finalUnitPrice = Number(item.unitPrice);
+            totalPrice = finalUnitPrice * item.quantity;
+          }
 
           const itemValues = {
             productId: item.productId,
@@ -3130,6 +3193,7 @@ export async function updateReservation(
             depositPerUnit: item.depositPerUnit,
             totalPrice: totalPrice.toFixed(2),
             pricingBreakdown: newBreakdown,
+            pricePending: item.pricePending,
           } satisfies ReservationItemUpdateValues;
           if (hasReservationItemChanges(item, itemValues)) {
             itemWrites.push({
@@ -3154,6 +3218,7 @@ export async function updateReservation(
             depositPerUnit: item.depositPerUnit,
             totalPrice: totalPrice.toFixed(2),
             pricingBreakdown: item.pricingBreakdown,
+            pricePending: item.pricePending,
           } satisfies ReservationItemUpdateValues;
           if (hasReservationItemChanges(item, itemValues)) {
             itemWrites.push({
@@ -3195,6 +3260,7 @@ export async function updateReservation(
           depositPerUnit: item.depositPerUnit,
           totalPrice: totalPrice.toFixed(2),
           pricingBreakdown: nextPricingBreakdown,
+          pricePending: item.pricePending,
         } satisfies ReservationItemUpdateValues;
         if (hasReservationItemChanges(item, itemValues)) {
           itemWrites.push({

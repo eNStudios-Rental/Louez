@@ -390,6 +390,7 @@ export function ReservationDetailClient({
 
           <ReservationItemsCard
             reservation={reservation}
+            reservationId={reservation.id}
             startDate={startDate}
             endDate={endDate}
             storeTimezone={storeTimezone}
@@ -398,6 +399,7 @@ export function ReservationDetailClient({
             currency={currency}
             rental={rental}
             insuredProductIds={insuredProductIds}
+            canWrite={!readOnly}
             renderUnitAssignment={(item) =>
               !readOnly && item.product?.trackUnits ? (
                 <UnitAssignmentSelector

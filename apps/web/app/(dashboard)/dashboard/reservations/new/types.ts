@@ -45,6 +45,7 @@ export interface Product {
   name: string;
   description?: string | null;
   price: string;
+  priceNegotiable?: boolean;
   deposit: string | null;
   tulipInsurable?: boolean;
   quantity: number;

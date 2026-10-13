@@ -524,7 +524,9 @@ export function NewReservationStepProducts({
                             <>
                               <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                                 <span className="text-primary text-sm font-semibold">
-                                  {formatCurrency(summaryPricing.lineSubtotal)}
+                                  {product.priceNegotiable && !productLines[0]?.priceOverride
+                                    ? t("priceNegotiable")
+                                    : formatCurrency(summaryPricing.lineSubtotal)}
                                 </span>
                                 {summaryPricing.lineSavings > 0 && (
                                   <>
@@ -547,14 +549,17 @@ export function NewReservationStepProducts({
                                       summaryPricing.ratePlan,
                                       summaryPricing.lineSubtotal,
                                     )
-                                  : `${formatCurrency(basePrice)}/${getProductPeriodLabel(product, productPricingMode)}`}
+                                  : product.priceNegotiable && !productLines[0]?.priceOverride
+                                    ? t("priceNegotiable")
+                                    : `${formatCurrency(basePrice)}/${getProductPeriodLabel(product, productPricingMode)}`}
                               </p>
                             </>
                           ) : (
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="text-muted-foreground text-sm">
-                                {formatCurrency(basePrice)}/
-                                {getProductPeriodLabel(product, productPricingMode)}
+                                {product.priceNegotiable && !productLines[0]?.priceOverride
+                                  ? t("priceNegotiable")
+                                  : `${formatCurrency(basePrice)}/${getProductPeriodLabel(product, productPricingMode)}`}
                               </span>
                             </div>
                           )}
@@ -801,7 +806,11 @@ export function NewReservationStepProducts({
                                   </Button>
                                 </div>
                                 <div className="text-left sm:text-right">
-                                  {pricing.hasPriceOverride ? (
+                                  {product.priceNegotiable && !line.priceOverride ? (
+                                    <span className="font-medium text-warning">
+                                      {t("priceNegotiable")}
+                                    </span>
+                                  ) : pricing.hasPriceOverride ? (
                                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                                       <span className="text-muted-foreground text-xs line-through">
                                         {formatCurrency(

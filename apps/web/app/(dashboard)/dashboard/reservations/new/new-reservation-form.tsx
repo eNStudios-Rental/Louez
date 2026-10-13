@@ -1335,7 +1335,11 @@ export function NewReservationForm({
       prev.map((line) => {
         if (line.lineId === priceOverrideDialog.lineId) {
           // Removing the override when the price matches the calculated one.
-          if (Math.abs(unitPrice - priceOverrideDialog.currentPrice) < 0.01) {
+          const product = products.find((candidate) => candidate.id === line.productId);
+          if (
+            !product?.priceNegotiable &&
+            Math.abs(unitPrice - priceOverrideDialog.currentPrice) < 0.01
+          ) {
             const nextLine = { ...line };
             delete nextLine.priceOverride;
             return nextLine;

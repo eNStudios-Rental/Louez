@@ -1,8 +1,9 @@
 "use client";
-import type { ReactNode } from "react";
+import { useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { ArrowRight, Calendar, Package, Tag, Truck } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AlertTriangle, ArrowRight, Calendar, Package, Tag, Truck } from "lucide-react";
 import {
   Badge,
   Card,
@@ -15,12 +16,15 @@ import {
   TableHead,
   TableBody,
   TableCell,
+  Input,
+  Button,
 } from "@louez/ui";
 import { ShieldSolidIcon } from "@louez/ui/icons";
 import type { BookingAttributeAxis } from "@louez/types";
 import { formatCurrency, formatNumber } from "@louez/utils";
 import { useFormatLocale } from "@/hooks/use-format-locale";
 import { formatStoreDate } from "@/lib/utils/store-date";
+import { settleNegotiableReservationItemPrice } from "../reservation-pricing-actions";
 
 export interface ReservationDisplayItem {
   id: string;
@@ -28,6 +32,7 @@ export interface ReservationDisplayItem {
   quantity: number;
   unitPrice: string;
   totalPrice: string;
+  pricePending?: boolean;
   selectedAttributes?: Record<string, string> | null;
   productSnapshot?: { name?: string; selectedAttributes?: Record<string, string> | null } | null;
   product?: {
@@ -50,6 +55,7 @@ export interface ReservationItemsDisplay {
 }
 export const ReservationItemsCard = ({
   reservation,
+  reservationId,
   startDate,
   endDate,
   storeTimezone,
@@ -59,8 +65,10 @@ export const ReservationItemsCard = ({
   rental,
   insuredProductIds,
   renderUnitAssignment,
+  canWrite = false,
 }: {
   reservation: ReservationItemsDisplay;
+  reservationId?: string;
   startDate: Date;
   endDate: Date;
   storeTimezone?: string;
@@ -70,10 +78,43 @@ export const ReservationItemsCard = ({
   rental: number;
   insuredProductIds: ReadonlySet<string>;
   renderUnitAssignment?: (item: ReservationDisplayItem) => ReactNode;
+  canWrite?: boolean;
 }) => {
   const t = useTranslations("dashboard.reservations");
   const tCommon = useTranslations("common");
   const { intl: formatLocale } = useFormatLocale();
+  const router = useRouter();
+  const [isSavingPrice, startSavingPrice] = useTransition();
+  const [priceInputs, setPriceInputs] = useState<Record<string, string>>({});
+  const [priceSaveError, setPriceSaveError] = useState(false);
+
+  const handleSetPrice = (event: FormEvent<HTMLFormElement>, item: ReservationDisplayItem) => {
+    event.preventDefault();
+    if (!reservationId) {
+      setPriceSaveError(true);
+      return;
+    }
+    const rawUnitPrice = priceInputs[item.id];
+    const unitPrice = Number(rawUnitPrice);
+    if (!rawUnitPrice?.trim() || !Number.isFinite(unitPrice) || unitPrice < 0) {
+      setPriceSaveError(true);
+      return;
+    }
+    setPriceSaveError(false);
+    startSavingPrice(async () => {
+      const result = await settleNegotiableReservationItemPrice({
+        reservationId,
+        itemId: item.id,
+        unitPrice,
+      });
+      if ("error" in result) {
+        setPriceSaveError(true);
+        return;
+      }
+      router.refresh();
+    });
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -163,6 +204,44 @@ export const ReservationItemsCard = ({
                                 ))}
                             </div>
                           )}
+                          {item.pricePending ? (
+                            <div className="mt-2 space-y-2">
+                              <p className="flex items-center gap-1.5 text-sm text-warning">
+                                <AlertTriangle className="h-4 w-4 shrink-0" />
+                                {t("negotiablePricePending")}
+                              </p>
+                              {canWrite ? (
+                                <form
+                                  className="flex max-w-sm items-center gap-2"
+                                  onSubmit={(event) => handleSetPrice(event, item)}
+                                >
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    aria-label={t("agreedUnitPrice")}
+                                    placeholder={t("agreedUnitPrice")}
+                                    value={priceInputs[item.id] ?? ""}
+                                    onChange={(event) =>
+                                      setPriceInputs((current) => ({
+                                        ...current,
+                                        [item.id]: event.target.value,
+                                      }))
+                                    }
+                                  />
+                                  <Button type="submit" size="sm" disabled={isSavingPrice}>
+                                    {isSavingPrice ? t("savingAgreedPrice") : t("saveAgreedPrice")}
+                                  </Button>
+                                </form>
+                              ) : null}
+                              {priceSaveError ? (
+                                <p role="alert" className="text-xs text-destructive">
+                                  {t("saveAgreedPriceError")}
+                                </p>
+                              ) : null}
+                            </div>
+                          ) : null}
                         </div>
 
                         {renderUnitAssignment?.(item)}
@@ -170,11 +249,14 @@ export const ReservationItemsCard = ({
                     </TableCell>
                     <TableCell className="text-center align-top pt-4">{item.quantity}</TableCell>
                     <TableCell className="text-right text-muted-foreground align-top pt-4">
-                      {formatCurrency(parseFloat(item.unitPrice), currency, formatLocale)}
-                      /u
+                      {item.pricePending
+                        ? t("negotiablePricePending")
+                        : `${formatCurrency(parseFloat(item.unitPrice), currency, formatLocale)}/u`}
                     </TableCell>
                     <TableCell className="text-right font-medium align-top pt-4">
-                      {formatCurrency(parseFloat(item.totalPrice), currency, formatLocale)}
+                      {item.pricePending
+                        ? t("negotiablePricePending")
+                        : formatCurrency(parseFloat(item.totalPrice), currency, formatLocale)}
                     </TableCell>
                   </TableRow>
                 );

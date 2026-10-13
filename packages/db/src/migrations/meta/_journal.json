@@ -617,6 +617,13 @@
       "when": 1791193000000,
       "tag": "0082_product_price_negotiable",
       "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "5",
+      "when": 1791194000000,
+      "tag": "0083_reservation_item_price_pending",
+      "breakpoints": true
     }
   ]
 }

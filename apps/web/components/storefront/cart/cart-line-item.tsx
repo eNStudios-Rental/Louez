@@ -107,7 +107,13 @@ export const CartLineItem = ({
               </p>
             ) : null}
           </div>
-          <Price amount={subtotal} size="sm" className="shrink-0" />
+          {item.priceNegotiable ? (
+            <span className="shrink-0 text-sm font-medium text-muted-foreground">
+              {t("priceNegotiable")}
+            </span>
+          ) : (
+            <Price amount={subtotal} size="sm" className="shrink-0" />
+          )}
         </div>
 
         <div className="flex items-center justify-between gap-3">
@@ -121,10 +127,12 @@ export const CartLineItem = ({
             className="*:h-11 lg:*:h-9 [&_[data-slot=button]]:size-11 lg:[&_[data-slot=button]]:size-9"
           />
           <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-            {subtotal === 0 && isRequiredLine
+            {item.priceNegotiable
+              ? t("priceNegotiable")
+              : subtotal === 0 && isRequiredLine
               ? t("included")
               : `${formatMoney(unitPrice)} × ${item.quantity}`}
-            {isFixedPriceProduct(item) ? ` · ${t("fixedPrice")}` : null}
+            {!item.priceNegotiable && isFixedPriceProduct(item) ? ` · ${t("fixedPrice")}` : null}
           </p>
           {!isRequiredLine ? (
             <Button
@@ -140,10 +148,14 @@ export const CartLineItem = ({
           ) : null}
         </div>
 
-        <BillingDetail
-          detail={getStorefrontBillingDetail(item, priceResult, globalStartDate, globalEndDate)}
-        />
-        <SeasonalPriceBreakdown segments={seasonalSegments} seasons={item.seasonalPricings} />
+        {!item.priceNegotiable ? (
+          <>
+            <BillingDetail
+              detail={getStorefrontBillingDetail(item, priceResult, globalStartDate, globalEndDate)}
+            />
+            <SeasonalPriceBreakdown segments={seasonalSegments} seasons={item.seasonalPricings} />
+          </>
+        ) : null}
 
         {item.unavailableReason ? (
           <p className="text-xs text-destructive">{t(`unavailable.${item.unavailableReason}`)}</p>

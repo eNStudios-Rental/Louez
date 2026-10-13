@@ -51,6 +51,12 @@ export const CartPanelView = ({
         onRemove={onRemove}
       />
 
+      {items.some((item) => item.priceNegotiable) ? (
+        <p role="status" className="rounded-2xl bg-warning/12 p-4 text-sm text-warning">
+          {t("negotiablePriceNotice")}
+        </p>
+      ) : null}
+
       <ul className="divide-y">
         {groups.map((group) => (
           <li key={group.line.lineId}>
