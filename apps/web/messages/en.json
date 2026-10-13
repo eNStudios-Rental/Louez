@@ -1789,6 +1789,8 @@
         "vatLabel": "VAT",
         "priceNegotiableLabel": "Pricing",
         "priceNegotiableDescription": "Price negotiable (displays notice instead of price in store)",
+        "priceNegotiableNotice": "No price is needed. Customers will see that the price is negotiable.",
+        "priceNegotiableValue": "Price negotiable",
         "seasonActions": "Season actions",
         "productCreatedCopyReady": "The pre-filled copy is ready to edit.",
         "copySuffix": "(copy)",
@@ -1895,6 +1897,7 @@
         "info": {
           "title": "Product information",
           "noDescription": "No description provided",
+          "priceNegotiable": "Price negotiable",
           "seasonalPricing": "Seasonal pricing",
           "ratesShowMore": "Show all rates ({count})",
           "ratesShowLess": "Show less",
