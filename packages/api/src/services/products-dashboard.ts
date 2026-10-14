@@ -1,4 +1,6 @@
-import { and, asc, count, desc, eq, inArray, like, ne, or, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, like, ne, or, sql, type SQL } from "drizzle-orm";
+
+const escapeLikePattern = (term: string): string => term.replace(/[\\%_]/g, (char) => `\\${char}`);
 
 import {
   categories,
@@ -6,19 +8,15 @@ import {
   effectiveProductQuantitySql,
   productCategories,
   products,
-} from '@louez/db';
+} from "@louez/db";
 
-export const DASHBOARD_PRODUCT_STATUSES = [
-  'active',
-  'draft',
-  'archived',
-] as const;
+export const DASHBOARD_PRODUCT_STATUSES = ["active", "draft", "archived"] as const;
 
 export type DashboardProductStatus = (typeof DASHBOARD_PRODUCT_STATUSES)[number];
 
 export interface DashboardProductsListParams {
   storeId: string;
-  status?: 'all' | DashboardProductStatus;
+  status?: "all" | DashboardProductStatus;
   /**
    * Empty (or omitted) means "all categories". Several ids are OR'd together:
    * a product is kept when it belongs to *any* of the selected categories.
@@ -60,9 +58,10 @@ export async function getDashboardProductsList({
   if (searchTerm) {
     const tokens = searchTerm.split(/\s+/).filter(Boolean);
     for (const token of tokens) {
+      const pattern = `%${escapeLikePattern(token)}%`;
       const matchCondition = or(
-        like(products.name, `%${token}%`),
-        like(products.description, `%${token}%`),
+        like(products.name, pattern),
+        like(sql`COALESCE(${products.description}, '')`, pattern),
       );
       if (matchCondition) {
         scopeConditions.push(matchCondition);
@@ -71,7 +70,7 @@ export async function getDashboardProductsList({
   }
 
   const conditions = [...scopeConditions];
-  if (status && status !== 'all') {
+  if (status && status !== "all") {
     conditions.push(eq(products.status, status));
   }
 
@@ -110,6 +109,7 @@ export async function getDashboardProductsList({
       name: products.name,
       images: products.images,
       price: products.price,
+      priceNegotiable: products.priceNegotiable,
       deposit: products.deposit,
       quantity: effectiveProductQuantitySql(),
       stockKind: products.stockKind,
@@ -138,6 +138,7 @@ export async function getDashboardProductsList({
         name: row.name,
         images: row.images,
         price: row.price,
+        priceNegotiable: row.priceNegotiable,
         deposit: row.deposit,
         quantity: row.quantity,
         stockKind: row.stockKind,
@@ -166,10 +167,7 @@ export async function getAccessoryCandidates({
   storeId,
   excludeProductId,
 }: AccessoryCandidatesParams) {
-  const conditions = [
-    eq(products.storeId, storeId),
-    eq(products.status, 'active'),
-  ];
+  const conditions = [eq(products.storeId, storeId), eq(products.status, "active")];
   if (excludeProductId) {
     conditions.push(ne(products.id, excludeProductId));
   }
@@ -186,10 +184,6 @@ export async function getAccessoryCandidates({
     .orderBy(asc(products.displayOrder), desc(products.createdAt));
 }
 
-export type AccessoryCandidate = Awaited<
-  ReturnType<typeof getAccessoryCandidates>
->[number];
+export type AccessoryCandidate = Awaited<ReturnType<typeof getAccessoryCandidates>>[number];
 
-export type DashboardProductsList = Awaited<
-  ReturnType<typeof getDashboardProductsList>
->;
+export type DashboardProductsList = Awaited<ReturnType<typeof getDashboardProductsList>>;

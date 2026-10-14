@@ -39,7 +39,7 @@ interface PaymentMethodsBreakdownProps {
 /** Share of the period's receipts per payment method, ordered by amount. */
 export const PaymentMethodsBreakdown = ({
   data,
-  currency = "EUR",
+  currency = "PLN",
   className,
 }: PaymentMethodsBreakdownProps) => {
   const t = useTranslations("dashboard.statistics");

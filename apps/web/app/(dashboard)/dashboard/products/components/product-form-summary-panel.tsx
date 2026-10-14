@@ -67,8 +67,12 @@ export function ProductFormSummaryPanel({
     },
     {
       key: "price",
-      label: isFixedPricing ? t("fixedPrice") : t("baseRate"),
-      done: isValidPrice(basePrice),
+      label: watchedValues.priceNegotiable
+        ? t("priceNegotiableValue")
+        : isFixedPricing
+          ? t("fixedPrice")
+          : t("baseRate"),
+      done: watchedValues.priceNegotiable || isValidPrice(basePrice),
       required: true,
     },
     { key: "photos", label: t("photos"), done: imagesPreviews.length > 0 },
@@ -148,9 +152,16 @@ export function ProductFormSummaryPanel({
               </div>
               <div className="shrink-0 text-right">
                 <p className="text-sm font-bold">
-                  {formatCurrency(Number.parseFloat(basePrice.replace(",", ".")) || 0, currency)}
+                  {watchedValues.priceNegotiable
+                    ? t("priceNegotiableValue")
+                    : formatCurrency(
+                        Number.parseFloat(basePrice.replace(",", ".")) || 0,
+                        currency,
+                      )}
                 </p>
-                <p className="text-muted-foreground text-xs">{priceLabel}</p>
+                {!watchedValues.priceNegotiable && (
+                  <p className="text-muted-foreground text-xs">{priceLabel}</p>
+                )}
               </div>
             </div>
             {descriptionText && (

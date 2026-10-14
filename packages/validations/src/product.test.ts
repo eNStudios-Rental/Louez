@@ -44,6 +44,7 @@ const validProduct = {
   pricingTiers: [],
   rateTiers: [],
   enforceStrictTiers: true,
+  priceNegotiable: false,
   promotion: null,
   taxSettings: { inheritFromStore: true },
   videoUrl: "",
@@ -212,6 +213,26 @@ test("keeps rejecting a zero duration rate", () => {
 
   assert.equal(createProductSchema(translate).safeParse(product).success, false);
   assert.equal(productSchema.safeParse(product).success, false);
+});
+
+test("accepts negotiable fixed and duration products without entering a price", () => {
+  const fixedProduct = {
+    ...validProduct,
+    price: "",
+    pricingKind: "fixed" as const,
+    priceNegotiable: true,
+  };
+  const durationProduct = {
+    ...validProduct,
+    price: "",
+    basePriceDuration: { ...validProduct.basePriceDuration, price: "" },
+    priceNegotiable: true,
+  };
+
+  for (const product of [fixedProduct, durationProduct]) {
+    assert.equal(createProductSchema(translate).safeParse(product).success, true);
+    assert.equal(productSchema.safeParse(product).success, true);
+  }
 });
 
 test("rejects a duration-priced consumable", () => {

@@ -48,6 +48,7 @@ export interface CartLineIntent {
   price: number;
   promotion?: ProductPromotion | null;
   deposit: number;
+  priceNegotiable?: boolean;
   quantity: number;
   maxQuantity: StockQuantityLimit;
   pricingKind: PricingKind;
@@ -452,6 +453,7 @@ const applyResolvedLine = (
     productName: resolved.productName,
     productImage: resolved.productImage,
     price: resolved.price,
+    priceNegotiable: resolved.priceNegotiable,
     promotion: resolved.promotion,
     deposit: resolved.deposit,
     maxQuantity: resolved.maxQuantity,

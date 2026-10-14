@@ -677,6 +677,7 @@ const buildReservationItemValues = (
       unitPrice: line.unitPrice.toFixed(2),
       depositPerUnit: line.depositPerUnit.toFixed(2),
       totalPrice: line.subtotal.toFixed(2),
+      pricePending: line.priceNegotiable,
       ...(line.promotion
         ? {
             pricingBreakdown: {
@@ -989,8 +990,11 @@ export const createReservation = async (
     const { prepared } = preparation;
     const { store, totals, insurance, promo, delivery, cart } = prepared;
 
+    const hasUnsettledNegotiablePrice = cart.lines.some((line) => line.priceNegotiable);
     const effectiveReservationMode =
-      request.source === "phone" ? "request" : getEffectiveReservationMode(store);
+      request.source === "phone" || hasUnsettledNegotiablePrice
+        ? "request"
+        : getEffectiveReservationMode(store);
     if (effectiveReservationMode === "payment") {
       const currency = store.settings?.currency ?? "EUR";
       const { finalChargeAmount } = getCheckoutChargeAmount({

@@ -29,6 +29,7 @@ export interface CartPricingTier {
 export interface CartItemForPricing {
   timezone?: string;
   promotion?: ProductPromotion | null;
+  priceNegotiable?: boolean;
   price: number;
   deposit: number;
   quantity: number;
@@ -214,6 +215,14 @@ export function calculateCartItemPrice(
   globalEndDate: string | null,
   now?: Date,
 ): CartItemPriceResult {
+  if (item.priceNegotiable) {
+    return {
+      subtotal: 0,
+      originalSubtotal: 0,
+      savings: 0,
+      discountPercent: null,
+    };
+  }
   const regular = calculateRegularCartItemPrice(item, globalStartDate, globalEndDate);
   const discounted = applyProductPromotion(regular.subtotal, item.promotion, item.timezone, now);
   if (!discounted.promotion) return regular;

@@ -65,6 +65,12 @@ export const priceDurationSchema = z.object({
   unit: durationUnitSchema,
 });
 
+const negotiablePriceDurationSchema = z.object({
+  price: z.string().regex(/^\d+([.,]\d{1,2})?$/, 'validation.positive').or(z.literal('')),
+  duration: z.number().int().min(1, 'validation.minValue'),
+  unit: durationUnitSchema,
+});
+
 export const rateTierSchema = z.object({
   id: z.string().optional(),
   price: z.string().regex(/^\d+([.,]\d{1,2})?$/, 'validation.positive'),
@@ -374,8 +380,9 @@ export const createProductSchema = (
     .superRefine((data, ctx) => {
       if (data.pricingKind === 'fixed') {
         if (
-          !data.price ||
-          (data.stockKind !== 'consumable' && !isPositiveMoneyInput(data.price))
+          !data.priceNegotiable &&
+          (!data.price ||
+            (data.stockKind !== 'consumable' && !isPositiveMoneyInput(data.price)))
         ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
@@ -387,8 +394,8 @@ export const createProductSchema = (
         const baseRate = data.basePriceDuration;
 
         if (
-          !moneyInputRegex.test(baseRate.price) ||
-          !isPositiveMoneyInput(baseRate.price)
+          !data.priceNegotiable &&
+          (!moneyInputRegex.test(baseRate.price) || !isPositiveMoneyInput(baseRate.price))
         ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
@@ -582,7 +589,9 @@ export const productSchema = z
       .default('returnable'),
     pricingKind: z.enum(['duration', 'fixed']).default('duration'),
     pricingMode: z.enum(['hour', 'day', 'week']),
-    basePriceDuration: priceDurationSchema.optional(),
+    basePriceDuration: z
+      .union([priceDurationSchema, negotiablePriceDurationSchema])
+      .optional(),
     pricingTiers: z.array(pricingTierSchema).optional(),
     rateTiers: z.array(rateTierSchema).optional(),
     enforceStrictTiers: z.boolean().optional(),
@@ -606,8 +615,9 @@ export const productSchema = z
   .superRefine((data, ctx) => {
     if (data.pricingKind === 'fixed') {
       if (
-        !data.price ||
-        (data.stockKind !== 'consumable' && !isPositiveMoneyInput(data.price))
+        !data.priceNegotiable &&
+        (!data.price ||
+          (data.stockKind !== 'consumable' && !isPositiveMoneyInput(data.price)))
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,

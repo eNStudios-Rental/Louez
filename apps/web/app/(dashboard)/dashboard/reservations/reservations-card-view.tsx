@@ -23,6 +23,7 @@ import {
   Calendar,
   CheckCircle,
   ChevronRight,
+  AlertTriangle,
   Loader2,
   User,
   XCircle,
@@ -217,6 +218,12 @@ export function ReservationsCardView({
                     {/* Right: Amount & Actions */}
                     <div className="flex flex-col items-end gap-2 flex-shrink-0">
                       <div className="flex items-center gap-2">
+                        {reservation.items.some((item) => item.pricePending) ? (
+                          <AlertTriangle
+                            className="h-4 w-4 text-warning"
+                            aria-label={t("negotiablePricePending")}
+                          />
+                        ) : null}
                         <span className="font-semibold text-lg">
                           {parseFloat(reservation.totalAmount).toFixed(2)} {currencySymbol}
                         </span>

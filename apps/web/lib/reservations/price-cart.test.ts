@@ -46,6 +46,7 @@ const productRow = (overrides: Partial<PricingProductRow> & { id: string }): Pri
   images: [],
   price: "10.00",
   deposit: "0",
+  priceNegotiable: false,
   pricingKind: "duration",
   pricingMode: "day",
   basePeriodMinutes: null,
@@ -567,6 +568,24 @@ test("priceCart reports the first unknown product instead of pricing partially",
   const result = priceCart({
     catalog: buildCatalog(),
     lines: [lines[0], { productId: "ghost", quantity: 1, startDate: START, endDate: END }],
+  });
+
+  test("negotiable cart lines have no chargeable price until staff settles them", () => {
+    const catalogProduct = toPricingCatalogProduct(
+      productRow({ id: "negotiable", price: "125.00", priceNegotiable: true }),
+      [],
+      [],
+    );
+    const priced = priceCart({
+      catalog: new Map([[catalogProduct.id, catalogProduct]]),
+      lines: [{ productId: catalogProduct.id, quantity: 2, startDate: START, endDate: END }],
+    });
+
+    assert.ok(priced.ok);
+    assert.equal(priced.cart.lines[0]?.priceNegotiable, true);
+    assert.equal(priced.cart.lines[0]?.unitPrice, 0);
+    assert.equal(priced.cart.lines[0]?.subtotal, 0);
+    assert.equal(priced.cart.subtotal, 0);
   });
   assert.deepEqual(result, { ok: false, missingProductId: "ghost" });
 });

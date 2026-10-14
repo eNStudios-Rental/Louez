@@ -43,6 +43,7 @@ import {
   XCircle,
   MoreHorizontal,
   Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import type {
   Reservation,
@@ -313,7 +314,15 @@ export function ReservationsTableView({
 
                     {/* Amount */}
                     <TableCell className="text-right font-medium">
-                      {parseFloat(reservation.totalAmount).toFixed(2)} {currencySymbol}
+                      <span className="inline-flex items-center justify-end gap-1.5">
+                        {reservation.items.some((item) => item.pricePending) ? (
+                          <Tooltip>
+                            <TooltipTrigger render={<AlertTriangle className="h-4 w-4 text-warning" aria-label={t("negotiablePricePending")} />} />
+                            <TooltipContent>{t("negotiablePricePending")}</TooltipContent>
+                          </Tooltip>
+                        ) : null}
+                        {parseFloat(reservation.totalAmount).toFixed(2)} {currencySymbol}
+                      </span>
                     </TableCell>
 
                     {/* Status */}

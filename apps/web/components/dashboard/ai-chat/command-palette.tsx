@@ -208,14 +208,12 @@ export const DashboardCommandPalette = ({
         (item) =>
           (!item.platformAdminOnly || isPlatformAdmin) &&
           (!item.requiresElectronicInvoicing || electronicInvoicingEnabled),
-      ).map(
-        (item) => ({
-          ...item,
-          content: getSearchableMessageText(messages, item.searchPaths),
-          description: getMessageText(messages, item.descriptionPath),
-          label: getMessageText(messages, item.labelPath),
-        }),
-      ),
+      ).map((item) => ({
+        ...item,
+        content: getSearchableMessageText(messages, item.searchPaths),
+        description: getMessageText(messages, item.descriptionPath),
+        label: getMessageText(messages, item.labelPath),
+      })),
     [isPlatformAdmin, electronicInvoicingEnabled, messages],
   );
 
@@ -274,7 +272,9 @@ export const DashboardCommandPalette = ({
           (product): CommandAction => ({
             value: `product-${product.id}`,
             label: product.name,
-            description: formatCurrency(Number(product.price), currency),
+            description: (product as { priceNegotiable?: boolean }).priceNegotiable
+              ? t("products.priceNegotiableValue")
+              : formatCurrency(Number(product.price), currency),
             keywords: "",
             icon: PackageIcon,
             kind: "navigate",

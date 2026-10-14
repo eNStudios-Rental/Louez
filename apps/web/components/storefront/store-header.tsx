@@ -125,7 +125,12 @@ export const StoreHeader = ({
                       : "invisible grid-rows-[0fr] opacity-0",
                   )}
                 >
-                  <div className="min-h-0 overflow-hidden md:overflow-visible">
+                  <div
+                    className={cn(
+                      "min-h-0 md:overflow-visible",
+                      mobileSearchVisible ? "overflow-visible" : "overflow-hidden",
+                    )}
+                  >
                     <div className="pt-2 md:pt-0">
                       {searchControl ?? (
                         <HeaderSearchCapsule rules={periodRules} className="w-full" />

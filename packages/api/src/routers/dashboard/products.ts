@@ -22,6 +22,7 @@ const productListItemSchema = z.object({
   name: z.string(),
   images: z.array(z.string()).nullable(),
   price: z.string(),
+  priceNegotiable: z.boolean(),
   deposit: z.string().nullable(),
   quantity: z.number(),
   stockKind: z.enum(["returnable", "consumable", "untracked"]),

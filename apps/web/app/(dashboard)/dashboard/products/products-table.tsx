@@ -37,6 +37,7 @@ interface Product {
   name: string
   images: string[] | null
   price: string
+  priceNegotiable: boolean
   deposit: string | null
   quantity: number
   stockKind: StockKind
@@ -182,7 +183,9 @@ export const ProductsTable = ({ products, currency = 'EUR', readOnly = false, on
                     {product.category?.name || '-'}
                   </TableCell>
                   <TableCell className="text-right font-medium">
-                    {parseFloat(product.price).toFixed(2)} {currencySymbol}
+                    {product.priceNegotiable
+                      ? tForm("priceNegotiableValue")
+                      : `${parseFloat(product.price).toFixed(2)} ${currencySymbol}`}
                   </TableCell>
                   <TableCell className="text-center">
                     {product.stockKind === 'untracked'

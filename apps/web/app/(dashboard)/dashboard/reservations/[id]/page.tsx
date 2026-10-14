@@ -232,6 +232,7 @@ export default async function ReservationDetailPage({ params }: ReservationDetai
         returnInspection={formattedReturnInspection}
         invoices={reservationInvoices}
         canGenerateInvoice={Boolean(legalProfile?.invoicingEnabled && uninvoicedPayment)}
+        readOnly={!hasPermission(store.role, "write")}
       />
     </>
   );

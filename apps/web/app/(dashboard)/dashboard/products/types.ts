@@ -30,6 +30,7 @@ export interface ProductListItem {
   name: string;
   images: string[] | null;
   price: string;
+  priceNegotiable: boolean;
   deposit: string | null;
   quantity: number;
   stockKind: StockKind;

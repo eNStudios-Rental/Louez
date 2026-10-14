@@ -38,6 +38,7 @@ export interface PricingCatalogProduct {
   images: string[];
   price: number;
   deposit: number;
+  priceNegotiable?: boolean;
   pricingKind: PricingKind;
   pricingMode: PricingMode;
   basePeriodMinutes: number | null;
@@ -64,6 +65,7 @@ export interface PricingCatalogLineInput {
 export interface PricedCatalogLine {
   promotion?: AppliedProductPromotion | null;
   productId: string;
+  priceNegotiable: boolean;
   quantity: number;
   pricingKind: PricingKind;
   /** Billed periods (always 1 for a fixed-price product). */
@@ -86,6 +88,7 @@ export type PricingProductRow = Pick<
   | "images"
   | "price"
   | "deposit"
+  | "priceNegotiable"
   | "pricingKind"
   | "pricingMode"
   | "basePeriodMinutes"
@@ -182,6 +185,7 @@ export const toPricingCatalogProduct = (
   images: product.images ?? [],
   price: Number(product.price),
   deposit: Number(product.deposit || 0),
+  priceNegotiable: Boolean(product.priceNegotiable),
   pricingKind: product.pricingKind,
   pricingMode: product.pricingMode,
   basePeriodMinutes: product.basePeriodMinutes ?? null,
@@ -231,6 +235,7 @@ const priceRegularCatalogLine = (
     );
     return {
       productId: product.id,
+      priceNegotiable: Boolean(product.priceNegotiable),
       quantity: line.quantity,
       pricingKind: product.pricingKind,
       duration: 1,
@@ -263,6 +268,7 @@ const priceRegularCatalogLine = (
 
   return {
     productId: product.id,
+    priceNegotiable: Boolean(product.priceNegotiable),
     quantity: line.quantity,
     pricingKind: product.pricingKind,
     duration,
@@ -280,6 +286,25 @@ export const priceCatalogLine = (
   line: PricingCatalogLineInput,
   now?: Date,
 ): PricedCatalogLine => {
+  if (product.priceNegotiable) {
+    return {
+      productId: product.id,
+      priceNegotiable: true,
+      quantity: line.quantity,
+      pricingKind: product.pricingKind,
+      duration:
+        product.pricingKind === "fixed"
+          ? 1
+          : calculateDuration(line.startDate, line.endDate, product.pricingMode),
+      unitPrice: 0,
+      depositPerUnit: product.deposit,
+      subtotal: 0,
+      originalSubtotal: 0,
+      savings: 0,
+      totalDeposit: product.deposit * line.quantity,
+    };
+  }
+
   const regular = priceRegularCatalogLine(product, line);
   const discounted = applyProductPromotion(
     regular.subtotal,

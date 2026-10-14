@@ -164,7 +164,7 @@ export const ProductCard = ({
         </h3>
         {product.priceNegotiable ? (
           <span className="text-sm font-medium text-muted-foreground">
-            {t("product.priceNegotiable")}
+            {t("priceNegotiable")}
           </span>
         ) : (
           <Price

@@ -53,6 +53,7 @@ interface ProductInfoSectionAccessory {
 interface ProductInfoSectionProduct {
   description: string | null;
   price: string;
+  priceNegotiable: boolean;
   pricingKind?: PricingKind;
   basePeriodMinutes?: number | null;
   promotion?: ProductPromotion | null;
@@ -111,23 +112,27 @@ export const ProductInfoSectionView = ({
 
         {/* Pricing */}
         <div className="space-y-3">
-          <div className="flex flex-wrap items-baseline gap-2 tabular-nums">
-            {price.promotion && (
-              <s className="text-sm text-muted-foreground">
-                {formatCurrency(price.promotion.originalSubtotal, currency, formatLocale)}
-              </s>
-            )}
-            <p className="text-lg font-semibold">
-              {formatCurrency(price.subtotal, currency, formatLocale)}
-            </p>
-            <span className="text-sm text-muted-foreground">
-              {product.pricingKind === "fixed"
-                ? tForm("fixedPrice")
-                : `/ ${formatPeriodDuration(product.basePeriodMinutes ?? pricingModeToMinutes(product.pricingMode))}`}
-            </span>
-            {price.promotion && <Badge variant="promo">−{price.promotion.percentage}%</Badge>}
-          </div>
-          {product.promotion && (
+          {product.priceNegotiable ? (
+            <p className="text-lg font-semibold">{t("priceNegotiable")}</p>
+          ) : (
+            <div className="flex flex-wrap items-baseline gap-2 tabular-nums">
+              {price.promotion && (
+                <s className="text-sm text-muted-foreground">
+                  {formatCurrency(price.promotion.originalSubtotal, currency, formatLocale)}
+                </s>
+              )}
+              <p className="text-lg font-semibold">
+                {formatCurrency(price.subtotal, currency, formatLocale)}
+              </p>
+              <span className="text-sm text-muted-foreground">
+                {product.pricingKind === "fixed"
+                  ? tForm("fixedPrice")
+                  : `/ ${formatPeriodDuration(product.basePeriodMinutes ?? pricingModeToMinutes(product.pricingMode))}`}
+              </span>
+              {price.promotion && <Badge variant="promo">−{price.promotion.percentage}%</Badge>}
+            </div>
+          )}
+          {!product.priceNegotiable && product.promotion && (
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
               <span>
                 {tForm("promotion.title")}
@@ -150,14 +155,16 @@ export const ProductInfoSectionView = ({
             </div>
           )}
 
-          <ProductPricingTiersTable
-            tiers={product.pricingTiers}
-            currency={currency}
-            promotion={activePromotion}
-            timezone={timezone}
-          />
+          {!product.priceNegotiable && (
+            <ProductPricingTiersTable
+              tiers={product.pricingTiers}
+              currency={currency}
+              promotion={activePromotion}
+              timezone={timezone}
+            />
+          )}
 
-          {product.seasonalPricings.length > 0 && (
+          {!product.priceNegotiable && product.seasonalPricings.length > 0 && (
             <div className="space-y-1.5">
               <p className="text-xs font-medium text-muted-foreground">{t("seasonalPricing")}</p>
               <ul className="space-y-1 text-sm">

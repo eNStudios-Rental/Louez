@@ -8,12 +8,16 @@ import { toORPCError } from "../../utils/orpc-error";
 
 const RESULT_LIMIT = 5;
 
+const escapeLikePattern = (term: string): string => term.replace(/[\\%_]/g, (char) => `\\${char}`);
+
 const globalSearchOutputSchema = z.object({
   products: z.array(
     z.object({
       id: z.string(),
       name: z.string(),
       price: z.string(),
+      priceNegotiable: z.boolean().optional(),
+      status: z.string().nullable().optional(),
       image: z.string().nullable(),
     }),
   ),
@@ -47,6 +51,18 @@ const global = dashboardProcedure
     try {
       const storeId = context.store.id;
       const term = `%${input.query}%`;
+      const tokens = input.query.split(/\s+/).filter(Boolean);
+
+      const productConditions = [eq(products.storeId, storeId)];
+      for (const token of tokens) {
+        const pattern = `%${escapeLikePattern(token)}%`;
+        productConditions.push(
+          or(
+            like(products.name, pattern),
+            like(sql`COALESCE(${products.description}, '')`, pattern),
+          )!,
+        );
+      }
 
       const [productRows, reservationRows, customerRows] = await Promise.all([
         db
@@ -54,15 +70,12 @@ const global = dashboardProcedure
             id: products.id,
             name: products.name,
             price: products.price,
+            priceNegotiable: products.priceNegotiable,
+            status: products.status,
             images: products.images,
           })
           .from(products)
-          .where(
-            and(
-              eq(products.storeId, storeId),
-              or(like(products.name, term), like(products.description, term)),
-            ),
-          )
+          .where(and(...productConditions))
           .orderBy(products.name)
           .limit(RESULT_LIMIT),
         db
@@ -123,6 +136,8 @@ const global = dashboardProcedure
           id: product.id,
           name: product.name,
           price: product.price,
+          priceNegotiable: product.priceNegotiable,
+          status: product.status,
           image: product.images?.[0] ?? null,
         })),
         reservations: reservationRows.map((reservation) => ({
@@ -130,16 +145,13 @@ const global = dashboardProcedure
           number: reservation.number,
           status: reservation.status,
           customerName:
-            reservation.companyName ||
-            `${reservation.firstName} ${reservation.lastName}`.trim(),
+            reservation.companyName || `${reservation.firstName} ${reservation.lastName}`.trim(),
           startDate: reservation.startDate,
           endDate: reservation.endDate,
         })),
         customers: customerRows.map((customer) => ({
           id: customer.id,
-          name:
-            customer.companyName ||
-            `${customer.firstName} ${customer.lastName}`.trim(),
+          name: customer.companyName || `${customer.firstName} ${customer.lastName}`.trim(),
           email: customer.email,
         })),
       };

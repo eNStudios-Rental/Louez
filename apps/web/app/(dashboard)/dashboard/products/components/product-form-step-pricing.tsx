@@ -38,6 +38,7 @@ import type {
 import { PricingLadder } from "./pricing-ladder";
 import { PricingPeriodSelector } from "./pricing-period-selector";
 import { SeasonalActionsMenu, SeasonalSaveIndicator } from "./pricing-season-actions";
+import { PricingSecondaryOptions } from "./pricing-secondary-options";
 import { ProductFormChoiceHeaderAction } from "./product-form-choice-header-action";
 import { ProductFormPricingKindChoice } from "./product-form-pricing-kind-choice";
 import { ProductPromotionField } from "./product-promotion-field";
@@ -215,7 +216,7 @@ function PricingCard(props: PricingStepProps) {
             disabled={isSaving || isSeason || readOnly}
           />
 
-          {productId && !step.isChoosing && (
+          {productId && !step.isChoosing && !watchedValues.priceNegotiable && (
             <div className="flex items-center gap-1.5">
               {/* `[&_button]:h-9` lifts the selector's size="sm" trigger onto the
                   Select's min-h-9, without editing the shipped component. */}
@@ -279,6 +280,19 @@ function PricingCard(props: PricingStepProps) {
             invalid={showValidationErrors}
             onChosen={step.answer}
           />
+        ) : watchedValues.priceNegotiable ? (
+          <div className="space-y-5">
+            <p role="status" className="rounded-lg bg-warning/12 p-3 text-sm text-warning">
+              {t("priceNegotiableNotice")}
+            </p>
+            <PricingSecondaryOptions
+              form={form}
+              watchedValues={watchedValues}
+              currencySymbol={currencySymbol}
+              storeTaxEnabled={Boolean(storeTaxSettings?.enabled)}
+              storeTaxRate={storeTaxSettings?.defaultRate}
+            />
+          </div>
         ) : (
           <>
             <PricingLadder

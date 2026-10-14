@@ -24,7 +24,7 @@ export const RevenueHero = ({ stats, window, formatLocale }: RevenueHeroProps) =
     <div className="space-y-1">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <span className="text-2xl leading-tight font-bold tracking-tight tabular-nums sm:text-3xl">
-          {formatCurrency(stats.periodRevenue, "EUR", formatLocale)}
+          {formatCurrency(stats.periodRevenue, "PLN", formatLocale)}
         </span>
         <DashboardTrendBadge trend={stats.revenueGrowth} />
         {stats.revenueGrowth !== null && (

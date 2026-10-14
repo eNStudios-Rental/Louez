@@ -31,7 +31,7 @@ interface RevenueChartProps {
   initialDimension?: { width: number; height: number };
 }
 
-export const RevenueChart = ({ data, currency = "EUR", initialDimension }: RevenueChartProps) => {
+export const RevenueChart = ({ data, currency = "PLN", initialDimension }: RevenueChartProps) => {
   const t = useTranslations("dashboard.statistics");
   const locale = useLocale();
   const axisFormat = new Intl.NumberFormat(locale, {

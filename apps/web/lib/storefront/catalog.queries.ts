@@ -485,7 +485,9 @@ const buildProductConditions = ({
     const tokens = term.split(/\s+/).filter(Boolean);
     for (const token of tokens) {
       const pattern = `%${escapeLikePattern(token)}%`;
-      conditions.push(or(like(products.name, pattern), like(products.description, pattern)));
+      conditions.push(
+        or(like(products.name, pattern), like(sql`COALESCE(${products.description}, '')`, pattern)),
+      );
     }
   }
 
