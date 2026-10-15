@@ -83,8 +83,8 @@ function assertRequiredIdentityFields(
     return;
   }
 
-  const firstName = customer.firstName.trim();
-  const lastName = customer.lastName.trim();
+  const firstName = customer.firstName?.trim() ?? "";
+  const lastName = customer.lastName?.trim() ?? "";
   const phone = customer.phone.trim();
   if (!firstName || !lastName || !phone) {
     throw new Error('errors.tulipCustomerDataIncomplete');
@@ -108,9 +108,9 @@ function buildCustomerPayload(
 
   const options = ['break', 'theft'];
   const companyName = customer.companyName?.trim() || '';
-  const firstName = customer.firstName.trim();
-  const lastName = customer.lastName.trim();
-  const email = customer.email.trim();
+  const firstName = customer.firstName?.trim() ?? "";
+  const lastName = customer.lastName?.trim() ?? "";
+  const email = customer.email?.trim() ?? "";
   const phone = customer.phone.trim();
   const address = customer.address.trim();
   const city = customer.city.trim();

@@ -267,7 +267,12 @@ export async function GET(request: Request) {
 
     const summaryPrefix = buildSummaryPrefix(reservation);
     const summaryPrefixText = summaryPrefix ? `${summaryPrefix} - ` : '';
-    const summary = `${statusEmoji[reservation.status || 'pending']} ${summaryPrefixText}${reservation.customer.firstName} ${reservation.customer.lastName} - ${productNames}`;
+    const customerName =
+      reservation.customer.companyName ||
+      [reservation.customer.firstName, reservation.customer.lastName].filter(Boolean).join(' ') ||
+      reservation.customer.email ||
+      'Customer';
+    const summary = `${statusEmoji[reservation.status || 'pending']} ${summaryPrefixText}${customerName} - ${productNames}`;
     const location = getReservationLocation(reservation);
 
     const isCancelled =

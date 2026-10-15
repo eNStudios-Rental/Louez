@@ -83,7 +83,12 @@ export async function buildReservationCalendarEventPayload(params: {
     reservationUrl,
   });
 
-  const summary = `${STATUS_PREFIX[reservation.status] || '[?]'} ${reservation.customer.firstName} ${reservation.customer.lastName} - ${productNames}`;
+  const customerName =
+    reservation.customer.companyName ||
+    [reservation.customer.firstName, reservation.customer.lastName].filter(Boolean).join(' ') ||
+    reservation.customer.email ||
+    'Customer';
+  const summary = `${STATUS_PREFIX[reservation.status] || '[?]'} ${customerName} - ${productNames}`;
   const event: GoogleCalendarEventInput = {
     summary,
     description,

@@ -44,9 +44,9 @@ import { useFormatLocale } from '@/hooks/use-format-locale'
 export interface Customer {
   id: string
   customerType: 'individual' | 'business'
-  email: string
-  firstName: string
-  lastName: string
+  email: string | null
+  firstName: string | null
+  lastName: string | null
   companyName: string | null
   phone: string | null
   city: string | null
@@ -121,7 +121,14 @@ export const CustomersTable = ({ customers, readOnly = false, onOpenCustomer, ge
             </TableRow>
           </TableHeader>
           <TableBody>
-            {customers.map((customer) => (
+            {customers.map((customer) => {
+              const contactName = [customer.firstName, customer.lastName]
+                .filter(Boolean)
+                .join(' ')
+              const displayName =
+                contactName || customer.companyName || customer.email || t('customer')
+
+              return (
               <TableRow key={customer.id}>
                 <TableCell>
                   <div className="space-y-1">
@@ -142,9 +149,9 @@ export const CustomersTable = ({ customers, readOnly = false, onOpenCustomer, ge
                           <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
                           {customer.companyName}
                         </Link>
-                        <div className="text-sm text-muted-foreground">
-                          {customer.firstName} {customer.lastName}
-                        </div>
+                        {contactName && (
+                          <div className="text-sm text-muted-foreground">{contactName}</div>
+                        )}
                       </>
                     ) : (
                       <Link
@@ -159,7 +166,7 @@ export const CustomersTable = ({ customers, readOnly = false, onOpenCustomer, ge
                         }}
                         className="font-medium hover:underline"
                       >
-                        {customer.firstName} {customer.lastName}
+                        {displayName}
                       </Link>
                     )}
                     {customer.city && (
@@ -172,10 +179,12 @@ export const CustomersTable = ({ customers, readOnly = false, onOpenCustomer, ge
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
-                    <div className="flex items-center gap-1 text-sm">
-                      <Mail className="h-3 w-3 text-muted-foreground" />
-                      <EmailContactPopover disabled={readOnly} email={customer.email} className="text-foreground" />
-                    </div>
+                    {customer.email && (
+                      <div className="flex items-center gap-1 text-sm">
+                        <Mail className="h-3 w-3 text-muted-foreground" />
+                        <EmailContactPopover disabled={readOnly} email={customer.email} className="text-foreground" />
+                      </div>
+                    )}
                     {customer.phone && (
                       <div className="flex items-center gap-1 text-sm">
                         <Phone className="h-3 w-3 text-muted-foreground" />
@@ -238,7 +247,8 @@ export const CustomersTable = ({ customers, readOnly = false, onOpenCustomer, ge
                   </DropdownMenu>
                 </TableCell>
               </TableRow>
-            ))}
+              )
+            })}
           </TableBody>
         </Table>
       </div>

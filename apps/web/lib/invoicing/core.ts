@@ -528,8 +528,8 @@ function toBuyerSnapshot(source: BuildInvoiceSnapshotsSource): InvoiceBuyerSnaps
   const hasAddress = Boolean(customer.address && customer.postalCode && customer.city);
   return {
     customerType: customer.customerType,
-    firstName: customer.firstName,
-    lastName: customer.lastName,
+    firstName: customer.firstName ?? "",
+    lastName: customer.lastName ?? "",
     companyName: customer.companyName,
     companyNumber: customer.companyNumber,
     companyNumberScheme: customer.companyNumberScheme,
@@ -543,7 +543,7 @@ function toBuyerSnapshot(source: BuildInvoiceSnapshotsSource): InvoiceBuyerSnaps
           country: customer.country ?? source.legalProfile.country,
         }
       : null,
-    email: customer.email,
+    email: customer.email ?? "",
     phone: customer.phone,
   };
 }

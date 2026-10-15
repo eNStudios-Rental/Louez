@@ -14,9 +14,9 @@ export const customerCompanyNumberSchemeValues = [
 // Base schema without refinement for form validation
 const baseCustomerFields = {
   customerType: z.enum(customerTypeValues),
-  email: z.email('validation.email'),
-  firstName: z.string().min(1, 'validation.required').max(255),
-  lastName: z.string().min(1, 'validation.required').max(255),
+  email: z.union([z.email('validation.email'), z.literal('')]).optional(),
+  firstName: z.string().max(255).optional(),
+  lastName: z.string().max(255).optional(),
   companyName: z.string().max(255).optional(),
   companyNumber: z.string().max(64).optional(),
   companyNumberScheme: z.enum(customerCompanyNumberSchemeValues).optional(),
@@ -41,9 +41,9 @@ export const createCustomerSchema = (
   z
     .object({
       customerType: z.enum(customerTypeValues),
-      email: z.email(t('email')),
-      firstName: z.string().min(1, t('required')).max(255),
-      lastName: z.string().min(1, t('required')).max(255),
+      email: z.union([z.email(t('email')), z.literal('')]).optional(),
+      firstName: z.string().max(255).optional(),
+      lastName: z.string().max(255).optional(),
       companyName: z.string().max(255).optional(),
       companyNumber: z.string().max(64).optional(),
       companyNumberScheme: z.enum(customerCompanyNumberSchemeValues).optional(),
@@ -64,7 +64,6 @@ export const createCustomerSchema = (
       notes: z.string().optional(),
     })
     .superRefine((data, ctx) => {
-      // If business customer, company name is required
       if (data.customerType === 'business') {
         if (!data.companyName || data.companyName.trim().length === 0) {
           ctx.addIssue({
@@ -80,6 +79,35 @@ export const createCustomerSchema = (
             path: ['companyNumber'],
           });
         }
+        if (!data.vatNumber || data.vatNumber.trim().length === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: t('required'),
+            path: ['vatNumber'],
+          });
+        }
+      } else {
+        if (!data.firstName || data.firstName.trim().length === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: t('required'),
+            path: ['firstName'],
+          });
+        }
+        if (!data.lastName || data.lastName.trim().length === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: t('required'),
+            path: ['lastName'],
+          });
+        }
+        if (!data.email || data.email.trim().length === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: t('required'),
+            path: ['email'],
+          });
+        }
       }
     });
 
@@ -87,7 +115,6 @@ export const createCustomerSchema = (
 export const customerSchema = z
   .object(baseCustomerFields)
   .superRefine((data, ctx) => {
-    // If business customer, company name is required
     if (data.customerType === 'business') {
       if (!data.companyName || data.companyName.trim().length === 0) {
         ctx.addIssue({
@@ -101,6 +128,35 @@ export const customerSchema = z
           code: z.ZodIssueCode.custom,
           message: 'validation.companyNumberRequired',
           path: ['companyNumber'],
+        });
+      }
+      if (!data.vatNumber || data.vatNumber.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'validation.required',
+          path: ['vatNumber'],
+        });
+      }
+    } else {
+      if (!data.firstName || data.firstName.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'validation.required',
+          path: ['firstName'],
+        });
+      }
+      if (!data.lastName || data.lastName.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'validation.required',
+          path: ['lastName'],
+        });
+      }
+      if (!data.email || data.email.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'validation.required',
+          path: ['email'],
         });
       }
     }

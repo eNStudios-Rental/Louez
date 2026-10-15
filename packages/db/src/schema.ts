@@ -1187,9 +1187,9 @@ export const customers = mysqlTable(
     customerType: customerType.default("individual").notNull(),
 
     // Identity
-    email: varchar("email", { length: 255 }).notNull(),
-    firstName: varchar("first_name", { length: 255 }).notNull(),
-    lastName: varchar("last_name", { length: 255 }).notNull(),
+    email: varchar("email", { length: 255 }),
+    firstName: varchar("first_name", { length: 255 }),
+    lastName: varchar("last_name", { length: 255 }),
     marketplaceUserId: varchar("marketplace_user_id", { length: 255 }),
 
     // Business info (only for business customers)

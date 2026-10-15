@@ -253,9 +253,9 @@ function toTulipCustomerInput(customer: ReservationCustomerLike): TulipCustomerI
   return {
     customerType: customer.customerType,
     companyName: customer.companyName,
-    firstName: customer.firstName,
-    lastName: customer.lastName,
-    email: customer.email,
+    firstName: customer.firstName ?? "",
+    lastName: customer.lastName ?? "",
+    email: customer.email ?? "",
     phone: customer.phone || "",
     address: customer.address || "",
     city: customer.city || "",

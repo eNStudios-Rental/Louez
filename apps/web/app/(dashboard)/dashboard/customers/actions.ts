@@ -61,13 +61,19 @@ export async function createCustomer(data: CustomerInput) {
 
     const validated = customerSchema.parse(data)
 
-    // Check if customer with same email already exists
-    const existingCustomer = await db.query.customers.findFirst({
-      where: and(
-        eq(customers.storeId, store.id),
-        eq(customers.email, validated.email)
-      ),
-    })
+    const email = validated.email?.trim() || null
+    const firstName = validated.firstName?.trim() || null
+    const lastName = validated.lastName?.trim() || null
+
+    // Email is optional for business customers, but remains unique when provided.
+    const existingCustomer = email
+      ? await db.query.customers.findFirst({
+          where: and(
+            eq(customers.storeId, store.id),
+            eq(customers.email, email)
+          ),
+        })
+      : null
 
     if (existingCustomer) {
       return { error: 'errors.emailAlreadyExists' }
@@ -78,13 +84,23 @@ export async function createCustomer(data: CustomerInput) {
       .values({
         storeId: store.id,
         ...validated,
+        email,
+        firstName,
+        lastName,
+        phone: validated.phone?.trim() || null,
         ...resolveCustomerCompanyFields(validated),
       })
       .$returningId()
 
     notifyCustomerCreated(
       { id: store.id, name: store.name, slug: store.slug },
-      { firstName: validated.firstName, lastName: validated.lastName, email: validated.email }
+      {
+        name:
+          validated.customerType === 'business'
+            ? validated.companyName?.trim() ?? ''
+            : [firstName, lastName].filter(Boolean).join(' '),
+        email,
+      }
     ).catch(() => {})
 
     revalidatePath('/dashboard/customers')
@@ -113,11 +129,12 @@ export async function updateCustomer(customerId: string, data: CustomerInput) {
     }
 
     // Check if another customer with same email exists
-    if (validated.email !== existingCustomer.email) {
+    const email = validated.email?.trim() || null
+    if (email && email !== existingCustomer.email) {
       const emailExists = await db.query.customers.findFirst({
         where: and(
           eq(customers.storeId, storeId),
-          eq(customers.email, validated.email)
+          eq(customers.email, email)
         ),
       })
 
@@ -130,6 +147,10 @@ export async function updateCustomer(customerId: string, data: CustomerInput) {
       .update(customers)
       .set({
         ...validated,
+        email,
+        firstName: validated.firstName?.trim() || null,
+        lastName: validated.lastName?.trim() || null,
+        phone: validated.phone?.trim() || null,
         ...resolveCustomerCompanyFields(validated),
         updatedAt: new Date(),
       })

@@ -63,16 +63,33 @@ export function CustomerCombobox({
 
     const query = searchQuery.toLowerCase();
     return customers.filter((customer) => {
-      const fullName = `${customer.firstName} ${customer.lastName}`.toLowerCase();
-      const email = customer.email.toLowerCase();
+      const fullName = [customer.firstName, customer.lastName]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      const email = customer.email?.toLowerCase() ?? "";
       const phone = customer.phone?.toLowerCase() || "";
+      const companyName = customer.companyName?.toLowerCase() ?? "";
 
-      return fullName.includes(query) || email.includes(query) || phone.includes(query);
+      return (
+        fullName.includes(query) ||
+        email.includes(query) ||
+        phone.includes(query) ||
+        companyName.includes(query)
+      );
     });
   }, [customers, searchQuery]);
 
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const getInitials = (firstName: string | null, lastName: string | null) => {
+    const initials = `${firstName?.charAt(0) ?? ""}${lastName?.charAt(0) ?? ""}`.toUpperCase();
+    return initials || "?";
+  };
+
+  const getDisplayName = (customer: DashboardCustomer) => {
+    const personalName = [customer.firstName, customer.lastName]
+      .filter(Boolean)
+      .join(" ");
+    return personalName || customer.companyName || customer.email || "—";
   };
 
   const handleOpenChange = React.useCallback(
@@ -132,9 +149,11 @@ export function CustomerCombobox({
           </Avatar>
           <div className="min-w-0 text-left">
             <p className="text-foreground truncate font-medium">
-              {selectedCustomer.firstName} {selectedCustomer.lastName}
+              {getDisplayName(selectedCustomer)}
             </p>
-            <p className="text-muted-foreground truncate text-xs">{selectedCustomer.email}</p>
+            {selectedCustomer.email && (
+              <p className="text-muted-foreground truncate text-xs">{selectedCustomer.email}</p>
+            )}
           </div>
         </div>
       ) : (
@@ -193,9 +212,11 @@ export function CustomerCombobox({
               </Avatar>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium">
-                  {customer.firstName} {customer.lastName}
+                  {getDisplayName(customer)}
                 </p>
-                <p className="text-muted-foreground truncate text-xs">{customer.email}</p>
+                {customer.email && (
+                  <p className="text-muted-foreground truncate text-xs">{customer.email}</p>
+                )}
               </div>
               {customer.phone && (
                 <span className="text-muted-foreground max-w-24 truncate text-xs">

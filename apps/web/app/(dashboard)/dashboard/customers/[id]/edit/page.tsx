@@ -43,7 +43,9 @@ export default async function EditCustomerPage({ params }: EditCustomerPageProps
   const customerBreadcrumbLabel =
     customer.customerType === 'business' && customer.companyName
       ? customer.companyName
-      : `${customer.firstName} ${customer.lastName}`.trim()
+      : [customer.firstName, customer.lastName].filter(Boolean).join(' ') ||
+        customer.email ||
+        t('customer')
 
   return (
     <div className="space-y-6">
@@ -58,7 +60,7 @@ export default async function EditCustomerPage({ params }: EditCustomerPageProps
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            {t('editCustomer')} - {customer.firstName} {customer.lastName}
+            {t('editCustomer')} - {customerBreadcrumbLabel}
           </h1>
           <p className="text-muted-foreground">
             {t('editCustomerDescription')}

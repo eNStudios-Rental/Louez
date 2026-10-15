@@ -59,7 +59,11 @@ export const ActivityListItem = ({
       title={
         <>
           <span className="truncate font-medium">
-            {reservation.customer.firstName} {reservation.customer.lastName}
+            {[reservation.customer.firstName, reservation.customer.lastName]
+              .filter(Boolean)
+              .join(" ") ||
+              reservation.customer.companyName ||
+              "—"}
           </span>
           <Badge variant="expired" size="sm" className="shrink-0 font-mono">
             #{reservation.number}

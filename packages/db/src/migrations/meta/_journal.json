@@ -624,6 +624,13 @@
       "when": 1791194000000,
       "tag": "0083_reservation_item_price_pending",
       "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "5",
+      "when": 1792059000000,
+      "tag": "0084_customers_optional_personal_fields",
+      "breakpoints": true
     }
   ]
 }

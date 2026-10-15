@@ -96,9 +96,10 @@ export interface CustomerNotificationStore {
 
 export interface CustomerNotificationCustomer {
   id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+  companyName?: string | null;
   phone?: string | null;
 }
 
@@ -233,7 +234,7 @@ export async function dispatchCustomerNotification(
       result.email.error = error instanceof Error ? error.message : "Unknown error";
       console.error(`Failed to send customer email for ${eventType}:`, error);
     }
-  } else if (!channels.email) {
+  } else {
     result.email.skipped = true;
   }
 
@@ -269,8 +270,11 @@ async function sendCustomerEmail(
   locale: EmailLocale,
   customContent?: { subject?: string; greeting?: string; message?: string; signature?: string },
 ) {
+  const customerEmail = ctx.customer.email;
+  if (!customerEmail) return;
+
   const emailParams = {
-    to: ctx.customer.email,
+    to: customerEmail,
     store: {
       ...ctx.store,
       emailSettings: ctx.store.emailSettings
@@ -296,7 +300,13 @@ async function sendCustomerEmail(
           }
         : undefined,
     },
-    customer: ctx.customer,
+    customer: {
+      id: ctx.customer.id,
+      firstName: ctx.customer.firstName || ctx.customer.companyName || "",
+      lastName: ctx.customer.lastName || "",
+      email: customerEmail,
+      phone: ctx.customer.phone,
+    },
     reservation: ctx.reservation,
     locale,
   };
@@ -344,9 +354,9 @@ async function sendCustomerEmail(
         throw new Error("Payment request context missing required fields");
       }
       return sendPaymentRequestEmail({
-        to: ctx.customer.email,
+        to: customerEmail,
         store: ctx.store,
-        customer: ctx.customer,
+        customer: emailParams.customer,
         reservation: ctx.reservation,
         amount: ctx.paymentRequestAmount,
         description: ctx.paymentRequestDescription,
@@ -360,9 +370,9 @@ async function sendCustomerEmail(
         throw new Error("Deposit authorization context missing required fields");
       }
       return sendDepositAuthorizationRequestEmail({
-        to: ctx.customer.email,
+        to: customerEmail,
         store: ctx.store,
-        customer: ctx.customer,
+        customer: emailParams.customer,
         reservation: ctx.reservation,
         depositAmount: ctx.depositAuthorizationAmount,
         authorizationUrl: ctx.depositAuthorizationUrl,
@@ -372,9 +382,9 @@ async function sendCustomerEmail(
 
     case "customer_quote_sent":
       return sendQuoteSentEmail({
-        to: ctx.customer.email,
+        to: customerEmail,
         store: ctx.store,
-        customer: ctx.customer,
+        customer: emailParams.customer,
         reservation: {
           id: ctx.reservation.id,
           number: ctx.reservation.number,
@@ -417,14 +427,15 @@ async function sendCustomerSms(
   _customTemplate?: CustomerNotificationTemplate,
 ) {
   // Only certain event types have SMS implementations
+  const customer = {
+    id: ctx.customer.id,
+    firstName: ctx.customer.firstName || ctx.customer.companyName || "",
+    lastName: ctx.customer.lastName || "",
+    phone: ctx.customer.phone,
+  };
   const smsParams = {
     store: ctx.store,
-    customer: {
-      id: ctx.customer.id,
-      firstName: ctx.customer.firstName,
-      lastName: ctx.customer.lastName,
-      phone: ctx.customer.phone,
-    },
+    customer,
     reservation: ctx.reservation,
   };
 
@@ -453,12 +464,7 @@ async function sendCustomerSms(
       }
       return sendPaymentRequestSms({
         store: ctx.store,
-        customer: {
-          id: ctx.customer.id,
-          firstName: ctx.customer.firstName,
-          lastName: ctx.customer.lastName,
-          phone: ctx.customer.phone,
-        },
+        customer,
         reservation: ctx.reservation,
         amount: ctx.paymentRequestAmount,
         paymentUrl: ctx.paymentRequestUrl,
@@ -471,12 +477,7 @@ async function sendCustomerSms(
       }
       return sendDepositAuthorizationRequestSms({
         store: ctx.store,
-        customer: {
-          id: ctx.customer.id,
-          firstName: ctx.customer.firstName,
-          lastName: ctx.customer.lastName,
-          phone: ctx.customer.phone,
-        },
+        customer,
         reservation: ctx.reservation,
         depositAmount: ctx.depositAuthorizationAmount,
         authorizationUrl: ctx.depositAuthorizationUrl,

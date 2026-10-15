@@ -10,8 +10,12 @@ export const calculateGrowth = (current: number, previous: number): number | nul
 };
 
 /** Two-letter avatar initials for a reservation's customer. */
-export const getCustomerInitials = ({ customer }: HomeReservation): string =>
-  `${customer.firstName.charAt(0)}${customer.lastName.charAt(0)}`.toUpperCase();
+export const getCustomerInitials = ({ customer }: HomeReservation): string => {
+  const initials = `${customer.firstName?.charAt(0) ?? ""}${customer.lastName?.charAt(0) ?? ""}`;
+  const fallback = customer.companyName?.slice(0, 2) ?? "";
+
+  return (initials || fallback || "?").toUpperCase();
+};
 
 const MAX_LISTED_PRODUCTS = 2;
 

@@ -5295,6 +5295,10 @@ export async function sendAccessLink(reservationId: string, data?: { customMessa
     return { error: "errors.reservationNotFound" };
   }
 
+  if (!reservation.customer.email) {
+    return { error: "errors.emailSendFailed" };
+  }
+
   try {
     // Generate secure 64-char token
     const token = nanoid(64);

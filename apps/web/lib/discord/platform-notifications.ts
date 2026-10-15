@@ -408,16 +408,17 @@ export async function notifyProductUpdated(
 
 export async function notifyCustomerCreated(
   store: StoreInfo,
-  customer: { firstName: string; lastName: string; email: string }
+  customer: { name: string; email: string | null }
 ): Promise<void> {
   trackFromHello('customer_created', {
     storeName: store.name,
-    customerName: `${customer.firstName} ${customer.lastName}`,
-    customerEmail: customer.email,
+    customerName: customer.name,
+    customerEmail: customer.email ?? undefined,
   }, { storeId: store.id }).catch(() => {})
   if (!isEnabled()) return
   const prefix = await storePrefix(store)
-  await send(`👤 ${prefix} new customer: ${customer.firstName} ${customer.lastName} (${customer.email})`)
+  const contact = customer.email ? ` (${customer.email})` : ''
+  await send(`👤 ${prefix} new customer: ${customer.name}${contact}`)
 }
 
 export async function notifyTeamMemberInvited(

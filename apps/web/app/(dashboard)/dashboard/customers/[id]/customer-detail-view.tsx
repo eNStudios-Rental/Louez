@@ -63,10 +63,11 @@ export const CustomerDetailView = ({
   const tReservations = useTranslations("dashboard.reservations");
   const tCommon = useTranslations("common");
   const { intl: formatLocale, dateFns: dateLocale } = useFormatLocale();
+  const contactName = [customer.firstName, customer.lastName].filter(Boolean).join(" ");
   const customerBreadcrumbLabel =
     customer.customerType === "business" && customer.companyName
       ? customer.companyName
-      : `${customer.firstName} ${customer.lastName}`.trim();
+      : contactName || customer.companyName || customer.email || customer.id;
 
   return (
     <div className="space-y-6">
@@ -96,7 +97,8 @@ export const CustomerDetailView = ({
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {t("contact")}: {customer.firstName} {customer.lastName} · {t("customerSince")}{" "}
+                  {contactName && `${t("contact")}: ${contactName} · `}
+                  {t("customerSince")}{" "}
                   {format(customer.createdAt, "dd MMMM yyyy", { locale: dateLocale })}
                 </p>
               </>
@@ -104,7 +106,7 @@ export const CustomerDetailView = ({
               <>
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl font-bold tracking-tight">
-                    {customer.firstName} {customer.lastName}
+                    {customerBreadcrumbLabel}
                   </h1>
                   <Badge variant="expired" className="font-normal">
                     {t("customerType.individual")}
@@ -188,14 +190,16 @@ export const CustomerDetailView = ({
             <CardTitle>{t("contact")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <EmailContactPopover
-                disabled={readOnly}
-                email={customer.email}
-                className="text-foreground"
-              />
-            </div>
+            {customer.email && (
+              <div className="flex items-center gap-3">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <EmailContactPopover
+                  disabled={readOnly}
+                  email={customer.email}
+                  className="text-foreground"
+                />
+              </div>
+            )}
             {customer.phone && (
               <div className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-muted-foreground" />

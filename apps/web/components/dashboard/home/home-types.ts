@@ -39,8 +39,9 @@ export interface HomeReservation {
   isOverdue?: boolean;
   totalAmount: string;
   customer: {
-    firstName: string;
-    lastName: string;
+    firstName: string | null;
+    lastName: string | null;
+    companyName?: string | null;
   };
   items: Array<{
     id: string;

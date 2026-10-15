@@ -304,8 +304,11 @@ export async function getDashboardReservationEditContext(params: {
         product: item.product ? mapProduct(withEffectiveQuantity(item.product)) : null,
       })),
       customer: {
-        firstName: reservation.customer.firstName,
-        lastName: reservation.customer.lastName,
+        firstName:
+          reservation.customer.firstName ??
+          reservation.customer.companyName ??
+          "",
+        lastName: reservation.customer.lastName ?? "",
       },
     },
     availableProducts: availableProducts.map((product) =>

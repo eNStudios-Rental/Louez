@@ -35,7 +35,7 @@ const globalSearchOutputSchema = z.object({
     z.object({
       id: z.string(),
       name: z.string(),
-      email: z.string(),
+      email: z.string().nullable(),
     }),
   ),
 });
@@ -151,7 +151,11 @@ const global = dashboardProcedure
         })),
         customers: customerRows.map((customer) => ({
           id: customer.id,
-          name: customer.companyName || `${customer.firstName} ${customer.lastName}`.trim(),
+          name:
+            customer.companyName ||
+            [customer.firstName, customer.lastName].filter(Boolean).join(" ") ||
+            customer.email ||
+            "",
           email: customer.email,
         })),
       };

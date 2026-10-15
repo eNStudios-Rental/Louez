@@ -30,9 +30,9 @@ import {
 interface Customer {
   id: string
   customerType: 'individual' | 'business'
-  email: string
-  firstName: string
-  lastName: string
+  email: string | null
+  firstName: string | null
+  lastName: string | null
   companyName: string | null
   companyNumber: string | null
   vatNumber: string | null
@@ -203,13 +203,13 @@ export const CustomerForm = ({
             </form.Field>
           )}
 
-          {/* Company identifiers - optional, used to issue a B2B invoice */}
+          {/* Company identifiers are required for business customers. */}
           {customerType === 'business' && (
             <div className="grid gap-4 sm:grid-cols-2">
               <form.Field name="companyNumber">
                 {(field) => (
                   <div className="space-y-2">
-                    <Label htmlFor={field.name}>{companyNumberLabel}</Label>
+                    <Label htmlFor={field.name}>{companyNumberLabel} *</Label>
                     <Input
                       id={field.name}
                       name={field.name}
@@ -235,7 +235,7 @@ export const CustomerForm = ({
               <form.Field name="vatNumber">
                 {(field) => (
                   <div className="space-y-2">
-                    <Label htmlFor={field.name}>{t('vatNumber')}</Label>
+                    <Label htmlFor={field.name}>{t('vatNumber')} *</Label>
                     <Input
                       id={field.name}
                       name={field.name}
@@ -258,17 +258,17 @@ export const CustomerForm = ({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <form.AppField name="firstName">
-              {(field) => <field.Input label={t('firstName')} placeholder={t('firstNamePlaceholder')} />}
+              {(field) => <field.Input label={`${t('firstName')}${customerType === 'individual' ? ' *' : ''}`} placeholder={t('firstNamePlaceholder')} />}
             </form.AppField>
 
             <form.AppField name="lastName">
-              {(field) => <field.Input label={t('lastName')} placeholder={t('lastNamePlaceholder')} />}
+              {(field) => <field.Input label={`${t('lastName')}${customerType === 'individual' ? ' *' : ''}`} placeholder={t('lastNamePlaceholder')} />}
             </form.AppField>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <form.AppField name="email">
-              {(field) => <field.Input label={t('email')} type="email" placeholder={t('emailPlaceholder')} />}
+              {(field) => <field.Input label={`${t('email')}${customerType === 'individual' ? ' *' : ''}`} type="email" placeholder={t('emailPlaceholder')} />}
             </form.AppField>
 
             <form.Field name="phone">

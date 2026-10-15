@@ -43,7 +43,7 @@ interface ManualReservationEmailReservation {
   endDate: Date;
   totalAmount: string;
   depositAmount: string;
-  customer: { firstName: string; lastName: string; email: string };
+  customer: { firstName: string | null; lastName: string | null; email: string | null };
   items: { productSnapshot: { name: string }; quantity: number; totalPrice: string }[];
   payments?: { type: string; status: string }[];
 }
@@ -97,9 +97,9 @@ export async function toManualEmailRenderContext(
       emailSettings: store.emailSettings,
     },
     customer: {
-      firstName: reservation.customer.firstName,
-      lastName: reservation.customer.lastName,
-      email: reservation.customer.email,
+      firstName: reservation.customer.firstName ?? "",
+      lastName: reservation.customer.lastName ?? "",
+      email: reservation.customer.email ?? "",
     },
     reservation: {
       id: reservation.id,
@@ -127,6 +127,10 @@ export async function buildManualReservationEmail({
   mode,
   accessUrl,
 }: BuildManualReservationEmailParams): Promise<BuildManualReservationEmailResult> {
+  if (mode === "send" && !reservation.customer.email) {
+    return { error: "errors.emailSendFailed" };
+  }
+
   const context = await toManualEmailRenderContext(store, reservation);
 
   if (mode === "preview") {
