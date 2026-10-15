@@ -241,6 +241,7 @@ const reservationTimelineDeliverySchema = z.object({
 export const dashboardReservationCalendarPeriodEntrySchema = z.object({
   id: z.string(),
   number: z.string(),
+  internalTitle: z.string().nullable(),
   status: reservationStatusSchema.nullable(),
   startDate: z.date(),
   endDate: z.date(),

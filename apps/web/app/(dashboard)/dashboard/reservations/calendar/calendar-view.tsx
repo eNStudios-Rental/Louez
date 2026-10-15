@@ -270,13 +270,15 @@ export function ReservationsCalendarView({
           startDate: new Date(reservation.startDate),
           endDate: new Date(reservation.endDate),
           customerId: reservation.customer?.id ?? null,
-          customerName: reservation.customer
-            ? [reservation.customer.firstName, reservation.customer.lastName]
-                .filter(Boolean)
-                .join(" ") ||
-              reservation.customer.companyName ||
-              "—"
-            : "—",
+          customerName:
+            reservation.internalTitle?.trim() ||
+            (reservation.customer
+              ? [reservation.customer.firstName, reservation.customer.lastName]
+                  .filter(Boolean)
+                  .join(" ") ||
+                reservation.customer.companyName ||
+                "—"
+              : "—"),
           subtotalAmount: reservation.subtotalAmount,
           depositAmount: reservation.depositAmount,
           totalAmount: reservation.totalAmount,

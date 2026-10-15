@@ -29,6 +29,7 @@ export async function getReservationsForCalendarPeriod(params: {
     columns: {
       id: true,
       number: true,
+      internalTitle: true,
       status: true,
       startDate: true,
       endDate: true,
