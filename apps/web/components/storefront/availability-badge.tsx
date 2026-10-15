@@ -21,19 +21,37 @@ interface AvailabilityBadgeProps {
   className?: string;
 }
 
-const VARIANT_BY_STATUS = {
-  available: "success",
-  limited: "warning",
-  unavailable: "failed",
-  out_of_stock: "failed",
-  required_accessory_out_of_stock: "failed",
-  in_cart: "tertiary",
-} as const satisfies Record<AvailabilityStatus, string>;
+const ACCENT_BY_STATUS = {
+  available: {
+    border: "border-badge-success-foreground/60",
+    dot: "bg-badge-success-foreground",
+  },
+  limited: {
+    border: "border-badge-warning-foreground/60",
+    dot: "bg-badge-warning-foreground",
+  },
+  unavailable: {
+    border: "border-badge-failed-foreground/60",
+    dot: "bg-badge-failed-foreground",
+  },
+  out_of_stock: {
+    border: "border-badge-failed-foreground/60",
+    dot: "bg-badge-failed-foreground",
+  },
+  required_accessory_out_of_stock: {
+    border: "border-badge-failed-foreground/60",
+    dot: "bg-badge-failed-foreground",
+  },
+  in_cart: {
+    border: "border-badge-gray-foreground/60",
+    dot: "bg-badge-gray-foreground",
+  },
+} as const satisfies Record<AvailabilityStatus, { border: string; dot: string }>;
 
 /**
- * How many units a product has left, as a pill: the shared badge in the
- * status colour, over the card image or next to a product title. Status
- * tokens only, so it reads the same on every tenant theme.
+ * How many units a product has left, as a pill: the shared badge over a card
+ * image or next to a product title. Its opaque surface keeps the label legible
+ * over imagery; the status-colored edge and marker preserve the status cue.
  */
 export const AvailabilityBadge = ({
   status,
@@ -61,11 +79,19 @@ export const AvailabilityBadge = ({
 
   return (
     <Badge
-      variant={VARIANT_BY_STATUS[status]}
-      className={cn("px-1.5", className)}
+      variant="outline"
+      className={cn(
+        "gap-1.5 rounded-full border bg-background px-2 font-semibold text-foreground shadow-sm ring-1 ring-background dark:bg-background",
+        ACCENT_BY_STATUS[status].border,
+        className,
+      )}
       data-slot="availability-badge"
       data-status={status}
     >
+      <span
+        aria-hidden="true"
+        className={cn("size-1.5 shrink-0 rounded-full", ACCENT_BY_STATUS[status].dot)}
+      />
       {label}
     </Badge>
   );
