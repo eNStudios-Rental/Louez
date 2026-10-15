@@ -53,6 +53,7 @@ import { orpc } from '@/lib/orpc/react';
 import { cn } from '@/lib/utils';
 
 import { CategoryImageControl } from './category-image-control';
+import { buildCategoryHierarchy } from './util.category-hierarchy';
 
 const KEEP_EXISTING_CATEGORIES_VALUE = '__keep_existing_categories__';
 
@@ -96,7 +97,8 @@ export const CategoryManager = ({
   );
   const [editingCategory, setEditingCategory] =
     useState<CategoryManagerItem | null>(null);
-  const [editCategoryParentId, setEditCategoryParentId] = useState<string | null>(null);
+  const [editCategoryParentId, setEditCategoryParentId] =
+    useState<string | null>(null);
   const [editCategoryName, setEditCategoryName] = useState('');
   const [editCategoryDescription, setEditCategoryDescription] = useState('');
   const [editCategoryImageUrl, setEditCategoryImageUrl] = useState<
@@ -196,12 +198,8 @@ export const CategoryManager = ({
     setEditCategoryImageUrl(null);
   };
 
-  const filteredCategories = useMemo(() => {
-    const normalizedSearch = search.trim().toLocaleLowerCase();
-    if (!normalizedSearch) return categories;
-    return categories.filter((category) =>
-      category.name.toLocaleLowerCase().includes(normalizedSearch),
-    );
+  const categoryGroups = useMemo(() => {
+    return buildCategoryHierarchy(categories, search);
   }, [categories, search]);
 
   const handleCreate = async () => {
@@ -365,7 +363,7 @@ export const CategoryManager = ({
           <div className="flex justify-center py-12">
             <Loader2 className="text-muted-foreground size-5 animate-spin" />
           </div>
-        ) : filteredCategories.length === 0 ? (
+        ) : categoryGroups.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-12 text-center">
             <FolderOpen className="text-muted-foreground size-10" />
             <p className="mt-3 font-medium">
@@ -381,66 +379,85 @@ export const CategoryManager = ({
           </div>
         ) : (
           <div className="divide-y">
-            {filteredCategories.map((category) => (
-              <div
-                key={category.id}
-                className="flex items-center justify-between gap-4 px-4 py-3"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  {category.imageUrl ? (
-                    <img
-                      src={category.imageUrl}
-                      alt=""
-                      className="size-10 shrink-0 rounded-lg border object-cover"
-                    />
-                  ) : (
-                    <DashboardIconTile icon={FolderOpen} />
-                  )}
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate font-medium">{category.name}</p>
-                      {category.parentId && (
-                        <span className="bg-muted text-muted-foreground inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium">
-                          ↳ {categories.find((c) => c.id === category.parentId)?.name ?? t('categories.parentCategory')}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-muted-foreground text-sm">
-                      {t('categories.productCount', {
-                        count: category.productCount ?? 0,
-                      })}
-                    </p>
-                  </div>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        aria-label={t('categories.actionsFor', {
-                          name: category.name,
-                        })}
-                      />
-                    }
+            {categoryGroups.map((group) => (
+              <div key={group[0].category.id} className="space-y-1.5 px-3 py-3">
+                {group.map(({ category, depth, parentName }) => (
+                  <div
+                    key={category.id}
+                    className={cn(
+                      'flex items-center justify-between gap-4 rounded-lg px-4 py-3',
+                      depth === 0 && 'bg-muted/40',
+                      depth === 1 &&
+                        'ml-5 border-l-2 border-border bg-muted/20 py-2.5',
+                      depth === 2 &&
+                        'ml-10 border-l-2 border-border bg-muted/20 py-2.5',
+                      depth >= 3 &&
+                        'ml-14 border-l-2 border-border bg-muted/20 py-2.5',
+                    )}
                   >
-                    <MoreHorizontal className="size-4" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => openEditDialog(category)}>
-                      <Pencil className="size-4" />
-                      {t('common.edit')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onClick={() => openDeleteDialog(category)}
-                    >
-                      <Trash2 className="size-4" />
-                      {t('common.delete')}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                    <div className="flex min-w-0 items-center gap-3">
+                      {category.imageUrl ? (
+                        <img
+                          src={category.imageUrl}
+                          alt=""
+                          className={cn(
+                            'shrink-0 rounded-lg border object-cover',
+                            depth === 0 ? 'size-10' : 'size-8',
+                          )}
+                        />
+                      ) : (
+                        <DashboardIconTile
+                          icon={FolderOpen}
+                          size={depth === 0 ? 'md' : 'sm'}
+                        />
+                      )}
+                      <div className="min-w-0">
+                        {parentName && (
+                          <p className="text-muted-foreground truncate text-xs">
+                            ↳ {parentName}
+                          </p>
+                        )}
+                        <p className="truncate font-medium">{category.name}</p>
+                        <p className="text-muted-foreground text-sm">
+                          {t('categories.productCount', {
+                            count: category.productCount ?? 0,
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            aria-label={t('categories.actionsFor', {
+                              name: category.name,
+                            })}
+                          />
+                        }
+                      >
+                        <MoreHorizontal className="size-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => openEditDialog(category)}
+                        >
+                          <Pencil className="size-4" />
+                          {t('common.edit')}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => openDeleteDialog(category)}
+                        >
+                          <Trash2 className="size-4" />
+                          {t('common.delete')}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                ))}
               </div>
             ))}
           </div>
