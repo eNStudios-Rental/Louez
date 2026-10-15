@@ -258,17 +258,17 @@ export const CustomerForm = ({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <form.AppField name="firstName">
-              {(field) => <field.Input label={`${t('firstName')}${customerType === 'individual' ? ' *' : ''}`} placeholder={t('firstNamePlaceholder')} />}
+              {(field) => <field.Input label={t('firstName')} placeholder={t('firstNamePlaceholder')} />}
             </form.AppField>
 
             <form.AppField name="lastName">
-              {(field) => <field.Input label={`${t('lastName')}${customerType === 'individual' ? ' *' : ''}`} placeholder={t('lastNamePlaceholder')} />}
+              {(field) => <field.Input label={t('lastName')} placeholder={t('lastNamePlaceholder')} />}
             </form.AppField>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <form.AppField name="email">
-              {(field) => <field.Input label={`${t('email')}${customerType === 'individual' ? ' *' : ''}`} type="email" placeholder={t('emailPlaceholder')} />}
+              {(field) => <field.Input label={t('email')} type="email" placeholder={t('emailPlaceholder')} />}
             </form.AppField>
 
             <form.Field name="phone">
