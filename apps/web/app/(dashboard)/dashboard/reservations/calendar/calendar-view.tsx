@@ -273,7 +273,9 @@ export function ReservationsCalendarView({
           customerName: reservation.customer
             ? [reservation.customer.firstName, reservation.customer.lastName]
                 .filter(Boolean)
-                .join(" ") || "—"
+                .join(" ") ||
+              reservation.customer.companyName ||
+              "—"
             : "—",
           subtotalAmount: reservation.subtotalAmount,
           depositAmount: reservation.depositAmount,

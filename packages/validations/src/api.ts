@@ -260,8 +260,9 @@ export const dashboardReservationCalendarPeriodEntrySchema = z.object({
   customer: z
     .object({
       id: z.string(),
-      firstName: z.string(),
-      lastName: z.string(),
+      firstName: z.string().nullable(),
+      lastName: z.string().nullable(),
+      companyName: z.string().nullable(),
     })
     .nullable(),
   items: z.array(

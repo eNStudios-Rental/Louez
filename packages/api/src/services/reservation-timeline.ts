@@ -52,6 +52,7 @@ export async function getReservationsForCalendarPeriod(params: {
           id: true,
           firstName: true,
           lastName: true,
+          companyName: true,
         },
       },
       items: {
