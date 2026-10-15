@@ -5,7 +5,10 @@ import { revalidatePath } from "next/cache";
 import { and, eq, gte, inArray, ne, not, or } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
-import { syncProductCombinationKeys } from "@louez/api/services";
+import {
+  includeCategoryAncestors,
+  syncProductCombinationKeys,
+} from "@louez/api/services";
 import {
   db,
   getEffectiveProductQuantities,
@@ -92,11 +95,10 @@ async function resolveCategoryIds(
   if (unique.length === 0) return [];
 
   const owned = await db.query.categories.findMany({
-    where: and(eq(categories.storeId, storeId), inArray(categories.id, unique)),
-    columns: { id: true },
+    where: eq(categories.storeId, storeId),
+    columns: { id: true, parentId: true },
   });
-  const ownedIds = new Set(owned.map((category) => category.id));
-  return unique.filter((id) => ownedIds.has(id));
+  return includeCategoryAncestors(unique, owned);
 }
 
 async function replaceProductCategories(

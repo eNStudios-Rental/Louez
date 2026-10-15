@@ -33,7 +33,10 @@ export const getDemoProductList = (locale: Locale = "fr"): ProductListItem[] => 
     quantity: product.quantity ?? 0,
     stockKind: "returnable",
     status: "active",
-    category: categories.find((category) => product.categoryIds.includes(category.id)) ?? null,
+    priceNegotiable: false,
+    categories: categories
+      .filter((category) => product.categoryIds.includes(category.id))
+      .map(({ id, name }) => ({ id, name })),
   }));
 };
 
@@ -45,7 +48,7 @@ export const filterDemoProducts = (
     (product) =>
       (filters.status === "all" || product.status === filters.status) &&
       (filters.categoryIds.length === 0 ||
-        (product.category && filters.categoryIds.includes(product.category.id))) &&
+        product.categories.some((category) => filters.categoryIds.includes(category.id))) &&
       product.name.toLocaleLowerCase().includes(filters.search.trim().toLocaleLowerCase()),
   );
 

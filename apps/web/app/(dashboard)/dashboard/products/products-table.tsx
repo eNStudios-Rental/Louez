@@ -42,10 +42,10 @@ interface Product {
   quantity: number
   stockKind: StockKind
   status: 'draft' | 'active' | 'archived' | null
-  category: {
+  categories: Array<{
     id: string
     name: string
-  } | null
+  }>
 }
 
 interface ProductsTableProps {
@@ -180,7 +180,9 @@ export const ProductsTable = ({ products, currency = 'EUR', readOnly = false, on
                     </Link>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {product.category?.name || '-'}
+                    {product.categories.length > 0
+                      ? product.categories.map((category) => category.name).join(', ')
+                      : '-'}
                   </TableCell>
                   <TableCell className="text-right font-medium">
                     {product.priceNegotiable
