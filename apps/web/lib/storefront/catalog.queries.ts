@@ -2,7 +2,20 @@ import "server-only";
 
 import { cache } from "react";
 
-import { and, asc, eq, exists, gte, inArray, like, ne, notExists, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  eq,
+  exists,
+  gte,
+  inArray,
+  isNull,
+  like,
+  ne,
+  notExists,
+  or,
+  sql,
+} from "drizzle-orm";
 import { z } from "zod";
 
 import { getStorefrontAvailability } from "@louez/api/services";
@@ -47,6 +60,10 @@ import {
 import { getStorefrontPricingSummary } from "@/lib/utils/util.storefront-pricing";
 import { getStorefrontProductPrice } from "@/lib/utils/util.storefront-product-pricing";
 import { inferAttributeAxesFromUnits } from "@/lib/utils/util.variant-combinations";
+import {
+  getCategoryIdsWithDescendants,
+  getProductIdsByCategoryAndAncestors,
+} from "@louez/api/services";
 
 // ---------------------------------------------------------------------------
 // Search params
@@ -161,7 +178,7 @@ export type CatalogCategory = BrowsableCategory & {
   description: string | null;
   imageUrl: string | null;
   order: number;
-  /** Active products of the category, so the client can count the available ones. */
+  /** Distinct active products assigned to this category or any descendant. */
   productIds: string[];
 };
 
@@ -257,18 +274,37 @@ export const loadCatalogCategories = cache(
         })
         .from(productCategories)
         .innerJoin(products, eq(products.id, productCategories.productId))
+        .innerJoin(
+          categories,
+          and(
+            eq(categories.id, productCategories.categoryId),
+            eq(categories.storeId, storeId),
+          ),
+        )
         .where(activeProductsOf(storeId)),
-      db.select({ id: products.id }).from(products).where(activeProductsOf(storeId)),
+      db
+        .select({ id: products.id, categoryId: products.categoryId })
+        .from(products)
+        .where(activeProductsOf(storeId)),
     ]);
 
-    const productIdsByCategoryId = new Map<string, string[]>();
-    const categorized = new Set<string>();
-    for (const link of links) {
-      const ids = productIdsByCategoryId.get(link.categoryId) ?? [];
-      ids.push(link.productId);
-      productIdsByCategoryId.set(link.categoryId, ids);
-      categorized.add(link.productId);
+    const categoriesById = new Map(rows.map((category) => [category.id, category]));
+    const assignments = [...links];
+    const productsWithAssignments = new Set(links.map((link) => link.productId));
+    for (const product of activeRows) {
+      if (
+        !productsWithAssignments.has(product.id) &&
+        product.categoryId &&
+        categoriesById.has(product.categoryId)
+      ) {
+        assignments.push({
+          categoryId: product.categoryId,
+          productId: product.id,
+        });
+      }
     }
+    const productIdsByCategoryId = getProductIdsByCategoryAndAncestors(rows, assignments);
+    const categorized = new Set(assignments.map((assignment) => assignment.productId));
     const uncategorizedProductIds = activeRows
       .map((row) => row.id)
       .filter((id) => !categorized.has(id));
@@ -436,6 +472,7 @@ const attributeJsonPath = (key: string): string =>
 const buildProductConditions = ({
   storeId,
   category,
+  matchingCategoryIds,
   search,
   quantity,
   attributes,
@@ -443,12 +480,13 @@ const buildProductConditions = ({
 }: Pick<
   LoadCatalogProductsInput,
   "storeId" | "category" | "search" | "quantity" | "attributes" | "excludeProductId"
->) => {
+> & { matchingCategoryIds: readonly string[] }) => {
   const conditions = [activeProductsOf(storeId)];
   if (excludeProductId) conditions.push(ne(products.id, excludeProductId));
 
   if (category === UNCATEGORIZED_CATEGORY_VALUE) {
     conditions.push(
+      isNull(products.categoryId),
       notExists(
         db
           .select({ one: sql`1` })
@@ -457,27 +495,33 @@ const buildProductConditions = ({
       ),
     );
   } else if (category && category !== ALL_CATEGORIES_VALUE && !isReservedCategoryValue(category)) {
-    // Include both the selected category and any descendant subcategories
-    const categoryIds = [category];
-    const subCategories = db
-      .select({ id: categories.id })
-      .from(categories)
-      .where(and(eq(categories.storeId, storeId), eq(categories.parentId, category)));
-
-    conditions.push(
-      inArray(
-        products.id,
-        db
-          .select({ id: productCategories.productId })
-          .from(productCategories)
-          .where(
-            or(
-              eq(productCategories.categoryId, category),
-              inArray(productCategories.categoryId, subCategories),
+    if (matchingCategoryIds.length === 0) {
+      conditions.push(sql`false`);
+    } else {
+      const linkedProducts = db
+        .select({ id: productCategories.productId })
+        .from(productCategories)
+        .where(inArray(productCategories.categoryId, matchingCategoryIds));
+      const legacyProducts = db
+        .select({ id: products.id })
+        .from(products)
+        .where(
+          and(
+            inArray(products.categoryId, matchingCategoryIds),
+            notExists(
+              db
+                .select({ one: sql`1` })
+                .from(productCategories)
+                .where(eq(productCategories.productId, products.id)),
             ),
           ),
-      ),
-    );
+        );
+      const categoryMatch = or(
+        inArray(products.id, linkedProducts),
+        inArray(products.id, legacyProducts),
+      );
+      if (categoryMatch) conditions.push(categoryMatch);
+    }
   }
 
   const term = search.trim();
@@ -804,9 +848,15 @@ export const loadCatalogProducts = async ({
   limit = CATALOG_PAGE_SIZE,
   excludeProductId,
 }: LoadCatalogProductsInput): Promise<CatalogProductsPage> => {
+  const { categories: storeCategories } = await loadCatalogCategories(storeId);
+  const matchingCategoryIds =
+    category && category !== ALL_CATEGORIES_VALUE && !isReservedCategoryValue(category)
+      ? getCategoryIdsWithDescendants([category], storeCategories)
+      : [];
   const where = buildProductConditions({
     storeId,
     category,
+    matchingCategoryIds,
     search,
     quantity: availableOnly ? Math.max(quantity ?? 1, 1) : quantity,
     attributes,
@@ -814,7 +864,7 @@ export const loadCatalogProducts = async ({
   });
   const offset = decodeCatalogCursor(cursor);
 
-  const [candidates, { priceById }, { categories: storeCategories }] = await Promise.all([
+  const [candidates, { priceById }] = await Promise.all([
     db
       .select({
         id: products.id,
@@ -824,7 +874,6 @@ export const loadCatalogProducts = async ({
       .from(products)
       .where(where),
     loadCatalogPriceIndex(storeId, startDate, endDate, timezone),
-    loadCatalogCategories(storeId),
   ]);
 
   let availabilityById: Map<string, number | null> | null = null;

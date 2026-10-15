@@ -40,7 +40,7 @@ export interface BrowsableCategory {
   description?: string | null;
   imageUrl?: string | null;
   order?: number | null;
-  /** Active products linked to the category. */
+  /** Active products assigned to this category or any descendant. */
   productCount: number;
 }
 

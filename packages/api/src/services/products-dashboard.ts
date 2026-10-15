@@ -1,4 +1,17 @@
-import { and, asc, count, desc, eq, inArray, like, ne, or, sql, type SQL } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  inArray,
+  like,
+  ne,
+  notExists,
+  or,
+  sql,
+  type SQL,
+} from "drizzle-orm";
 
 const escapeLikePattern = (term: string): string => term.replace(/[\\%_]/g, (char) => `\\${char}`);
 
@@ -9,7 +22,11 @@ import {
   productCategories,
   products,
 } from "@louez/db";
-import { getCategoryDisplayPath } from "./category-hierarchy";
+import {
+  getCategoryDisplayPath,
+  getCategoryIdsWithDescendants,
+  removeRedundantAssignedCategoryIds,
+} from "./category-hierarchy";
 
 export const DASHBOARD_PRODUCT_STATUSES = ["active", "draft", "archived"] as const;
 
@@ -39,18 +56,45 @@ export async function getDashboardProductsList({
   // the table, but not for the counts, so the tabs keep showing how many
   // products each status holds within the current selection.
   const scopeConditions: SQL[] = [eq(products.storeId, storeId)];
+  const categoryRows = await db
+    .select({
+      id: categories.id,
+      parentId: categories.parentId,
+      name: categories.name,
+    })
+    .from(categories)
+    .where(eq(categories.storeId, storeId));
 
   const selectedCategoryIds = categoryIds?.filter(Boolean) ?? [];
   if (selectedCategoryIds.length > 0) {
-    scopeConditions.push(
-      inArray(
-        products.id,
-        db
-          .select({ id: productCategories.productId })
-          .from(productCategories)
-          .where(inArray(productCategories.categoryId, selectedCategoryIds)),
-      ),
-    );
+    const matchingCategoryIds = getCategoryIdsWithDescendants(selectedCategoryIds, categoryRows);
+    if (matchingCategoryIds.length === 0) {
+      scopeConditions.push(sql`false`);
+    } else {
+      const directCategoryMatches = db
+        .select({ id: productCategories.productId })
+        .from(productCategories)
+        .where(inArray(productCategories.categoryId, matchingCategoryIds));
+      const legacyCategoryMatches = db
+        .select({ id: products.id })
+        .from(products)
+        .where(
+          and(
+            inArray(products.categoryId, matchingCategoryIds),
+            notExists(
+              db
+                .select({ one: sql`1` })
+                .from(productCategories)
+                .where(eq(productCategories.productId, products.id)),
+            ),
+          ),
+        );
+      const categoryMatch = or(
+        inArray(products.id, directCategoryMatches),
+        inArray(products.id, legacyCategoryMatches),
+      );
+      if (categoryMatch) scopeConditions.push(categoryMatch);
+    }
   }
 
   // The column collation already ignores case and accents.
@@ -126,29 +170,19 @@ export async function getDashboardProductsList({
     );
 
   const rowsById = new Map(rows.map((row) => [row.id, row]));
-  const [categoryRows, productCategoryRows] = await Promise.all([
-    db
-      .select({
-        id: categories.id,
-        parentId: categories.parentId,
-        name: categories.name,
-      })
-      .from(categories)
-      .where(eq(categories.storeId, storeId)),
-    db
-      .select({
-        productId: productCategories.productId,
-        categoryId: productCategories.categoryId,
-      })
-      .from(productCategories)
-      .where(
-        inArray(
-          productCategories.productId,
-          productIds.map((product) => product.id),
-        ),
-      )
-      .orderBy(asc(productCategories.position), asc(productCategories.categoryId)),
-  ]);
+  const productCategoryRows = await db
+    .select({
+      productId: productCategories.productId,
+      categoryId: productCategories.categoryId,
+    })
+    .from(productCategories)
+    .where(
+      inArray(
+        productCategories.productId,
+        productIds.map((product) => product.id),
+      ),
+    )
+    .orderBy(asc(productCategories.position), asc(productCategories.categoryId));
   const categoriesById = new Map(categoryRows.map((category) => [category.id, category]));
   const categoryIdsByProductId = new Map<string, string[]>();
 
@@ -173,6 +207,7 @@ export async function getDashboardProductsList({
             : row.categoryId && categoriesById.has(row.categoryId)
               ? [row.categoryId]
               : [];
+        const visibleCategoryIds = removeRedundantAssignedCategoryIds(categoryIds, categoryRows);
 
         return {
           id: row.id,
@@ -184,7 +219,7 @@ export async function getDashboardProductsList({
           quantity: row.quantity,
           stockKind: row.stockKind,
           status: row.status,
-          categories: categoryIds
+          categories: visibleCategoryIds
             .flatMap((categoryId) => {
               const name = getCategoryDisplayPath(categoryId, categoriesById);
               return name ? [{ id: categoryId, name }] : [];

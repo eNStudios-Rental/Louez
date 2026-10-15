@@ -3,7 +3,10 @@ import { notFound, redirect } from "next/navigation";
 import { and, eq, inArray } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 
-import { getAccessoryCandidates } from "@louez/api/services";
+import {
+  getAccessoryCandidates,
+  removeRedundantAssignedCategoryIds,
+} from "@louez/api/services";
 import {
   categories,
   db,
@@ -188,7 +191,10 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
           ...product,
           quantity: effectiveQuantity,
           accessories: accessoryLinks,
-          categoryIds: product.categoryLinks.map((link) => link.categoryId),
+          categoryIds: removeRedundantAssignedCategoryIds(
+            product.categoryLinks.map((link) => link.categoryId),
+            categoriesList,
+          ),
           bookingAttributeAxes,
           units: editableUnits.map((unit) => ({
             id: unit.id,

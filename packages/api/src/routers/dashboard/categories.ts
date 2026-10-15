@@ -1,10 +1,11 @@
 import { categories, db, nextCategorySlug, productCategories, products } from '@louez/db';
 import { categorySchema, isOwnedImageUrl } from '@louez/validations';
-import { and, asc, count, eq, inArray, ne, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, ne, sql } from 'drizzle-orm';
 import { ORPCError } from '@orpc/server';
 import { z } from 'zod';
 
 import { dashboardProcedure } from '../../procedures';
+import { getProductIdsByCategoryAndAncestors } from '../../services/category-hierarchy';
 
 const categoryOutputSchema = z.object({
   id: z.string(),
@@ -18,30 +19,58 @@ const categoryOutputSchema = z.object({
 const list = dashboardProcedure
   .output(z.array(categoryOutputSchema))
   .handler(async ({ context }) => {
-    return db
-      .select({
-        id: categories.id,
-        parentId: categories.parentId,
-        name: categories.name,
-        description: categories.description,
-        imageUrl: categories.imageUrl,
-        productCount: count(productCategories.productId),
-      })
-      .from(categories)
-      .leftJoin(
-        productCategories,
-        eq(productCategories.categoryId, categories.id),
-      )
-      .where(eq(categories.storeId, context.store.id))
-      .groupBy(
-        categories.id,
-        categories.parentId,
-        categories.name,
-        categories.description,
-        categories.imageUrl,
-        categories.order,
-      )
-      .orderBy(asc(categories.order), asc(categories.name));
+    const [categoryRows, productRows, assignmentRows] = await Promise.all([
+      db
+        .select({
+          id: categories.id,
+          parentId: categories.parentId,
+          name: categories.name,
+          description: categories.description,
+          imageUrl: categories.imageUrl,
+          order: categories.order,
+        })
+        .from(categories)
+        .where(eq(categories.storeId, context.store.id))
+        .orderBy(asc(categories.order), asc(categories.name)),
+      db
+        .select({ id: products.id, categoryId: products.categoryId })
+        .from(products)
+        .where(eq(products.storeId, context.store.id)),
+      db
+        .select({
+          productId: productCategories.productId,
+          categoryId: productCategories.categoryId,
+        })
+        .from(productCategories)
+        .innerJoin(products, eq(productCategories.productId, products.id))
+        .where(eq(products.storeId, context.store.id)),
+    ]);
+
+    const categoryIds = new Set(categoryRows.map((category) => category.id));
+    const assignments = assignmentRows.filter((assignment) =>
+      categoryIds.has(assignment.categoryId),
+    );
+    const productsWithAssignments = new Set(assignments.map(({ productId }) => productId));
+
+    for (const product of productRows) {
+      if (
+        !productsWithAssignments.has(product.id) &&
+        product.categoryId &&
+        categoryIds.has(product.categoryId)
+      ) {
+        assignments.push({ productId: product.id, categoryId: product.categoryId });
+      }
+    }
+
+    const productIdsByCategoryId = getProductIdsByCategoryAndAncestors(
+      categoryRows,
+      assignments,
+    );
+
+    return categoryRows.map((category) => ({
+      ...category,
+      productCount: productIdsByCategoryId.get(category.id)?.length ?? 0,
+    }));
   });
 
 const create = dashboardProcedure

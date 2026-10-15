@@ -4,33 +4,81 @@ export interface CategoryHierarchyEntry {
   name: string;
 }
 
-export function includeCategoryAncestors(
+export function getCategoryIdsWithDescendants(
   requestedIds: readonly string[],
   categories: readonly CategoryHierarchyEntry[],
 ): string[] {
   const categoriesById = new Map(categories.map((category) => [category.id, category]));
-  const resolved = Array.from(
-    new Set(requestedIds.filter((id) => categoriesById.has(id))),
-  );
-  const included = new Set(resolved);
+  const childrenByParentId = new Map<string, string[]>();
+  for (const category of categories) {
+    if (!category.parentId || !categoriesById.has(category.parentId)) continue;
+    const children = childrenByParentId.get(category.parentId) ?? [];
+    children.push(category.id);
+    childrenByParentId.set(category.parentId, children);
+  }
 
-  for (const categoryId of resolved) {
+  const resolved: string[] = [];
+  const included = new Set<string>();
+  const addDescendants = (categoryId: string) => {
+    if (included.has(categoryId) || !categoriesById.has(categoryId)) return;
+    included.add(categoryId);
+    resolved.push(categoryId);
+    for (const childId of childrenByParentId.get(categoryId) ?? []) {
+      addDescendants(childId);
+    }
+  };
+
+  for (const categoryId of requestedIds) addDescendants(categoryId);
+  return resolved;
+}
+
+export function removeRedundantAssignedCategoryIds(
+  requestedIds: readonly string[],
+  categories: readonly CategoryHierarchyEntry[],
+): string[] {
+  const categoriesById = new Map(categories.map((category) => [category.id, category]));
+  const uniqueIds = Array.from(new Set(requestedIds));
+  const selectedIds = new Set(uniqueIds);
+
+  return uniqueIds.filter((categoryId) => {
     let parentId = categoriesById.get(categoryId)?.parentId ?? null;
-    const visited = new Set([categoryId]);
+    const visited = new Set<string>([categoryId]);
 
     while (parentId && !visited.has(parentId)) {
       visited.add(parentId);
-      const parent = categoriesById.get(parentId);
-      if (!parent) break;
-      if (!included.has(parent.id)) {
-        included.add(parent.id);
-        resolved.push(parent.id);
-      }
-      parentId = parent.parentId;
+      if (selectedIds.has(parentId)) return false;
+      parentId = categoriesById.get(parentId)?.parentId ?? null;
+    }
+
+    return true;
+  });
+}
+
+export function getProductIdsByCategoryAndAncestors(
+  categories: readonly CategoryHierarchyEntry[],
+  assignments: readonly { categoryId: string; productId: string }[],
+): Map<string, string[]> {
+  const categoriesById = new Map(categories.map((category) => [category.id, category]));
+  const productIdsByCategoryId = new Map<string, Set<string>>();
+
+  for (const assignment of assignments) {
+    let category = categoriesById.get(assignment.categoryId);
+    const visited = new Set<string>();
+
+    while (category && !visited.has(category.id)) {
+      visited.add(category.id);
+      const productIds = productIdsByCategoryId.get(category.id) ?? new Set<string>();
+      productIds.add(assignment.productId);
+      productIdsByCategoryId.set(category.id, productIds);
+      category = category.parentId ? categoriesById.get(category.parentId) : undefined;
     }
   }
 
-  return resolved;
+  const result = new Map<string, string[]>();
+  for (const [categoryId, productIds] of productIdsByCategoryId) {
+    result.set(categoryId, [...productIds]);
+  }
+  return result;
 }
 
 export function getCategoryDisplayPath(
