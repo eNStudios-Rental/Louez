@@ -1751,9 +1751,9 @@
         "depositAndVat": "Kaucja i VAT",
         "vatLabel": "VAT",
         "priceNegotiableLabel": "Cena",
-        "priceNegotiableDescription": "Cena do negocjacji (wyświetla informację zamiast ceny w sklepie)",
+        "priceNegotiableDescription": "Cena do ustalenia (wyświetla informację zamiast ceny w sklepie)",
         "priceNegotiableNotice": "Nie trzeba podawać ceny. Klienci zobaczą informację, że cena podlega uzgodnieniu.",
-        "priceNegotiableValue": "Cena do uzgodnienia",
+        "priceNegotiableValue": "Cena do ustalenia",
         "seasonActions": "Akcje sezonu",
         "productCreatedCopyReady": "Wstępnie wypełniona kopia jest gotowa do edycji.",
         "copySuffix": "(kopia)",
@@ -1860,7 +1860,7 @@
         "info": {
           "title": "Informacje o produkcie",
           "noDescription": "Brak opisu",
-          "priceNegotiable": "Cena do uzgodnienia",
+          "priceNegotiable": "Cena do ustalenia",
           "seasonalPricing": "Ceny sezonowe",
           "ratesShowMore": "Pokaż wszystkie stawki ({count})",
           "ratesShowLess": "Pokaż mniej",
@@ -2228,7 +2228,7 @@
       "subtotalInclTax": "Suma brutto",
       "totalDeposit": "Całkowita kaucja",
       "totalAmount": "Razem",
-      "negotiablePricePending": "Cena do uzgodnienia",
+      "negotiablePricePending": "Cena do ustalenia",
       "agreedUnitPrice": "Uzgodniona cena za sztukę",
       "saveAgreedPrice": "Ustaw cenę",
       "savingAgreedPrice": "Zapisywanie…",
@@ -2566,7 +2566,7 @@
           "modePercent": "Rabat %",
           "resultingUnitPrice": "Wynikowa cena jednostkowa"
         },
-        "priceNegotiable": "Cena do uzgodnienia — ustal ją teraz albo pozostaw na później.",
+        "priceNegotiable": "Cena do ustalenia — możesz ustalić ją teraz albo pozostawić na później.",
         "warnings": {
           "advanceNotice": "Data rozpoczęcia jest przed okresem wyprzedzenia",
           "advanceNoticeDetails": "Zwykłe wyprzedzenie wynosi {duration}. Możesz kontynuować mimo to.",
@@ -6513,7 +6513,7 @@
       "perWeek": "tydzień",
       "startingFrom": "Od",
       "fixedPricingLabel": "Ryczałt",
-      "priceNegotiable": "Cena do negocjacji",
+      "priceNegotiable": "Cena do ustalenia",
       "pricingUnit": {
         "day": {
           "singular": "dzień",
@@ -6835,8 +6835,8 @@
       "removed": "Usunięto {name} z koszyka",
       "undo": "Cofnij",
       "resolveError": "Nie udało się sprawdzić dostępności. Spróbuj ponownie za chwilę.",
-      "priceNegotiable": "Cena do uzgodnienia",
-      "negotiablePriceNotice": "Niektóre produkty mają cenę do uzgodnienia i nie są uwzględnione w wyświetlanej sumie. Mogą obowiązywać dodatkowe opłaty, a ostateczna cena zostanie ustalona później.",
+      "priceNegotiable": "Cena do ustalenia",
+      "negotiablePriceNotice": "Niektóre produkty mają cenę do ustalenia i nie są uwzględnione w wyświetlanej sumie. Mogą obowiązywać dodatkowe opłaty, a ostateczna cena zostanie ustalona później.",
       "unavailableTitle": "{count, plural, one {# produkt nie jest już dostępny} few {# produkty nie są już dostępne} many {# produktów nie jest już dostępnych} other {# produktów nie jest już dostępnych}}",
       "adjustTo": "Zmniejsz do {count}",
       "maxReached": "Osiągnięto maksymalną ilość",

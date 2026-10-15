@@ -1019,7 +1019,7 @@ export const products = mysqlTable(
     // for the exact durations defined by pricing tiers (package pricing)
     enforceStrictTiers: boolean("enforce_strict_tiers").notNull().default(false),
 
-    // Price negotiable: when true, displays "Cena do negocjacji" / "Price negotiable"
+    // Price negotiable: when true, displays "Cena do ustalenia" / "Price negotiable"
     // instead of fixed pricing on the storefront
     priceNegotiable: boolean("price_negotiable").notNull().default(false),
 
