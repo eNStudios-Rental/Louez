@@ -32,7 +32,11 @@ test("category filters select localized rows and clear back to all twelve produc
         search: "",
       });
       assert.equal(filtered.length, category.productCount);
-      assert.ok(filtered.every((product) => product.category?.id === category.id));
+      assert.ok(
+        filtered.every((product) =>
+          product.categories.some((assignedCategory) => assignedCategory.id === category.id),
+        ),
+      );
     }
     assert.equal(
       filterDemoProducts(products, { categoryIds: [], status: "all", search: "" }).length,

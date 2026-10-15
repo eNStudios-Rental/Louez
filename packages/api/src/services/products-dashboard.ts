@@ -9,6 +9,7 @@ import {
   productCategories,
   products,
 } from "@louez/db";
+import { getCategoryDisplayPath } from "./category-hierarchy";
 
 export const DASHBOARD_PRODUCT_STATUSES = ["active", "draft", "archived"] as const;
 
@@ -115,10 +116,8 @@ export async function getDashboardProductsList({
       stockKind: products.stockKind,
       status: products.status,
       categoryId: products.categoryId,
-      categoryName: categories.name,
     })
     .from(products)
-    .leftJoin(categories, eq(products.categoryId, categories.id))
     .where(
       inArray(
         products.id,
@@ -127,27 +126,71 @@ export async function getDashboardProductsList({
     );
 
   const rowsById = new Map(rows.map((row) => [row.id, row]));
+  const [categoryRows, productCategoryRows] = await Promise.all([
+    db
+      .select({
+        id: categories.id,
+        parentId: categories.parentId,
+        name: categories.name,
+      })
+      .from(categories)
+      .where(eq(categories.storeId, storeId)),
+    db
+      .select({
+        productId: productCategories.productId,
+        categoryId: productCategories.categoryId,
+      })
+      .from(productCategories)
+      .where(
+        inArray(
+          productCategories.productId,
+          productIds.map((product) => product.id),
+        ),
+      )
+      .orderBy(asc(productCategories.position), asc(productCategories.categoryId)),
+  ]);
+  const categoriesById = new Map(categoryRows.map((category) => [category.id, category]));
+  const categoryIdsByProductId = new Map<string, string[]>();
+
+  for (const link of productCategoryRows) {
+    const categoryIdsForProduct = categoryIdsByProductId.get(link.productId) ?? [];
+    categoryIdsForProduct.push(link.categoryId);
+    categoryIdsByProductId.set(link.productId, categoryIdsForProduct);
+  }
 
   return {
     // Preserve the order from the first query
     products: productIds
       .map(({ id }) => rowsById.get(id))
       .filter((row): row is NonNullable<typeof row> => row !== undefined)
-      .map((row) => ({
-        id: row.id,
-        name: row.name,
-        images: row.images,
-        price: row.price,
-        priceNegotiable: row.priceNegotiable,
-        deposit: row.deposit,
-        quantity: row.quantity,
-        stockKind: row.stockKind,
-        status: row.status,
-        category:
-          row.categoryId && row.categoryName
-            ? { id: row.categoryId, name: row.categoryName }
-            : null,
-      })),
+      .map((row) => {
+        const assignedCategoryIds = categoryIdsByProductId
+          .get(row.id)
+          ?.filter((categoryId) => categoriesById.has(categoryId));
+        const categoryIds =
+          assignedCategoryIds && assignedCategoryIds.length > 0
+            ? assignedCategoryIds
+            : row.categoryId && categoriesById.has(row.categoryId)
+              ? [row.categoryId]
+              : [];
+
+        return {
+          id: row.id,
+          name: row.name,
+          images: row.images,
+          price: row.price,
+          priceNegotiable: row.priceNegotiable,
+          deposit: row.deposit,
+          quantity: row.quantity,
+          stockKind: row.stockKind,
+          status: row.status,
+          categories: categoryIds
+            .flatMap((categoryId) => {
+              const name = getCategoryDisplayPath(categoryId, categoriesById);
+              return name ? [{ id: categoryId, name }] : [];
+            }),
+        };
+      }),
     counts,
   };
 }

@@ -3,6 +3,7 @@ export * from "./ai-advisor";
 export * from "./api-keys";
 export * from "./availability";
 export * from "./cart";
+export * from "./category-hierarchy";
 export * from "./catalog";
 export * from "./combination-resolver";
 export * from "./distance";

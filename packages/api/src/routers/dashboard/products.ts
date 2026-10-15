@@ -27,12 +27,12 @@ const productListItemSchema = z.object({
   quantity: z.number(),
   stockKind: z.enum(["returnable", "consumable", "untracked"]),
   status: z.enum(DASHBOARD_PRODUCT_STATUSES).nullable(),
-  category: z
-    .object({
+  categories: z.array(
+    z.object({
       id: z.string(),
       name: z.string(),
-    })
-    .nullable(),
+    }),
+  ),
 });
 
 const productCountsSchema = z.object({

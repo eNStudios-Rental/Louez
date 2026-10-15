@@ -500,7 +500,10 @@ export const CategoryManager = ({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue>
+                    {categories.find((category) => category.id === newCategoryParentId)?.name ??
+                      t('categories.noneParent')}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectPopup>
                   <SelectItem value="none">
@@ -597,7 +600,10 @@ export const CategoryManager = ({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue>
+                    {categories.find((category) => category.id === editCategoryParentId)?.name ??
+                      t('categories.noneParent')}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectPopup>
                   <SelectItem value="none">

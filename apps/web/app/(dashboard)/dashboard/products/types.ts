@@ -35,10 +35,10 @@ export interface ProductListItem {
   quantity: number;
   stockKind: StockKind;
   status: "draft" | "active" | "archived" | null;
-  category: {
+  categories: Array<{
     id: string;
     name: string;
-  } | null;
+  }>;
 }
 
 export interface ProductCounts {
