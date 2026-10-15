@@ -6,6 +6,17 @@ import type {
   ReservationStatus,
 } from './reservations-types';
 
+export function getReservationCustomerName(
+  customer: Pick<Reservation['customer'], 'firstName' | 'lastName' | 'companyName' | 'email'>,
+) {
+  return (
+    [customer.firstName, customer.lastName].filter(Boolean).join(' ') ||
+    customer.companyName ||
+    customer.email ||
+    '—'
+  );
+}
+
 export const STATUS_CONFIG: Record<
   ReservationStatus,
   {

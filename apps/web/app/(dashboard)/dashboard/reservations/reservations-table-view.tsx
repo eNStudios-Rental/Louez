@@ -51,7 +51,12 @@ import type {
   SortField,
   SortDirection,
 } from "./reservations-types";
-import { PAYMENT_STATUS_VARIANTS, STATUS_CONFIG, getPaymentStatus } from "./reservations-utils";
+import {
+  PAYMENT_STATUS_VARIANTS,
+  STATUS_CONFIG,
+  getPaymentStatus,
+  getReservationCustomerName,
+} from "./reservations-utils";
 import {
   getReservationDetailHref,
   isReservationAnalyticsSource,
@@ -248,7 +253,7 @@ export function ReservationsTableView({
 
                     {/* Customer */}
                     <TableCell>
-                      {reservation.customer.firstName} {reservation.customer.lastName}
+                      {getReservationCustomerName(reservation.customer)}
                     </TableCell>
 
                     {/* Items (hidden on mobile) */}

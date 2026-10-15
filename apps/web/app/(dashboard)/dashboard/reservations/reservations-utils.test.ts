@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import type { Reservation } from './reservations-types';
-import { getPaymentStatus } from './reservations-utils';
+import { getPaymentStatus, getReservationCustomerName } from './reservations-utils';
 
 const createReservation = (overrides: Partial<Reservation>): Reservation => ({
   id: 'reservation-1',
@@ -18,6 +18,7 @@ const createReservation = (overrides: Partial<Reservation>): Reservation => ({
     firstName: 'Ada',
     lastName: 'Lovelace',
     email: 'ada@example.com',
+    companyName: null,
   },
   items: [
     {
@@ -56,6 +57,18 @@ test('reservation list payment status ignores uncollected deposit', () => {
   assert.equal(status.status, 'paid');
   assert.equal(status.totalPaid, 31);
   assert.equal(status.totalDue, 31);
+});
+
+test('reservation list displays company name when personal customer details are missing', () => {
+  assert.equal(
+    getReservationCustomerName({
+      firstName: null,
+      lastName: null,
+      companyName: 'Acme Ltd',
+      email: null,
+    }),
+    'Acme Ltd',
+  );
 });
 
 test('reservation list payment status ignores deposit collections', () => {

@@ -40,9 +40,10 @@ export interface Reservation {
   totalAmount: string
   customer: {
     id: string
-    firstName: string
-    lastName: string
-    email: string
+    firstName: string | null
+    lastName: string | null
+    email: string | null
+    companyName: string | null
   }
   items: ReservationItem[]
   payments: Payment[]

@@ -41,7 +41,12 @@ import {
 } from "@louez/ui";
 
 import type { Reservation, ReservationStatus } from "./reservations-types";
-import { PAYMENT_STATUS_VARIANTS, STATUS_CONFIG, getPaymentStatus } from "./reservations-utils";
+import {
+  PAYMENT_STATUS_VARIANTS,
+  STATUS_CONFIG,
+  getPaymentStatus,
+  getReservationCustomerName,
+} from "./reservations-utils";
 import {
   getReservationDetailHref,
   isReservationAnalyticsSource,
@@ -198,7 +203,7 @@ export function ReservationsCardView({
                       <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm">
                         <span className="flex items-center gap-1.5 text-foreground">
                           <User className="h-3.5 w-3.5 text-muted-foreground" />
-                          {reservation.customer.firstName} {reservation.customer.lastName}
+                          {getReservationCustomerName(reservation.customer)}
                         </span>
                         <span className="text-muted-foreground truncate">{itemsText}</span>
                       </div>
