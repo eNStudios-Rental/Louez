@@ -2393,6 +2393,7 @@
         "addProduct": "Dodaj produkt",
         "create": "Utwórz rezerwację",
         "sendConfirmationEmail": "Wyślij potwierdzenie do klienta",
+        "customerEmailNotConfigured": "To konto klienta nie ma skonfigurowanego adresu e-mail.",
         "customer": "Klient",
         "customerStepDescription": "Wybierz istniejącego klienta lub utwórz nowego",
         "period": "Okres",

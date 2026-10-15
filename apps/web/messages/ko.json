@@ -2420,6 +2420,7 @@
         "addProduct": "제품 추가",
         "create": "예약 생성",
         "sendConfirmationEmail": "고객에게 확인 보내기",
+        "customerEmailNotConfigured": "이 고객 계정에는 이메일 주소가 설정되어 있지 않습니다.",
         "customer": "고객",
         "customerStepDescription": "기존 고객을 선택하거나 새 고객을 만드세요.",
         "period": "기간",

@@ -2111,7 +2111,8 @@ export async function createManualReservation(data: CreateReservationData) {
 
   const catalogQuantity = productDetails.reduce((total, detail) => total + detail.quantity, 0);
   const customQuantity = customItemDetails.reduce((total, detail) => total + detail.quantity, 0);
-  const shouldSendEmail = data.sendConfirmationEmail !== false && !hasPendingNegotiablePrice;
+  const shouldSendEmail =
+    data.sendConfirmationEmail !== false && !hasPendingNegotiablePrice && Boolean(customer.email);
 
   await captureProductServerEvent({
     distinctId: store.userId,

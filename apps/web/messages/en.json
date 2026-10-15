@@ -2432,6 +2432,7 @@
         "addProduct": "Add a product",
         "create": "Create reservation",
         "sendConfirmationEmail": "Send confirmation to customer",
+        "customerEmailNotConfigured": "This customer account has no email address configured.",
         "customer": "Customer",
         "customerStepDescription": "Select an existing customer or create a new one",
         "period": "Period",

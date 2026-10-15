@@ -2420,6 +2420,7 @@
         "addProduct": "添加产品",
         "create": "创建预订",
         "sendConfirmationEmail": "向客户发送确认信息",
+        "customerEmailNotConfigured": "此客户账户尚未设置电子邮件地址。",
         "customer": "客户",
         "customerStepDescription": "选择现有客户或创建新客户",
         "period": "时期",

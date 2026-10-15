@@ -2429,6 +2429,7 @@
         "addProduct": "Ajouter un produit",
         "create": "Créer la réservation",
         "sendConfirmationEmail": "Envoyer la confirmation au client",
+        "customerEmailNotConfigured": "Aucune adresse e-mail n'est renseignée pour ce compte client.",
         "customer": "Client",
         "customerStepDescription": "Sélectionnez un client existant ou créez-en un nouveau",
         "period": "Période",

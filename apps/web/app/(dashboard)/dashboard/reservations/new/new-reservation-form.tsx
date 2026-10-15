@@ -444,7 +444,9 @@ export function NewReservationForm({
             globalDiscountAmount > 0 ? Math.round(globalDiscountAmount * 100) / 100 : undefined,
           depositOverride: depositOverride ?? undefined,
           tulipInsuranceOptIn: effectiveTulipInsuranceOptIn,
-          sendConfirmationEmail: sendAsQuoteRef.current ? true : sendConfirmationEmail,
+          sendConfirmationEmail:
+            Boolean(selectedCustomer?.email) &&
+            (sendAsQuoteRef.current || sendConfirmationEmail),
           sendAsQuote: sendAsQuoteRef.current,
           allowOverbooking: options.allowOverbooking,
         },

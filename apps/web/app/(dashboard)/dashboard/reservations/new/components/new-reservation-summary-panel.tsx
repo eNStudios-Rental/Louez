@@ -100,6 +100,7 @@ export function NewReservationSummaryPanel({
   const [isEditingDeposit, setIsEditingDeposit] = useState(false);
 
   const effectiveDeposit = depositOverride ?? deposit;
+  const hasSelectedCustomerWithoutEmail = Boolean(selectedCustomer && !selectedCustomer.email);
 
   const isCustomerDone = Boolean(selectedCustomer);
   const isPeriodDone = Boolean(startDate && endDate && endDate >= startDate);
@@ -371,16 +372,25 @@ export function NewReservationSummaryPanel({
         <div className="flex items-center space-x-2">
           <Checkbox
             id="sendConfirmationEmail"
-            checked={sendConfirmationEmail}
+            checked={sendConfirmationEmail && !hasSelectedCustomerWithoutEmail}
+            disabled={hasSelectedCustomerWithoutEmail}
             onCheckedChange={(checked) => onSendConfirmationEmailChange(checked === true)}
           />
           <label
             htmlFor="sendConfirmationEmail"
-            className="text-muted-foreground min-w-0 cursor-pointer text-sm leading-tight"
+            className={cn(
+              "text-muted-foreground min-w-0 cursor-pointer text-sm leading-tight",
+              hasSelectedCustomerWithoutEmail && "cursor-not-allowed opacity-50",
+            )}
           >
             {t("sendConfirmationEmail")}
           </label>
         </div>
+        {hasSelectedCustomerWithoutEmail && (
+          <p className="text-muted-foreground pl-6 text-xs">
+            {t("customerEmailNotConfigured")}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

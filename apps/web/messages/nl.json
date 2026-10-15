@@ -2381,6 +2381,7 @@
         "addProduct": "Product toevoegen",
         "create": "Reservering aanmaken",
         "sendConfirmationEmail": "Bevestiging naar klant verzenden",
+        "customerEmailNotConfigured": "Voor dit klantaccount is geen e-mailadres ingesteld.",
         "customer": "Klant",
         "customerStepDescription": "Selecteer een bestaande klant of maak een nieuwe aan",
         "period": "Periode",

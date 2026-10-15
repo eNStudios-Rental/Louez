@@ -2420,6 +2420,7 @@
         "addProduct": "Tambahkan produk",
         "create": "Buat reservasi",
         "sendConfirmationEmail": "Kirim konfirmasi ke pelanggan",
+        "customerEmailNotConfigured": "Akun pelanggan ini belum memiliki alamat email.",
         "customer": "Pelanggan",
         "customerStepDescription": "Pilih pelanggan yang sudah ada atau buat pelanggan baru",
         "period": "Titik",

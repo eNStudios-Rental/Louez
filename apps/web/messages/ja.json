@@ -2420,6 +2420,7 @@
         "addProduct": "製品を追加する",
         "create": "予約の作成",
         "sendConfirmationEmail": "顧客に確認を送信する",
+        "customerEmailNotConfigured": "この顧客アカウントにはメールアドレスが設定されていません。",
         "customer": "お客様",
         "customerStepDescription": "既存の顧客を選択するか、新しい顧客を作成します",
         "period": "期間",
