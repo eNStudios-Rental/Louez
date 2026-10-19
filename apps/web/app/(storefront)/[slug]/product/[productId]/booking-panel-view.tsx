@@ -97,10 +97,13 @@ export const BookingPanelView = ({
           ? product.basePeriodMinutes
           : pricingModeToMinutes(product.pricingMode),
       );
+  const durationParts = period
+    ? getSeasonalDurationParts(calculateDurationMinutes(period.start, period.end))
+    : [];
   const durationLabel = isFixed
     ? t("storefront.product.fixedPricingLabel")
     : period
-      ? getSeasonalDurationParts(calculateDurationMinutes(period.start, period.end))
+      ? (durationParts[0] >= 1440 ? durationParts.slice(0, 1) : durationParts)
           .map((part) => formatPeriodLabel(part, { alwaysShowCount: true }))
           .join(" ")
       : null;
