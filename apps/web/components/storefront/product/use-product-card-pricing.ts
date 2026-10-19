@@ -78,13 +78,9 @@ export const useProductCardPricing = (
   });
   const percent = getEffectiveDiscountPercent(result);
   const showsDiscount = result.savings > 0 && isDiscountVisible(percent);
-  const { days, hours, totalHours } = getDetailedDuration(period.startDate, period.endDate);
+  const { days, totalHours } = getDetailedDuration(period.startDate, period.endDate);
   const durationLabel =
-    days === 0
-      ? t("common.hours", { count: totalHours })
-      : hours === 0
-        ? t("common.days", { count: days })
-        : `${t("common.days", { count: days })} ${t("common.hours", { count: hours })}`;
+    days === 0 ? t("common.hours", { count: totalHours }) : t("common.days", { count: days });
 
   return {
     amount: result.subtotal,

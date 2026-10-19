@@ -7,7 +7,6 @@ import type { SeasonalPricingConfig } from "@louez/utils";
 import { useTranslations } from "next-intl";
 
 import { Price } from "@/components/storefront/ui/price";
-import { BillingDetail } from "@/components/storefront/product/billing-detail";
 import { SeasonSwatch } from "@/components/storefront/ui/season-swatch";
 import {
   getSeasonToneMap,
@@ -48,7 +47,6 @@ export const PriceSummary = ({ price, seasons, durationLabel }: PriceSummaryProp
           <dt className="text-muted-foreground">
             {t("subtotal")}
             {durationLabel ? ` · ${durationLabel}` : null}
-            <BillingDetail detail={price.billingDetail} className="mt-1" />
           </dt>
           <dd>
             <Price
