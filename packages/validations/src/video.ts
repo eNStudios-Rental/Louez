@@ -46,7 +46,11 @@ export const getYouTubeEmbedUrl = (value: string, autoplay: boolean): string | n
 
   const embedUrl = new URL(`https://www.youtube-nocookie.com/embed/${videoId}`);
   embedUrl.searchParams.set("autoplay", autoplay ? "1" : "0");
+  embedUrl.searchParams.set("cc_load_policy", "0");
   embedUrl.searchParams.set("controls", "0");
+  embedUrl.searchParams.set("disablekb", "1");
+  embedUrl.searchParams.set("fs", "0");
+  embedUrl.searchParams.set("iv_load_policy", "3");
   embedUrl.searchParams.set("loop", "1");
   embedUrl.searchParams.set("mute", "1");
   embedUrl.searchParams.set("playsinline", "1");

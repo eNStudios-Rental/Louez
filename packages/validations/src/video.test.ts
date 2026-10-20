@@ -39,8 +39,14 @@ test("builds privacy-enhanced muted looping embed URLs", () => {
   assert.equal(autoplay.origin, "https://www.youtube-nocookie.com");
   assert.equal(autoplay.pathname, `/embed/${videoId}`);
   assert.equal(autoplay.searchParams.get("autoplay"), "1");
+  assert.equal(autoplay.searchParams.get("cc_load_policy"), "0");
   assert.equal(autoplay.searchParams.get("mute"), "1");
   assert.equal(autoplay.searchParams.get("loop"), "1");
+  assert.equal(autoplay.searchParams.get("controls"), "0");
+  assert.equal(autoplay.searchParams.get("disablekb"), "1");
+  assert.equal(autoplay.searchParams.get("fs"), "0");
+  assert.equal(autoplay.searchParams.get("iv_load_policy"), "3");
+  assert.equal(autoplay.searchParams.get("playsinline"), "1");
   assert.equal(autoplay.searchParams.get("playlist"), videoId);
 
   const reducedMotion = new URL(

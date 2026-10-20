@@ -352,13 +352,15 @@ export const SketchHomePage = ({
               )}
             >
               {youtubeEmbedUrl ? (
-                <iframe
-                  src={youtubeEmbedUrl}
-                  title={name}
-                  aria-hidden="true"
-                  tabIndex={-1}
-                  className="pointer-events-none absolute inset-0 h-full w-full border-0"
-                />
+                <div className="absolute inset-0 overflow-hidden [container-type:size]">
+                  <iframe
+                    src={youtubeEmbedUrl}
+                    title={name}
+                    aria-hidden="true"
+                    tabIndex={-1}
+                    className="pointer-events-none absolute left-1/2 top-1/2 h-[max(100cqh,56.25cqw)] w-[max(100cqw,177.78cqh)] max-w-none -translate-x-1/2 -translate-y-1/2 border-0"
+                  />
+                </div>
               ) : photo ? (
                 <img src={photo} alt="" className="absolute inset-0 h-full w-full object-cover" />
               ) : null}
@@ -387,7 +389,7 @@ export const SketchHomePage = ({
             >
               <div
                 className={cn(
-                  "relative overflow-hidden rounded-2xl",
+                  "relative overflow-hidden rounded-2xl [container-type:size]",
                   phone ? "aspect-16/10" : "aspect-5/4",
                   p.fillSoft,
                   !phone && hero.align === "end" ? "order-first" : "order-last",
@@ -399,7 +401,7 @@ export const SketchHomePage = ({
                     title={name}
                     aria-hidden="true"
                     tabIndex={-1}
-                    className="pointer-events-none absolute inset-0 h-full w-full border-0"
+                    className="pointer-events-none absolute left-1/2 top-1/2 h-[max(100cqh,56.25cqw)] w-[max(100cqw,177.78cqh)] max-w-none -translate-x-1/2 -translate-y-1/2 border-0"
                   />
                 ) : photo ? (
                   <img src={photo} alt="" className="absolute inset-0 h-full w-full object-cover" />
