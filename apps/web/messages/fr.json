@@ -789,6 +789,13 @@
       "home": {
         "header": "En-tête",
         "photos": "Photos",
+        "video": "Vidéo d’arrière-plan",
+        "videoDescription": "Une vidéo MP4 s’ajoute au carrousel de photos. Recommandé : H.264, sans audio, 1080p et 10–20 secondes (max. 30 Mo).",
+        "addVideo": "Ajouter une vidéo",
+        "replaceVideo": "Remplacer la vidéo",
+        "removeVideo": "Supprimer la vidéo",
+        "videoTooLarge": "La vidéo est trop volumineuse (max. 30 Mo)",
+        "videoNotMp4": "Choisissez un fichier vidéo MP4",
         "announcement": {
           "title": "Bandeau d'annonce",
           "description": "Une ligne au-dessus de l'en-tête, sur toutes les pages.",
@@ -6365,10 +6372,10 @@
       "securePaymentDesc": "Transactions 100% sécurisées",
       "localPickupDesc": "Récupérez votre matériel facilement",
       "reviewsBadge": "avis",
-      "slides": "Photos de la boutique",
-      "previousImage": "Photo précédente",
-      "nextImage": "Photo suivante",
-      "goToImage": "Photo {index} sur {count}",
+      "slides": "Diapositives de l’en-tête de la boutique",
+      "previousImage": "Diapositive précédente",
+      "nextImage": "Diapositive suivante",
+      "goToImage": "Diapositive {index} sur {count}",
       "seeReviews": "Voir les avis Google · {rating} sur 5"
     },
     "home": {

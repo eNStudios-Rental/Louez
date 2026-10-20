@@ -789,6 +789,13 @@
       "home": {
         "header": "ヘッダー",
         "photos": "写真",
+        "video": "背景動画",
+        "videoDescription": "MP4を写真スライダーに追加します。H.264、音声なし、1080p、10～20秒を推奨します（最大30 MB）。",
+        "addVideo": "動画を追加",
+        "replaceVideo": "動画を置き換え",
+        "removeVideo": "動画を削除",
+        "videoTooLarge": "動画のサイズが大きすぎます（最大30 MB）",
+        "videoNotMp4": "MP4動画ファイルを選択してください",
         "announcement": {
           "title": "アナウンスバー",
           "description": "各ページのヘッダーの上に 1 行あります。",
@@ -6365,10 +6372,10 @@
       "securePaymentDesc": "100%安全な取引",
       "localPickupDesc": "機器を簡単に取り出せる",
       "reviewsBadge": "レビュー",
-      "slides": "写真を保存する",
-      "previousImage": "前の写真",
-      "nextImage": "次の写真",
-      "goToImage": "写真 {index} の {count}",
+      "slides": "ストアのヒーロースライド",
+      "previousImage": "前のスライド",
+      "nextImage": "次のスライド",
+      "goToImage": "{count}枚中{index}枚目のスライド",
       "seeReviews": "Google レビューを見る · {rating} (5 点中)"
     },
     "home": {

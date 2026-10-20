@@ -16,9 +16,11 @@ interface StoreHeroProps {
   tagline?: string | null;
   /** The store description as written in the dashboard, editor HTML. */
   description: string | null;
-  /** Background or framed photos, depending on the shape. */
+  /** Photos in the background or framed beside the text, depending on the shape. */
   backgroundImages?: string[];
-  /** `cover` = text over the photos, `split` = text beside a framed photo, `band` = no photo. */
+  /** The optional MP4 is an additional slide after the background photos. */
+  backgroundVideoUrl?: string | null;
+  /** `cover` = text over hero media, `split` = text beside framed media, `band` = no media. */
   shape: StoreHeroShape;
   align: StoreHeroAlign;
   verticalAlign: StoreHeroVerticalAlign;
@@ -77,17 +79,17 @@ const DESCRIPTION_ON_PHOTO_CLASS_NAME =
 /**
  * Home hero: the store's name, its description, the badges and the period search.
  *
- * `cover`: on the store photos, `min-h-[70svh]` so the inventory starts
+ * `cover`: on the store media, `min-h-[70svh]` so the inventory starts
  * before the first scroll; pulled under the header (`-mt-14 md:-mt-16`, the
  * header's own height). The scrim only carries the contrast the headline
  * needs, on the edge the text sits on.
  *
- * `split`: the text on the page surface next to the photo in a rounded
+ * `split`: the text on the page surface next to framed media in a rounded
  * frame, no scrim, no white text, so a light illustration works as well as
  * a dark photo. `align` picks the side of the text column, `verticalAlign`
  * where it sits against the photo.
  *
- * `band`: no photo, so a short muted band with everything centred; nothing
+ * `band`: no media, so a short muted band with everything centred; nothing
  * to look at, so the inventory arrives at once.
  */
 export const StoreHero = ({
@@ -95,6 +97,7 @@ export const StoreHero = ({
   tagline,
   description,
   backgroundImages = [],
+  backgroundVideoUrl,
   shape,
   align,
   verticalAlign,
@@ -140,7 +143,7 @@ export const StoreHero = ({
               align === "end" ? "lg:order-first" : "lg:order-last",
             )}
           >
-            <HeroImageSlider images={backgroundImages} />
+            <HeroImageSlider images={backgroundImages} videoUrl={backgroundVideoUrl} />
           </div>
 
           <div className="flex max-w-2xl flex-col gap-4">
@@ -171,7 +174,7 @@ export const StoreHero = ({
     >
       {cover ? (
         <>
-          <HeroImageSlider images={backgroundImages} />
+          <HeroImageSlider images={backgroundImages} videoUrl={backgroundVideoUrl} />
           <div
             aria-hidden
             className={cn("pointer-events-none absolute inset-0", SCRIM[verticalAlign])}

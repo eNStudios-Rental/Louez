@@ -789,6 +789,13 @@
       "home": {
         "header": "Kopgedeelte",
         "photos": "Foto's",
+        "video": "Achtergrondvideo",
+        "videoDescription": "Eén MP4 wordt toegevoegd aan de fotoslider. Aanbevolen: H.264, zonder audio, 1080p en 10–20 seconden (max. 30 MB).",
+        "addVideo": "Video toevoegen",
+        "replaceVideo": "Video vervangen",
+        "removeVideo": "Video verwijderen",
+        "videoTooLarge": "De video is te groot (max. 30 MB)",
+        "videoNotMp4": "Kies een MP4-videobestand",
         "announcement": {
           "title": "Aankondigingsbalk",
           "description": "Eén regel boven de header, op alle pagina's.",
@@ -6365,10 +6372,10 @@
       "securePaymentDesc": "100% veilige transacties",
       "localPickupDesc": "Haal uw materiaal eenvoudig op",
       "reviewsBadge": "beoordelingen",
-      "slides": "Foto's van de winkel",
-      "previousImage": "Vorige foto",
-      "nextImage": "Volgende foto",
-      "goToImage": "Foto {index} van {count}",
+      "slides": "Hero-slides van de winkel",
+      "previousImage": "Vorige slide",
+      "nextImage": "Volgende slide",
+      "goToImage": "Slide {index} van {count}",
       "seeReviews": "Google-reviews bekijken · {rating} van 5"
     },
     "home": {

@@ -4,16 +4,16 @@ export type StoreHeroLayout = NonNullable<StoreTheme["heroLayout"]>;
 export type StoreHeroAlign = NonNullable<StoreTheme["heroAlign"]>;
 export type StoreHeroVerticalAlign = NonNullable<StoreTheme["heroVerticalAlign"]>;
 
-/** What the hero actually renders: the two layouts a store can pick, or the band it gets without photos. */
+/** What the hero actually renders: the two layouts a store can pick, or the band it gets without media. */
 export type StoreHeroShape = StoreHeroLayout | "band";
 
 export interface StoreHeroPresentation {
   shape: StoreHeroShape;
   /** Horizontal: the side of the text (cover: text alignment, split: the text column's side). */
   align: StoreHeroAlign;
-  /** Vertical: top, middle or bottom of the photo. */
+  /** Vertical: top, middle or bottom of the hero media. */
   verticalAlign: StoreHeroVerticalAlign;
-  /** The headline sits on a photo (white text, scrim, translucent pills). */
+  /** The headline sits on hero media (white text, scrim, translucent pills). */
   textOnPhoto: boolean;
 }
 
@@ -23,20 +23,20 @@ export const DEFAULT_HERO_VERTICAL_ALIGN: StoreHeroVerticalAlign = "end";
 
 interface ResolveStoreHeroPresentationInput {
   theme: Pick<StoreTheme, "heroLayout" | "heroAlign" | "heroVerticalAlign"> | null | undefined;
-  imageCount: number;
+  mediaCount: number;
 }
 
 /**
  * The store's hero choices, reduced to what the page can render. Without a
- * photo there is nothing to position against, so both layouts collapse to
+ * media there is nothing to position against, so both layouts collapse to
  * one centred band. The split layout has no horizontal centre: its text
- * lives in a column next to the photo, so "center" reads as "start" there.
+ * lives in a column next to the media, so "center" reads as "start" there.
  */
 export const resolveStoreHeroPresentation = ({
   theme,
-  imageCount,
+  mediaCount,
 }: ResolveStoreHeroPresentationInput): StoreHeroPresentation => {
-  if (imageCount === 0) {
+  if (mediaCount === 0) {
     return { shape: "band", align: "center", verticalAlign: "center", textOnPhoto: false };
   }
 

@@ -90,7 +90,7 @@ export const SketchHomePage = ({
       heroAlign: home.heroAlign,
       heroVerticalAlign: home.heroVerticalAlign,
     },
-    imageCount: home.heroImages.length,
+    mediaCount: home.heroImages.length + Number(Boolean(home.heroVideoUrl)),
   });
   const photo = home.heroImages[0];
   const primary = identity.primaryColor;
@@ -273,13 +273,17 @@ export const SketchHomePage = ({
     </motion.div>
   );
 
+  const heroMediaKeys = [
+    ...home.heroImages.map((image) => `image:${image}`),
+    ...(home.heroVideoUrl ? ["video"] : []),
+  ];
   const dots =
-    home.heroImages.length > 1 ? (
+    heroMediaKeys.length > 1 ? (
       <div className="absolute right-8 bottom-6 flex h-9 items-center gap-2 rounded-full bg-black/60 px-3 text-white">
         <ChevronLeftIcon className="size-4" />
-        {home.heroImages.map((image, index) => (
+        {heroMediaKeys.map((media, index) => (
           <span
-            key={image}
+            key={media}
             className={cn("h-1.5 rounded-full bg-white", index === 0 ? "w-4" : "w-1.5 opacity-60")}
           />
         ))}
@@ -345,7 +349,17 @@ export const SketchHomePage = ({
                 VERTICAL_ITEMS[hero.verticalAlign],
               )}
             >
-              {photo ? (
+              {home.heroVideoUrl ? (
+                <video
+                  src={home.heroVideoUrl}
+                  poster={photo}
+                  autoPlay={!reduceMotion}
+                  muted
+                  loop
+                  playsInline
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              ) : photo ? (
                 <img src={photo} alt="" className="absolute inset-0 h-full w-full object-cover" />
               ) : null}
               <div className={cn("absolute inset-0", SCRIM[hero.verticalAlign])} />
@@ -379,7 +393,17 @@ export const SketchHomePage = ({
                   !phone && hero.align === "end" ? "order-first" : "order-last",
                 )}
               >
-                {photo ? (
+                {home.heroVideoUrl ? (
+                  <video
+                    src={home.heroVideoUrl}
+                    poster={photo}
+                    autoPlay={!reduceMotion}
+                    muted
+                    loop
+                    playsInline
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                ) : photo ? (
                   <img src={photo} alt="" className="absolute inset-0 h-full w-full object-cover" />
                 ) : null}
               </div>

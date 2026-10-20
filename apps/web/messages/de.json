@@ -789,6 +789,13 @@
       "home": {
         "header": "Kopfbereich",
         "photos": "Fotos",
+        "video": "Hintergrundvideo",
+        "videoDescription": "Ein MP4 wird dem Fotokarussell hinzugefügt. Empfohlen: H.264, ohne Ton, 1080p und 10–20 Sekunden (max. 30 MB).",
+        "addVideo": "Video hinzufügen",
+        "replaceVideo": "Video ersetzen",
+        "removeVideo": "Video entfernen",
+        "videoTooLarge": "Das Video ist zu groß (max. 30 MB)",
+        "videoNotMp4": "Wähle eine MP4-Videodatei aus",
         "announcement": {
           "title": "Ankündigungsleiste",
           "description": "Eine Zeile über dem Header, auf allen Seiten.",
@@ -6365,10 +6372,10 @@
       "securePaymentDesc": "100% sichere Transaktionen",
       "localPickupDesc": "Holen Sie Ihre Ausrüstung einfach ab",
       "reviewsBadge": "Bewertungen",
-      "slides": "Fotos des Shops",
-      "previousImage": "Vorheriges Foto",
-      "nextImage": "Nächstes Foto",
-      "goToImage": "Foto {index} von {count}",
+      "slides": "Shop-Header-Slides",
+      "previousImage": "Vorheriger Slide",
+      "nextImage": "Nächster Slide",
+      "goToImage": "Slide {index} von {count}",
       "seeReviews": "Google-Bewertungen ansehen · {rating} von 5"
     },
     "home": {

@@ -8,6 +8,7 @@ import { Slider, Switch } from "@louez/ui";
 import { withForm } from "@/hooks/form/form";
 
 import { HeroImagesField } from "../fields/hero-images-field";
+import { HeroVideoField } from "../fields/hero-video-field";
 import { HeroLayoutField } from "../fields/hero-layout-field";
 import { HeroPositionField } from "../fields/hero-position-field";
 import { PanelGroup } from "../panel/panel-group";
@@ -22,7 +23,7 @@ import type { OnlineStoreSectionProps } from "./online-store-section.types";
 
 /**
  * The home hero, the announcement line, the catalog's first screen, the
- * optional blocks. Layout and text position only mean something on a photo,
+ * optional blocks. Layout and text position only mean something on hero media,
  * so they show once the hero has one.
  */
 export const HomeSection = withForm({
@@ -32,7 +33,10 @@ export const HomeSection = withForm({
     const t = useTranslations("dashboard.onlineStore.home");
     const tCommon = useTranslations("common");
     const tAppearance = useTranslations("dashboard.settings.appearanceSettings");
-    const hasHeroImages = useStore(form.store, (state) => state.values.home.heroImages.length > 0);
+    const hasHeroMedia = useStore(
+      form.store,
+      (state) => state.values.home.heroImages.length > 0 || Boolean(state.values.home.heroVideoUrl),
+    );
     const heroLayout = useStore(form.store, (state) => state.values.home.heroLayout);
     const heroAlign = useStore(form.store, (state) => state.values.home.heroAlign);
     const heroVerticalAlign = useStore(form.store, (state) => state.values.home.heroVerticalAlign);
@@ -51,7 +55,18 @@ export const HomeSection = withForm({
             )}
           </form.Field>
 
-          {hasHeroImages ? (
+          <form.Field name="home.heroVideoUrl">
+            {(field) => (
+              <HeroVideoField
+                value={field.state.value}
+                savedValue={savedValues.home.heroVideoUrl}
+                uploads={uploads}
+                onChange={field.handleChange}
+              />
+            )}
+          </form.Field>
+
+          {hasHeroMedia ? (
             <>
               <form.Field name="home.heroLayout">
                 {(field) => (

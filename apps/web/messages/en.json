@@ -789,6 +789,13 @@
       "home": {
         "header": "Header",
         "photos": "Photos",
+        "video": "Background video",
+        "videoDescription": "One MP4 joins the photo slider. H.264, silent, 1080p and 10–20 seconds are recommended (max 30 MB).",
+        "addVideo": "Add video",
+        "replaceVideo": "Replace video",
+        "removeVideo": "Remove video",
+        "videoTooLarge": "Video is too large (max 30 MB)",
+        "videoNotMp4": "Choose an MP4 video file",
         "announcement": {
           "title": "Announcement bar",
           "description": "One line above the header, on every page.",
@@ -6378,10 +6385,10 @@
       "securePaymentDesc": "100% secure transactions",
       "localPickupDesc": "Easily pick up your equipment",
       "reviewsBadge": "reviews",
-      "slides": "Store photos",
-      "previousImage": "Previous photo",
-      "nextImage": "Next photo",
-      "goToImage": "Photo {index} of {count}",
+      "slides": "Store hero slides",
+      "previousImage": "Previous slide",
+      "nextImage": "Next slide",
+      "goToImage": "Slide {index} of {count}",
       "seeReviews": "See Google reviews · {rating} out of 5"
     },
     "home": {

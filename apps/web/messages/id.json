@@ -789,6 +789,13 @@
       "home": {
         "header": "Tajuk",
         "photos": "Foto",
+        "video": "Video latar belakang",
+        "videoDescription": "Satu MP4 ditambahkan ke slider foto. Disarankan: H.264, tanpa audio, 1080p, dan 10–20 detik (maks. 30 MB).",
+        "addVideo": "Tambahkan video",
+        "replaceVideo": "Ganti video",
+        "removeVideo": "Hapus video",
+        "videoTooLarge": "Video terlalu besar (maks. 30 MB)",
+        "videoNotMp4": "Pilih file video MP4",
         "announcement": {
           "title": "Bilah pengumuman",
           "description": "Satu baris di atas header, di setiap halaman.",
@@ -6365,10 +6372,10 @@
       "securePaymentDesc": "Transaksi 100% aman",
       "localPickupDesc": "Ambil peralatan Anda dengan mudah",
       "reviewsBadge": "ulasan",
-      "slides": "Simpan foto",
-      "previousImage": "Foto sebelumnya",
-      "nextImage": "Foto selanjutnya",
-      "goToImage": "Foto {index} dari {count}",
+      "slides": "Slide hero toko",
+      "previousImage": "Slide sebelumnya",
+      "nextImage": "Slide berikutnya",
+      "goToImage": "Slide {index} dari {count}",
       "seeReviews": "Lihat ulasan Google · {rating} dari 5"
     },
     "home": {

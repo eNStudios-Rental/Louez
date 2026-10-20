@@ -48,6 +48,7 @@ export interface OnlineStoreIdentityValues {
 
 export interface OnlineStoreHomeValues {
   heroImages: string[];
+  heroVideoUrl: string | null;
   heroLayout: "cover" | "split";
   heroAlign: "start" | "center" | "end";
   heroVerticalAlign: "start" | "center" | "end";
@@ -163,6 +164,7 @@ export const onlineStoreFormSchema = z.object({
   }),
   home: z.object({
     heroImages: z.array(z.string()).max(MAX_HERO_IMAGES),
+    heroVideoUrl: z.string().nullable(),
     heroLayout: z.enum(["cover", "split"]),
     heroAlign: z.enum(["start", "center", "end"]),
     heroVerticalAlign: z.enum(["start", "center", "end"]),
@@ -260,6 +262,7 @@ export const buildOnlineStoreDefaults = (store: OnlineStoreEditorStore): OnlineS
     },
     home: {
       heroImages: theme?.heroImages ?? [],
+      heroVideoUrl: theme?.heroVideoUrl ?? null,
       heroLayout: theme?.heroLayout ?? "cover",
       heroAlign: theme?.heroAlign ?? "center",
       heroVerticalAlign: theme?.heroVerticalAlign ?? "end",
@@ -418,6 +421,9 @@ export const buildOnlineStorePayload = ({
         reviews: home.showReviews,
         reassurance: home.showReassurance,
       },
+      ...(home.heroVideoUrl !== baseline.home.heroVideoUrl
+        ? { heroVideoUrl: home.heroVideoUrl }
+        : {}),
       ...(keepsLegacyHero ? {} : { heroImages: home.heroImages }),
     };
   }
@@ -461,6 +467,7 @@ export const isEmptyPayload = (payload: UpdateOnlineStoreClientInput): boolean =
 export interface ReplacedImages {
   logos: string[];
   heroes: string[];
+  heroVideos: string[];
 }
 
 /** Saved images the new values no longer reference, to delete from storage after a save. */
@@ -473,11 +480,15 @@ export const listReplacedImages = ({ value, baseline }: OnlineStoreDiff): Replac
   }
 
   const heroes = baseline.home.heroImages.filter((image) => !value.home.heroImages.includes(image));
+  const heroVideos =
+    baseline.home.heroVideoUrl && baseline.home.heroVideoUrl !== value.home.heroVideoUrl
+      ? [baseline.home.heroVideoUrl]
+      : [];
   if (baseline.seo.shareImageUrl && baseline.seo.shareImageUrl !== value.seo.shareImageUrl) {
     heroes.push(baseline.seo.shareImageUrl);
   }
 
-  return { logos, heroes };
+  return { logos, heroes, heroVideos };
 };
 
 /** Uploads of the current values that the saved values do not know, to delete on reset. */
@@ -492,6 +503,9 @@ export const listUnsavedImages = ({ value, baseline }: OnlineStoreDiff): string[
   }
   for (const image of value.home.heroImages) {
     if (!baseline.home.heroImages.includes(image)) unsaved.push(image);
+  }
+  if (value.home.heroVideoUrl && value.home.heroVideoUrl !== baseline.home.heroVideoUrl) {
+    unsaved.push(value.home.heroVideoUrl);
   }
   if (value.seo.shareImageUrl && value.seo.shareImageUrl !== baseline.seo.shareImageUrl) {
     unsaved.push(value.seo.shareImageUrl);

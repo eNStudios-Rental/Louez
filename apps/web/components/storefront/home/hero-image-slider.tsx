@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Image from "next/image";
 
@@ -16,6 +16,7 @@ const AUTOPLAY_INTERVAL_MS = 6_000;
 
 interface HeroImageSliderProps {
   images: string[];
+  videoUrl?: string | null;
   className?: string;
 }
 
@@ -32,28 +33,38 @@ const arrowClassName = cn(controlBaseClassName, "w-7 pointer-coarse:w-9 hover:bg
 const dotClassName = cn(controlBaseClassName, "w-4 pointer-coarse:w-5");
 
 /**
- * Background photos of the home hero. The first slide loads with priority
- * (it is the largest contentful paint), the others fade in. Autoplay pauses
- * on hover and never runs for a visitor who asked for reduced motion. The
- * controls are a small pill raised above whatever the parent paints over
- * the photos.
+ * Background photos and the optional video of the home hero. The first photo
+ * loads with priority; the video joins the same carousel and loops in place
+ * until a visitor advances. Autoplay pauses on hover and never runs for a
+ * visitor who asked for reduced motion.
  */
-export const HeroImageSlider = ({ images, className }: HeroImageSliderProps) => {
+export const HeroImageSlider = ({ images, videoUrl, className }: HeroImageSliderProps) => {
   const t = useTranslations("storefront.hero");
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
-  const count = images.length;
+  const slides = [
+    ...images.map((src) => ({ key: `image:${src}`, kind: "image" as const, src })),
+    ...(videoUrl ? [{ key: `video:${videoUrl}`, kind: "video" as const, src: videoUrl }] : []),
+  ];
+  const count = slides.length;
+  const activeIndex = count > 0 ? index % count : 0;
+  const videoSlideIndex = videoUrl ? images.length : -1;
 
   useEffect(() => {
-    if (count <= 1 || paused || reducedMotion) return;
+    if (count <= 1 || paused || reducedMotion || activeIndex === videoSlideIndex) return;
 
     const interval = setInterval(() => {
       setIndex((current) => (current + 1) % count);
     }, AUTOPLAY_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [count, paused, reducedMotion]);
+  }, [activeIndex, count, paused, reducedMotion, videoSlideIndex]);
+
+  useEffect(() => {
+    if (reducedMotion) videoRef.current?.pause();
+  }, [activeIndex, reducedMotion]);
 
   if (count === 0) return null;
 
@@ -66,23 +77,38 @@ export const HeroImageSlider = ({ images, className }: HeroImageSliderProps) => 
       onMouseLeave={() => setPaused(false)}
       data-slot="hero-image-slider"
     >
-      {images.map((src, slide) => (
+      {slides.map((media, slide) => (
         <div
-          key={src}
-          aria-hidden={slide !== index}
+          key={media.key}
+          aria-hidden={slide !== activeIndex}
           className={cn(
             "absolute inset-0 transition-opacity duration-700 ease-out motion-reduce:transition-none",
-            slide === index ? "opacity-100" : "opacity-0",
+            slide === activeIndex ? "opacity-100" : "opacity-0",
           )}
         >
-          <Image
-            src={src}
-            alt=""
-            fill
-            priority={slide === 0}
-            sizes="100vw"
-            className="object-cover"
-          />
+          {media.kind === "image" ? (
+            <Image
+              src={media.src}
+              alt=""
+              fill
+              priority={slide === 0}
+              sizes="100vw"
+              className="object-cover"
+            />
+          ) : slide === activeIndex ? (
+            <video
+              ref={videoRef}
+              src={media.src}
+              poster={images[0]}
+              autoPlay={!reducedMotion}
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : null}
         </div>
       ))}
 
@@ -94,33 +120,33 @@ export const HeroImageSlider = ({ images, className }: HeroImageSliderProps) => 
         >
           <button
             type="button"
-            onClick={() => goTo(index - 1)}
+            onClick={() => goTo(activeIndex - 1)}
             className={arrowClassName}
             aria-label={t("previousImage")}
           >
             <ChevronLeftIcon aria-hidden className="size-3.5" />
           </button>
-          {images.map((src, slide) => (
+          {slides.map((media, slide) => (
             <button
-              key={src}
+              key={media.key}
               type="button"
               onClick={() => goTo(slide)}
               className={dotClassName}
               aria-label={t("goToImage", { index: slide + 1, count })}
-              aria-current={slide === index ? "true" : undefined}
+              aria-current={slide === activeIndex ? "true" : undefined}
             >
               <span
                 aria-hidden
                 className={cn(
                   "h-1.5 rounded-full transition-[width,background-color] duration-200",
-                  slide === index ? "w-4 bg-white" : "w-1.5 bg-white/60",
+                  slide === activeIndex ? "w-4 bg-white" : "w-1.5 bg-white/60",
                 )}
               />
             </button>
           ))}
           <button
             type="button"
-            onClick={() => goTo(index + 1)}
+            onClick={() => goTo(activeIndex + 1)}
             className={arrowClassName}
             aria-label={t("nextImage")}
           >

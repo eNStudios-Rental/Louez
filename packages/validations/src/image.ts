@@ -90,7 +90,7 @@ export function isValidImageUrl(url: string): boolean {
   return false;
 }
 
-function getStorageRelativePath(url: string): string | null {
+export function getStorageRelativePath(url: string): string | null {
   const publicBase = env.S3_PUBLIC_URL ?? "";
 
   // Path-based public base ("/files"): stored URLs are same-origin paths.

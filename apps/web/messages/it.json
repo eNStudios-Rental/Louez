@@ -789,6 +789,13 @@
       "home": {
         "header": "Intestazione",
         "photos": "Foto",
+        "video": "Video di sfondo",
+        "videoDescription": "Un MP4 si aggiunge allo slider delle foto. Consigliato: H.264, senza audio, 1080p e 10–20 secondi (max 30 MB).",
+        "addVideo": "Aggiungi video",
+        "replaceVideo": "Sostituisci video",
+        "removeVideo": "Rimuovi video",
+        "videoTooLarge": "Il video è troppo grande (max 30 MB)",
+        "videoNotMp4": "Scegli un file video MP4",
         "announcement": {
           "title": "Barra annunci",
           "description": "Una riga sopra l'header, su tutte le pagine.",
@@ -6365,10 +6372,10 @@
       "securePaymentDesc": "Transazioni 100% sicure",
       "localPickupDesc": "Ritira facilmente la tua attrezzatura",
       "reviewsBadge": "recensioni",
-      "slides": "Foto del negozio",
-      "previousImage": "Foto precedente",
-      "nextImage": "Foto successiva",
-      "goToImage": "Foto {index} di {count}",
+      "slides": "Slide hero del negozio",
+      "previousImage": "Slide precedente",
+      "nextImage": "Slide successiva",
+      "goToImage": "Slide {index} di {count}",
       "seeReviews": "Vedi le recensioni Google · {rating} su 5"
     },
     "home": {

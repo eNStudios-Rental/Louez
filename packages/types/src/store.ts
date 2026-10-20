@@ -376,11 +376,12 @@ export interface StoreTheme {
   mode: "light" | "dark";
   primaryColor: string;
   heroImages?: string[];
-  /** Home hero layout. 'cover' (default) = the text over full-width photos; 'split' = the text beside a framed photo. Without photos both render the same centred band. */
+  heroVideoUrl?: string;
+  /** Home hero layout. 'cover' (default) = the text over full-width media; 'split' = the text beside framed media. Without media both render the same centred band. */
   heroLayout?: "cover" | "split";
-  /** Where the hero text sits. 'center' by default; ignored without photos (always centred). */
+  /** Where the hero text sits. 'center' by default; ignored without media (always centred). */
   heroAlign?: "start" | "center" | "end";
-  /** Vertical position of the hero text: top, middle or bottom. 'end' (bottom) by default; ignored without photos. */
+  /** Vertical position of the hero text: top, middle or bottom. 'end' (bottom) by default; ignored without media. */
   heroVerticalAlign?: "start" | "center" | "end";
   /** How the storefront catalog is browsed. 'products' (default) = flat product grid. 'categories' = category cards first, then products. */
   catalogBrowseMode?: "products" | "categories";

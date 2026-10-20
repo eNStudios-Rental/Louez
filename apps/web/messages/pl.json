@@ -789,6 +789,13 @@
       "home": {
         "header": "Nagłówek",
         "photos": "Zdjęcia",
+        "video": "Wideo w tle",
+        "videoDescription": "Jedno MP4 dołącza do slidera zdjęć. Zalecane: H.264, bez dźwięku, 1080p i 10–20 sekund (maks. 30 MB).",
+        "addVideo": "Dodaj wideo",
+        "replaceVideo": "Zastąp wideo",
+        "removeVideo": "Usuń wideo",
+        "videoTooLarge": "Wideo jest za duże (maks. 30 MB)",
+        "videoNotMp4": "Wybierz plik wideo MP4",
         "announcement": {
           "title": "Pasek ogłoszeń",
           "description": "Jedna linia nad nagłówkiem, na wszystkich stronach.",
@@ -6378,10 +6385,10 @@
       "securePaymentDesc": "100% bezpieczne transakcje",
       "localPickupDesc": "Łatwy odbiór sprzętu",
       "reviewsBadge": "opinie",
-      "slides": "Zdjęcia sklepu",
-      "previousImage": "Poprzednie zdjęcie",
-      "nextImage": "Następne zdjęcie",
-      "goToImage": "Zdjęcie {index} z {count}",
+      "slides": "Slajdy nagłówka sklepu",
+      "previousImage": "Poprzedni slajd",
+      "nextImage": "Następny slajd",
+      "goToImage": "Slajd {index} z {count}",
       "seeReviews": "Zobacz opinie Google · {rating} na 5"
     },
     "home": {

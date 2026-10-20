@@ -56,6 +56,7 @@ const store: OnlineStoreEditorStore = {
     mode: "dark",
     primaryColor: "#0d9488",
     heroImages: ["https://s3/s1/logo/hero-1.jpg"],
+    heroVideoUrl: "https://s3/s1/hero-video/hero.mp4",
     heroLayout: "split",
     heroAlign: "end",
     heroVerticalAlign: "center",
@@ -78,6 +79,7 @@ test("defaults read every section from the row", () => {
   assert.equal(baseline.identity.themeMode, "dark");
   assert.equal(baseline.identity.locale, "fr");
   assert.equal(baseline.home.heroLayout, "split");
+  assert.equal(baseline.home.heroVideoUrl, "https://s3/s1/hero-video/hero.mp4");
   assert.equal(baseline.home.maxDiscountEnabled, true);
   assert.equal(baseline.home.announcementEnabled, true);
   assert.equal(baseline.home.showMap, false);
@@ -103,6 +105,7 @@ test("a store without theme or settings gets the storefront defaults", () => {
   assert.equal(defaults.identity.primaryColor, "#2563eb");
   assert.equal(defaults.identity.locale, "");
   assert.deepEqual(defaults.home.heroImages, []);
+  assert.equal(defaults.home.heroVideoUrl, null);
   assert.equal(defaults.home.heroAlign, "center");
   assert.equal(defaults.home.maxDiscountEnabled, false);
   assert.equal(defaults.home.showMap, true);
@@ -176,6 +179,25 @@ test("home folds the discount switch and the announcement into the theme shape",
   });
   assert.deepEqual(payload.home.homeSections, { map: false, reviews: true, reassurance: true });
   assert.deepEqual(payload.home.heroImages, ["https://s3/s1/logo/hero-1.jpg"]);
+  assert.equal("heroVideoUrl" in payload.home, false);
+});
+
+test("home saves, replaces, and clears the additional video slide", () => {
+  const value = clone(baseline);
+  value.home.heroVideoUrl = "https://s3/s1/hero-video/new.mp4";
+
+  const payload = buildOnlineStorePayload({ value, baseline });
+  assert.equal(payload?.home?.heroVideoUrl, value.home.heroVideoUrl);
+  assert.deepEqual(listReplacedImages({ value, baseline }).heroVideos, [
+    "https://s3/s1/hero-video/hero.mp4",
+  ]);
+  assert.deepEqual(listUnsavedImages({ value, baseline }), [value.home.heroVideoUrl]);
+
+  value.home.heroVideoUrl = null;
+  assert.equal(buildOnlineStorePayload({ value, baseline })?.home?.heroVideoUrl, null);
+  assert.deepEqual(listReplacedImages({ value, baseline }).heroVideos, [
+    "https://s3/s1/hero-video/hero.mp4",
+  ]);
 });
 
 test("an untouched legacy base64 logo is left out, an edited one blocks the save", () => {
@@ -225,6 +247,7 @@ test("replaced and unsaved images cover logos, favicon, hero photos and the shar
   assert.deepEqual(listReplacedImages({ value, baseline }), {
     logos: ["https://s3/s1/logo/logo.png"],
     heroes: ["https://s3/s1/logo/hero-1.jpg", "https://s3/s1/logo/share.jpg"],
+    heroVideos: [],
   });
   assert.deepEqual(listUnsavedImages({ value, baseline }), [
     "https://s3/s1/logo/new-logo.png",

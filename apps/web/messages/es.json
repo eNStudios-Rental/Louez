@@ -789,6 +789,13 @@
       "home": {
         "header": "Cabecera",
         "photos": "Fotos",
+        "video": "Vídeo de fondo",
+        "videoDescription": "Se añade un MP4 al carrusel de fotos. Recomendado: H.264, sin audio, 1080p y 10–20 segundos (máx. 30 MB).",
+        "addVideo": "Añadir vídeo",
+        "replaceVideo": "Reemplazar vídeo",
+        "removeVideo": "Eliminar vídeo",
+        "videoTooLarge": "El vídeo es demasiado grande (máx. 30 MB)",
+        "videoNotMp4": "Elige un archivo de vídeo MP4",
         "announcement": {
           "title": "Barra de anuncios",
           "description": "Una línea sobre el encabezado, en todas las páginas.",
@@ -6365,10 +6372,10 @@
       "securePaymentDesc": "Transacciones 100% seguras",
       "localPickupDesc": "Recoja su equipo facilmente",
       "reviewsBadge": "reseñas",
-      "slides": "Fotos de la tienda",
-      "previousImage": "Foto anterior",
-      "nextImage": "Foto siguiente",
-      "goToImage": "Foto {index} de {count}",
+      "slides": "Diapositivas del encabezado de la tienda",
+      "previousImage": "Diapositiva anterior",
+      "nextImage": "Diapositiva siguiente",
+      "goToImage": "Diapositiva {index} de {count}",
       "seeReviews": "Ver las opiniones de Google · {rating} sobre 5"
     },
     "home": {

@@ -6,6 +6,7 @@ export * from "./business-hours";
 export * from "./catalog";
 export * from "./customer";
 export * from "./image";
+export * from "./video";
 export * from "./inspection";
 export * from "./inventory";
 export * from "./legal-profile";

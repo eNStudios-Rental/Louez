@@ -789,6 +789,13 @@
       "home": {
         "header": "标头",
         "photos": "照片",
+        "video": "背景视频",
+        "videoDescription": "将一个 MP4 添加到照片轮播中。建议使用 H.264、无音频、1080p、10–20 秒的视频（最大 30 MB）。",
+        "addVideo": "添加视频",
+        "replaceVideo": "替换视频",
+        "removeVideo": "移除视频",
+        "videoTooLarge": "视频过大（最大 30 MB）",
+        "videoNotMp4": "请选择 MP4 视频文件",
         "announcement": {
           "title": "公告栏",
           "description": "每页标题上方一行。",
@@ -6365,10 +6372,10 @@
       "securePaymentDesc": "100%安全交易",
       "localPickupDesc": "轻松拿起您的设备",
       "reviewsBadge": "评论",
-      "slides": "店铺照片",
-      "previousImage": "上一张照片",
-      "nextImage": "下一张照片",
-      "goToImage": "{count} 的照片 {index}",
+      "slides": "店铺首页轮播",
+      "previousImage": "上一张幻灯片",
+      "nextImage": "下一张幻灯片",
+      "goToImage": "第 {index} 张，共 {count} 张",
       "seeReviews": "查看 Google 评论 · {rating}（满分 5 分）"
     },
     "home": {

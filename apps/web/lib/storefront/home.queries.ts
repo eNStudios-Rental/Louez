@@ -65,6 +65,7 @@ export interface HomePageData {
   settings: StoreSettings;
   theme: StoreTheme;
   heroImages: string[];
+  heroVideoUrl: string | null;
   /** One-line pitch under the hero title; the description takes its place when null. */
   tagline: string | null;
   /** Editor HTML from the dashboard, rendered as written under the hero title. */
@@ -288,6 +289,7 @@ export const loadHomePage = async (
     settings,
     theme,
     heroImages: theme.heroImages ?? [],
+    heroVideoUrl: theme.heroVideoUrl ?? null,
     tagline: hasRichTextContent(store.tagline) ? store.tagline : null,
     description: store.description,
     status: getStoreStatus(settings.businessHours, settings.timezone),

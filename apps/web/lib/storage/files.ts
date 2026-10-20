@@ -1,16 +1,18 @@
 import "server-only";
 
 import { PutObjectAclCommand, S3Client } from "@aws-sdk/client-s3";
-import { createFiles } from "files-sdk";
+import { createFiles, FilesError, handlers, type FilesPlugin } from "files-sdk";
 import { contentType } from "files-sdk/content-type";
 import { s3 } from "files-sdk/s3";
 import { validation } from "files-sdk/validation";
 
 import { env } from "@/env";
 import { publicImageAssets } from "@/lib/storage/public-image-assets-plugin";
+import { hasMp4ContainerSignature } from "@/lib/uploads/hero-video-upload";
 import { IMAGE_UPLOAD_MIME_TYPES } from "@/lib/uploads/image-upload";
 
 let imageFiles: ReturnType<typeof createImageFiles> | undefined;
+let heroVideoFiles: ReturnType<typeof createHeroVideoFiles> | undefined;
 let rawClient: S3Client | undefined;
 
 /**
@@ -22,8 +24,7 @@ let rawClient: S3Client | undefined;
  * bucket (absolute S3_PUBLIC_URL) uses presigned direct uploads, ACLs, and
  * serves reads from the bucket. Works the same in standalone and platform.
  */
-export const isProxiedStorage = (): boolean =>
-  (env.S3_PUBLIC_URL ?? "").startsWith("/");
+export const isProxiedStorage = (): boolean => (env.S3_PUBLIC_URL ?? "").startsWith("/");
 
 const createS3Adapter = () => {
   const adapter = s3({
@@ -73,11 +74,59 @@ const createImageFiles = () => {
           );
         },
       }),
-      contentType({ onMismatch: "reject", onUnknown: "reject" }),
+      contentType({ onMismatch: "reject", onUnknown: "trust" }),
       validation({
         minSize: 1,
         allowedTypes: [...IMAGE_UPLOAD_MIME_TYPES],
         key: /^[a-zA-Z0-9/_-]+\.(?:jpe?g|png|gif|webp)$/,
+      }),
+    ],
+  });
+};
+
+const mp4ContainerSignature = (): FilesPlugin => ({
+  name: "mp4-container-signature",
+  wrap: handlers({
+    upload: async (operation, next) => {
+      if (!(operation.body instanceof Blob)) {
+        throw new FilesError("Provider", "MP4 uploads must provide a Blob body");
+      }
+
+      const signature = new Uint8Array(await operation.body.slice(0, 8).arrayBuffer());
+      if (!hasMp4ContainerSignature(signature)) {
+        throw new FilesError("Provider", "The uploaded file is not an MP4 video");
+      }
+
+      return next(operation);
+    },
+  }),
+});
+
+const createHeroVideoFiles = () => {
+  const adapter = createS3Adapter();
+
+  return createFiles({
+    adapter,
+    plugins: [
+      publicImageAssets({
+        setPublicReadAcl: async (key) => {
+          if (isProxiedStorage()) return;
+
+          await getStorageClient().send(
+            new PutObjectAclCommand({
+              ACL: "public-read",
+              Bucket: env.S3_BUCKET,
+              Key: key,
+            }),
+          );
+        },
+      }),
+      mp4ContainerSignature(),
+      contentType({ onMismatch: "reject", onUnknown: "trust" }),
+      validation({
+        minSize: 1,
+        allowedTypes: ["video/mp4"],
+        key: /^[a-zA-Z0-9/_-]+\.mp4$/,
       }),
     ],
   });
@@ -88,8 +137,13 @@ export const getImageFiles = () => {
   return imageFiles;
 };
 
+export const getHeroVideoFiles = () => {
+  heroVideoFiles ??= createHeroVideoFiles();
+  return heroVideoFiles;
+};
+
 /** Raw S3 client shared with the /files streaming route. */
 export const getStorageClient = (): S3Client => {
-  getImageFiles();
+  if (!rawClient) getImageFiles();
   return rawClient as S3Client;
 };

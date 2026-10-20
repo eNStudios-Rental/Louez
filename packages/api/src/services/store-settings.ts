@@ -7,7 +7,7 @@ import type {
   UpdateStoreLegalInput,
   UpdateStoreSeoInput,
 } from "@louez/validations";
-import { isOwnedImageUrl } from "@louez/validations";
+import { isOwnedImageUrl, isOwnedVideoUrl } from "@louez/validations";
 import { sanitizeRichTextHtml } from "@louez/utils";
 import { ApiServiceError } from "./errors";
 import { eq } from "drizzle-orm";
@@ -73,6 +73,9 @@ export async function updateStoreAppearance(params: UpdateStoreAppearanceParams)
   if (theme?.heroImages?.some((image) => !isOwnedImageUrl(image, imagePrefix))) {
     throw new ApiServiceError("BAD_REQUEST", "errors.invalidData");
   }
+  if (theme?.heroVideoUrl && !isOwnedVideoUrl(theme.heroVideoUrl, `${storeId}/hero-video`)) {
+    throw new ApiServiceError("BAD_REQUEST", "errors.invalidData");
+  }
 
   const updateData: Record<string, unknown> = {
     updatedAt: new Date(),
@@ -100,6 +103,7 @@ export async function updateStoreAppearance(params: UpdateStoreAppearanceParams)
       mode: "light" | "dark";
       primaryColor: string;
       heroImages?: string[];
+      heroVideoUrl?: string;
       heroLayout?: "cover" | "split";
       heroAlign?: "start" | "center" | "end";
       heroVerticalAlign?: "start" | "center" | "end";
@@ -138,6 +142,10 @@ export async function updateStoreAppearance(params: UpdateStoreAppearanceParams)
       mergedTheme.heroImages = existingTheme.heroImages;
     }
 
+    if (existingTheme?.heroVideoUrl !== undefined) {
+      mergedTheme.heroVideoUrl = existingTheme.heroVideoUrl;
+    }
+
     if (existingTheme?.catalogBrowseMode !== undefined) {
       mergedTheme.catalogBrowseMode = existingTheme.catalogBrowseMode;
     }
@@ -148,6 +156,10 @@ export async function updateStoreAppearance(params: UpdateStoreAppearanceParams)
 
     if (theme.heroImages !== undefined) {
       mergedTheme.heroImages = theme.heroImages;
+    }
+
+    if (theme.heroVideoUrl !== undefined) {
+      mergedTheme.heroVideoUrl = theme.heroVideoUrl || undefined;
     }
 
     if (theme.catalogBrowseMode !== undefined) {
@@ -276,6 +288,11 @@ export async function updateOnlineStore(params: UpdateOnlineStoreParams) {
   for (const image of home?.heroImages ?? []) {
     assertOwnedImage(image, imagePrefix);
   }
+  if (home?.heroVideoUrl) {
+    if (!isOwnedVideoUrl(home.heroVideoUrl, `${storeId}/hero-video`)) {
+      throw new ApiServiceError("BAD_REQUEST", "errors.invalidData");
+    }
+  }
 
   const currentStore = await db.query.stores.findFirst({
     where: eq(stores.id, storeId),
@@ -304,6 +321,7 @@ export async function updateOnlineStore(params: UpdateOnlineStoreParams) {
 
   if (home) {
     if (home.heroImages !== undefined) theme.heroImages = home.heroImages;
+    if (home.heroVideoUrl !== undefined) theme.heroVideoUrl = home.heroVideoUrl || undefined;
     theme.heroLayout = home.heroLayout;
     theme.heroAlign = home.heroAlign;
     theme.heroVerticalAlign = home.heroVerticalAlign;
