@@ -8,7 +8,7 @@ import { validation } from "files-sdk/validation";
 
 import { env } from "@/env";
 import { publicImageAssets } from "@/lib/storage/public-image-assets-plugin";
-import { hasMp4ContainerSignature } from "@/lib/uploads/hero-video-upload";
+import { inspectMp4Container } from "@/lib/uploads/hero-video-upload";
 import { IMAGE_UPLOAD_MIME_TYPES } from "@/lib/uploads/image-upload";
 
 let imageFiles: ReturnType<typeof createImageFiles> | undefined;
@@ -88,16 +88,12 @@ const mp4ContainerSignature = (): FilesPlugin => ({
   name: "mp4-container-signature",
   wrap: handlers({
     upload: async (operation, next) => {
-      if (!(operation.body instanceof Blob)) {
-        throw new FilesError("Provider", "MP4 uploads must provide a Blob body");
-      }
-
-      const signature = new Uint8Array(await operation.body.slice(0, 8).arrayBuffer());
-      if (!hasMp4ContainerSignature(signature)) {
+      const body = await inspectMp4Container(operation.body);
+      if (body === null) {
         throw new FilesError("Provider", "The uploaded file is not an MP4 video");
       }
 
-      return next(operation);
+      return next({ ...operation, body });
     },
   }),
 });
