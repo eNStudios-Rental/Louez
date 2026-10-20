@@ -1,18 +1,16 @@
 import "server-only";
 
 import { PutObjectAclCommand, S3Client } from "@aws-sdk/client-s3";
-import { createFiles, FilesError, handlers, type FilesPlugin } from "files-sdk";
+import { createFiles } from "files-sdk";
 import { contentType } from "files-sdk/content-type";
 import { s3 } from "files-sdk/s3";
 import { validation } from "files-sdk/validation";
 
 import { env } from "@/env";
 import { publicImageAssets } from "@/lib/storage/public-image-assets-plugin";
-import { inspectMp4Container } from "@/lib/uploads/hero-video-upload";
 import { IMAGE_UPLOAD_MIME_TYPES } from "@/lib/uploads/image-upload";
 
 let imageFiles: ReturnType<typeof createImageFiles> | undefined;
-let heroVideoFiles: ReturnType<typeof createHeroVideoFiles> | undefined;
 let rawClient: S3Client | undefined;
 
 /**
@@ -84,58 +82,9 @@ const createImageFiles = () => {
   });
 };
 
-const mp4ContainerSignature = (): FilesPlugin => ({
-  name: "mp4-container-signature",
-  wrap: handlers({
-    upload: async (operation, next) => {
-      const body = await inspectMp4Container(operation.body);
-      if (body === null) {
-        throw new FilesError("Provider", "The uploaded file is not an MP4 video");
-      }
-
-      return next({ ...operation, body });
-    },
-  }),
-});
-
-const createHeroVideoFiles = () => {
-  const adapter = createS3Adapter();
-
-  return createFiles({
-    adapter,
-    plugins: [
-      publicImageAssets({
-        setPublicReadAcl: async (key) => {
-          if (isProxiedStorage()) return;
-
-          await getStorageClient().send(
-            new PutObjectAclCommand({
-              ACL: "public-read",
-              Bucket: env.S3_BUCKET,
-              Key: key,
-            }),
-          );
-        },
-      }),
-      mp4ContainerSignature(),
-      contentType({ onMismatch: "reject", onUnknown: "trust" }),
-      validation({
-        minSize: 1,
-        allowedTypes: ["video/mp4"],
-        key: /^[a-zA-Z0-9/_-]+\.mp4$/,
-      }),
-    ],
-  });
-};
-
 export const getImageFiles = () => {
   imageFiles ??= createImageFiles();
   return imageFiles;
-};
-
-export const getHeroVideoFiles = () => {
-  heroVideoFiles ??= createHeroVideoFiles();
-  return heroVideoFiles;
 };
 
 /** Raw S3 client shared with the /files streaming route. */

@@ -789,8 +789,9 @@
       "home": {
         "header": "Cabecera",
         "photos": "Fotos",
-        "video": "Vídeo de fondo",
-        "videoDescription": "Se añade un MP4 al carrusel de fotos. Recomendado: H.264, sin audio, 1080p y 10–20 segundos (máx. 30 MB).",
+        "video": "Vídeo de YouTube de fondo",
+        "videoDescription": "Pega un enlace de YouTube. Se añadirá después de tus fotos y se reproducirá en bucle sin sonido.",
+        "youtubeLinkPlaceholder": "https://www.youtube.com/watch?v=...",
         "addVideo": "Añadir vídeo",
         "replaceVideo": "Reemplazar vídeo",
         "removeVideo": "Eliminar vídeo",

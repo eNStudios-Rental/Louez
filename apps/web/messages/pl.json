@@ -789,8 +789,9 @@
       "home": {
         "header": "Nagłówek",
         "photos": "Zdjęcia",
-        "video": "Wideo w tle",
-        "videoDescription": "Jedno MP4 dołącza do slidera zdjęć. Zalecane: H.264, bez dźwięku, 1080p i 10–20 sekund (maks. 30 MB).",
+        "video": "Film z YouTube w tle",
+        "videoDescription": "Wklej link z YouTube. Film zostanie dodany po zdjęciach i będzie odtwarzany w pętli bez dźwięku.",
+        "youtubeLinkPlaceholder": "https://www.youtube.com/watch?v=...",
         "addVideo": "Dodaj wideo",
         "replaceVideo": "Zastąp wideo",
         "removeVideo": "Usuń wideo",

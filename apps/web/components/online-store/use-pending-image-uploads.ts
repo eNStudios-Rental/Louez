@@ -3,10 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useImageUpload } from "@/hooks/use-image-upload";
-import { useHeroVideoUpload } from "@/hooks/use-hero-video-upload";
 
 export type OnlineStoreImageKind = "logo" | "hero";
-export type OnlineStoreUploadKind = OnlineStoreImageKind | "hero-video";
 
 /**
  * Uploads of the online store editor that are not saved yet. Every upload is
@@ -16,22 +14,13 @@ export type OnlineStoreUploadKind = OnlineStoreImageKind | "hero-video";
 export const usePendingImageUploads = () => {
   const logoFiles = useImageUpload("logo");
   const heroFiles = useImageUpload("hero");
-  const videoFiles = useHeroVideoUpload();
-  const pendingRef = useRef(new Map<string, OnlineStoreUploadKind>());
+  const pendingRef = useRef(new Map<string, OnlineStoreImageKind>());
   const [inFlight, setInFlight] = useState(0);
-  const deleteRef = useRef({
-    logo: logoFiles.deleteImage,
-    hero: heroFiles.deleteImage,
-    "hero-video": videoFiles.deleteVideo,
-  });
+  const deleteRef = useRef({ logo: logoFiles.deleteImage, hero: heroFiles.deleteImage });
 
   useEffect(() => {
-    deleteRef.current = {
-      logo: logoFiles.deleteImage,
-      hero: heroFiles.deleteImage,
-      "hero-video": videoFiles.deleteVideo,
-    };
-  }, [heroFiles.deleteImage, logoFiles.deleteImage, videoFiles.deleteVideo]);
+    deleteRef.current = { logo: logoFiles.deleteImage, hero: heroFiles.deleteImage };
+  }, [heroFiles.deleteImage, logoFiles.deleteImage]);
 
   useEffect(
     () => () => {
@@ -43,23 +32,20 @@ export const usePendingImageUploads = () => {
   );
 
   const upload = useCallback(
-    async (kind: OnlineStoreUploadKind, file: File): Promise<string> => {
+    async (kind: OnlineStoreImageKind, file: File): Promise<string> => {
       setInFlight((count) => count + 1);
       try {
-        const uploaded =
-          kind === "hero-video"
-            ? await videoFiles.uploadVideo(file)
-            : await (kind === "logo" ? logoFiles : heroFiles).uploadImage(file);
+        const uploaded = await (kind === "logo" ? logoFiles : heroFiles).uploadImage(file);
         pendingRef.current.set(uploaded.url, kind);
         return uploaded.url;
       } finally {
         setInFlight((count) => count - 1);
       }
     },
-    [heroFiles, logoFiles, videoFiles],
+    [heroFiles, logoFiles],
   );
 
-  /** Deletes the file behind `url` if it is a pending upload; saved assets are left alone. */
+  /** Deletes the file behind `url` if it is a pending upload; saved images are left alone. */
   const discard = useCallback((url: string | null | undefined) => {
     if (!url) return;
     const kind = pendingRef.current.get(url);
@@ -69,18 +55,14 @@ export const usePendingImageUploads = () => {
     void deleteRef.current[kind](url).catch(() => undefined);
   }, []);
 
-  /** After a save: pending uploads are now owned by the store; delete the assets it dropped. */
-  const settle = useCallback(
-    (replaced: { logos: string[]; heroes: string[]; heroVideos: string[] }) => {
-      pendingRef.current.clear();
-      void Promise.allSettled([
-        ...replaced.logos.map((url) => deleteRef.current.logo(url)),
-        ...replaced.heroes.map((url) => deleteRef.current.hero(url)),
-        ...replaced.heroVideos.map((url) => deleteRef.current["hero-video"](url)),
-      ]);
-    },
-    [],
-  );
+  /** After a save: pending uploads are now owned by the store; delete the images it dropped. */
+  const settle = useCallback((replaced: { logos: string[]; heroes: string[] }) => {
+    pendingRef.current.clear();
+    void Promise.allSettled([
+      ...replaced.logos.map((url) => deleteRef.current.logo(url)),
+      ...replaced.heroes.map((url) => deleteRef.current.hero(url)),
+    ]);
+  }, []);
 
   return { upload, discard, settle, isUploading: inFlight > 0 };
 };

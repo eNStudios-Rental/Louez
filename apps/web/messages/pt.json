@@ -789,8 +789,9 @@
       "home": {
         "header": "Cabeçalho",
         "photos": "Fotos",
-        "video": "Vídeo de fundo",
-        "videoDescription": "Um MP4 é adicionado ao carrossel de fotos. Recomendado: H.264, sem áudio, 1080p e 10–20 segundos (máx. 30 MB).",
+        "video": "Vídeo do YouTube de fundo",
+        "videoDescription": "Cole um link do YouTube. O vídeo será adicionado depois das fotos e reproduzido em loop sem som.",
+        "youtubeLinkPlaceholder": "https://www.youtube.com/watch?v=...",
         "addVideo": "Adicionar vídeo",
         "replaceVideo": "Substituir vídeo",
         "removeVideo": "Remover vídeo",

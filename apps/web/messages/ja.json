@@ -789,8 +789,9 @@
       "home": {
         "header": "ヘッダー",
         "photos": "写真",
-        "video": "背景動画",
-        "videoDescription": "MP4を写真スライダーに追加します。H.264、音声なし、1080p、10～20秒を推奨します（最大30 MB）。",
+        "video": "背景のYouTube動画",
+        "videoDescription": "YouTubeリンクを貼り付けてください。写真の後に追加され、音声なしでループ再生されます。",
+        "youtubeLinkPlaceholder": "https://www.youtube.com/watch?v=...",
         "addVideo": "動画を追加",
         "replaceVideo": "動画を置き換え",
         "removeVideo": "動画を削除",

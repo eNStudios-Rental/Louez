@@ -2,7 +2,7 @@ import { productPromotionSchema } from "./product-promotion";
 import { z } from "zod";
 
 import { isValidImageUrl } from "./image";
-import { isValidVideoUrl } from "./video";
+import { isValidYouTubeVideoUrl } from "./video";
 import { reservationStatusSchema } from "./reservation";
 
 const dateTimeOrDateSchema = z
@@ -719,13 +719,11 @@ const s3UrlSchema = z
   )
   .refine((url) => isValidImageUrl(url), "Invalid image URL. Must be a valid S3 URL.");
 
-const s3VideoUrlSchema = z
+const youtubeVideoUrlSchema = z
   .string()
-  .refine(
-    (url) => !url.startsWith("data:"),
-    "Base64 videos are not allowed. Please upload videos to S3.",
-  )
-  .refine((url) => isValidVideoUrl(url), "Invalid video URL. Must be an MP4 file in storage.");
+  .trim()
+  .max(500, "errors.invalidData")
+  .refine(isValidYouTubeVideoUrl, "validation.invalidYoutubeUrl");
 
 export const updateStoreAppearanceInputSchema = z.object({
   logoUrl: z.union([s3UrlSchema, z.literal(""), z.null()]).optional(),
@@ -735,7 +733,7 @@ export const updateStoreAppearanceInputSchema = z.object({
       mode: z.enum(["light", "dark"]),
       primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid hex color"),
       heroImages: z.array(s3UrlSchema).max(5).optional(),
-      heroVideoUrl: z.union([s3VideoUrlSchema, z.literal(""), z.null()]).optional(),
+      heroYoutubeUrl: z.union([youtubeVideoUrlSchema, z.literal(""), z.null()]).optional(),
       heroLayout: z.enum(["cover", "split"]).optional(),
       heroAlign: z.enum(["start", "center", "end"]).optional(),
       heroVerticalAlign: z.enum(["start", "center", "end"]).optional(),
@@ -769,7 +767,9 @@ const optionalHttpUrlSchema = z
   .pipe(z.url({ protocol: /^https?$/, error: "errors.invalidData" }).nullable());
 
 const optionalOwnedImageSchema = z.union([s3UrlSchema, z.literal(""), z.null()]).optional();
-const optionalOwnedVideoSchema = z.union([s3VideoUrlSchema, z.literal(""), z.null()]).optional();
+const optionalYoutubeVideoSchema = z
+  .union([youtubeVideoUrlSchema, z.literal(""), z.null()])
+  .optional();
 
 const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid hex color");
 
@@ -799,7 +799,7 @@ const onlineStoreIdentityInputSchema = z.object({
 
 const onlineStoreHomeInputSchema = z.object({
   heroImages: z.array(s3UrlSchema).max(5).optional(),
-  heroVideoUrl: optionalOwnedVideoSchema,
+  heroYoutubeUrl: optionalYoutubeVideoSchema,
   heroLayout: z.enum(["cover", "split"]),
   heroAlign: z.enum(["start", "center", "end"]),
   heroVerticalAlign: z.enum(["start", "center", "end"]),

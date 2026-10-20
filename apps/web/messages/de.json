@@ -789,8 +789,9 @@
       "home": {
         "header": "Kopfbereich",
         "photos": "Fotos",
-        "video": "Hintergrundvideo",
-        "videoDescription": "Ein MP4 wird dem Fotokarussell hinzugefügt. Empfohlen: H.264, ohne Ton, 1080p und 10–20 Sekunden (max. 30 MB).",
+        "video": "YouTube-Video im Hintergrund",
+        "videoDescription": "Füge einen YouTube-Link ein. Das Video wird nach den Fotos eingefügt und stumm in einer Schleife abgespielt.",
+        "youtubeLinkPlaceholder": "https://www.youtube.com/watch?v=...",
         "addVideo": "Video hinzufügen",
         "replaceVideo": "Video ersetzen",
         "removeVideo": "Video entfernen",

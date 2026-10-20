@@ -1,20 +1,55 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { isOwnedVideoUrl, isValidVideoUrl, MAX_HERO_VIDEO_SIZE } from "./video";
-import { env } from "./env";
+import { getYouTubeEmbedUrl, getYouTubeVideoId, isValidYouTubeVideoUrl } from "./video";
 
-test("limits hero video uploads to 30 MB", () => {
-  assert.equal(MAX_HERO_VIDEO_SIZE, 30 * 1024 * 1024);
+const videoId = "AbCdEfGhI_1";
+
+test("extracts ids from supported YouTube link formats", () => {
+  for (const url of [
+    `https://www.youtube.com/watch?v=${videoId}`,
+    `https://youtube.com/watch?feature=share&v=${videoId}`,
+    `https://youtu.be/${videoId}?t=10`,
+    `https://www.youtube.com/shorts/${videoId}`,
+    `https://youtube.com/embed/${videoId}`,
+    `https://m.youtube.com/live/${videoId}`,
+  ]) {
+    assert.equal(getYouTubeVideoId(url), videoId);
+    assert.equal(isValidYouTubeVideoUrl(url), true);
+  }
 });
 
-test("accepts only stored MP4 files owned by the store", () => {
-  const base = env.S3_PUBLIC_URL.replace(/\/+$/, "");
-  const videoUrl = `${base}/store-id/hero-video/clip.mp4`;
+test("rejects non-YouTube URLs and malformed video ids", () => {
+  for (const url of [
+    "https://youtube.com.evil.example/watch?v=AbCdEfGhI_1",
+    `https://example.com/${videoId}`,
+    `https://youtube.com/watch?v=${videoId.slice(1)}`,
+    `https://youtube.com:8443/watch?v=${videoId}`,
+    `javascript://youtube.com/watch?v=${videoId}`,
+    `https://user@youtube.com/watch?v=${videoId}`,
+    "not a URL",
+  ]) {
+    assert.equal(getYouTubeVideoId(url), null);
+    assert.equal(isValidYouTubeVideoUrl(url), false);
+  }
+});
 
-  assert.equal(isValidVideoUrl(videoUrl), true);
-  assert.equal(isOwnedVideoUrl(videoUrl, "store-id/hero-video"), true);
-  assert.equal(isOwnedVideoUrl(videoUrl, "another-store/hero-video"), false);
-  assert.equal(isValidVideoUrl(`${base}/store-id/hero-video/clip.mov`), false);
-  assert.equal(isValidVideoUrl("data:video/mp4;base64,AAAA"), false);
+test("builds privacy-enhanced muted looping embed URLs", () => {
+  const autoplay = new URL(getYouTubeEmbedUrl(`https://youtu.be/${videoId}`, true) ?? "");
+  assert.equal(autoplay.origin, "https://www.youtube-nocookie.com");
+  assert.equal(autoplay.pathname, `/embed/${videoId}`);
+  assert.equal(autoplay.searchParams.get("autoplay"), "1");
+  assert.equal(autoplay.searchParams.get("mute"), "1");
+  assert.equal(autoplay.searchParams.get("loop"), "1");
+  assert.equal(autoplay.searchParams.get("playlist"), videoId);
+
+  const reducedMotion = new URL(
+    getYouTubeEmbedUrl(`https://youtube.com/watch?v=${videoId}`, false) ?? "",
+  );
+  assert.equal(reducedMotion.searchParams.get("autoplay"), "0");
+  assert.equal(reducedMotion.searchParams.get("controls"), "0");
+});
+
+test("does not create an embed URL from an invalid link", () => {
+  assert.equal(getYouTubeEmbedUrl("https://example.com/video", true), null);
 });

@@ -376,6 +376,8 @@ export interface StoreTheme {
   mode: "light" | "dark";
   primaryColor: string;
   heroImages?: string[];
+  heroYoutubeUrl?: string;
+  /** @deprecated Legacy uploaded MP4 setting. It is not rendered and is dropped on theme updates. */
   heroVideoUrl?: string;
   /** Home hero layout. 'cover' (default) = the text over full-width media; 'split' = the text beside framed media. Without media both render the same centred band. */
   heroLayout?: "cover" | "split";

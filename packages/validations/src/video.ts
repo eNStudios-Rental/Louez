@@ -1,16 +1,57 @@
-import { getStorageRelativePath } from "./image";
+const YOUTUBE_HOSTS = new Set([
+  "youtube.com",
+  "www.youtube.com",
+  "m.youtube.com",
+  "youtu.be",
+  "www.youtu.be",
+]);
 
-export const MAX_HERO_VIDEO_SIZE = 30 * 1024 * 1024;
+const YOUTUBE_VIDEO_ID_PATTERN = /^[A-Za-z0-9_-]{11}$/;
 
-export function isValidVideoUrl(url: string): boolean {
-  const storagePath = getStorageRelativePath(url);
-  return storagePath !== null && /\.mp4$/i.test(storagePath);
-}
+export const getYouTubeVideoId = (value: string): string | null => {
+  try {
+    const url = new URL(value.trim());
+    if (
+      !["http:", "https:"].includes(url.protocol) ||
+      !YOUTUBE_HOSTS.has(url.hostname.toLowerCase()) ||
+      url.username ||
+      url.password ||
+      url.port
+    ) {
+      return null;
+    }
 
-export function isOwnedVideoUrl(url: string, ownerPrefix: string): boolean {
-  const storagePath = getStorageRelativePath(url);
-  if (storagePath === null) return false;
+    const path = url.pathname.split("/").filter(Boolean);
+    let videoId: string | null = null;
 
-  const normalizedPrefix = ownerPrefix.replace(/^\/+|\/+$/g, "");
-  return storagePath.startsWith(`${normalizedPrefix}/`) && isValidVideoUrl(url);
-}
+    if (url.hostname === "youtu.be" || url.hostname === "www.youtu.be") {
+      videoId = path[0] ?? null;
+    } else if (path[0] === "watch") {
+      videoId = url.searchParams.get("v");
+    } else if (["embed", "shorts", "live"].includes(path[0] ?? "")) {
+      videoId = path[1] ?? null;
+    }
+
+    return videoId && YOUTUBE_VIDEO_ID_PATTERN.test(videoId) ? videoId : null;
+  } catch {
+    return null;
+  }
+};
+
+export const isValidYouTubeVideoUrl = (value: string): boolean => getYouTubeVideoId(value) !== null;
+
+export const getYouTubeEmbedUrl = (value: string, autoplay: boolean): string | null => {
+  const videoId = getYouTubeVideoId(value);
+  if (!videoId) return null;
+
+  const embedUrl = new URL(`https://www.youtube-nocookie.com/embed/${videoId}`);
+  embedUrl.searchParams.set("autoplay", autoplay ? "1" : "0");
+  embedUrl.searchParams.set("controls", "0");
+  embedUrl.searchParams.set("loop", "1");
+  embedUrl.searchParams.set("mute", "1");
+  embedUrl.searchParams.set("playsinline", "1");
+  embedUrl.searchParams.set("playlist", videoId);
+  embedUrl.searchParams.set("rel", "0");
+
+  return embedUrl.toString();
+};

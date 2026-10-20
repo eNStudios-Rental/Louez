@@ -11,7 +11,7 @@ import {
   type StoreSocialNetwork,
   type StoreTheme,
 } from "@louez/types";
-import type { UpdateOnlineStoreClientInput } from "@louez/validations";
+import { isValidYouTubeVideoUrl, type UpdateOnlineStoreClientInput } from "@louez/validations";
 
 import { resolveStoreContactSettings } from "@/lib/storefront/util.store-contact";
 import { stripHtml } from "@/lib/util.seo-text";
@@ -48,7 +48,7 @@ export interface OnlineStoreIdentityValues {
 
 export interface OnlineStoreHomeValues {
   heroImages: string[];
-  heroVideoUrl: string | null;
+  heroYoutubeUrl: string;
   heroLayout: "cover" | "split";
   heroAlign: "start" | "center" | "end";
   heroVerticalAlign: "start" | "center" | "end";
@@ -144,6 +144,12 @@ const optionalUrl = z
   .max(500)
   .refine((value) => value === "" || /^https?:\/\/\S+$/i.test(value), "validation.url");
 
+const optionalYouTubeUrl = z
+  .string()
+  .trim()
+  .max(500)
+  .refine((value) => value === "" || isValidYouTubeVideoUrl(value), "validation.invalidYoutubeUrl");
+
 export const onlineStoreFormSchema = z.object({
   identity: z.object({
     name: z.string().trim().min(2, "validation.minLength2").max(255),
@@ -164,7 +170,7 @@ export const onlineStoreFormSchema = z.object({
   }),
   home: z.object({
     heroImages: z.array(z.string()).max(MAX_HERO_IMAGES),
-    heroVideoUrl: z.string().nullable(),
+    heroYoutubeUrl: optionalYouTubeUrl,
     heroLayout: z.enum(["cover", "split"]),
     heroAlign: z.enum(["start", "center", "end"]),
     heroVerticalAlign: z.enum(["start", "center", "end"]),
@@ -238,6 +244,14 @@ const emptySocial = (): OnlineStoreSocialValues => ({
   website: "",
 });
 
+const getHeroYoutubeUrl = (theme: StoreTheme | null): string => {
+  const savedUrl =
+    theme?.heroYoutubeUrl ??
+    (theme?.heroVideoUrl && isValidYouTubeVideoUrl(theme.heroVideoUrl) ? theme.heroVideoUrl : "");
+
+  return isValidYouTubeVideoUrl(savedUrl) ? savedUrl : "";
+};
+
 export const buildOnlineStoreDefaults = (store: OnlineStoreEditorStore): OnlineStoreFormValues => {
   const theme = store.theme;
   const settings = store.settings;
@@ -262,7 +276,7 @@ export const buildOnlineStoreDefaults = (store: OnlineStoreEditorStore): OnlineS
     },
     home: {
       heroImages: theme?.heroImages ?? [],
-      heroVideoUrl: theme?.heroVideoUrl ?? null,
+      heroYoutubeUrl: getHeroYoutubeUrl(theme),
       heroLayout: theme?.heroLayout ?? "cover",
       heroAlign: theme?.heroAlign ?? "center",
       heroVerticalAlign: theme?.heroVerticalAlign ?? "end",
@@ -421,8 +435,8 @@ export const buildOnlineStorePayload = ({
         reviews: home.showReviews,
         reassurance: home.showReassurance,
       },
-      ...(home.heroVideoUrl !== baseline.home.heroVideoUrl
-        ? { heroVideoUrl: home.heroVideoUrl }
+      ...(home.heroYoutubeUrl !== baseline.home.heroYoutubeUrl
+        ? { heroYoutubeUrl: home.heroYoutubeUrl.trim() }
         : {}),
       ...(keepsLegacyHero ? {} : { heroImages: home.heroImages }),
     };
@@ -467,7 +481,6 @@ export const isEmptyPayload = (payload: UpdateOnlineStoreClientInput): boolean =
 export interface ReplacedImages {
   logos: string[];
   heroes: string[];
-  heroVideos: string[];
 }
 
 /** Saved images the new values no longer reference, to delete from storage after a save. */
@@ -480,15 +493,11 @@ export const listReplacedImages = ({ value, baseline }: OnlineStoreDiff): Replac
   }
 
   const heroes = baseline.home.heroImages.filter((image) => !value.home.heroImages.includes(image));
-  const heroVideos =
-    baseline.home.heroVideoUrl && baseline.home.heroVideoUrl !== value.home.heroVideoUrl
-      ? [baseline.home.heroVideoUrl]
-      : [];
   if (baseline.seo.shareImageUrl && baseline.seo.shareImageUrl !== value.seo.shareImageUrl) {
     heroes.push(baseline.seo.shareImageUrl);
   }
 
-  return { logos, heroes, heroVideos };
+  return { logos, heroes };
 };
 
 /** Uploads of the current values that the saved values do not know, to delete on reset. */
@@ -503,9 +512,6 @@ export const listUnsavedImages = ({ value, baseline }: OnlineStoreDiff): string[
   }
   for (const image of value.home.heroImages) {
     if (!baseline.home.heroImages.includes(image)) unsaved.push(image);
-  }
-  if (value.home.heroVideoUrl && value.home.heroVideoUrl !== baseline.home.heroVideoUrl) {
-    unsaved.push(value.home.heroVideoUrl);
   }
   if (value.seo.shareImageUrl && value.seo.shareImageUrl !== baseline.seo.shareImageUrl) {
     unsaved.push(value.seo.shareImageUrl);

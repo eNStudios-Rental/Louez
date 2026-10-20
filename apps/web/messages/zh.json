@@ -789,8 +789,9 @@
       "home": {
         "header": "标头",
         "photos": "照片",
-        "video": "背景视频",
-        "videoDescription": "将一个 MP4 添加到照片轮播中。建议使用 H.264、无音频、1080p、10–20 秒的视频（最大 30 MB）。",
+        "video": "背景 YouTube 视频",
+        "videoDescription": "粘贴 YouTube 链接。视频会添加在照片之后，并以静音循环播放。",
+        "youtubeLinkPlaceholder": "https://www.youtube.com/watch?v=...",
         "addVideo": "添加视频",
         "replaceVideo": "替换视频",
         "removeVideo": "移除视频",

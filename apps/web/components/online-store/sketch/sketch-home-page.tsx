@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@louez/utils";
+import { getYouTubeEmbedUrl } from "@louez/validations";
 
 import { stripHtml } from "@/lib/util.seo-text";
 import { resolveStoreHeroPresentation } from "@/lib/utils/util.store-hero";
@@ -84,13 +85,14 @@ export const SketchHomePage = ({
 }: SketchHomePageProps) => {
   const { identity, home, contact } = values;
   const phone = device === "phone";
+  const youtubeEmbedUrl = getYouTubeEmbedUrl(home.heroYoutubeUrl, !reduceMotion);
   const hero = resolveStoreHeroPresentation({
     theme: {
       heroLayout: home.heroLayout,
       heroAlign: home.heroAlign,
       heroVerticalAlign: home.heroVerticalAlign,
     },
-    mediaCount: home.heroImages.length + Number(Boolean(home.heroVideoUrl)),
+    mediaCount: home.heroImages.length + Number(Boolean(youtubeEmbedUrl)),
   });
   const photo = home.heroImages[0];
   const primary = identity.primaryColor;
@@ -275,7 +277,7 @@ export const SketchHomePage = ({
 
   const heroMediaKeys = [
     ...home.heroImages.map((image) => `image:${image}`),
-    ...(home.heroVideoUrl ? ["video"] : []),
+    ...(youtubeEmbedUrl ? [`youtube:${home.heroYoutubeUrl}`] : []),
   ];
   const dots =
     heroMediaKeys.length > 1 ? (
@@ -349,15 +351,13 @@ export const SketchHomePage = ({
                 VERTICAL_ITEMS[hero.verticalAlign],
               )}
             >
-              {home.heroVideoUrl ? (
-                <video
-                  src={home.heroVideoUrl}
-                  poster={photo}
-                  autoPlay={!reduceMotion}
-                  muted
-                  loop
-                  playsInline
-                  className="absolute inset-0 h-full w-full object-cover"
+              {youtubeEmbedUrl ? (
+                <iframe
+                  src={youtubeEmbedUrl}
+                  title={name}
+                  aria-hidden="true"
+                  tabIndex={-1}
+                  className="pointer-events-none absolute inset-0 h-full w-full border-0"
                 />
               ) : photo ? (
                 <img src={photo} alt="" className="absolute inset-0 h-full w-full object-cover" />
@@ -393,15 +393,13 @@ export const SketchHomePage = ({
                   !phone && hero.align === "end" ? "order-first" : "order-last",
                 )}
               >
-                {home.heroVideoUrl ? (
-                  <video
-                    src={home.heroVideoUrl}
-                    poster={photo}
-                    autoPlay={!reduceMotion}
-                    muted
-                    loop
-                    playsInline
-                    className="absolute inset-0 h-full w-full object-cover"
+                {youtubeEmbedUrl ? (
+                  <iframe
+                    src={youtubeEmbedUrl}
+                    title={name}
+                    aria-hidden="true"
+                    tabIndex={-1}
+                    className="pointer-events-none absolute inset-0 h-full w-full border-0"
                   />
                 ) : photo ? (
                   <img src={photo} alt="" className="absolute inset-0 h-full w-full object-cover" />

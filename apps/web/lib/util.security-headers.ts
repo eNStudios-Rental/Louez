@@ -104,6 +104,7 @@ const buildContentSecurityPolicy = ({
       "https://hooks.stripe.com",
       "https://gleapjs.com",
       "https://messenger-app.gleap.io",
+      "https://www.youtube-nocookie.com",
       ...(storefrontWildcard ? [storefrontWildcard] : []),
     ],
     "worker-src": ["'self'", "blob:"],

@@ -7,7 +7,7 @@ import type {
   UpdateStoreLegalInput,
   UpdateStoreSeoInput,
 } from "@louez/validations";
-import { isOwnedImageUrl, isOwnedVideoUrl } from "@louez/validations";
+import { isOwnedImageUrl, isValidYouTubeVideoUrl } from "@louez/validations";
 import { sanitizeRichTextHtml } from "@louez/utils";
 import { ApiServiceError } from "./errors";
 import { eq } from "drizzle-orm";
@@ -73,7 +73,7 @@ export async function updateStoreAppearance(params: UpdateStoreAppearanceParams)
   if (theme?.heroImages?.some((image) => !isOwnedImageUrl(image, imagePrefix))) {
     throw new ApiServiceError("BAD_REQUEST", "errors.invalidData");
   }
-  if (theme?.heroVideoUrl && !isOwnedVideoUrl(theme.heroVideoUrl, `${storeId}/hero-video`)) {
+  if (theme?.heroYoutubeUrl && !isValidYouTubeVideoUrl(theme.heroYoutubeUrl)) {
     throw new ApiServiceError("BAD_REQUEST", "errors.invalidData");
   }
 
@@ -103,7 +103,7 @@ export async function updateStoreAppearance(params: UpdateStoreAppearanceParams)
       mode: "light" | "dark";
       primaryColor: string;
       heroImages?: string[];
-      heroVideoUrl?: string;
+      heroYoutubeUrl?: string;
       heroLayout?: "cover" | "split";
       heroAlign?: "start" | "center" | "end";
       heroVerticalAlign?: "start" | "center" | "end";
@@ -142,8 +142,8 @@ export async function updateStoreAppearance(params: UpdateStoreAppearanceParams)
       mergedTheme.heroImages = existingTheme.heroImages;
     }
 
-    if (existingTheme?.heroVideoUrl !== undefined) {
-      mergedTheme.heroVideoUrl = existingTheme.heroVideoUrl;
+    if (existingTheme?.heroYoutubeUrl !== undefined) {
+      mergedTheme.heroYoutubeUrl = existingTheme.heroYoutubeUrl;
     }
 
     if (existingTheme?.catalogBrowseMode !== undefined) {
@@ -158,8 +158,8 @@ export async function updateStoreAppearance(params: UpdateStoreAppearanceParams)
       mergedTheme.heroImages = theme.heroImages;
     }
 
-    if (theme.heroVideoUrl !== undefined) {
-      mergedTheme.heroVideoUrl = theme.heroVideoUrl || undefined;
+    if (theme.heroYoutubeUrl !== undefined) {
+      mergedTheme.heroYoutubeUrl = theme.heroYoutubeUrl || undefined;
     }
 
     if (theme.catalogBrowseMode !== undefined) {
@@ -288,10 +288,8 @@ export async function updateOnlineStore(params: UpdateOnlineStoreParams) {
   for (const image of home?.heroImages ?? []) {
     assertOwnedImage(image, imagePrefix);
   }
-  if (home?.heroVideoUrl) {
-    if (!isOwnedVideoUrl(home.heroVideoUrl, `${storeId}/hero-video`)) {
-      throw new ApiServiceError("BAD_REQUEST", "errors.invalidData");
-    }
+  if (home?.heroYoutubeUrl && !isValidYouTubeVideoUrl(home.heroYoutubeUrl)) {
+    throw new ApiServiceError("BAD_REQUEST", "errors.invalidData");
   }
 
   const currentStore = await db.query.stores.findFirst({
@@ -321,7 +319,7 @@ export async function updateOnlineStore(params: UpdateOnlineStoreParams) {
 
   if (home) {
     if (home.heroImages !== undefined) theme.heroImages = home.heroImages;
-    if (home.heroVideoUrl !== undefined) theme.heroVideoUrl = home.heroVideoUrl || undefined;
+    if (home.heroYoutubeUrl !== undefined) theme.heroYoutubeUrl = home.heroYoutubeUrl || undefined;
     theme.heroLayout = home.heroLayout;
     theme.heroAlign = home.heroAlign;
     theme.heroVerticalAlign = home.heroVerticalAlign;
@@ -356,7 +354,10 @@ export async function updateOnlineStore(params: UpdateOnlineStoreParams) {
     if (seo.shareImageUrl !== undefined) theme.shareImageUrl = seo.shareImageUrl || null;
   }
 
-  if (identity || home || contact || seo) updateData.theme = theme;
+  if (identity || home || contact || seo) {
+    delete theme.heroVideoUrl;
+    updateData.theme = theme;
+  }
   if (identity || contact || legal || seo) updateData.settings = settings;
 
   await db.update(stores).set(updateData).where(eq(stores.id, storeId));

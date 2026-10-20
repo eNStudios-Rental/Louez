@@ -8,7 +8,6 @@ import { Slider, Switch } from "@louez/ui";
 import { withForm } from "@/hooks/form/form";
 
 import { HeroImagesField } from "../fields/hero-images-field";
-import { HeroVideoField } from "../fields/hero-video-field";
 import { HeroLayoutField } from "../fields/hero-layout-field";
 import { HeroPositionField } from "../fields/hero-position-field";
 import { PanelGroup } from "../panel/panel-group";
@@ -35,7 +34,8 @@ export const HomeSection = withForm({
     const tAppearance = useTranslations("dashboard.settings.appearanceSettings");
     const hasHeroMedia = useStore(
       form.store,
-      (state) => state.values.home.heroImages.length > 0 || Boolean(state.values.home.heroVideoUrl),
+      (state) =>
+        state.values.home.heroImages.length > 0 || Boolean(state.values.home.heroYoutubeUrl.trim()),
     );
     const heroLayout = useStore(form.store, (state) => state.values.home.heroLayout);
     const heroAlign = useStore(form.store, (state) => state.values.home.heroAlign);
@@ -55,16 +55,17 @@ export const HomeSection = withForm({
             )}
           </form.Field>
 
-          <form.Field name="home.heroVideoUrl">
+          <form.AppField name="home.heroYoutubeUrl">
             {(field) => (
-              <HeroVideoField
-                value={field.state.value}
-                savedValue={savedValues.home.heroVideoUrl}
-                uploads={uploads}
-                onChange={field.handleChange}
+              <field.Input
+                label={t("video")}
+                placeholder={t("youtubeLinkPlaceholder")}
+                type="url"
+                inputMode="url"
               />
             )}
-          </form.Field>
+          </form.AppField>
+          <p className="text-muted-foreground text-xs">{t("videoDescription")}</p>
 
           {hasHeroMedia ? (
             <>

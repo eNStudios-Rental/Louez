@@ -18,8 +18,8 @@ interface StoreHeroProps {
   description: string | null;
   /** Photos in the background or framed beside the text, depending on the shape. */
   backgroundImages?: string[];
-  /** The optional MP4 is an additional slide after the background photos. */
-  backgroundVideoUrl?: string | null;
+  /** The optional YouTube video is an additional slide after the background photos. */
+  backgroundYouTubeUrl?: string | null;
   /** `cover` = text over hero media, `split` = text beside framed media, `band` = no media. */
   shape: StoreHeroShape;
   align: StoreHeroAlign;
@@ -97,7 +97,7 @@ export const StoreHero = ({
   tagline,
   description,
   backgroundImages = [],
-  backgroundVideoUrl,
+  backgroundYouTubeUrl,
   shape,
   align,
   verticalAlign,
@@ -143,7 +143,7 @@ export const StoreHero = ({
               align === "end" ? "lg:order-first" : "lg:order-last",
             )}
           >
-            <HeroImageSlider images={backgroundImages} videoUrl={backgroundVideoUrl} />
+            <HeroImageSlider images={backgroundImages} youtubeUrl={backgroundYouTubeUrl} />
           </div>
 
           <div className="flex max-w-2xl flex-col gap-4">
@@ -174,7 +174,7 @@ export const StoreHero = ({
     >
       {cover ? (
         <>
-          <HeroImageSlider images={backgroundImages} videoUrl={backgroundVideoUrl} />
+          <HeroImageSlider images={backgroundImages} youtubeUrl={backgroundYouTubeUrl} />
           <div
             aria-hidden
             className={cn("pointer-events-none absolute inset-0", SCRIM[verticalAlign])}

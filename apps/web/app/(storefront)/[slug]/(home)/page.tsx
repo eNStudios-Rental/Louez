@@ -72,7 +72,7 @@ const StorefrontPage = async ({ params }: StorefrontPageProps) => {
     settings,
     theme,
     heroImages,
-    heroVideoUrl,
+    heroYoutubeUrl,
     tagline,
     description,
     status,
@@ -84,7 +84,7 @@ const StorefrontPage = async ({ params }: StorefrontPageProps) => {
   const ratingHref = place.showReviews ? "#reviews" : (place.details?.mapsUrl ?? null);
   const hero = resolveStoreHeroPresentation({
     theme,
-    mediaCount: heroImages.length + Number(Boolean(heroVideoUrl)),
+    mediaCount: heroImages.length + Number(Boolean(heroYoutubeUrl)),
   });
 
   return (
@@ -105,7 +105,7 @@ const StorefrontPage = async ({ params }: StorefrontPageProps) => {
         tagline={tagline}
         description={description}
         backgroundImages={heroImages}
-        backgroundVideoUrl={heroVideoUrl}
+        backgroundYouTubeUrl={heroYoutubeUrl}
         shape={hero.shape}
         align={hero.align}
         verticalAlign={hero.verticalAlign}

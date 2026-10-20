@@ -789,8 +789,9 @@
       "home": {
         "header": "Tajuk",
         "photos": "Foto",
-        "video": "Video latar belakang",
-        "videoDescription": "Satu MP4 ditambahkan ke slider foto. Disarankan: H.264, tanpa audio, 1080p, dan 10–20 detik (maks. 30 MB).",
+        "video": "Video YouTube latar belakang",
+        "videoDescription": "Tempel tautan YouTube. Video akan ditambahkan setelah foto dan diputar berulang tanpa suara.",
+        "youtubeLinkPlaceholder": "https://www.youtube.com/watch?v=...",
         "addVideo": "Tambahkan video",
         "replaceVideo": "Ganti video",
         "removeVideo": "Hapus video",

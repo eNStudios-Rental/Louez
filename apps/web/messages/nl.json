@@ -789,8 +789,9 @@
       "home": {
         "header": "Kopgedeelte",
         "photos": "Foto's",
-        "video": "Achtergrondvideo",
-        "videoDescription": "Eén MP4 wordt toegevoegd aan de fotoslider. Aanbevolen: H.264, zonder audio, 1080p en 10–20 seconden (max. 30 MB).",
+        "video": "YouTube-video op de achtergrond",
+        "videoDescription": "Plak een YouTube-link. De video wordt na je foto's toegevoegd en wordt zonder geluid herhaald.",
+        "youtubeLinkPlaceholder": "https://www.youtube.com/watch?v=...",
         "addVideo": "Video toevoegen",
         "replaceVideo": "Video vervangen",
         "removeVideo": "Video verwijderen",

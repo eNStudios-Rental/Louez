@@ -789,8 +789,9 @@
       "home": {
         "header": "Intestazione",
         "photos": "Foto",
-        "video": "Video di sfondo",
-        "videoDescription": "Un MP4 si aggiunge allo slider delle foto. Consigliato: H.264, senza audio, 1080p e 10–20 secondi (max 30 MB).",
+        "video": "Video YouTube di sfondo",
+        "videoDescription": "Incolla un link YouTube. Il video verrà aggiunto dopo le foto e riprodotto in loop senza audio.",
+        "youtubeLinkPlaceholder": "https://www.youtube.com/watch?v=...",
         "addVideo": "Aggiungi video",
         "replaceVideo": "Sostituisci video",
         "removeVideo": "Rimuovi video",

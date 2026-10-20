@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import Image from "next/image";
 
@@ -8,6 +8,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { cn } from "@louez/utils";
+import { getYouTubeEmbedUrl } from "@louez/validations";
 
 import { useMediaQuery } from "@/hooks/use-media-query";
 
@@ -16,7 +17,7 @@ const AUTOPLAY_INTERVAL_MS = 6_000;
 
 interface HeroImageSliderProps {
   images: string[];
-  videoUrl?: string | null;
+  youtubeUrl?: string | null;
   className?: string;
 }
 
@@ -38,19 +39,21 @@ const dotClassName = cn(controlBaseClassName, "w-4 pointer-coarse:w-5");
  * until a visitor advances. Autoplay pauses on hover and never runs for a
  * visitor who asked for reduced motion.
  */
-export const HeroImageSlider = ({ images, videoUrl, className }: HeroImageSliderProps) => {
+export const HeroImageSlider = ({ images, youtubeUrl, className }: HeroImageSliderProps) => {
   const t = useTranslations("storefront.hero");
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const youtubeEmbedUrl = youtubeUrl ? getYouTubeEmbedUrl(youtubeUrl, !reducedMotion) : null;
   const slides = [
     ...images.map((src) => ({ key: `image:${src}`, kind: "image" as const, src })),
-    ...(videoUrl ? [{ key: `video:${videoUrl}`, kind: "video" as const, src: videoUrl }] : []),
+    ...(youtubeEmbedUrl
+      ? [{ key: `youtube:${youtubeUrl}`, kind: "youtube" as const, src: youtubeEmbedUrl }]
+      : []),
   ];
   const count = slides.length;
   const activeIndex = count > 0 ? index % count : 0;
-  const videoSlideIndex = videoUrl ? images.length : -1;
+  const videoSlideIndex = youtubeEmbedUrl ? images.length : -1;
 
   useEffect(() => {
     if (count <= 1 || paused || reducedMotion || activeIndex === videoSlideIndex) return;
@@ -61,10 +64,6 @@ export const HeroImageSlider = ({ images, videoUrl, className }: HeroImageSlider
 
     return () => clearInterval(interval);
   }, [activeIndex, count, paused, reducedMotion, videoSlideIndex]);
-
-  useEffect(() => {
-    if (reducedMotion) videoRef.current?.pause();
-  }, [activeIndex, reducedMotion]);
 
   if (count === 0) return null;
 
@@ -96,17 +95,15 @@ export const HeroImageSlider = ({ images, videoUrl, className }: HeroImageSlider
               className="object-cover"
             />
           ) : slide === activeIndex ? (
-            <video
-              ref={videoRef}
+            <iframe
               src={media.src}
-              poster={images[0]}
-              autoPlay={!reducedMotion}
-              muted
-              loop
-              playsInline
-              preload="metadata"
+              title={t("goToImage", { index: slide + 1, count })}
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
               aria-hidden="true"
-              className="absolute inset-0 h-full w-full object-cover"
+              tabIndex={-1}
+              className="pointer-events-none absolute inset-0 h-full w-full border-0"
             />
           ) : null}
         </div>

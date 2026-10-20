@@ -789,8 +789,9 @@
       "home": {
         "header": "Header",
         "photos": "Photos",
-        "video": "Background video",
-        "videoDescription": "One MP4 joins the photo slider. H.264, silent, 1080p and 10–20 seconds are recommended (max 30 MB).",
+        "video": "Background YouTube video",
+        "videoDescription": "Paste a YouTube link. It is added after your photos and plays muted on loop.",
+        "youtubeLinkPlaceholder": "https://www.youtube.com/watch?v=...",
         "addVideo": "Add video",
         "replaceVideo": "Replace video",
         "removeVideo": "Remove video",

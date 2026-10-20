@@ -15,6 +15,7 @@ test("adds runtime deployment origins to the CSP", () => {
   assert.match(csp ?? "", /script-src[^;]*https:\/\/engagement\.runtime\.example\.com/);
   assert.match(csp ?? "", /connect-src[^;]*https:\/\/replay\.runtime\.example\.com/);
   assert.match(csp ?? "", /frame-src[^;]*https:\/\/\*\.runtime\.example\.com/);
+  assert.match(csp ?? "", /frame-src[^;]*https:\/\/www\.youtube-nocookie\.com/);
 });
 
 test("allows OpenFreeMap assets without the retired CARTO and Leaflet origins", () => {

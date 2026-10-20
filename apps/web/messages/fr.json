@@ -789,8 +789,9 @@
       "home": {
         "header": "En-tête",
         "photos": "Photos",
-        "video": "Vidéo d’arrière-plan",
-        "videoDescription": "Une vidéo MP4 s’ajoute au carrousel de photos. Recommandé : H.264, sans audio, 1080p et 10–20 secondes (max. 30 Mo).",
+        "video": "Vidéo YouTube d’arrière-plan",
+        "videoDescription": "Collez un lien YouTube. La vidéo sera ajoutée après vos photos et lue en boucle sans son.",
+        "youtubeLinkPlaceholder": "https://www.youtube.com/watch?v=...",
         "addVideo": "Ajouter une vidéo",
         "replaceVideo": "Remplacer la vidéo",
         "removeVideo": "Supprimer la vidéo",
