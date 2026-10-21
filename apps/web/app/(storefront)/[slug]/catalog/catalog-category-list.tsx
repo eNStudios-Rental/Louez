@@ -107,7 +107,7 @@ export const CatalogCategoryList = ({
   const rows = [
     {
       id: null,
-      label: t("catalog.allProducts"),
+      label: t("catalog.allCategories"),
       count: totalCount,
       available: availableCounts?.total ?? null,
       isSelected: isAllSelected,

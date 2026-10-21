@@ -14,6 +14,13 @@ test("catalog links restore the full query; categories override only their crite
   assert.equal(result.searchParams.get("category"), "new");
   assert.equal(result.searchParams.get("search"), "cargo");
   assert.deepEqual(result.searchParams.getAll("attr"), ["size:M", "color:red"]);
+
+  const resultAll = new URL(
+    resolveCatalogNavigation("/catalog?category=all", saved),
+    "https://example.test",
+  );
+  assert.equal(resultAll.searchParams.get("category"), "all");
+  assert.equal(resultAll.searchParams.get("search"), "cargo");
 });
 test("product and checkout links carry the catalog through reloads and new tabs", () => {
   for (const href of ["/product/abc?startDate=2026-09-17", "/checkout"]) {

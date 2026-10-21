@@ -25,8 +25,8 @@ const productLinks = [
 ];
 
 describe("buildCategoryBrowseHref", () => {
-  it("links the plain catalog for all and a filter otherwise", () => {
-    assert.equal(buildCategoryBrowseHref("all"), "/catalog");
+  it("links the catalog with category query for all and categories", () => {
+    assert.equal(buildCategoryBrowseHref("all"), "/catalog?category=all");
     assert.equal(buildCategoryBrowseHref("uncategorized"), "/catalog?category=uncategorized");
     assert.equal(buildCategoryBrowseHref("a b"), "/catalog?category=a%20b");
   });
@@ -53,7 +53,7 @@ describe("buildCategoryBrowseEntries", () => {
         ["kayak", "category", 3, "/catalog?category=kayak"],
         ["paddle", "category", 1, "/catalog?category=paddle"],
         ["uncategorized", "uncategorized", 1, "/catalog?category=uncategorized"],
-        ["all", "all", 4, "/catalog"],
+        ["all", "all", 4, "/catalog?category=all"],
       ],
     );
     // A category image wins over the borrowed product visual.

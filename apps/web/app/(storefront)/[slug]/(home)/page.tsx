@@ -60,7 +60,7 @@ const StorefrontPage = async ({ params }: StorefrontPageProps) => {
   const data = await loadHomePage(slug, {
     others: t("availability.categoryBrowse.others"),
     othersDescription: t("availability.categoryBrowse.othersDescription"),
-    all: t("catalog.allProducts"),
+    all: t("catalog.allCategories"),
   });
 
   if (!data) {

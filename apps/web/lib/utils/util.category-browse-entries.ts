@@ -42,11 +42,9 @@ export interface CategoryBuckets {
 export const getCategoryToken = (category: { id: string; slug?: string | null }): string =>
   category.slug ?? category.id;
 
-/** The catalog link of a tile: the plain catalog for "all", a `?category=` filter otherwise. */
+/** The catalog link of a tile: `?category=all` for all products, a `?category=` filter otherwise. */
 export const buildCategoryBrowseHref = (categoryToken: string): string =>
-  categoryToken === ALL_CATEGORIES_VALUE
-    ? "/catalog"
-    : `/catalog?category=${encodeURIComponent(categoryToken)}`;
+  `/catalog?category=${encodeURIComponent(categoryToken)}`;
 
 /** Sizes every bucket and remembers a visual for it. Rows must arrive in display order. */
 export const bucketProductLinks = (rows: readonly BrowseProductLinkRow[]): CategoryBuckets => {

@@ -25,7 +25,7 @@ export const HomeInventoryView = ({ kind, children, linkPrefetch }: HomeInventor
         }
         action={
           <StorefrontLink
-            href="/catalog"
+            href={kind === "categories" ? "/catalog?category=all" : "/catalog"}
             prefetch={linkPrefetch}
             className="inline-flex min-h-11 items-center text-sm font-medium underline-offset-4 hover:underline"
           >

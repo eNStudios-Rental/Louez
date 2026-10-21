@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import { ArrowLeftIcon, LockIcon, PhoneIcon } from "lucide-react";
+import { ArrowLeftIcon, LayoutGridIcon, LockIcon, PhoneIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { cn } from "@louez/utils";
@@ -13,6 +13,8 @@ import { HeaderSearchCapsule } from "@/components/storefront/shell/header-search
 import { StoreLogo } from "@/components/storefront/shell/store-logo";
 import { useHeaderSearchVisible } from "@/components/storefront/shell/use-header-search-visible";
 import { useChromeVariant } from "@/components/storefront/shell/use-chrome-variant";
+import { StorefrontLink } from "@/components/storefront/ui/storefront-link";
+import { useStorePath } from "@/hooks/use-store-path";
 import { useWindowScrolled } from "@/hooks/use-window-scrolled";
 import type { RentalPeriodRules } from "@/lib/utils/util.rental-period";
 
@@ -66,6 +68,8 @@ export const StoreHeader = ({
   const t = useTranslations("storefront");
   const variant = useChromeVariant();
   const scrolled = useWindowScrolled();
+  const currentPath = useStorePath();
+  const isCatalog = currentPath === "/catalog";
   // The search starts out on the phone everywhere but the home, whose hero
   // already carries the period search.
   const mobileSearchVisible = useHeaderSearchVisible({ showAtTop: variant !== "transparent" });
@@ -143,6 +147,21 @@ export const StoreHeader = ({
                 aria-label={t("header.menu")}
                 className="order-2 ml-auto flex items-center gap-1 md:order-3"
               >
+                <StorefrontLink
+                  href="/catalog"
+                  aria-label={t("header.catalog")}
+                  title={t("header.catalog")}
+                  aria-current={isCatalog ? "page" : undefined}
+                  className={cn(
+                    "flex h-12 items-center gap-2 rounded-full border border-transparent px-3 text-foreground transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none max-lg:size-12 max-lg:p-0 max-lg:justify-center",
+                    isCatalog && "bg-muted font-medium text-primary",
+                  )}
+                >
+                  <LayoutGridIcon aria-hidden className="size-5 shrink-0" />
+                  <span className="hidden text-sm font-medium lg:inline">
+                    {t("header.catalog")}
+                  </span>
+                </StorefrontLink>
                 {phone ? (
                   <a
                     href={`tel:${phone}`}
