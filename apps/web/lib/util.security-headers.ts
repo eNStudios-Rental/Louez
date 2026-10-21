@@ -46,6 +46,7 @@ const buildContentSecurityPolicy = ({
       "'self'",
       "https://js.stripe.com",
       "https://*.js.stripe.com",
+      "https://www.youtube.com",
       "https://maps.googleapis.com",
       "https://maps.gstatic.com",
       "https://eu-assets.i.posthog.com",

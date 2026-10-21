@@ -18,6 +18,7 @@ import {
 import { cn } from "@louez/utils";
 import { getYouTubeEmbedUrl } from "@louez/validations";
 
+import { useYouTubeCaptionsDisabled } from "@/hooks/use-youtube-captions";
 import { stripHtml } from "@/lib/util.seo-text";
 import { resolveStoreHeroPresentation } from "@/lib/utils/util.store-hero";
 
@@ -86,6 +87,7 @@ export const SketchHomePage = ({
   const { identity, home, contact } = values;
   const phone = device === "phone";
   const youtubeEmbedUrl = getYouTubeEmbedUrl(home.heroYoutubeUrl, !reduceMotion);
+  const youtubeIframeRef = useYouTubeCaptionsDisabled(Boolean(youtubeEmbedUrl));
   const hero = resolveStoreHeroPresentation({
     theme: {
       heroLayout: home.heroLayout,
@@ -355,6 +357,7 @@ export const SketchHomePage = ({
                 <div className="absolute inset-0 overflow-hidden [container-type:size]">
                   <iframe
                     src={youtubeEmbedUrl}
+                    ref={youtubeIframeRef}
                     title={name}
                     aria-hidden="true"
                     tabIndex={-1}
@@ -398,6 +401,7 @@ export const SketchHomePage = ({
                 {youtubeEmbedUrl ? (
                   <iframe
                     src={youtubeEmbedUrl}
+                    ref={youtubeIframeRef}
                     title={name}
                     aria-hidden="true"
                     tabIndex={-1}

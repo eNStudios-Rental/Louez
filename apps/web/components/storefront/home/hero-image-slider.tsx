@@ -11,6 +11,7 @@ import { cn } from "@louez/utils";
 import { getYouTubeEmbedUrl } from "@louez/validations";
 
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useYouTubeCaptionsDisabled } from "@/hooks/use-youtube-captions";
 
 /** Long enough to read the headline before the photo changes. */
 const AUTOPLAY_INTERVAL_MS = 6_000;
@@ -54,6 +55,7 @@ export const HeroImageSlider = ({ images, youtubeUrl, className }: HeroImageSlid
   const count = slides.length;
   const activeIndex = count > 0 ? index % count : 0;
   const videoSlideIndex = youtubeEmbedUrl ? images.length : -1;
+  const youtubeIframeRef = useYouTubeCaptionsDisabled(activeIndex === videoSlideIndex);
 
   useEffect(() => {
     if (count <= 1 || paused || reducedMotion || activeIndex === videoSlideIndex) return;
@@ -97,6 +99,7 @@ export const HeroImageSlider = ({ images, youtubeUrl, className }: HeroImageSlid
           ) : slide === activeIndex ? (
             <iframe
               src={media.src}
+              ref={youtubeIframeRef}
               title={t("goToImage", { index: slide + 1, count })}
               allow="autoplay; encrypted-media"
               referrerPolicy="strict-origin-when-cross-origin"

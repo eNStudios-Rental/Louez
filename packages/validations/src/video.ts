@@ -49,6 +49,7 @@ export const getYouTubeEmbedUrl = (value: string, autoplay: boolean): string | n
   embedUrl.searchParams.set("cc_load_policy", "0");
   embedUrl.searchParams.set("controls", "0");
   embedUrl.searchParams.set("disablekb", "1");
+  embedUrl.searchParams.set("enablejsapi", "1");
   embedUrl.searchParams.set("fs", "0");
   embedUrl.searchParams.set("iv_load_policy", "3");
   embedUrl.searchParams.set("loop", "1");
