@@ -322,7 +322,7 @@ export function ActivityTimelineV2({
   payments = [],
   reservationCreatedAt,
   reservationSource,
-  currency = 'EUR',
+  currency = 'PLN',
   initialVisibleCount = 3,
 }: ActivityTimelineV2Props) {
   const t = useTranslations('dashboard.reservations')
@@ -395,7 +395,7 @@ export function ActivityTimelineV2({
         paymentIntentId: paymentIntentId ?? null,
         checkoutSessionId: checkoutSessionId ?? null,
         amount: Number.isFinite(amount) ? amount : null,
-        currency: payment.currency || 'EUR',
+        currency: payment.currency || currency,
         method: 'stripe',
         type: 'rental',
         source: 'synthetic_from_payments',
@@ -562,7 +562,7 @@ export function ActivityTimelineV2({
                     {(activity.metadata.difference as number) >= 0 ? '+' : ''}
                     {formatCurrency(
                       activity.metadata.difference as number,
-                      'EUR',
+                      currency,
                       formatLocale,
                     )}
                   </Badge>

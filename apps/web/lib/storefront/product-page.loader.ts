@@ -168,7 +168,7 @@ const toPageStore = (store: StorefrontStore): ProductPageStore => {
     id: store.id,
     name: store.name,
     slug: store.slug,
-    currency: settings.currency ?? "EUR",
+    currency: settings.currency ?? "PLN",
     address: store.address,
     reservationMode: getEffectiveReservationMode(store),
     settings,

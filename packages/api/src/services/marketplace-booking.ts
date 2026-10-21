@@ -479,7 +479,7 @@ export async function quoteMarketplaceBooking(params: {
   const subtotal = tokenLines.reduce((sum, line) => sum + line.lineTotal, 0);
   const deposit = tokenLines.reduce((sum, line) => sum + line.depositPerUnit * line.quantity, 0);
   const total = subtotal;
-  const currency = store.settings?.currency ?? "EUR";
+  const currency = store.settings?.currency ?? "PLN";
   const country = store.settings?.country ?? "FR";
   const expiresAt = new Date(Date.now() + QUOTE_TTL_MS).toISOString();
   const payload: QuoteTokenPayload = {
@@ -961,7 +961,7 @@ async function snapshotsFromRows(
     bookingNumber: row.bookingNumber,
     startAt: row.startAt.toISOString(),
     endAt: row.endAt.toISOString(),
-    currency: row.storeSettings?.currency ?? "EUR",
+    currency: row.storeSettings?.currency ?? "PLN",
     totalAmount: row.totalAmount,
     depositAmount: row.depositAmount,
     customerEmail: row.customerEmail,

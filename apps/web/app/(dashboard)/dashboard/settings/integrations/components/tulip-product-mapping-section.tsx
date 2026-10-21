@@ -215,7 +215,7 @@ export function TulipProductMappingSection({
     () =>
       new Intl.NumberFormat(locale, {
         style: "currency",
-        currency: "EUR",
+        currency: "PLN",
       }),
     [locale],
   );

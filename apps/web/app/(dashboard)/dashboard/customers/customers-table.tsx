@@ -61,9 +61,10 @@ interface CustomersTableProps {
   readOnly?: boolean
   onOpenCustomer?: (customer: Customer) => void
   getCustomerHref?: (customer: Customer) => string
+  currency?: string
 }
 
-export const CustomersTable = ({ customers, readOnly = false, onOpenCustomer, getCustomerHref }: CustomersTableProps) => {
+export const CustomersTable = ({ customers, readOnly = false, onOpenCustomer, getCustomerHref, currency = 'PLN' }: CustomersTableProps) => {
   const t = useTranslations('dashboard.customers')
   const { intl: formatLocale, dateFns: dateLocale } = useFormatLocale()
   const tCommon = useTranslations('common')
@@ -197,7 +198,7 @@ export const CustomersTable = ({ customers, readOnly = false, onOpenCustomer, ge
                   <Badge variant="expired">{customer.reservationCount}</Badge>
                 </TableCell>
                 <TableCell className="text-right font-medium">
-                  {formatCurrency(parseFloat(customer.totalSpent), 'EUR', formatLocale)}
+                  {formatCurrency(parseFloat(customer.totalSpent), currency, formatLocale)}
                 </TableCell>
                 <TableCell>
                   {customer.lastReservation ? (

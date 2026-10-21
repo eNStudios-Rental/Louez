@@ -158,7 +158,7 @@ export async function POST(req: Request) {
         name: store.name,
         slug: store.slug,
         description: store.description ?? null,
-        currency: store.settings?.currency ?? 'EUR',
+        currency: store.settings?.currency ?? 'PLN',
         email: store.email ?? null,
         phone: store.phone ?? null,
         address: store.address ?? null,

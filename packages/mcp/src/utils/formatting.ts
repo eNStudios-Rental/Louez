@@ -4,9 +4,9 @@
  */
 export function formatCurrency(amount: string | number): string {
   const num = typeof amount === 'string' ? parseFloat(amount) : amount
-  return new Intl.NumberFormat('en-IE', {
+  return new Intl.NumberFormat('pl-PL', {
     style: 'currency',
-    currency: 'EUR',
+    currency: 'PLN',
   }).format(num)
 }
 

@@ -305,7 +305,7 @@ export async function POST(req: Request) {
     cartSummary,
     productGuidance,
     locale,
-    currency: store.settings?.currency ?? 'EUR',
+    currency: store.settings?.currency ?? 'PLN',
   })
 
   const result = streamText({

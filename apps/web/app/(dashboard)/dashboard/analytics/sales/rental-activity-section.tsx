@@ -12,12 +12,14 @@ interface RentalActivitySectionProps {
   occupancy: OccupancyStats;
   upcoming: UpcomingRevenueStats;
   formatLocale: string;
+  currency?: string;
 }
 
 export const RentalActivitySection = ({
   occupancy,
   upcoming,
   formatLocale,
+  currency = "PLN",
 }: RentalActivitySectionProps) => {
   const t = useTranslations("dashboard.statistics");
   return (
@@ -46,7 +48,7 @@ export const RentalActivitySection = ({
           </p>
         </div>
         <span className="shrink-0 text-sm font-semibold tabular-nums">
-          {formatCurrency(upcoming.revenue, "EUR", formatLocale)}
+          {formatCurrency(upcoming.revenue, currency, formatLocale)}
         </span>
       </div>
     </div>

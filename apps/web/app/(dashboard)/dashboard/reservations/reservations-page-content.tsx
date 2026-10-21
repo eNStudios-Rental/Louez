@@ -391,7 +391,7 @@ export function ReservationsPageContent({
         <div className={activeView === "planning" ? "contents" : "hidden"}>
           <PlanningTimeline
             products={calendarData.products}
-            currency={currency ?? "EUR"}
+            currency={currency ?? "PLN"}
             storeId={storeId}
           />
         </div>
@@ -401,7 +401,7 @@ export function ReservationsPageContent({
         <div className={activeView === "calendar" ? "contents" : "hidden"}>
           <ReservationsCalendarView
             products={calendarData.products}
-            currency={currency ?? "EUR"}
+            currency={currency ?? "PLN"}
             storeHasReservations={storeHasReservations}
             storeId={storeId}
           />

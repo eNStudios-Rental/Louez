@@ -10,9 +10,10 @@ interface RevenueHeroProps {
   stats: Awaited<ReturnType<typeof getSalesPaymentStats>>;
   window: SalesWindow;
   formatLocale: string;
+  currency?: string;
 }
 
-export const RevenueHero = ({ stats, window, formatLocale }: RevenueHeroProps) => {
+export const RevenueHero = ({ stats, window, formatLocale, currency = "PLN" }: RevenueHeroProps) => {
   const t = useTranslations("dashboard.statistics");
   const periodDateFormat = new Intl.DateTimeFormat(formatLocale, {
     dateStyle: "medium",
@@ -24,7 +25,7 @@ export const RevenueHero = ({ stats, window, formatLocale }: RevenueHeroProps) =
     <div className="space-y-1">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <span className="text-2xl leading-tight font-bold tracking-tight tabular-nums sm:text-3xl">
-          {formatCurrency(stats.periodRevenue, "PLN", formatLocale)}
+          {formatCurrency(stats.periodRevenue, currency, formatLocale)}
         </span>
         <DashboardTrendBadge trend={stats.revenueGrowth} />
         {stats.revenueGrowth !== null && (
@@ -38,7 +39,7 @@ export const RevenueHero = ({ stats, window, formatLocale }: RevenueHeroProps) =
       <p className="text-muted-foreground text-sm">
         {t("paymentsCount", { count: stats.periodPaymentCount })} ·{" "}
         {t("avgPaymentInline", {
-          amount: formatCurrency(stats.avgPaymentValue, "EUR", formatLocale),
+          amount: formatCurrency(stats.avgPaymentValue, currency, formatLocale),
         })}
       </p>
     </div>

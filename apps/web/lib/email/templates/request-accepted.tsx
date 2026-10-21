@@ -73,7 +73,7 @@ export function RequestAcceptedEmail({
   paymentUrl,
   customContent,
   locale = "fr",
-  currency = "EUR",
+  currency = "PLN",
 }: RequestAcceptedEmailProps) {
   const t = getEmailTranslations(locale);
   const messages = t.requestAccepted;

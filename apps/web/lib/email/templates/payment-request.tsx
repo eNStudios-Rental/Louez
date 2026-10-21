@@ -50,7 +50,7 @@ export function PaymentRequestEmail({
   paymentUrl,
   customMessage,
   locale = "fr",
-  currency = "EUR",
+  currency = "PLN",
 }: PaymentRequestEmailProps) {
   const t = getEmailTranslations(locale);
   const messages = t.paymentRequest;

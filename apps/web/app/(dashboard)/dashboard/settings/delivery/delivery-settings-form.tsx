@@ -125,7 +125,7 @@ export const DeliverySettingsForm = ({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const t = useTranslations("dashboard.settings.delivery");
-  const currency = store.settings?.currency || "EUR";
+  const currency = store.settings?.currency || "PLN";
   const tValidation = useTranslations("validation");
   const tCommon = useTranslations("common");
 

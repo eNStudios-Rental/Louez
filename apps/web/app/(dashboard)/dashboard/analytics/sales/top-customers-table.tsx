@@ -24,6 +24,7 @@ interface TopCustomer {
 interface TopCustomersTableProps {
   customers: TopCustomer[];
   readOnly?: boolean;
+  currency?: string;
 }
 
 /** Gold / silver / bronze for the podium, muted numbers below. */
@@ -35,7 +36,7 @@ const getDisplayName = (customer: TopCustomer) =>
     ? customer.companyName
     : `${customer.firstName} ${customer.lastName}`;
 
-export const TopCustomersTable = ({ customers, readOnly = false }: TopCustomersTableProps) => {
+export const TopCustomersTable = ({ customers, readOnly = false, currency = "PLN" }: TopCustomersTableProps) => {
   const t = useTranslations("dashboard.statistics");
 
   if (customers.length === 0) {
@@ -88,7 +89,7 @@ export const TopCustomersTable = ({ customers, readOnly = false }: TopCustomersT
                 {customer.paymentCount}
               </TableCell>
               <TableCell className="text-right font-medium tabular-nums whitespace-nowrap">
-                {formatCurrency(parseFloat(customer.totalRevenue))}
+                {formatCurrency(parseFloat(customer.totalRevenue), currency)}
               </TableCell>
             </TableRow>
           ))}

@@ -2142,7 +2142,7 @@ export async function createManualReservation(data: CreateReservationData) {
       delivery_fee_cents: toAnalyticsAmountCents(deliveryFeeAmount),
       deposit_amount_cents: toAnalyticsAmountCents(depositAmount),
       total_amount_cents: toAnalyticsAmountCents(totalAmount),
-      currency: store.settings?.currency ?? "EUR",
+      currency: store.settings?.currency ?? "PLN",
     },
   });
 
@@ -4563,7 +4563,7 @@ export async function createDepositHold(reservationId: string) {
     return { error: "errors.stripe.noDepositRequired" };
   }
 
-  const currency = store.settings?.currency || "EUR";
+  const currency = store.settings?.currency || "PLN";
 
   try {
     const result = await createDepositAuthorization({
@@ -4703,7 +4703,7 @@ export async function captureDepositHold(
     return { error: "errors.reasonRequired" };
   }
 
-  const currency = store.settings?.currency || "EUR";
+  const currency = store.settings?.currency || "PLN";
 
   try {
     const result = await captureDeposit({
@@ -4847,7 +4847,7 @@ export async function releaseDepositHold(reservationId: string) {
     }
 
     // Log activity
-    const currency = store.settings?.currency || "EUR";
+    const currency = store.settings?.currency || "PLN";
     const currencySymbol = getCurrencySymbol(currency);
     const depositAmount = parseFloat(reservation.depositAmount);
     await logDepositActivity(
@@ -4937,7 +4937,7 @@ export async function processStripeRefund(reservationId: string, data: ProcessSt
     return { error: "errors.stripe.noChargeToRefund" };
   }
 
-  const currency = store.settings?.currency || "EUR";
+  const currency = store.settings?.currency || "PLN";
 
   try {
     // Check refundable amount
@@ -5547,7 +5547,7 @@ export async function requestPayment(
       return { error: "errors.customerNoPhone" };
     }
 
-    const currency = store.settings?.currency || "EUR";
+    const currency = store.settings?.currency || "PLN";
     const locale = getLocaleFromCountry(store.settings?.country);
 
     // Calculate amount based on type

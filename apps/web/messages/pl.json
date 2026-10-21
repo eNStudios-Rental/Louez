@@ -8239,7 +8239,7 @@
     },
     "legal": {
       "text1": "Ten dokument stanowi umowę najmu i fakturę. Potwierdza umowę między stronami dotyczącą najmu sprzętu opisanego powyżej na wymienionych warunkach.",
-      "text2": "W przypadku opóźnienia płatności zostaną naliczone odsetki za zwłokę według obowiązującej stopy ustawowej. Zryczałtowane odszkodowanie za koszty windykacji: 40 EUR.",
+      "text2": "W przypadku opóźnienia płatności zostaną naliczone odsetki za zwłokę według obowiązującej stopy ustawowej. Zryczałtowane odszkodowanie za koszty windykacji: 40 zł.",
       "companyInfo": "{name} - NIP {siret}",
       "tvaApplicable": "VAT {tva}",
       "tvaNotApplicable": "VAT nie ma zastosowania, art. 293 B CGI"

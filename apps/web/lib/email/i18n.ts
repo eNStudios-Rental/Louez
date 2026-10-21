@@ -202,7 +202,7 @@ export function getDateFormatPatterns(locale: EmailLocale = "fr") {
 }
 
 /** Get a currency formatter using the email language. */
-export function getCurrencyFormatter(locale: EmailLocale = "fr", currency: string = "EUR") {
+export function getCurrencyFormatter(locale: EmailLocale = "fr", currency: string = "PLN") {
   return (amount: number) =>
     new Intl.NumberFormat(resolveFormatLocale(locale).intl, {
       style: "currency",

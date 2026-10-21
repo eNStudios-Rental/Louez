@@ -316,7 +316,7 @@ export async function getCheckoutSession(stripeAccountId: string, sessionId: str
     paymentIntentId: session.payment_intent as string | null,
     customerId: session.customer as string | null,
     amountTotal: session.amount_total,
-    currency: session.currency?.toUpperCase() ?? "EUR",
+    currency: session.currency?.toUpperCase() ?? "PLN",
     metadata: session.metadata,
     url: session.url,
     expiresAt: new Date(session.expires_at * 1000),

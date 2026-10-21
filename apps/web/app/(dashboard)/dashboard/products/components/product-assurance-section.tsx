@@ -233,7 +233,7 @@ export const ProductAssuranceSection = ({
 
   const currencyFormatter = new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: 'EUR',
+    currency: 'PLN',
   });
 
   const formatTulipProductMeta = (item: {

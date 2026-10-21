@@ -50,7 +50,7 @@ export function NewRequestLandlordEmail({
   customerNotes,
   dashboardUrl,
   locale = "fr",
-  currency = "EUR",
+  currency = "PLN",
   storeTimezone,
   storeCountryCode,
 }: NewRequestLandlordEmailProps) {

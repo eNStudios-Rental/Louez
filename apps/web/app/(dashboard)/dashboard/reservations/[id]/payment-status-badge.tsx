@@ -31,7 +31,7 @@ export function PaymentStatusBadge({
   depositReturned,
   className,
   showDetails = true,
-  currency = 'EUR',
+  currency = 'PLN',
 }: PaymentStatusBadgeProps) {
   const t = useTranslations('dashboard.reservations')
   const currencySymbol = getCurrencySymbol(currency)

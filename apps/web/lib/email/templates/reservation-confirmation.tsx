@@ -79,7 +79,7 @@ export function ReservationConfirmationEmail({
   contractSignatureUrl,
   customContent,
   locale = "fr",
-  currency = "EUR",
+  currency = "PLN",
   taxEnabled = false,
   taxRate,
   subtotalExclTax,

@@ -58,7 +58,7 @@ export function OnlinePaymentStatus({
   payments,
   stripePaymentMethodId,
   depositStatus,
-  currency = 'EUR',
+  currency = 'PLN',
 }: OnlinePaymentStatusProps) {
   const t = useTranslations('dashboard.reservations.onlinePayment')
   const { intl: formatLocale } = useFormatLocale()

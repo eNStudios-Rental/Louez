@@ -17,7 +17,7 @@ export default async function PromoCodesSettingsPage() {
     redirect("/onboarding");
   }
 
-  const currency = store.settings?.currency || "EUR";
+  const currency = store.settings?.currency || "PLN";
 
   const codes = await db.query.promoCodes.findMany({
     where: eq(promoCodes.storeId, store.id),

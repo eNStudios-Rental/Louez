@@ -60,7 +60,7 @@ export default async function ReservationDetailPage({ params }: ReservationDetai
     notFound();
   }
 
-  const currency = store.settings?.currency || "EUR";
+  const currency = store.settings?.currency || "PLN";
   const storeTimezone = store.settings?.timezone;
   const smsConfigured = isSmsConfigured();
   const stripeConfigured = Boolean(store.stripeAccountId);

@@ -62,7 +62,7 @@ const STATUS_VARIANTS = {
   archived: 'expired',
 } as const
 
-export const ProductsTable = ({ products, currency = 'EUR', readOnly = false, onOpenProduct, getProductHref }: ProductsTableProps) => {
+export const ProductsTable = ({ products, currency = 'PLN', readOnly = false, onOpenProduct, getProductHref }: ProductsTableProps) => {
   const t = useTranslations('dashboard.products')
   const tForm = useTranslations('dashboard.products.form')
   const tCommon = useTranslations('common')

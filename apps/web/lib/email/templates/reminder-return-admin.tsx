@@ -56,7 +56,7 @@ export function ReminderReturnAdminEmail({
   endDate,
   total,
   dashboardUrl,
-  currency = "EUR",
+  currency = "PLN",
   locale = "fr",
 }: ReminderReturnAdminEmailProps) {
   const t = getEmailTranslations(locale);

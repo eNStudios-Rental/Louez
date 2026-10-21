@@ -31,7 +31,7 @@ export function PaymentFailedEmail({
   errorMessage,
   paymentUrl,
   locale = "fr",
-  currency = "EUR",
+  currency = "PLN",
 }: PaymentFailedEmailProps) {
   const t = getEmailTranslations(locale);
   const messages = t.paymentFailed;

@@ -1498,7 +1498,7 @@ export async function sendPaymentRequestSms({
   reservation,
   amount,
   paymentUrl,
-  currency = "EUR",
+  currency = "PLN",
 }: {
   store: Store;
   customer: Customer & { id: string };
@@ -1604,7 +1604,7 @@ export async function sendDepositAuthorizationRequestSms({
   reservation,
   depositAmount,
   authorizationUrl,
-  currency = "EUR",
+  currency = "PLN",
 }: {
   store: Store;
   customer: Customer & { id: string };

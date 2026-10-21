@@ -44,6 +44,7 @@ interface CustomerDetailViewProps {
   customer: CustomerDetail;
   reservations: CustomerHistoryReservation[];
   stats: CustomerStats;
+  currency?: string;
   readOnly?: boolean;
   onBack?: () => void;
   onOpenReservation?: (reservation: CustomerHistoryReservation) => void;
@@ -54,6 +55,7 @@ export const CustomerDetailView = ({
   customer,
   reservations,
   stats,
+  currency = "PLN",
   readOnly = false,
   onBack,
   onOpenReservation,
@@ -151,7 +153,7 @@ export const CustomerDetailView = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(stats.totalSpent, "EUR", formatLocale)}
+              {formatCurrency(stats.totalSpent, currency, formatLocale)}
             </div>
           </CardContent>
         </Card>
@@ -163,7 +165,7 @@ export const CustomerDetailView = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(stats.avgOrderValue, "EUR", formatLocale)}
+              {formatCurrency(stats.avgOrderValue, currency, formatLocale)}
             </div>
           </CardContent>
         </Card>
@@ -327,7 +329,7 @@ export const CustomerDetailView = ({
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatCurrency(parseFloat(reservation.totalAmount), "EUR", formatLocale)}
+                        {formatCurrency(parseFloat(reservation.totalAmount), currency, formatLocale)}
                       </TableCell>
                     </TableRow>
                   );

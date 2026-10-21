@@ -197,7 +197,7 @@ export function UnifiedPaymentSection({
   totalAmount,
   payments,
   status,
-  currency = "EUR",
+  currency = "PLN",
   depositStatus: depositStatusProp,
   depositAuthorizationExpiresAt,
   stripePaymentMethodId,

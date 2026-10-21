@@ -398,7 +398,7 @@ async function handleCheckoutCompleted(
     stripeCustomerId = session.customer as string;
   }
 
-  const currency = session.currency?.toUpperCase() || "EUR";
+  const currency = session.currency?.toUpperCase() || "PLN";
   const depositAmount = Number(reservation.depositAmount) || 0;
 
   // Determine deposit status based on whether there's a deposit and card was saved
@@ -545,7 +545,7 @@ async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
   const reservationId = session.metadata?.reservationId;
   if (!reservationId) return;
 
-  const currency = session.currency?.toUpperCase() || "EUR";
+  const currency = session.currency?.toUpperCase() || "PLN";
   const amount = fromStripeCents(session.amount_total || 0, currency);
 
   // Update pending payment to failed/cancelled

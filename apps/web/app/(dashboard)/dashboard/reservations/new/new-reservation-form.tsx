@@ -1646,7 +1646,7 @@ export function NewReservationForm({
                   <NewReservationStepDelivery
                     deliverySettings={deliverySettings}
                     subtotal={subtotal + tulipInsuranceAmount}
-                    currency="EUR"
+                    currency="PLN"
                     storeAddress={storeAddress}
                     locations={storeLocations}
                     isDeliveryForced={delivery.isDeliveryForced}

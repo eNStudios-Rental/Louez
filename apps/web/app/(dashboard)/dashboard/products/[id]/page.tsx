@@ -88,7 +88,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const currency = store.settings?.currency || "EUR";
+  const currency = store.settings?.currency || "PLN";
 
   // categoryLinks mirrors products.categoryId (see `replaceProductCategories`
   // in actions.ts) but legacy rows may only have the single `category`

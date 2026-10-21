@@ -17,6 +17,7 @@ interface SalesStatStripContentProps {
   duration: AverageRentalDurationStats;
   totalRevenue: number;
   formatLocale: string;
+  currency?: string;
 }
 
 export const SalesStatStripContent = ({
@@ -24,6 +25,7 @@ export const SalesStatStripContent = ({
   duration,
   totalRevenue,
   formatLocale,
+  currency = "PLN",
 }: SalesStatStripContentProps) => {
   const t = useTranslations("dashboard.statistics");
   const avgHours = duration.avgMinutes === null ? null : duration.avgMinutes / 60;
@@ -49,7 +51,7 @@ export const SalesStatStripContent = ({
       />
       <StatStripItem
         label={t("totalRevenue")}
-        value={formatCurrency(totalRevenue, "EUR", formatLocale)}
+        value={formatCurrency(totalRevenue, currency, formatLocale)}
         subtitle={t("sinceBeginning")}
       />
     </StatStrip>

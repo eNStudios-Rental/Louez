@@ -28,6 +28,7 @@ import {
 
 import { FormRadioCardGroup } from "@/components/form/form-radio-card-group";
 import { ReservationDatePickerControl } from "@/components/form/form-reservation-date-picker";
+import { getCurrencySymbol } from "@louez/utils";
 
 import { createPromoCode, updatePromoCode } from "./actions";
 
@@ -180,7 +181,7 @@ export function PromoCodeFormDialog({
   };
 
   const isEditing = !!editingCode;
-  const currencySymbol = currency === "EUR" ? "\u20ac" : currency;
+  const currencySymbol = getCurrencySymbol(currency);
   const typeOptions = [
     {
       value: "percentage",

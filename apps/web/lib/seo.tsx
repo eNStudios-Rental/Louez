@@ -284,7 +284,7 @@ export function generateProductMetadata(
 ): Metadata {
   const { path = "", locale } = options;
 
-  const currency = store.settings?.currency || "EUR";
+  const currency = store.settings?.currency || "PLN";
   const priceFormatted = formatPrice(parseFloat(product.price), currency, locale);
 
   const title = options.title || `${product.name} - Location ${priceFormatted}`;
@@ -413,7 +413,7 @@ export function generateLocalBusinessSchema(
  * Generate Product schema for product pages
  */
 export function generateProductSchema(store: StoreSeoData, product: ProductSeoData): object {
-  const currency = store.settings?.currency || "EUR";
+  const currency = store.settings?.currency || "PLN";
   const canonicalUrl = getCanonicalUrl(store.slug, getProductPath(product));
   const price = parseFloat(product.price);
   const referenceQuantity = getPriceReferenceQuantity(product);
@@ -558,7 +558,7 @@ export function generateItemListSchema(
         offers: {
           "@type": "Offer",
           price: parseFloat(product.price),
-          priceCurrency: store.settings?.currency || "EUR",
+          priceCurrency: store.settings?.currency || "PLN",
           availability:
             product.quantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
         },

@@ -91,7 +91,7 @@ export function DepositSection({
   depositStatus,
   depositAuthorizationExpiresAt,
   stripePaymentMethodId,
-  currency = 'EUR',
+  currency = 'PLN',
 }: DepositSectionProps) {
   const t = useTranslations('dashboard.reservations.deposit')
   const { dateFns: dateLocale } = useFormatLocale()

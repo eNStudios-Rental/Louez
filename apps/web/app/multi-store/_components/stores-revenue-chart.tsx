@@ -59,6 +59,7 @@ interface StoresRevenueChartProps {
     description: string
   }
   emptyMessage?: string
+  currency?: string
 }
 
 const CHART_COLORS = [
@@ -131,6 +132,7 @@ export function StoresRevenueChart({
   storeNames,
   translations,
   emptyMessage = 'No data available',
+  currency = 'PLN',
 }: StoresRevenueChartProps) {
   // Filter stores with at least some revenue during the period
   const storesWithRevenue = useMemo(() => {
@@ -149,7 +151,7 @@ export function StoresRevenueChart({
     setVisibleStores(new Set(storesWithRevenue))
   }, [storesWithRevenue])
 
-  const currencySymbol = getCurrencySymbol('EUR')
+  const currencySymbol = getCurrencySymbol(currency)
   const hasData = storesWithRevenue.length > 0
 
   const visibleStoreNames = useMemo(

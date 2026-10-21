@@ -40,7 +40,7 @@ export function DepositAuthorizationRequestEmail({
   authorizationUrl,
   customMessage,
   locale = "fr",
-  currency = "EUR",
+  currency = "PLN",
 }: DepositAuthorizationRequestEmailProps) {
   const t = getEmailTranslations(locale);
   const messages = t.depositAuthorizationRequest;

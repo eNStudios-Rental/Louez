@@ -163,7 +163,7 @@ export const COUNTRY_DEFAULT_CURRENCY: Record<string, CurrencyCode> = {
  * Get the default currency for a country
  */
 export function getDefaultCurrencyForCountry(countryCode: string): CurrencyCode {
-  return COUNTRY_DEFAULT_CURRENCY[countryCode] || "EUR";
+  return COUNTRY_DEFAULT_CURRENCY[countryCode] || "PLN";
 }
 
 /**

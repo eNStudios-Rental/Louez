@@ -137,7 +137,7 @@ export function ProductForm({
   product,
   stockKindChangeBlockers = [],
   categories,
-  currency = "EUR",
+  currency = "PLN",
   storeTaxSettings,
   storeTimezone,
   availableAccessories = [],

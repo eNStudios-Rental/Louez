@@ -125,7 +125,7 @@ function SortableHead({
 export function ReservationsTableView({
   reservations,
   readOnly = false,
-  currency = "EUR",
+  currency = "PLN",
   timezone,
   returnTo,
   currentSort,

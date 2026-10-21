@@ -110,7 +110,7 @@ const loadDepositContext = async ({
     return { ok: false as const, error: "stripe_not_configured" as const };
   }
 
-  const currency = store.settings?.currency || "EUR";
+  const currency = store.settings?.currency || "PLN";
   const depositAmount = Number.parseFloat(reservation.depositAmount || "0");
   if (!(depositAmount > 0)) {
     return { ok: false as const, error: "no_deposit_required" as const };

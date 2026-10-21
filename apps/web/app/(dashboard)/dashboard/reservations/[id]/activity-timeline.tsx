@@ -326,7 +326,7 @@ async function ActivityItem({
 
   // Extract payment amount from metadata for payment-related activities
   const paymentAmount = metadata?.amount as number | undefined
-  const paymentCurrency = (metadata?.currency as string) || 'EUR'
+  const paymentCurrency = (metadata?.currency as string) || 'PLN'
   const isStripePayment = metadata?.method === 'stripe'
 
   return (
@@ -405,7 +405,7 @@ async function ActivityItem({
                 className="h-4 px-1.5 py-0 font-mono text-[10px]"
               >
                 {(metadata.difference as number) >= 0 ? '+' : ''}
-                {formatCurrency(metadata.difference as number, 'EUR', locale)}
+                {formatCurrency(metadata.difference as number, paymentCurrency, locale)}
               </Badge>
             )}
           </div>

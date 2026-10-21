@@ -1566,7 +1566,7 @@ export const payments = mysqlTable(
     capturedAmount: decimal("captured_amount", { precision: 10, scale: 2 }),
 
     // Currency (for multi-currency support)
-    currency: varchar("currency", { length: 3 }).default("EUR"),
+    currency: varchar("currency", { length: 3 }).default("PLN"),
 
     // Notes
     notes: text("notes"),
@@ -2089,7 +2089,7 @@ export const paymentRequests = mysqlTable(
     reservationId: varchar("reservation_id", { length: 21 }).notNull(),
     token: varchar("token", { length: 64 }).notNull().unique(),
     amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-    currency: varchar("currency", { length: 3 }).notNull().default("EUR"),
+    currency: varchar("currency", { length: 3 }).notNull().default("PLN"),
     description: varchar("description", { length: 255 }).notNull(),
     type: mysqlEnum("type", ["rental", "custom"]).notNull(),
     status: mysqlEnum("status", ["pending", "completed", "cancelled"]).notNull().default("pending"),

@@ -183,7 +183,7 @@ export async function acceptQuote(storeSlug: string, reservationId: string) {
       catalog_line_count: reservation.items.length,
       total_amount_cents: toAnalyticsAmountCents(reservation.totalAmount),
       deposit_amount_cents: toAnalyticsAmountCents(reservation.depositAmount),
-      currency: store.settings?.currency || "EUR",
+      currency: store.settings?.currency || "PLN",
     },
   });
 
@@ -388,7 +388,7 @@ export async function declineQuote(storeSlug: string, reservationId: string) {
       customer_id: session.customerId,
       source: "customer_account",
       total_amount_cents: toAnalyticsAmountCents(reservation.totalAmount),
-      currency: store.settings?.currency || "EUR",
+      currency: store.settings?.currency || "PLN",
     },
   });
 

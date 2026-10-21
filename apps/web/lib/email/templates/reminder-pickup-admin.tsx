@@ -56,7 +56,7 @@ export function ReminderPickupAdminEmail({
   startDate,
   total,
   dashboardUrl,
-  currency = "EUR",
+  currency = "PLN",
   locale = "fr",
 }: ReminderPickupAdminEmailProps) {
   const t = getEmailTranslations(locale);

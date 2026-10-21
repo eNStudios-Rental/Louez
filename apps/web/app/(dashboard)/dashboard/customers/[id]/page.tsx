@@ -77,6 +77,7 @@ const CustomerPage = async ({ params }: CustomerPageProps) => {
       customer={customer}
       reservations={customerReservations}
       stats={getCustomerStats(customerReservations)}
+      currency={store.settings?.currency || "PLN"}
     />
   );
 };

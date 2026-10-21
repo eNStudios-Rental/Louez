@@ -149,7 +149,7 @@ export default async function DashboardMainLayout({ children }: { children: Reac
         <StoreProvider
           role={store.role}
           storeId={store.id}
-          currency={settings.currency || "EUR"}
+          currency={settings.currency || "PLN"}
           storeSlug={store.slug}
           storeName={store.name}
           timezone={settings.timezone}

@@ -80,7 +80,7 @@ interface ReservationsCardViewProps {
 
 export function ReservationsCardView({
   reservations,
-  currency = "EUR",
+  currency = "PLN",
   timezone,
   returnTo,
   loadingAction,

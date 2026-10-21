@@ -110,7 +110,7 @@ export function SmartReservationActions({
   depositReturned,
   hasOnlinePaymentPending = false,
   hasActiveAuthorization = false,
-  currency = "EUR",
+  currency = "PLN",
   inspectionEnabled = false,
   inspectionMode = "optional",
   hasDepartureInspection = false,

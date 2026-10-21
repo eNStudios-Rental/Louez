@@ -64,7 +64,7 @@ export function InstantAccessEmail({
   showPaymentCta,
   additionalMessage,
   locale = "fr",
-  currency = "EUR",
+  currency = "PLN",
 }: InstantAccessEmailProps) {
   const t = getEmailTranslations(locale);
   const messages = t.instantAccess;

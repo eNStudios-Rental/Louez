@@ -456,7 +456,7 @@ export async function listStoreSnapshots(params: CatalogListParams): Promise<{
       longitude: toNullableNumber(row.longitude),
       logoUrl: row.logoUrl === null ? null : toAbsoluteUrl(row.logoUrl, params.mediaBaseUrl),
       heroImages: (row.theme?.heroImages ?? []).map((url) => toAbsoluteUrl(url, params.mediaBaseUrl)),
-      currency: row.settings?.currency ?? "EUR",
+      currency: row.settings?.currency ?? "PLN",
       timezone: row.settings?.timezone ?? "Europe/Paris",
       channel: {
         status: row.channelStatus,
@@ -920,7 +920,7 @@ export async function listProductSnapshots(params: CatalogListParams): Promise<{
         basePrice: row.price,
         basePeriodMinutes,
         deposit: row.deposit ?? "0.00",
-        currency: row.storeSettings?.currency ?? "EUR",
+        currency: row.storeSettings?.currency ?? "PLN",
         enforceStrictTiers: row.enforceStrictTiers,
         tiers: tiers.map((tier) => serializeTier(tier, row.pricingMode)),
         seasonal: serializedSeasonal,

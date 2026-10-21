@@ -248,7 +248,7 @@ export async function sendReservationConfirmationEmail({
       contractSignatureUrl,
       customContent,
       locale,
-      currency: store.settings?.currency || 'EUR',
+      currency: store.settings?.currency || 'PLN',
       taxEnabled: reservation.taxEnabled,
       taxRate: reservation.taxRate,
       subtotalExclTax: reservation.subtotalExclTax,
@@ -503,7 +503,7 @@ export async function sendRequestAcceptedEmail({
       paymentUrl,
       customContent,
       locale,
-      currency: store.settings?.currency || 'EUR',
+      currency: store.settings?.currency || 'PLN',
     })
   )
 
@@ -809,7 +809,7 @@ export async function sendReminderPickupAdminEmail({
       startDate: reservation.startDate,
       total: reservation.totalAmount,
       dashboardUrl,
-      currency: store.settings?.currency || 'EUR',
+      currency: store.settings?.currency || 'PLN',
       locale,
     })
   )
@@ -882,7 +882,7 @@ export async function sendReminderReturnAdminEmail({
       endDate: reservation.endDate,
       total: reservation.totalAmount,
       dashboardUrl,
-      currency: store.settings?.currency || 'EUR',
+      currency: store.settings?.currency || 'PLN',
       locale,
     })
   )
@@ -1015,7 +1015,7 @@ export async function sendNewRequestLandlordEmail({
       customerNotes: reservation.customerNotes,
       dashboardUrl,
       locale,
-      currency: store.settings?.currency || 'EUR',
+      currency: store.settings?.currency || 'PLN',
       storeTimezone: store.settings?.timezone,
       storeCountryCode: store.settings?.country,
     })
@@ -1628,7 +1628,7 @@ export async function sendReservationCompletedEmail({
       depositReturned,
       storefrontUrl,
       locale,
-      currency: store.settings?.currency || 'EUR',
+      currency: store.settings?.currency || 'PLN',
     })
   )
 
@@ -1709,7 +1709,7 @@ export async function sendPaymentConfirmationEmail({
       reservationUrl,
       contractSignatureUrl,
       locale,
-      currency: store.settings?.currency || 'EUR',
+      currency: store.settings?.currency || 'PLN',
     })
   )
 
@@ -1786,7 +1786,7 @@ export async function sendPaymentFailedEmail({
       errorMessage,
       paymentUrl,
       locale,
-      currency: store.settings?.currency || 'EUR',
+      currency: store.settings?.currency || 'PLN',
     })
   )
 
@@ -1860,7 +1860,7 @@ export async function sendPaymentRequestEmail({
       paymentUrl,
       customMessage,
       locale,
-      currency: store.settings?.currency || 'EUR',
+      currency: store.settings?.currency || 'PLN',
     })
   )
 
@@ -1931,7 +1931,7 @@ export async function sendDepositAuthorizationRequestEmail({
       authorizationUrl,
       customMessage,
       locale,
-      currency: store.settings?.currency || 'EUR',
+      currency: store.settings?.currency || 'PLN',
     })
   )
 
@@ -2007,7 +2007,7 @@ export async function sendQuoteSentEmail({
       total: reservation.totalAmount,
       reservationUrl,
       locale,
-      currency: store.settings?.currency || 'EUR',
+      currency: store.settings?.currency || 'PLN',
     })
   )
 

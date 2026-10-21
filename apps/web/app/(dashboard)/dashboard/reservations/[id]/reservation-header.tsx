@@ -98,7 +98,7 @@ export function ReservationHeader({
   depositReturned,
   totalAmount: _totalAmount,
   sentEmails = [],
-  currency: _currency = "EUR",
+  currency: _currency = "PLN",
   readOnly = false,
   onBack,
   onDownloadContract,

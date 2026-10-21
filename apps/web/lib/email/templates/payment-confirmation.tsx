@@ -46,7 +46,7 @@ export function PaymentConfirmationEmail({
   reservationUrl,
   contractSignatureUrl,
   locale = "fr",
-  currency = "EUR",
+  currency = "PLN",
 }: PaymentConfirmationEmailProps) {
   const t = getEmailTranslations(locale);
   const messages = t.paymentConfirmation;

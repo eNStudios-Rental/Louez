@@ -102,7 +102,7 @@ export default async function EditReservationPage({ params }: EditReservationPag
     <EditReservationPageClient
       reservationId={id}
       initialContext={initialContext}
-      currency={store.settings?.currency || "EUR"}
+      currency={store.settings?.currency || "PLN"}
       tulipInsuranceMode={getDashboardTulipInsuranceModeFromSettings(tulipIntegration.settings)}
       storeSettings={store.settings || null}
       storeDelivery={storeDelivery}

@@ -49,10 +49,18 @@ const getPeriodPaymentStats = cache((storeId: string, window: SalesWindow) =>
   getSalesPaymentStats(storeId, window),
 );
 
-async function RevenueHeroSection({ storeId, window }: { storeId: string; window: SalesWindow }) {
+async function RevenueHeroSection({
+  storeId,
+  window,
+  currency,
+}: {
+  storeId: string;
+  window: SalesWindow;
+  currency: string;
+}) {
   const { intl: formatLocale } = await getRequestFormatLocale();
   const stats = await getPeriodPaymentStats(storeId, window);
-  return <RevenueHero stats={stats} window={window} formatLocale={formatLocale} />;
+  return <RevenueHero stats={stats} window={window} formatLocale={formatLocale} currency={currency} />;
 }
 
 function RevenueHeroSkeleton() {
@@ -78,7 +86,15 @@ function StatStripSkeleton() {
   );
 }
 
-async function SalesStatStrip({ storeId, window }: { storeId: string; window: SalesWindow }) {
+async function SalesStatStrip({
+  storeId,
+  window,
+  currency,
+}: {
+  storeId: string;
+  window: SalesWindow;
+  currency: string;
+}) {
   const { intl: formatLocale } = await getRequestFormatLocale();
   const [reservationStats, duration, payments] = await Promise.all([
     getPeriodReservationStats(storeId, window),
@@ -92,6 +108,7 @@ async function SalesStatStrip({ storeId, window }: { storeId: string; window: Sa
       duration={duration}
       totalRevenue={payments.totalRevenue}
       formatLocale={formatLocale}
+      currency={currency}
     />
   );
 }
@@ -114,9 +131,11 @@ function RentalActivitySkeleton() {
 async function RentalActivityData({
   storeId,
   window,
+  currency,
 }: {
   storeId: string;
   window: SalesWindow;
+  currency: string;
 }) {
   const { intl: formatLocale } = await getRequestFormatLocale();
   const [occupancy, upcoming] = await Promise.all([
@@ -125,33 +144,50 @@ async function RentalActivityData({
   ]);
 
   return (
-    <RentalActivitySection occupancy={occupancy} upcoming={upcoming} formatLocale={formatLocale} />
+    <RentalActivitySection
+      occupancy={occupancy}
+      upcoming={upcoming}
+      formatLocale={formatLocale}
+      currency={currency}
+    />
   );
 }
 
-async function RevenueChartSection({ storeId, window }: { storeId: string; window: SalesWindow }) {
+async function RevenueChartSection({
+  storeId,
+  window,
+  currency,
+}: {
+  storeId: string;
+  window: SalesWindow;
+  currency: string;
+}) {
   const { dateFns } = await getRequestFormatLocale();
   const data = await getRevenueTimeSeries(storeId, window, dateFns);
-  return <RevenueChart data={data} />;
+  return <RevenueChart data={data} currency={currency} />;
 }
 
 async function PaymentMethodsSection({
   storeId,
   window,
+  currency,
 }: {
   storeId: string;
   window: SalesWindow;
+  currency: string;
 }) {
   const data = await getRevenueByPaymentMethod(storeId, window);
-  return <PaymentMethodsBreakdown data={data} />;
+  return <PaymentMethodsBreakdown data={data} currency={currency} />;
 }
 
 async function TopProductsByRevenueSection({
   storeId,
   window,
+  currency,
 }: {
   storeId: string;
   window: SalesWindow;
+  currency: string;
 }) {
   const {
     products,
@@ -170,6 +206,7 @@ async function TopProductsByRevenueSection({
       nonCatalogRevenue={nonCatalogRevenue}
       unallocatedRevenue={unallocatedRevenue}
       productCount={productCount}
+      currency={currency}
     />
   );
 }
@@ -177,12 +214,14 @@ async function TopProductsByRevenueSection({
 async function TopCustomersByRevenueSection({
   storeId,
   window,
+  currency,
 }: {
   storeId: string;
   window: SalesWindow;
+  currency: string;
 }) {
   const customers = await getTopCustomersByRevenue(storeId, window);
-  return <TopCustomersTable customers={customers} />;
+  return <TopCustomersTable customers={customers} currency={currency} />;
 }
 
 export default async function SalesAnalyticsPage({ searchParams }: SalesAnalyticsPageProps) {
@@ -194,43 +233,44 @@ export default async function SalesAnalyticsPage({ searchParams }: SalesAnalytic
     redirect("/onboarding");
   }
 
+  const currency = store.settings?.currency || "PLN";
   const window = getSalesWindow(period, new Date(), store.settings?.timezone || "UTC");
 
   return (
     <SalesAnalyticsContent
       revenueHero={
         <Suspense fallback={<RevenueHeroSkeleton />}>
-          <RevenueHeroSection storeId={store.id} window={window} />
+          <RevenueHeroSection storeId={store.id} window={window} currency={currency} />
         </Suspense>
       }
       revenueChart={
         <Suspense fallback={<Skeleton className="h-64 w-full sm:h-72" />}>
-          <RevenueChartSection storeId={store.id} window={window} />
+          <RevenueChartSection storeId={store.id} window={window} currency={currency} />
         </Suspense>
       }
       paymentMethods={
         <Suspense fallback={<Skeleton className="h-50 w-full" />}>
-          <PaymentMethodsSection storeId={store.id} window={window} />
+          <PaymentMethodsSection storeId={store.id} window={window} currency={currency} />
         </Suspense>
       }
       stats={
         <Suspense fallback={<StatStripSkeleton />}>
-          <SalesStatStrip storeId={store.id} window={window} />
+          <SalesStatStrip storeId={store.id} window={window} currency={currency} />
         </Suspense>
       }
       rentalActivity={
         <Suspense fallback={<RentalActivitySkeleton />}>
-          <RentalActivityData storeId={store.id} window={window} />
+          <RentalActivityData storeId={store.id} window={window} currency={currency} />
         </Suspense>
       }
       topProducts={
         <Suspense fallback={<Skeleton className="h-75 w-full" />}>
-          <TopProductsByRevenueSection storeId={store.id} window={window} />
+          <TopProductsByRevenueSection storeId={store.id} window={window} currency={currency} />
         </Suspense>
       }
       topCustomers={
         <Suspense fallback={<Skeleton className="h-75 w-full" />}>
-          <TopCustomersByRevenueSection storeId={store.id} window={window} />
+          <TopCustomersByRevenueSection storeId={store.id} window={window} currency={currency} />
         </Suspense>
       }
     />

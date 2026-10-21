@@ -46,7 +46,7 @@ export function ReservationCompletedEmail({
   depositReturned = false,
   storefrontUrl,
   locale = "fr",
-  currency = "EUR",
+  currency = "PLN",
 }: ReservationCompletedEmailProps) {
   const t = getEmailTranslations(locale);
   const messages = t.reservationCompleted;

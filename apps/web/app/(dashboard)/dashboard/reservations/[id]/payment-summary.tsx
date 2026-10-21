@@ -112,7 +112,7 @@ export function PaymentSummary({
   totalAmount: _totalAmount,
   payments,
   status,
-  currency = "EUR",
+  currency = "PLN",
 }: PaymentSummaryProps) {
   const t = useTranslations("dashboard.reservations");
   const tCommon = useTranslations("common");

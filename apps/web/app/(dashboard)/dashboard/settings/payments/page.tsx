@@ -48,7 +48,7 @@ export default async function PaymentsSettingsPage() {
         stripeOnboardingComplete={store.stripeOnboardingComplete ?? false}
         reservationMode={reservationMode}
         stripeConfigured={stripeConfigured}
-        defaultCurrency={store.settings?.currency ?? "EUR"}
+        defaultCurrency={store.settings?.currency ?? "PLN"}
         finances={finances}
       />
     </SettingsPageShell>

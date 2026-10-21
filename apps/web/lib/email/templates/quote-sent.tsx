@@ -63,7 +63,7 @@ export function QuoteSentEmail({
   reservationUrl,
   customContent,
   locale = "fr",
-  currency = "EUR",
+  currency = "PLN",
 }: QuoteSentEmailProps) {
   const t = getEmailTranslations(locale);
   const messages = t.quoteSent;

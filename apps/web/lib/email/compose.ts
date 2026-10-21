@@ -195,7 +195,7 @@ export function composeInstantAccessEmail({
     showPaymentCta,
     additionalMessage,
     locale,
-    currency: store.settings?.currency || 'EUR',
+    currency: store.settings?.currency || 'PLN',
   })
 
   return { subject, element }
@@ -285,7 +285,7 @@ export function composeManualPaymentRequestEmail({
     paymentUrl: reservationUrl,
     customMessage: additionalMessage,
     locale,
-    currency: store.settings?.currency || 'EUR',
+    currency: store.settings?.currency || 'PLN',
   })
 
   return { subject, element }

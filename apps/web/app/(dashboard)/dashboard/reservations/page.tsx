@@ -139,7 +139,7 @@ export default async function ReservationsPage({ searchParams }: ReservationsPag
       ? "list"
       : "calendar";
 
-  const currency = store.settings?.currency || "EUR";
+  const currency = store.settings?.currency || "PLN";
   const timezone = store.settings?.timezone;
 
   const status = normalizeStatus(params.status);
