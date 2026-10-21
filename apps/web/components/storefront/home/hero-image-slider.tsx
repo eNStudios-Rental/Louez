@@ -107,7 +107,7 @@ export const HeroImageSlider = ({ images, youtubeUrl, className }: HeroImageSlid
               tabIndex={-1}
               className="pointer-events-none absolute left-1/2 top-1/2 h-[max(100cqh,56.25cqw)] w-[max(100cqw,177.78cqh)] max-w-none -translate-x-1/2 -translate-y-1/2 border-0"
             />
-          ) : null}
+          )}
         </div>
       ))}
 
