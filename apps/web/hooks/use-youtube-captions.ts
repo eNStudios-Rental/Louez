@@ -10,6 +10,8 @@ interface YouTubePlayer {
   destroy: () => void;
   getOptions: () => string[];
   unloadModule: (moduleName: string) => void;
+  pauseVideo: () => void;
+  playVideo: () => void;
 }
 
 interface YouTubePlayerEvent {
@@ -73,34 +75,62 @@ const loadYouTubeIframeApi = (): Promise<YouTubeIframeApi> => {
 
 export const useYouTubeCaptionsDisabled = (active: boolean) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const playerRef = useRef<YouTubePlayer | null>(null);
+  const activeRef = useRef(active);
+  activeRef.current = active;
 
   useEffect(() => {
     const iframe = iframeRef.current;
-    if (!active || !iframe) return;
+    if (!iframe) return;
 
-    let player: YouTubePlayer | null = null;
     let disposed = false;
 
-    void loadYouTubeIframeApi()
-      .then((api) => {
-        if (disposed) return;
+    if (playerRef.current) {
+      if (active) {
+        playerRef.current.playVideo();
+      } else {
+        playerRef.current.pauseVideo();
+      }
+    } else if (active) {
+      void loadYouTubeIframeApi()
+        .then((api) => {
+          if (disposed) return;
 
-        player = new api.Player(iframe, {
-          events: {
-            onApiChange: ({ target }) => disableYouTubeCaptions(target),
-            onReady: ({ target }) => disableYouTubeCaptions(target),
-          },
+          playerRef.current = new api.Player(iframe, {
+            events: {
+              onApiChange: ({ target }) => disableYouTubeCaptions(target),
+              onReady: ({ target }) => {
+                disableYouTubeCaptions(target);
+                if (activeRef.current) {
+                  target.playVideo();
+                } else {
+                  target.pauseVideo();
+                }
+              },
+            },
+          });
+        })
+        .catch((error: unknown) => {
+          if (!disposed) {
+            log.error({ action: "youtube_captions_disable_failed", error: String(error) });
+          }
         });
-      })
-      .catch((error: unknown) => {
-        if (!disposed) {
-          log.error({ action: "youtube_captions_disable_failed", error: String(error) });
-        }
-      });
+    }
 
     return () => {
       disposed = true;
-      player?.destroy();
+      const player = playerRef.current;
+      player?.pauseVideo();
+
+      // The IFrame API's destroy() removes the iframe from the DOM. React owns
+      // this node, so only destroy after React has detached it (not whenever
+      // the carousel switches slides).
+      window.setTimeout(() => {
+        if (player && !iframe.isConnected && playerRef.current === player) {
+          playerRef.current = null;
+          player.destroy();
+        }
+      }, 0);
     };
   }, [active]);
 
