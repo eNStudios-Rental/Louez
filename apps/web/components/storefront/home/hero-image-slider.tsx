@@ -96,7 +96,7 @@ export const HeroImageSlider = ({ images, youtubeUrl, className }: HeroImageSlid
               sizes="100vw"
               className="object-cover"
             />
-          ) : slide === activeIndex ? (
+          ) : (
             <iframe
               src={media.src}
               ref={youtubeIframeRef}
