@@ -5,6 +5,7 @@ import {
   buildCategoryBrowseEntries,
   buildCategoryBrowseHref,
   bucketProductLinks,
+  compareCategories,
 } from "./util.category-browse-entries";
 
 const labels = { others: "Autres", othersDescription: "Sans catégorie", all: "Tous les produits" };
@@ -68,5 +69,32 @@ describe("buildCategoryBrowseEntries", () => {
       labels,
     });
     assert.deepEqual(entries, []);
+  });
+});
+
+describe("compareCategories", () => {
+  it("places Multimedia before other categories regardless of name or order", () => {
+    const list = [
+      { id: "1", name: "Meble", order: 0 },
+      { id: "2", name: "Multimedia", order: 2 },
+      { id: "3", name: "AGD", order: 1 },
+    ];
+    list.sort(compareCategories);
+    assert.deepEqual(
+      list.map((c) => c.name),
+      ["Multimedia", "Meble", "AGD"],
+    );
+  });
+
+  it("handles case insensitivity and accents (e.g. Multimédia)", () => {
+    const list = [
+      { id: "1", name: "Meble" },
+      { id: "2", name: "multimédia" },
+    ];
+    list.sort(compareCategories);
+    assert.deepEqual(
+      list.map((c) => c.name),
+      ["multimédia", "Meble"],
+    );
   });
 });

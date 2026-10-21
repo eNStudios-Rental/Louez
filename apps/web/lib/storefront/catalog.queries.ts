@@ -50,6 +50,7 @@ import type {
   StorefrontCatalogProduct,
   StorefrontPricingTier,
 } from "@/lib/storefront/storefront.types";
+import { compareCategories } from "@/lib/utils/util.category-browse-entries";
 import {
   type BrowsableCategory,
   type CatalogAttributeFilters,
@@ -175,6 +176,7 @@ export interface CatalogProduct extends StorefrontCatalogProduct {
 }
 
 export type CatalogCategory = BrowsableCategory & {
+  parentId: string | null;
   description: string | null;
   imageUrl: string | null;
   order: number;
@@ -276,10 +278,7 @@ export const loadCatalogCategories = cache(
         .innerJoin(products, eq(products.id, productCategories.productId))
         .innerJoin(
           categories,
-          and(
-            eq(categories.id, productCategories.categoryId),
-            eq(categories.storeId, storeId),
-          ),
+          and(eq(categories.id, productCategories.categoryId), eq(categories.storeId, storeId)),
         )
         .where(activeProductsOf(storeId)),
       db
@@ -288,7 +287,8 @@ export const loadCatalogCategories = cache(
         .where(activeProductsOf(storeId)),
     ]);
 
-    const categoriesById = new Map(rows.map((category) => [category.id, category]));
+    const sortedRows = [...rows].sort(compareCategories);
+    const categoriesById = new Map(sortedRows.map((category) => [category.id, category]));
     const assignments = [...links];
     const productsWithAssignments = new Set(links.map((link) => link.productId));
     for (const product of activeRows) {
@@ -303,14 +303,14 @@ export const loadCatalogCategories = cache(
         });
       }
     }
-    const productIdsByCategoryId = getProductIdsByCategoryAndAncestors(rows, assignments);
+    const productIdsByCategoryId = getProductIdsByCategoryAndAncestors(sortedRows, assignments);
     const categorized = new Set(assignments.map((assignment) => assignment.productId));
     const uncategorizedProductIds = activeRows
       .map((row) => row.id)
       .filter((id) => !categorized.has(id));
 
     return {
-      categories: rows.map((row, index) => {
+      categories: sortedRows.map((row, index) => {
         const productIds = productIdsByCategoryId.get(row.id) ?? [];
         return {
           id: row.id,
@@ -611,12 +611,14 @@ const byMerchantOrder = (a: CatalogCandidate, b: CatalogCandidate): number =>
 /**
  * Orders the matching products the way the page lists them. Price sorts
  * use the period price, so the order agrees with the amounts on the cards;
- * ties keep the merchant's order.
+ * ties keep the merchant's order. Recommended sorts respect category ranking
+ * first, falling back to merchant order.
  */
 const orderCandidates = (
   candidates: CatalogCandidate[],
   sort: CatalogSort,
   priceById: ReadonlyMap<string, number>,
+  categoryRankByProductId?: ReadonlyMap<string, number>,
 ): CatalogCandidate[] => {
   if (sort === "priceAsc" || sort === "priceDesc") {
     const direction = sort === "priceAsc" ? 1 : -1;
@@ -624,6 +626,13 @@ const orderCandidates = (
       (a, b) =>
         direction * (indexedPriceOf(priceById, a.id) - indexedPriceOf(priceById, b.id)) ||
         byMerchantOrder(a, b),
+    );
+  }
+  if (categoryRankByProductId) {
+    return [...candidates].sort(
+      (a, b) =>
+        (categoryRankByProductId.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+          (categoryRankByProductId.get(b.id) ?? Number.MAX_SAFE_INTEGER) || byMerchantOrder(a, b),
     );
   }
   return [...candidates].sort(byMerchantOrder);
@@ -910,7 +919,18 @@ export const loadCatalogProducts = async ({
       (typeof maxPrice !== "number" || price <= maxPrice)
     );
   });
-  const ordered = orderCandidates(withinRange, sort, priceById);
+  const categoryRankByProductId = new Map<string, number>();
+  for (let rank = 0; rank < storeCategories.length; rank++) {
+    const cat = storeCategories[rank];
+    if (!cat) continue;
+    for (const productId of cat.productIds) {
+      if (!categoryRankByProductId.has(productId)) {
+        categoryRankByProductId.set(productId, rank);
+      }
+    }
+  }
+
+  const ordered = orderCandidates(withinRange, sort, priceById, categoryRankByProductId);
   const totalCount = ordered.length;
   const productIds = ordered.slice(offset, offset + limit).map((candidate) => candidate.id);
   const hasMore = offset + limit < totalCount;

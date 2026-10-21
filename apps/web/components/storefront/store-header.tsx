@@ -123,7 +123,7 @@ export const StoreHeader = ({
               {showCapsule ? (
                 <div
                   className={cn(
-                    "order-3 grid w-full transition-[grid-template-rows,opacity,visibility] duration-200 ease-out motion-reduce:transition-none md:visible md:absolute md:top-1/2 md:left-1/2 md:block md:max-w-sm md:-translate-x-1/2 md:-translate-y-1/2 md:opacity-100 lg:max-w-xl",
+                    "order-3 grid w-full transition-[grid-template-rows,opacity,visibility] duration-200 ease-out motion-reduce:transition-none md:visible md:absolute md:top-1/2 md:left-1/2 md:block md:max-w-sm md:-translate-x-1/2 md:-translate-y-1/2 md:opacity-100 lg:max-w-md xl:max-w-lg 2xl:max-w-xl",
                     mobileSearchVisible
                       ? "visible grid-rows-[1fr] opacity-100"
                       : "invisible grid-rows-[0fr] opacity-0",
@@ -153,14 +153,11 @@ export const StoreHeader = ({
                   title={t("header.catalog")}
                   aria-current={isCatalog ? "page" : undefined}
                   className={cn(
-                    "flex h-12 items-center gap-2 rounded-full border border-transparent px-3 text-foreground transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none max-lg:size-12 max-lg:p-0 max-lg:justify-center",
+                    "flex size-12 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                     isCatalog && "bg-muted font-medium text-primary",
                   )}
                 >
-                  <LayoutGridIcon aria-hidden className="size-5 shrink-0" />
-                  <span className="hidden text-sm font-medium lg:inline">
-                    {t("header.catalog")}
-                  </span>
+                  <LayoutGridIcon aria-hidden className="size-5" />
                 </StorefrontLink>
                 {phone ? (
                   <a

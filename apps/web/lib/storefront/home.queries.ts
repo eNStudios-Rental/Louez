@@ -213,7 +213,7 @@ export const getCategoryBrowseEntries = async (
 ): Promise<CategoryBrowseEntry[]> => {
   const [storeCategories, productLinks] = await Promise.all([
     db.query.categories.findMany({
-      columns: { id: true, name: true, slug: true, description: true, imageUrl: true },
+      columns: { id: true, name: true, slug: true, description: true, imageUrl: true, order: true },
       where: eq(categories.storeId, storeId),
       orderBy: [categories.order],
     }),

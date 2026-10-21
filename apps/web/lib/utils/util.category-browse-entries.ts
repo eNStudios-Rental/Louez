@@ -42,6 +42,24 @@ export interface CategoryBuckets {
 export const getCategoryToken = (category: { id: string; slug?: string | null }): string =>
   category.slug ?? category.id;
 
+const isMultimediaCategory = (name: string): boolean =>
+  name
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") === "multimedia";
+
+/** Orders categories so "Multimedia" comes first, then by merchant order and name. */
+export const compareCategories = <T extends { name: string; order?: number | null }>(
+  a: T,
+  b: T,
+): number => {
+  const isMultimediaA = isMultimediaCategory(a.name);
+  const isMultimediaB = isMultimediaCategory(b.name);
+  if (isMultimediaA !== isMultimediaB) return isMultimediaA ? -1 : 1;
+  return (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name, "pl");
+};
+
 /** The catalog link of a tile: `?category=all` for all products, a `?category=` filter otherwise. */
 export const buildCategoryBrowseHref = (categoryToken: string): string =>
   `/catalog?category=${encodeURIComponent(categoryToken)}`;
@@ -92,9 +110,10 @@ export const buildCategoryBrowseEntries = ({
   labels,
 }: BuildCategoryBrowseEntriesInput): CategoryBrowseEntry[] => {
   const buckets = bucketProductLinks(productLinks);
+  const sortedCategories = [...categories].sort(compareCategories);
 
   const entries: CategoryBrowseEntry[] = [];
-  for (const category of categories) {
+  for (const category of sortedCategories) {
     const bucket = buckets.byCategoryId.get(category.id);
     if (!bucket || bucket.count === 0) continue;
     entries.push({
