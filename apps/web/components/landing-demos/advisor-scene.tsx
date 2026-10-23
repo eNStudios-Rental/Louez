@@ -16,7 +16,7 @@ export const AdvisorScene = ({ visible }: { visible: boolean }) => {
       <div className="grid min-h-80 place-items-center">
         <Button onClick={() => setOpen(true)}>
           <SparklesIcon />
-          Louez IA
+          Rental assistant
         </Button>
       </div>
       <AdvisorPanel
@@ -24,7 +24,7 @@ export const AdvisorScene = ({ visible }: { visible: boolean }) => {
         modal={false}
         isOpen={open && visible}
         onClose={() => setOpen(false)}
-        displayName="Louez IA"
+        displayName="Rental assistant"
         intent={null}
         onIntentConsumed={() => {}}
         messages={messages}

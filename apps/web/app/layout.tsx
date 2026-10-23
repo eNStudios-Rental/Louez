@@ -35,6 +35,9 @@ export const metadata: Metadata = {
     template: `%s | ${messages.app.name}`,
   },
   description: messages.app.description,
+  // Keep fallback icons in config metadata: root file-based icon files take
+  // precedence over this and prevent storefront metadata from selecting a
+  // store's uploaded favicon.
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },

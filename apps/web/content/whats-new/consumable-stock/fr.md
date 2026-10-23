@@ -1,4 +1,4 @@
-Louez comptait le stock d'une seule façon : un article part, il revient, il redevient disponible. Le fart, le gaz, les sangles et les sacs n'entraient pas dans ce modèle. Ils y entrent maintenant, sous leur propre type de stock.
+La plateforme comptait le stock d'une seule façon : un article part, il revient, il redevient disponible. Le fart, le gaz, les sangles et les sacs n'entraient pas dans ce modèle. Ils y entrent maintenant, sous leur propre type de stock.
 
 ## Deux types de stock
 

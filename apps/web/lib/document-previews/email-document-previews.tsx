@@ -632,10 +632,10 @@ export const EMAIL_DOCUMENT_PREVIEWS: readonly EmailDocumentPreview[] = [
     }),
   }),
 
-  // ----- Platform (Louez account) -----
+  // ----- Platform account -----
   platformEmail({
     id: "otp",
-    title: "Code de connexion Louez",
+    title: "Code de connexion",
     description: "Code à usage unique pour se connecter au tableau de bord.",
     compose: ({ locale }) => ({
       subject: null,
@@ -644,7 +644,7 @@ export const EMAIL_DOCUMENT_PREVIEWS: readonly EmailDocumentPreview[] = [
   }),
   platformEmail({
     id: "magic-link",
-    title: "Lien de connexion Louez",
+    title: "Lien de connexion",
     description: "Lien magique pour se connecter au tableau de bord.",
     compose: ({ locale }) => ({
       subject: null,
@@ -654,7 +654,7 @@ export const EMAIL_DOCUMENT_PREVIEWS: readonly EmailDocumentPreview[] = [
   platformEmail({
     id: "delete-account",
     title: "Suppression de compte",
-    description: "Confirmation avant suppression définitive du compte Louez.",
+    description: "Confirmation avant suppression définitive du compte.",
     compose: ({ locale }) => ({
       subject: getDeleteAccountEmailSubject(locale),
       element: DeleteAccountEmail({ url, locale }),

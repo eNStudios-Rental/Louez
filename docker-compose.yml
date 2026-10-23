@@ -24,6 +24,7 @@ services:
       - NEXT_PUBLIC_APP_DOMAIN=${NEXT_PUBLIC_APP_DOMAIN:-localhost}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./certs:/etc/caddy/certs:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
@@ -177,7 +178,6 @@ services:
       start_period: 10s
     restart: unless-stopped
 
-
   # One-shot bucket bootstrap. The bucket stays private: the app streams
   # assets through /files with its own credentials.
   minio-init:
@@ -194,9 +194,6 @@ services:
         mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" &&
         mc mb --ignore-existing local/louez
     restart: "no"
-
-
-
 
 volumes:
   louez_data:

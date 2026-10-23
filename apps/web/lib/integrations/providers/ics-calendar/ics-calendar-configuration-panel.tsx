@@ -111,7 +111,7 @@ export const IcsCalendarConfigurationPanel = () => {
         </div>
 
         <p className="text-muted-foreground text-sm">
-          Louez publie les changements immediatement, mais la frequence de
+          Les changements sont publiés immédiatement, mais la fréquence de
           rafraichissement depend de l'application d'agenda abonne.
         </p>
 

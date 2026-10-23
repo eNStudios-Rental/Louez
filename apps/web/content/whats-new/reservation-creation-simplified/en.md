@@ -4,7 +4,7 @@ Creating a counter reservation took four or five steps — Customer, Period, Pro
 
 Everything is there, top to bottom: the customer, the period, the products, delivery if you offer it, and your internal notes. You fill them in whatever order suits you and go back with a glance, instead of a round trip between steps.
 
-No more validating a step to find out what is blocking, either: on submit, Louez scrolls to the incomplete section and points at the field concerned.
+No more validating a step to find out what is blocking, either: on submit, the app scrolls to the incomplete section and points at the field concerned.
 
 ## The summary is no longer a step
 
@@ -20,7 +20,7 @@ The old "Confirmation" step is gone. The summary stays next to the form while yo
 
 A walk-in customer is created straight from the search field: they are saved and selected right away, and you will find them again next time.
 
-On the gear side, only products free for the period are offered. If you decide to go ahead anyway, Louez warns you about the overbooking before you confirm, rather than letting you discover it on pick-up day.
+On the gear side, only products free for the period are offered. If you decide to go ahead anyway, the app warns you about the overbooking before you confirm, rather than letting you discover it on pick-up day.
 
 ---
 

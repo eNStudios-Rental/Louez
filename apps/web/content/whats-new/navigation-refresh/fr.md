@@ -1,4 +1,4 @@
-Le tableau de bord a grandi, et avec lui le nombre de pages à retenir. Plutôt que d'ajouter des menus, on a ajouté un raccourci : tapez ce que vous cherchez, Louez vous y emmène.
+Le tableau de bord a grandi, et avec lui le nombre de pages à retenir. Plutôt que d'ajouter des menus, on a ajouté un raccourci : tapez ce que vous cherchez, la plateforme vous y emmène.
 
 ## ⌘K, depuis n'importe où
 

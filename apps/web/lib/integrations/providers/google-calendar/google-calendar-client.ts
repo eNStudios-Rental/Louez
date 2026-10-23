@@ -237,7 +237,7 @@ function toGoogleEvent(input: GoogleCalendarEventInput) {
     visibility: input.visibility,
     colorId: input.colorId,
     source: {
-      title: 'Louez',
+      title: 'Reservations',
       url: input.url,
     },
   };

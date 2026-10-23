@@ -1,4 +1,4 @@
-Jusqu'ici, vous vous connectiez à Louez avec un code reçu par e-mail ou avec Google. Vous pouvez maintenant ajouter un mot de passe à votre compte. C'est facultatif : le code par e-mail reste toujours disponible.
+Jusqu'ici, vous vous connectiez à la plateforme avec un code reçu par e-mail ou avec Google. Vous pouvez maintenant ajouter un mot de passe à votre compte. C'est facultatif : le code par e-mail reste toujours disponible.
 
 ## Définir un mot de passe
 
@@ -8,7 +8,7 @@ Depuis cette même carte, vous pouvez le modifier ou le retirer à tout moment.
 
 ## Se connecter avec
 
-Sur l'écran de connexion, cliquez sur **Se connecter avec un mot de passe**. Louez retient la méthode que vous avez utilisée : la prochaine fois, le bon écran s'ouvre directement.
+Sur l'écran de connexion, cliquez sur **Se connecter avec un mot de passe**. La plateforme retient la méthode que vous avez utilisée : la prochaine fois, le bon écran s'ouvre directement.
 
 ## Mot de passe oublié
 

@@ -16,8 +16,9 @@ import { auth } from "@/lib/auth";
 import { captureProductServerEvent } from "@/lib/product-analytics/analytics";
 import { productAnalyticsEvents } from "@/lib/product-analytics/analytics-events";
 const updateUserProfileSchema = profileSchema.extend({
-  // undefined = keep the current image, null = remove it, string = uploaded URL.
-  imageUrl: z.string().url().nullable().optional(),
+  // Uploaded images can be absolute bucket URLs or same-origin `/files/...` paths.
+  // isOwnedImageUrl below validates the storage URL and its user-owned prefix.
+  imageUrl: z.string().nullable().optional(),
 });
 
 type UpdateUserProfileInput = z.infer<typeof updateUserProfileSchema>;
