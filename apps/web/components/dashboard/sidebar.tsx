@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import Gleap from "gleap";
@@ -28,13 +27,7 @@ import {
   TooltipTrigger,
   Sidebar as UISidebar,
 } from "@louez/ui";
-import {
-  AccentSparklesIcon,
-  AdminShieldIcon,
-  CrownIcon,
-  LogoutIcon,
-  OpenInNewIcon,
-} from "@louez/ui/icons";
+import { AdminShieldIcon, LogoutIcon, OpenInNewIcon } from "@louez/ui/icons";
 import { HelpGlassIcon } from "@louez/ui/icons/glass";
 
 // import { ReferralSidebarWidget } from '@/components/dashboard/referral-sidebar-widget';
@@ -49,7 +42,6 @@ import { LanguageMenuSub } from "@/components/ui/language-switcher";
 
 import { useStorefrontUrl } from "@/hooks/use-storefront-url";
 import { aiCreditsQueries } from "@/lib/queries/ai-credits.queries";
-import { cn } from "@/lib/utils";
 import { DashboardNavigation } from "./dashboard-navigation";
 
 interface StoreWithRole {
@@ -331,6 +323,6 @@ export const DashboardSidebar = ({
   );
 };
 
-function PlanBadge({ planSlug }: { planSlug?: string }) {
+function PlanBadge(_props: { planSlug?: string }) {
   return null;
 }

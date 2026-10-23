@@ -1625,7 +1625,12 @@ export async function createManualReservation(data: CreateReservationData) {
       await tx
         .select({ id: productUnits.id })
         .from(productUnits)
-        .where(inArray(productUnits.id, [...requestedUnitIds].sort((a, b) => a.localeCompare(b))))
+        .where(
+          inArray(
+            productUnits.id,
+            [...requestedUnitIds].sort((a, b) => a.localeCompare(b)),
+          ),
+        )
         .orderBy(productUnits.id)
         .for("update");
     }
@@ -1656,13 +1661,6 @@ export async function createManualReservation(data: CreateReservationData) {
               ),
             )
         : [];
-    const busyUnitsInPeriod = await findBusyUnitIds(tx, {
-      unitIds: availableUnits.map((unit) => unit.id),
-      start: data.startDate,
-      end: data.endDate,
-      blockingStatuses,
-      turnoverBufferMinutes,
-    });
     const availableUnitIds = new Set(availableUnits.map((unit) => unit.id));
     const excludedProductUnitIds = new Set(
       trackedUnits.filter((unit) => !availableUnitIds.has(unit.id)).map((unit) => unit.id),
@@ -1755,7 +1753,7 @@ export async function createManualReservation(data: CreateReservationData) {
     const shortfalls: ManualReservationCapacityShortfall[] = [];
     const requestedUnitsById = new Map(availableUnits.map((unit) => [unit.id, unit]));
     const selectedUnitIds = new Set<string>();
-    
+
     const reservedUnitIds = new Set(
       overlappingReservations.flatMap((r) =>
         r.items.flatMap((i) => i.assignedUnits.map((u) => u.productUnitId)),
