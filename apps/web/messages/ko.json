@@ -495,6 +495,7 @@
       "onboardingIncomplete": "불완전한 온보딩",
       "roles": {
         "owner": "소유자",
+        "admin": "관리자",
         "member": "팀원",
         "platform_admin": "관리자"
       }

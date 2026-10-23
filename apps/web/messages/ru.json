@@ -495,6 +495,7 @@
       "onboardingIncomplete": "Неполная адаптация",
       "roles": {
         "owner": "Владелец",
+        "admin": "Администратор",
         "member": "Член команды",
         "platform_admin": "Админ"
       }

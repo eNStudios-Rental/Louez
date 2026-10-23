@@ -495,6 +495,7 @@
       "onboardingIncomplete": "Onboarding incompleto",
       "roles": {
         "owner": "Proprietario",
+        "admin": "Administrador",
         "member": "Membro da equipe",
         "platform_admin": "Admin"
       }

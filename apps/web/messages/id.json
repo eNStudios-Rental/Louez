@@ -495,6 +495,7 @@
       "onboardingIncomplete": "Orientasi tidak lengkap",
       "roles": {
         "owner": "Pemilik",
+        "admin": "Administrator",
         "member": "Anggota tim",
         "platform_admin": "Admin"
       }
