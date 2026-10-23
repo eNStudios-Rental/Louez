@@ -27,7 +27,11 @@ interface TeamMemberRowProps {
   readOnly?: boolean;
 }
 
-export const TeamMemberRow = ({ member, canManageMembers, readOnly = false }: TeamMemberRowProps) => {
+export const TeamMemberRow = ({
+  member,
+  canManageMembers,
+  readOnly = false,
+}: TeamMemberRowProps) => {
   const t = useTranslations("dashboard.team");
   const tErrors = useTranslations("errors");
   const format = useFormatter();
@@ -60,7 +64,10 @@ export const TeamMemberRow = ({ member, canManageMembers, readOnly = false }: Te
       <div className="min-w-0 flex-1 space-y-0.5">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <span className="truncate font-medium">{member.user.name || member.user.email}</span>
-          <Badge variant={isOwner ? "progress" : member.role === "admin" ? "success" : "expired"} className="gap-1">
+          <Badge
+            variant={isOwner ? "progress" : member.role === "admin" ? "success" : "expired"}
+            className="gap-1"
+          >
             {isOwner ? <StarSolidIcon /> : <UserSolidIcon />}
             {isOwner ? t("ownerBadge") : member.role === "admin" ? "Admin" : t("memberBadge")}
           </Badge>
@@ -95,32 +102,36 @@ export const TeamMemberRow = ({ member, canManageMembers, readOnly = false }: Te
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {member.role !== "admin" && (
-              <DropdownMenuItem onClick={() => {
-                if (readOnly) return;
-                startTransition(async () => {
-                  const res = await changeRole(member.id, "admin");
-                  if (res.error) {
-                    toastManager.add({ title: "Error changing role", type: "error" });
-                  } else {
-                    toastManager.add({ title: "Role changed to Admin", type: "success" });
-                  }
-                });
-              }}>
+              <DropdownMenuItem
+                onClick={() => {
+                  if (readOnly) return;
+                  startTransition(async () => {
+                    const res = await changeRole(member.id, "admin");
+                    if (res.error) {
+                      toastManager.add({ title: "Error changing role", type: "error" });
+                    } else {
+                      toastManager.add({ title: "Role changed to Admin", type: "success" });
+                    }
+                  });
+                }}
+              >
                 Make Admin
               </DropdownMenuItem>
             )}
             {member.role !== "member" && (
-              <DropdownMenuItem onClick={() => {
-                if (readOnly) return;
-                startTransition(async () => {
-                  const res = await changeRole(member.id, "member");
-                  if (res.error) {
-                    toastManager.add({ title: "Error changing role", type: "error" });
-                  } else {
-                    toastManager.add({ title: "Role changed to Member", type: "success" });
-                  }
-                });
-              }}>
+              <DropdownMenuItem
+                onClick={() => {
+                  if (readOnly) return;
+                  startTransition(async () => {
+                    const res = await changeRole(member.id, "member");
+                    if (res.error) {
+                      toastManager.add({ title: "Error changing role", type: "error" });
+                    } else {
+                      toastManager.add({ title: "Role changed to Member", type: "success" });
+                    }
+                  });
+                }}
+              >
                 Make Member
               </DropdownMenuItem>
             )}

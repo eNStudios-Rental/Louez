@@ -1,10 +1,10 @@
-import { and, eq } from 'drizzle-orm'
+import { and, eq } from "drizzle-orm";
 
-import { aiAdvisorConversations, db } from '@louez/db'
+import { aiAdvisorConversations, db } from "@louez/db";
 
-import { isVoiceAgentConfigured } from '@/lib/ai/phone/eligibility'
-import { readVoiceWebhook } from '@/lib/ai/phone/webhook'
-import { getVoiceProvider } from '@/lib/voice/client'
+import { isVoiceAgentConfigured } from "@/lib/ai/phone/eligibility";
+import { readVoiceWebhook } from "@/lib/ai/phone/webhook";
+import { getVoiceProvider } from "@/lib/voice/client";
 
 // INTENTIONALLY PUBLIC route [SE-01]: the call-recording status callback. The
 // provider POSTs here (signature-authenticated) when a recording finalizes. It
@@ -14,13 +14,13 @@ import { getVoiceProvider } from '@/lib/voice/client'
 
 export async function POST(req: Request) {
   if (!isVoiceAgentConfigured()) {
-    return new Response('Not found', { status: 404 })
+    return new Response("Not found", { status: 404 });
   }
 
-  const read = await readVoiceWebhook(req)
-  if (!read.ok) return new Response('Bad request', { status: read.status })
+  const read = await readVoiceWebhook(req);
+  if (!read.ok) return new Response("Bad request", { status: read.status });
 
-  const provider = getVoiceProvider()
+  const provider = getVoiceProvider();
   if (
     !provider.verifyWebhook({
       url: read.publicUrl,
@@ -28,11 +28,11 @@ export async function POST(req: Request) {
       signature: read.signature,
     })
   ) {
-    return new Response('Invalid signature', { status: 403 })
+    return new Response("Invalid signature", { status: 403 });
   }
 
-  const recording = provider.parseRecordingCallback(read.rawParams)
-  if (!recording) return new Response(null, { status: 204 })
+  const recording = provider.parseRecordingCallback(read.rawParams);
+  if (!recording) return new Response(null, { status: 204 });
 
   // Scoped by the provider call id (unique per call) + channel; the recording
   // id comes from a signature-verified provider callback.
@@ -46,9 +46,9 @@ export async function POST(req: Request) {
     .where(
       and(
         eq(aiAdvisorConversations.providerCallId, recording.callId),
-        eq(aiAdvisorConversations.channel, 'phone'),
+        eq(aiAdvisorConversations.channel, "phone"),
       ),
-    )
+    );
 
-  return new Response(null, { status: 204 })
+  return new Response(null, { status: 204 });
 }

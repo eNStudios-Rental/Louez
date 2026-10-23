@@ -1,20 +1,17 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { isPossiblePhoneNumberInput } from './phone';
+import { isPossiblePhoneNumberInput } from "./phone";
 
 // Customer type enum
-export const customerTypeValues = ['individual', 'business'] as const;
+export const customerTypeValues = ["individual", "business"] as const;
 export type CustomerType = (typeof customerTypeValues)[number];
 
-export const customerCompanyNumberSchemeValues = [
-  'fr_siren',
-  'be_bce',
-] as const;
+export const customerCompanyNumberSchemeValues = ["fr_siren", "be_bce"] as const;
 
 // Base schema without refinement for form validation
 const baseCustomerFields = {
   customerType: z.enum(customerTypeValues),
-  email: z.union([z.email('validation.email'), z.literal('')]).optional(),
+  email: z.union([z.email("validation.email"), z.literal("")]).optional(),
   firstName: z.string().max(255).optional(),
   lastName: z.string().max(255).optional(),
   companyName: z.string().max(255).optional(),
@@ -24,13 +21,13 @@ const baseCustomerFields = {
   phone: z
     .string()
     .refine((val) => !val || isPossiblePhoneNumberInput(val), {
-      message: 'validation.invalidPhone',
+      message: "validation.invalidPhone",
     })
     .optional(),
   address: z.string().optional(),
   city: z.string().optional(),
   postalCode: z.string().optional(),
-  country: z.string().length(2, 'validation.minLength').optional(),
+  country: z.string().length(2, "validation.minLength").optional(),
   notes: z.string().optional(),
 };
 
@@ -41,7 +38,7 @@ export const createCustomerSchema = (
   z
     .object({
       customerType: z.enum(customerTypeValues),
-      email: z.union([z.email(t('email')), z.literal('')]).optional(),
+      email: z.union([z.email(t("email")), z.literal("")]).optional(),
       firstName: z.string().max(255).optional(),
       lastName: z.string().max(255).optional(),
       companyName: z.string().max(255).optional(),
@@ -51,7 +48,7 @@ export const createCustomerSchema = (
       phone: z
         .string()
         .refine((val) => !val || isPossiblePhoneNumberInput(val), {
-          message: t('invalidPhone'),
+          message: t("invalidPhone"),
         })
         .optional(),
       address: z.string().optional(),
@@ -59,107 +56,105 @@ export const createCustomerSchema = (
       postalCode: z.string().optional(),
       country: z
         .string()
-        .length(2, t('minLength', { min: 2 }))
+        .length(2, t("minLength", { min: 2 }))
         .optional(),
       notes: z.string().optional(),
     })
     .superRefine((data, ctx) => {
-      if (data.customerType === 'business') {
+      if (data.customerType === "business") {
         if (!data.companyName || data.companyName.trim().length === 0) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: t('companyNameRequired'),
-            path: ['companyName'],
+            message: t("companyNameRequired"),
+            path: ["companyName"],
           });
         }
         if (!data.companyNumber || data.companyNumber.trim().length === 0) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: t('companyNumberRequired'),
-            path: ['companyNumber'],
+            message: t("companyNumberRequired"),
+            path: ["companyNumber"],
           });
         }
         if (!data.vatNumber || data.vatNumber.trim().length === 0) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: t('required'),
-            path: ['vatNumber'],
+            message: t("required"),
+            path: ["vatNumber"],
           });
         }
       } else {
         if (!data.firstName || data.firstName.trim().length === 0) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: t('required'),
-            path: ['firstName'],
+            message: t("required"),
+            path: ["firstName"],
           });
         }
         if (!data.lastName || data.lastName.trim().length === 0) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: t('required'),
-            path: ['lastName'],
+            message: t("required"),
+            path: ["lastName"],
           });
         }
         if (!data.email || data.email.trim().length === 0) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: t('required'),
-            path: ['email'],
+            message: t("required"),
+            path: ["email"],
           });
         }
       }
     });
 
 // Default schema for server-side validation (uses keys that client will translate)
-export const customerSchema = z
-  .object(baseCustomerFields)
-  .superRefine((data, ctx) => {
-    if (data.customerType === 'business') {
-      if (!data.companyName || data.companyName.trim().length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'validation.companyNameRequired',
-          path: ['companyName'],
-        });
-      }
-      if (!data.companyNumber || data.companyNumber.trim().length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'validation.companyNumberRequired',
-          path: ['companyNumber'],
-        });
-      }
-      if (!data.vatNumber || data.vatNumber.trim().length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'validation.required',
-          path: ['vatNumber'],
-        });
-      }
-    } else {
-      if (!data.firstName || data.firstName.trim().length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'validation.required',
-          path: ['firstName'],
-        });
-      }
-      if (!data.lastName || data.lastName.trim().length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'validation.required',
-          path: ['lastName'],
-        });
-      }
-      if (!data.email || data.email.trim().length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'validation.required',
-          path: ['email'],
-        });
-      }
+export const customerSchema = z.object(baseCustomerFields).superRefine((data, ctx) => {
+  if (data.customerType === "business") {
+    if (!data.companyName || data.companyName.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "validation.companyNameRequired",
+        path: ["companyName"],
+      });
     }
-  });
+    if (!data.companyNumber || data.companyNumber.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "validation.companyNumberRequired",
+        path: ["companyNumber"],
+      });
+    }
+    if (!data.vatNumber || data.vatNumber.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "validation.required",
+        path: ["vatNumber"],
+      });
+    }
+  } else {
+    if (!data.firstName || data.firstName.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "validation.required",
+        path: ["firstName"],
+      });
+    }
+    if (!data.lastName || data.lastName.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "validation.required",
+        path: ["lastName"],
+      });
+    }
+    if (!data.email || data.email.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "validation.required",
+        path: ["email"],
+      });
+    }
+  }
+});
 
 export type CustomerInput = z.infer<typeof customerSchema>;

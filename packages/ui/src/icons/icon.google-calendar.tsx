@@ -1,12 +1,9 @@
-import type { SVGProps } from 'react';
+import type { SVGProps } from "react";
 
 const GoogleCalendar = (props: SVGProps<SVGSVGElement>) => (
   <svg {...props} viewBox="0 0 512 512" fill="none">
     <g clipPath="url(#google_calendar-clip0_5072_3766)">
-      <path
-        d="M390.736 121.264H121.264V390.736H390.736V121.264Z"
-        fill="white"
-      />
+      <path d="M390.736 121.264H121.264V390.736H390.736V121.264Z" fill="white" />
       <path
         d="M390.736 512L512 390.736L451.368 380.392L390.736 390.736L379.67 446.196L390.736 512Z"
         fill="#EA4335"

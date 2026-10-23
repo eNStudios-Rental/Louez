@@ -1,9 +1,6 @@
-import { env } from '@/env';
+import { env } from "@/env";
 
-import {
-  type ReferralProgramConfig,
-  resolveReferralProgramConfig,
-} from './config';
+import { type ReferralProgramConfig, resolveReferralProgramConfig } from "./config";
 
 /**
  * Defensive int coercion: under SKIP_ENV_VALIDATION the env transforms don't run and

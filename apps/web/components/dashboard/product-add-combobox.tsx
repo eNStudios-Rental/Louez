@@ -206,8 +206,7 @@ export function ProductAddCombobox({
         <CommandGroup>
           {filteredProducts.map((product) => {
             const remaining = availableQuantityByProduct.get(product.id);
-            const isUnavailable =
-              remaining !== undefined && remaining !== null && remaining <= 0;
+            const isUnavailable = remaining !== undefined && remaining !== null && remaining <= 0;
             const selectedQuantity = selectedQuantityByProduct?.get(product.id) ?? 0;
             const matchesProductName = product.name
               .toLocaleLowerCase()
@@ -223,74 +222,72 @@ export function ProductAddCombobox({
             return (
               <Fragment key={product.id}>
                 {matchesProductName && (
-              <CommandItem
-                value={`product:${product.id}`}
-                onClick={() => {
-                  // Keep the popover open so several products can be
-                  // added in a row; Escape or an outside click closes it.
-                  onAddProduct(product.id);
-                  flagJustAdded(product.id);
-                  setSearchQuery("");
-                }}
-                // Press feedback is felt more than seen: the row gives under
-                // the finger, so the tap registers before the list updates.
-                className="flex items-center gap-2 transition-transform duration-150 ease-out active:scale-[0.98] motion-reduce:active:scale-100"
-              >
-                <ProductImage
-                  src={product.images?.[0]}
-                  alt=""
-                  sizes="32px"
-                  className={cn(isUnavailable && "opacity-40")}
-                  containerClassName="w-8 shrink-0 rounded-md"
-                />
-
-                <span
-                  className={cn(
-                    "min-w-0 flex-1 truncate",
-                    isUnavailable && "text-muted-foreground",
-                  )}
-                >
-                  {product.name}
-                </span>
-                {selectedQuantity > 0 && (
-                  <Badge
-                    className={cn(
-                      "shrink-0 tabular-nums transition-transform duration-150 ease-out",
-                      justAddedId === product.id && "scale-110",
-                      "motion-reduce:scale-100",
-                    )}
+                  <CommandItem
+                    value={`product:${product.id}`}
+                    onClick={() => {
+                      // Keep the popover open so several products can be
+                      // added in a row; Escape or an outside click closes it.
+                      onAddProduct(product.id);
+                      flagJustAdded(product.id);
+                      setSearchQuery("");
+                    }}
+                    // Press feedback is felt more than seen: the row gives under
+                    // the finger, so the tap registers before the list updates.
+                    className="flex items-center gap-2 transition-transform duration-150 ease-out active:scale-[0.98] motion-reduce:active:scale-100"
                   >
-                    ×{selectedQuantity}
-                  </Badge>
-                )}
-                {isUnavailable ? (
-                  <Badge variant="pending" size="default">
-                    {unavailableLabel}
-                  </Badge>
-                ) : (
-                  remaining !== undefined && (
-                    <Badge variant="expired" className="tabular-nums">
-                      {remaining === null ? availableLabel : `${remaining} ${availableLabel}`}
-                    </Badge>
-                  )
-                )}
-              </CommandItem>
+                    <ProductImage
+                      src={product.images?.[0]}
+                      alt=""
+                      sizes="32px"
+                      className={cn(isUnavailable && "opacity-40")}
+                      containerClassName="w-8 shrink-0 rounded-md"
+                    />
+
+                    <span
+                      className={cn(
+                        "min-w-0 flex-1 truncate",
+                        isUnavailable && "text-muted-foreground",
+                      )}
+                    >
+                      {product.name}
+                    </span>
+                    {selectedQuantity > 0 && (
+                      <Badge
+                        className={cn(
+                          "shrink-0 tabular-nums transition-transform duration-150 ease-out",
+                          justAddedId === product.id && "scale-110",
+                          "motion-reduce:scale-100",
+                        )}
+                      >
+                        ×{selectedQuantity}
+                      </Badge>
+                    )}
+                    {isUnavailable ? (
+                      <Badge variant="pending" size="default">
+                        {unavailableLabel}
+                      </Badge>
+                    ) : (
+                      remaining !== undefined && (
+                        <Badge variant="expired" className="tabular-nums">
+                          {remaining === null ? availableLabel : `${remaining} ${availableLabel}`}
+                        </Badge>
+                      )
+                    )}
+                  </CommandItem>
                 )}
                 {matchingUnits.map((unit) => {
                   const unitAvailability = unitAvailabilityById?.get(unit.id);
                   const isUnitUnavailable =
-                    unitAvailabilityById !== undefined &&
-                    unitAvailability?.status !== "available";
-                  const unitAvailabilityLabel =
-                    !unitAvailability
-                      ? unitAvailabilityLabels?.checking
-                      : unitAvailability.status === "downtime"
-                        ? `${unitAvailabilityLabels?.downtime} - ${unitAvailabilityLabels?.downtimeReasons[unitAvailability.downtimeReason ?? "other"]}`
-                        : unitAvailability.status === "buffer"
-                          ? unitAvailabilityLabels?.buffer
-                          : unitAvailability.status === "reserved"
-                            ? unitAvailabilityLabels?.reserved
-                            : unitAvailabilityLabels?.available;
+                    unitAvailabilityById !== undefined && unitAvailability?.status !== "available";
+                  const unitAvailabilityLabel = !unitAvailability
+                    ? unitAvailabilityLabels?.checking
+                    : unitAvailability.status === "downtime"
+                      ? `${unitAvailabilityLabels?.downtime} - ${unitAvailabilityLabels?.downtimeReasons[unitAvailability.downtimeReason ?? "other"]}`
+                      : unitAvailability.status === "buffer"
+                        ? unitAvailabilityLabels?.buffer
+                        : unitAvailability.status === "reserved"
+                          ? unitAvailabilityLabels?.reserved
+                          : unitAvailabilityLabels?.available;
 
                   return (
                     <CommandItem
@@ -316,13 +313,13 @@ export function ProductAddCombobox({
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm">{product.name}</span>
                         <span className="text-muted-foreground block truncate text-xs">
-                        {identifierLabel ?? "Identifier"}: {unit.identifier}
-                        {unit.serialNumber && (
-                          <>
-                            {" · "}
-                            {serialNumberLabel ?? "Serial number"}: {unit.serialNumber}
-                          </>
-                        )}
+                          {identifierLabel ?? "Identifier"}: {unit.identifier}
+                          {unit.serialNumber && (
+                            <>
+                              {" · "}
+                              {serialNumberLabel ?? "Serial number"}: {unit.serialNumber}
+                            </>
+                          )}
                         </span>
                       </span>
                       {unitAvailabilityLabel && (

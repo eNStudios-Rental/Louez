@@ -1,11 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import {
-  formatDateTime,
-  getMinStartDateTime,
-  validateAdvanceNotice,
-} from "@/lib/utils/duration";
+import { formatDateTime, getMinStartDateTime, validateAdvanceNotice } from "@/lib/utils/duration";
 
 const NOW = new Date("2026-08-11T10:00:00.000Z");
 

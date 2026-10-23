@@ -1,39 +1,33 @@
-import type {
-  IntegrationData,
-  IntegrationStateSettings,
-  StoreSettings,
-} from '@louez/types'
+import type { IntegrationData, IntegrationStateSettings, StoreSettings } from "@louez/types";
 
-function getBaseSettings(
-  settings: StoreSettings | null | undefined,
-): StoreSettings {
+function getBaseSettings(settings: StoreSettings | null | undefined): StoreSettings {
   if (settings) {
-    return { ...settings }
+    return { ...settings };
   }
 
   return {
-    reservationMode: 'payment',
+    reservationMode: "payment",
     advanceNoticeMinutes: 1440,
-  }
+  };
 }
 
 export function getIntegrationState(
   settings: StoreSettings | null | undefined,
   integrationId: string,
 ): IntegrationStateSettings | null {
-  const state = settings?.integrationData?.states?.[integrationId]
+  const state = settings?.integrationData?.states?.[integrationId];
   if (!state) {
-    return null
+    return null;
   }
 
-  return state
+  return state;
 }
 
 export function hasExplicitIntegrationState(
   settings: StoreSettings | null | undefined,
   integrationId: string,
 ): boolean {
-  return Boolean(getIntegrationState(settings, integrationId))
+  return Boolean(getIntegrationState(settings, integrationId));
 }
 
 export function isIntegrationEnabled(
@@ -41,12 +35,12 @@ export function isIntegrationEnabled(
   integrationId: string,
   legacyEnabled = false,
 ): boolean {
-  const state = getIntegrationState(settings, integrationId)
-  if (!state || typeof state.enabled !== 'boolean') {
-    return legacyEnabled
+  const state = getIntegrationState(settings, integrationId);
+  if (!state || typeof state.enabled !== "boolean") {
+    return legacyEnabled;
   }
 
-  return state.enabled
+  return state.enabled;
 }
 
 export function setIntegrationEnabledState(
@@ -54,7 +48,7 @@ export function setIntegrationEnabledState(
   integrationId: string,
   enabled: boolean,
 ): StoreSettings {
-  const base = getBaseSettings(settings)
+  const base = getBaseSettings(settings);
   const integrationData: IntegrationData = {
     ...base.integrationData,
     states: {
@@ -64,10 +58,10 @@ export function setIntegrationEnabledState(
         enabled,
       },
     },
-  }
+  };
 
   return {
     ...base,
     integrationData,
-  }
+  };
 }

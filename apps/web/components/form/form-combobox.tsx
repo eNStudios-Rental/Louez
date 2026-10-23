@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import type { ChangeEvent, KeyboardEvent, ReactNode } from 'react';
+import { useMemo, useState } from "react";
+import type { ChangeEvent, KeyboardEvent, ReactNode } from "react";
 
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus } from "lucide-react";
 
 import {
   Combobox,
@@ -17,11 +17,11 @@ import {
   ComboboxPopup,
   ComboboxValue,
   Label,
-} from '@louez/ui';
+} from "@louez/ui";
 
-import { useFieldContext, getFieldError } from '@/hooks/form/form-context';
+import { useFieldContext, getFieldError } from "@/hooks/form/form-context";
 
-const CREATE_OPTION_VALUE = '__create__';
+const CREATE_OPTION_VALUE = "__create__";
 
 export interface FormComboboxOption {
   value: string;
@@ -29,7 +29,7 @@ export interface FormComboboxOption {
 }
 
 interface ComboboxItemData extends FormComboboxOption {
-  kind?: 'create';
+  kind?: "create";
 }
 
 export interface FormComboboxProps {
@@ -72,7 +72,7 @@ export const FormCombobox = ({
 }: FormComboboxProps) => {
   const field = useFieldContext<string[] | string | null>();
   const errors = field.state.meta.errors;
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   // Names being created, shown as optimistic chips with a loader (multiple mode)
   const [pendingCreations, setPendingCreations] = useState<string[]>([]);
 
@@ -87,18 +87,13 @@ export const FormCombobox = ({
       trimmed &&
       !base.some((item) => item.label.toLowerCase() === trimmed.toLowerCase())
     ) {
-      base.push({ value: CREATE_OPTION_VALUE, label: trimmed, kind: 'create' });
+      base.push({ value: CREATE_OPTION_VALUE, label: trimmed, kind: "create" });
     }
     return base;
   }, [options, query, onCreateOption]);
 
   const itemsByValue = useMemo(
-    () =>
-      new Map(
-        items
-          .filter((item) => item.kind !== 'create')
-          .map((item) => [item.value, item]),
-      ),
+    () => new Map(items.filter((item) => item.kind !== "create").map((item) => [item.value, item])),
     [items],
   );
 
@@ -112,23 +107,21 @@ export const FormCombobox = ({
     return item ? [item] : [];
   });
   const singleSelectedItem =
-    !multiple && typeof field.state.value === 'string'
+    !multiple && typeof field.state.value === "string"
       ? (itemsByValue.get(field.state.value) ?? null)
       : null;
 
   const createOption = async (name: string): Promise<string | null> => {
     if (!onCreateOption) return null;
     const createdId = await onCreateOption(name);
-    if (createdId) setQuery('');
+    if (createdId) setQuery("");
     return createdId;
   };
 
   const handleMultipleChange = async (next: ComboboxItemData[] | null) => {
     const nextItems = next ?? [];
-    const createItem = nextItems.find((item) => item.kind === 'create');
-    const values = nextItems
-      .filter((item) => item.kind !== 'create')
-      .map((item) => item.value);
+    const createItem = nextItems.find((item) => item.kind === "create");
+    const values = nextItems.filter((item) => item.kind !== "create").map((item) => item.value);
 
     field.handleChange(values);
     if (!createItem) return;
@@ -137,7 +130,7 @@ export const FormCombobox = ({
     // then commit the created option's value once the creation resolves.
     const name = createItem.label;
     setPendingCreations((prev) => [...prev, name]);
-    setQuery('');
+    setQuery("");
     try {
       const createdId = await createOption(name);
       if (createdId) {
@@ -145,9 +138,7 @@ export const FormCombobox = ({
         // append to the value at commit time rather than a stale snapshot.
         field.handleChange((prev) => {
           const current = Array.isArray(prev) ? prev : [];
-          return current.includes(createdId)
-            ? current
-            : [...current, createdId];
+          return current.includes(createdId) ? current : [...current, createdId];
         });
       }
     } finally {
@@ -164,7 +155,7 @@ export const FormCombobox = ({
       return;
     }
 
-    if (item.kind === 'create') {
+    if (item.kind === "create") {
       const createdId = await createOption(item.label);
       if (createdId) field.handleChange(createdId);
       return;
@@ -173,13 +164,12 @@ export const FormCombobox = ({
     field.handleChange(item.value);
   };
 
-  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) =>
-    setQuery(event.target.value);
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => setQuery(event.target.value);
 
   // Enter selects (or creates) the highlighted option — Base UI otherwise lets
   // the event through and the surrounding form submits.
   const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') event.preventDefault();
+    if (event.key === "Enter") event.preventDefault();
   };
 
   const popup = (
@@ -187,7 +177,7 @@ export const FormCombobox = ({
       {emptyText && <ComboboxEmpty>{emptyText}</ComboboxEmpty>}
       <ComboboxList>
         {(item: ComboboxItemData) =>
-          item.kind === 'create' ? (
+          item.kind === "create" ? (
             <ComboboxItem key={CREATE_OPTION_VALUE} value={item}>
               <span className="text-primary flex items-center gap-1.5 font-medium">
                 {isCreatingOption ? (
@@ -195,9 +185,7 @@ export const FormCombobox = ({
                 ) : (
                   <Plus className="h-3.5 w-3.5" />
                 )}
-                {getCreateOptionLabel
-                  ? getCreateOptionLabel(item.label)
-                  : item.label}
+                {getCreateOptionLabel ? getCreateOptionLabel(item.label) : item.label}
               </span>
             </ComboboxItem>
           ) : (
@@ -212,7 +200,7 @@ export const FormCombobox = ({
   );
 
   return (
-    <div className={className ?? 'flex flex-col gap-2'}>
+    <div className={className ?? "flex flex-col gap-2"}>
       {label && (
         <Label helper={labelHelper} data-error={errors.length > 0}>
           {label}
@@ -245,9 +233,7 @@ export const FormCombobox = ({
                   <ComboboxChipsInput
                     className="w-12"
                     placeholder={
-                      value.length === 0 && pendingCreations.length === 0
-                        ? placeholder
-                        : undefined
+                      value.length === 0 && pendingCreations.length === 0 ? placeholder : undefined
                     }
                     disabled={disabled}
                     onChange={handleInputChange}
@@ -277,13 +263,9 @@ export const FormCombobox = ({
           {popup}
         </Combobox>
       )}
-      {description && (
-        <p className="text-muted-foreground text-sm">{description}</p>
-      )}
+      {description && <p className="text-muted-foreground text-sm">{description}</p>}
       {errors.length > 0 && (
-        <p className="text-destructive text-sm font-medium">
-          {getFieldError(errors[0])}
-        </p>
+        <p className="text-destructive text-sm font-medium">{getFieldError(errors[0])}</p>
       )}
     </div>
   );

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from "react";
 
-import { CalendarIcon } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { useFormatLocale } from '@/hooks/use-format-locale';
+import { CalendarIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useFormatLocale } from "@/hooks/use-format-locale";
 
 import {
   Button,
@@ -21,16 +21,10 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@louez/ui';
+} from "@louez/ui";
 
-import {
-  createSeasonalPricing,
-} from '../seasonal-actions';
-import type {
-  PriceDurationValue,
-  RateTierInput,
-  SeasonalPricingData,
-} from '../types';
+import { createSeasonalPricing } from "../seasonal-actions";
+import type { PriceDurationValue, RateTierInput, SeasonalPricingData } from "../types";
 
 interface SeasonalPeriodFormDialogProps {
   open: boolean;
@@ -48,37 +42,35 @@ interface SeasonalPeriodFormDialogProps {
   /** Called after a new period is created */
   onCreated: (newPeriod: SeasonalPricingData) => void;
   /** Called after an existing period's metadata is updated */
-  onUpdated: (
-    id: string,
-    name: string,
-    startDate: string,
-    endDate: string,
-  ) => void;
+  onUpdated: (id: string, name: string, startDate: string, endDate: string) => void;
 }
 
 function formatDateStr(d: Date): string {
   const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
 
 /** Format a Date to a locale-aware input string (dd/mm/yyyy or mm/dd/yyyy) */
 function formatDateForInput(d: Date, loc: string): string {
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
   const year = d.getFullYear();
   return usesMonthFirst(loc) ? `${month}/${day}/${year}` : `${day}/${month}/${year}`;
 }
 
 function usesMonthFirst(locale: string): boolean {
   const parts = new Intl.DateTimeFormat(locale).formatToParts(new Date(2020, 10, 22));
-  return parts.findIndex((part) => part.type === 'month') < parts.findIndex((part) => part.type === 'day');
+  return (
+    parts.findIndex((part) => part.type === "month") <
+    parts.findIndex((part) => part.type === "day")
+  );
 }
 
 /** Parse a locale-aware date string back to a Date */
 function parseDateFromInput(text: string, loc: string): Date | undefined {
-  const parts = text.trim().split('/');
+  const parts = text.trim().split("/");
   if (parts.length !== 3) return undefined;
   const [a, b, c] = parts.map(Number);
   if (!a || !b || !c || c < 1900 || c > 2100) return undefined;
@@ -86,11 +78,7 @@ function parseDateFromInput(text: string, loc: string): Date | undefined {
   if (month < 1 || month > 12 || day < 1 || day > 31) return undefined;
   const d = new Date(year, month - 1, day);
   // Validate the date is real (e.g. not Feb 30)
-  if (
-    d.getFullYear() !== year ||
-    d.getMonth() !== month - 1 ||
-    d.getDate() !== day
-  )
+  if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day)
     return undefined;
   return d;
 }
@@ -105,20 +93,20 @@ export function SeasonalPeriodFormDialog({
   onCreated,
   onUpdated,
 }: SeasonalPeriodFormDialogProps) {
-  const t = useTranslations('dashboard.products.form');
+  const t = useTranslations("dashboard.products.form");
   const { intl: formatLocale, dateFns: calendarLocale } = useFormatLocale();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   const isEditing = !!editingData;
 
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
-  const [startDateText, setStartDateText] = useState('');
-  const [endDateText, setEndDateText] = useState('');
+  const [startDateText, setStartDateText] = useState("");
+  const [endDateText, setEndDateText] = useState("");
 
-  const datePlaceholder = usesMonthFirst(formatLocale) ? 'mm/dd/yyyy' : 'dd/mm/yyyy';
+  const datePlaceholder = usesMonthFirst(formatLocale) ? "mm/dd/yyyy" : "dd/mm/yyyy";
   const calendarStartMonth = new Date(new Date().getFullYear(), 0);
   const calendarEndMonth = new Date(new Date().getFullYear() + 10, 11);
 
@@ -128,25 +116,25 @@ export function SeasonalPeriodFormDialog({
 
     if (editingData) {
       setName(editingData.name);
-      const sd = new Date(editingData.startDate + 'T00:00:00');
-      const ed = new Date(editingData.endDate + 'T00:00:00');
+      const sd = new Date(editingData.startDate + "T00:00:00");
+      const ed = new Date(editingData.endDate + "T00:00:00");
       setStartDate(sd);
       setEndDate(ed);
       setStartDateText(formatDateForInput(sd, formatLocale));
       setEndDateText(formatDateForInput(ed, formatLocale));
     } else {
-      setName('');
+      setName("");
       setStartDate(undefined);
       setEndDate(undefined);
-      setStartDateText('');
-      setEndDateText('');
+      setStartDateText("");
+      setEndDateText("");
     }
     setError(null);
   }, [open, editingData, formatLocale]);
 
   const handleSave = () => {
     if (!name.trim() || !startDate || !endDate) {
-      setError(t('seasonFieldsRequired'));
+      setError(t("seasonFieldsRequired"));
       return;
     }
 
@@ -154,7 +142,7 @@ export function SeasonalPeriodFormDialog({
     const endStr = formatDateStr(endDate);
 
     if (startStr >= endStr) {
-      setError(t('seasonDateError'));
+      setError(t("seasonDateError"));
       return;
     }
 
@@ -168,7 +156,7 @@ export function SeasonalPeriodFormDialog({
         onOpenChange(false);
       } else {
         // Creating: pre-fill with base pricing
-        const basePrice = basePriceDuration?.price?.replace(',', '.') || '0';
+        const basePrice = basePriceDuration?.price?.replace(",", ".") || "0";
         const payload = {
           productId,
           name: name.trim(),
@@ -176,7 +164,7 @@ export function SeasonalPeriodFormDialog({
           endDate: endStr,
           price: basePrice,
           rateTiers: baseRateTiers.map((tier) => ({
-            price: tier.price.replace(',', '.'),
+            price: tier.price.replace(",", "."),
             duration: tier.duration,
             unit: tier.unit,
           })),
@@ -184,12 +172,12 @@ export function SeasonalPeriodFormDialog({
 
         const result = await createSeasonalPricing(payload);
 
-        if (result && 'error' in result) {
+        if (result && "error" in result) {
           setError(t(result.error as any) || result.error || null);
           return;
         }
 
-        if (result && 'id' in result) {
+        if (result && "id" in result) {
           // Build the SeasonalPricingData to return
           const newPeriod: SeasonalPricingData = {
             id: result.id,
@@ -198,17 +186,17 @@ export function SeasonalPeriodFormDialog({
             endDate: endStr,
             price: basePrice,
             tiers: baseRateTiers.map((tier, index) => ({
-              id: '',
+              id: "",
               period:
                 tier.duration *
-                (tier.unit === 'week'
+                (tier.unit === "week"
                   ? 10080
-                  : tier.unit === 'day'
+                  : tier.unit === "day"
                     ? 1440
-                    : tier.unit === 'hour'
+                    : tier.unit === "hour"
                       ? 60
                       : 1),
-              price: tier.price.replace(',', '.'),
+              price: tier.price.replace(",", "."),
               minDuration: null,
               discountPercent: null,
               displayOrder: index,
@@ -225,23 +213,19 @@ export function SeasonalPeriodFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {isEditing ? t('editPeriodTitle') : t('createPeriodTitle')}
-          </DialogTitle>
-          <DialogDescription>
-            {t('seasonalPeriodDescription')}
-          </DialogDescription>
+          <DialogTitle>{isEditing ? t("editPeriodTitle") : t("createPeriodTitle")}</DialogTitle>
+          <DialogDescription>{t("seasonalPeriodDescription")}</DialogDescription>
         </DialogHeader>
 
         <DialogPanel>
           <div className="space-y-4">
             {/* Name */}
             <div className="space-y-2">
-              <Label>{t('seasonName')}</Label>
+              <Label>{t("seasonName")}</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder={t('seasonNamePlaceholder')}
+                placeholder={t("seasonNamePlaceholder")}
                 disabled={isPending}
               />
             </div>
@@ -249,7 +233,7 @@ export function SeasonalPeriodFormDialog({
             {/* Date range */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{t('seasonStartDate')}</Label>
+                <Label>{t("seasonStartDate")}</Label>
                 <div className="relative">
                   <Input
                     value={startDateText}
@@ -263,11 +247,8 @@ export function SeasonalPeriodFormDialog({
                       }
                     }}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        const parsed = parseDateFromInput(
-                          startDateText,
-                          formatLocale,
-                        );
+                      if (e.key === "Enter") {
+                        const parsed = parseDateFromInput(startDateText, formatLocale);
                         if (parsed) setStartDate(parsed);
                       }
                     }}
@@ -297,8 +278,7 @@ export function SeasonalPeriodFormDialog({
                         selected={startDate}
                         onSelect={(d) => {
                           setStartDate(d);
-                          if (d)
-                            setStartDateText(formatDateForInput(d, formatLocale));
+                          if (d) setStartDateText(formatDateForInput(d, formatLocale));
                         }}
                         locale={calendarLocale}
                         captionLayout="dropdown"
@@ -310,7 +290,7 @@ export function SeasonalPeriodFormDialog({
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>{t('seasonEndDate')}</Label>
+                <Label>{t("seasonEndDate")}</Label>
                 <div className="relative">
                   <Input
                     value={endDateText}
@@ -324,7 +304,7 @@ export function SeasonalPeriodFormDialog({
                       }
                     }}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
+                      if (e.key === "Enter") {
                         const parsed = parseDateFromInput(endDateText, formatLocale);
                         if (parsed) setEndDate(parsed);
                       }
@@ -357,9 +337,7 @@ export function SeasonalPeriodFormDialog({
                           setEndDate(d);
                           if (d) setEndDateText(formatDateForInput(d, formatLocale));
                         }}
-                        disabled={(date) =>
-                          startDate ? date <= startDate : false
-                        }
+                        disabled={(date) => (startDate ? date <= startDate : false)}
                         locale={calendarLocale}
                         captionLayout="dropdown"
                         startMonth={calendarStartMonth}
@@ -372,26 +350,16 @@ export function SeasonalPeriodFormDialog({
             </div>
 
             {/* Error */}
-            {error && (
-              <p className="text-destructive text-sm font-medium">{error}</p>
-            )}
+            {error && <p className="text-destructive text-sm font-medium">{error}</p>}
           </div>
         </DialogPanel>
 
         <DialogFooter variant="bare">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isPending}
-          >
-            {t('cancel')}
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
+            {t("cancel")}
           </Button>
           <Button onClick={handleSave} disabled={isPending}>
-            {isPending
-              ? t('saving')
-              : isEditing
-                ? t('saveChanges')
-                : t('addSeasonalPeriod')}
+            {isPending ? t("saving") : isEditing ? t("saveChanges") : t("addSeasonalPeriod")}
           </Button>
         </DialogFooter>
       </DialogContent>

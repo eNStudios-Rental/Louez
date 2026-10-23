@@ -62,9 +62,7 @@ export const StorefrontWidget = ({ storeSlug, className }: StorefrontWidgetProps
         <div className="bg-muted/40 flex min-w-0 items-center gap-3 rounded-xl p-3">
           <DashboardIconTile icon={GlobeSolidIcon} accent="progress" />
           <div className="min-w-0 flex-1">
-            <p className="truncate font-medium">
-              {storefrontLabel}
-            </p>
+            <p className="truncate font-medium">{storefrontLabel}</p>
             <p className="text-muted-foreground truncate text-xs">{t("storefront.publicUrl")}</p>
           </div>
           <Button

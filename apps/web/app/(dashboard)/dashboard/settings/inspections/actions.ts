@@ -1,38 +1,38 @@
-'use server'
+"use server";
 
-import { db } from '@louez/db'
-import { stores } from '@louez/db'
-import { getCurrentStore, hasPermission } from '@/lib/store-context'
-import { inspectionSettingsSchema } from '@louez/validations'
-import { eq } from 'drizzle-orm'
-import { revalidatePath } from 'next/cache'
-import type { InspectionSettings, StoreSettings } from '@louez/types'
+import { db } from "@louez/db";
+import { stores } from "@louez/db";
+import { getCurrentStore, hasPermission } from "@/lib/store-context";
+import { inspectionSettingsSchema } from "@louez/validations";
+import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+import type { InspectionSettings, StoreSettings } from "@louez/types";
 
 type InspectionSettingsInput = {
-  enabled: boolean
-  mode: 'optional' | 'recommended' | 'required'
-  requireCustomerSignature: boolean
-  autoGeneratePdf: boolean
-  maxPhotosPerItem: number
-}
+  enabled: boolean;
+  mode: "optional" | "recommended" | "required";
+  requireCustomerSignature: boolean;
+  autoGeneratePdf: boolean;
+  maxPhotosPerItem: number;
+};
 
 export async function updateInspectionSettings(
-  data: InspectionSettingsInput
+  data: InspectionSettingsInput,
 ): Promise<{ success?: boolean; error?: string }> {
-  const store = await getCurrentStore()
+  const store = await getCurrentStore();
 
   if (!store) {
-    return { error: 'errors.unauthorized' }
+    return { error: "errors.unauthorized" };
   }
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    return { error: 'errors.permissionDenied' }
+  if (!hasPermission(store.role, "manage_settings")) {
+    return { error: "errors.permissionDenied" };
   }
 
-  const validated = inspectionSettingsSchema.safeParse(data)
+  const validated = inspectionSettingsSchema.safeParse(data);
 
   if (!validated.success) {
-    return { error: 'errors.invalidData' }
+    return { error: "errors.invalidData" };
   }
 
   // Build inspection settings object
@@ -42,16 +42,16 @@ export async function updateInspectionSettings(
     requireCustomerSignature: validated.data.requireCustomerSignature,
     autoGeneratePdf: validated.data.autoGeneratePdf,
     maxPhotosPerItem: validated.data.maxPhotosPerItem,
-  }
+  };
 
   // Get current settings and merge
   const currentSettings: StoreSettings = store.settings || {
-    reservationMode: 'request',
+    reservationMode: "request",
     minRentalMinutes: 60,
     maxRentalMinutes: null,
     advanceNoticeMinutes: 1440,
     turnoverBufferMinutes: 0,
-  }
+  };
 
   await db
     .update(stores)
@@ -62,9 +62,9 @@ export async function updateInspectionSettings(
       },
       updatedAt: new Date(),
     })
-    .where(eq(stores.id, store.id))
+    .where(eq(stores.id, store.id));
 
-  revalidatePath('/dashboard/settings/inspections')
+  revalidatePath("/dashboard/settings/inspections");
 
-  return { success: true }
+  return { success: true };
 }

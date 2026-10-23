@@ -8,4 +8,4 @@
  *   3. Register it in the factory in ../client.ts
  */
 
-export { TwilioVoiceProvider } from './twilio'
+export { TwilioVoiceProvider } from "./twilio";

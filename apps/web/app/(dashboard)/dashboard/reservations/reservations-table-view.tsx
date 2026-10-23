@@ -252,9 +252,7 @@ export function ReservationsTableView({
                     </TableCell>
 
                     {/* Customer */}
-                    <TableCell>
-                      {getReservationCustomerName(reservation.customer)}
-                    </TableCell>
+                    <TableCell>{getReservationCustomerName(reservation.customer)}</TableCell>
 
                     {/* Items (hidden on mobile) */}
                     <TableCell className="hidden md:table-cell">
@@ -322,7 +320,14 @@ export function ReservationsTableView({
                       <span className="inline-flex items-center justify-end gap-1.5">
                         {reservation.items.some((item) => item.pricePending) ? (
                           <Tooltip>
-                            <TooltipTrigger render={<AlertTriangle className="h-4 w-4 text-warning" aria-label={t("negotiablePricePending")} />} />
+                            <TooltipTrigger
+                              render={
+                                <AlertTriangle
+                                  className="h-4 w-4 text-warning"
+                                  aria-label={t("negotiablePricePending")}
+                                />
+                              }
+                            />
                             <TooltipContent>{t("negotiablePricePending")}</TooltipContent>
                           </Tooltip>
                         ) : null}

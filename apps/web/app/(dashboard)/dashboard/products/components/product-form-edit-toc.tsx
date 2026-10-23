@@ -1,66 +1,62 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
-import { Database, Link2, Package, Receipt, Shield } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { Database, Link2, Package, Receipt, Shield } from "lucide-react";
+import { useTranslations } from "next-intl";
 
-import { cn } from '@louez/utils';
+import { cn } from "@louez/utils";
 
 const SECTION_IDS = [
-  'section-product',
-  'section-pricing',
-  'section-stock',
-  'section-accessories',
-  'section-assurance',
+  "section-product",
+  "section-pricing",
+  "section-stock",
+  "section-accessories",
+  "section-assurance",
 ] as const;
 
 type SectionId = (typeof SECTION_IDS)[number];
 
 export function ProductFormEditToc() {
-  const t = useTranslations('dashboard.products.form');
+  const t = useTranslations("dashboard.products.form");
   const [activeId, setActiveId] = useState<SectionId>(SECTION_IDS[0]);
   const [availableIds, setAvailableIds] = useState<SectionId[]>([]);
   const isManualScroll = useRef(false);
 
   const sections: { id: SectionId; label: string; icon: React.ReactNode }[] = [
     {
-      id: 'section-product',
-      label: t('productSection'),
+      id: "section-product",
+      label: t("productSection"),
       icon: <Package className="h-3.5 w-3.5" />,
     },
     {
-      id: 'section-pricing',
-      label: t('pricing'),
+      id: "section-pricing",
+      label: t("pricing"),
       icon: <Receipt className="h-3.5 w-3.5" />,
     },
     {
-      id: 'section-stock',
-      label: t('stock'),
+      id: "section-stock",
+      label: t("stock"),
       icon: <Database className="h-3.5 w-3.5" />,
     },
     {
-      id: 'section-accessories',
-      label: t('accessories'),
+      id: "section-accessories",
+      label: t("accessories"),
       icon: <Link2 className="h-3.5 w-3.5" />,
     },
     {
-      id: 'section-assurance',
-      label: t('assurance.title'),
+      id: "section-assurance",
+      label: t("assurance.title"),
       icon: <Shield className="h-3.5 w-3.5" />,
     },
   ];
 
   useEffect(() => {
     const getAvailableElements = () =>
-      SECTION_IDS.map((id) => document.getElementById(id)).filter(
-        Boolean,
-      ) as HTMLElement[];
+      SECTION_IDS.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
 
     const syncAvailableIds = () => {
-      const nextIds = getAvailableElements().map(
-        (element) => element.id as SectionId,
-      );
+      const nextIds = getAvailableElements().map((element) => element.id as SectionId);
       setAvailableIds(nextIds);
       setActiveId((current) =>
         nextIds.includes(current) ? current : (nextIds[0] ?? SECTION_IDS[0]),
@@ -85,17 +81,15 @@ export function ProductFormEditToc() {
           setActiveId(visible[0].target.id as SectionId);
         }
       },
-      { rootMargin: '-80px 0px -50% 0px', threshold: 0 },
+      { rootMargin: "-80px 0px -50% 0px", threshold: 0 },
     );
 
     elements.forEach((el) => observer.observe(el));
 
     const mutationObserver = new MutationObserver(() => {
       const nextElements = getAvailableElements();
-      const nextElementIds = nextElements
-        .map((element) => element.id)
-        .join(',');
-      const currentElementIds = elements.map((element) => element.id).join(',');
+      const nextElementIds = nextElements.map((element) => element.id).join(",");
+      const currentElementIds = elements.map((element) => element.id).join(",");
       if (nextElementIds === currentElementIds) return;
 
       elements.forEach((el) => observer.unobserve(el));
@@ -116,12 +110,12 @@ export function ProductFormEditToc() {
     };
 
     mutationObserver.observe(document.body, { childList: true, subtree: true });
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
       observer.disconnect();
       mutationObserver.disconnect();
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
@@ -131,7 +125,7 @@ export function ProductFormEditToc() {
 
     isManualScroll.current = true;
     setActiveId(id);
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
 
     // Re-enable IO-driven tracking after scroll settles
     const timer = setTimeout(() => {
@@ -161,16 +155,16 @@ export function ProductFormEditToc() {
                       scrollToSection(section.id);
                     }}
                     className={cn(
-                      '-ml-px flex items-center gap-2.5 border-l-2 py-2 pr-2 pl-4 text-[13px] transition-all duration-200',
+                      "-ml-px flex items-center gap-2.5 border-l-2 py-2 pr-2 pl-4 text-[13px] transition-all duration-200",
                       isActive
-                        ? 'border-primary text-foreground font-medium'
-                        : 'text-muted-foreground hover:text-foreground hover:border-muted-foreground/40 border-transparent',
+                        ? "border-primary text-foreground font-medium"
+                        : "text-muted-foreground hover:text-foreground hover:border-muted-foreground/40 border-transparent",
                     )}
                   >
                     <span
                       className={cn(
-                        'transition-colors duration-200',
-                        isActive ? 'text-primary' : 'text-muted-foreground/70',
+                        "transition-colors duration-200",
+                        isActive ? "text-primary" : "text-muted-foreground/70",
                       )}
                     >
                       {section.icon}

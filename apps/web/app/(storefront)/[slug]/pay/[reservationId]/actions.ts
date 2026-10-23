@@ -136,7 +136,7 @@ export const getPaymentRequestData = async (
       currency: paymentRequest.currency,
       description: paymentRequest.description,
     },
-    customer: { firstName: reservation.customer.firstName },
+    customer: { firstName: reservation.customer.firstName ?? "" },
   };
 };
 
@@ -176,7 +176,7 @@ export const initiatePayment = async (
       createReservationInstantAccessUrl({
         storeId: store.id,
         storeSlug: store.slug,
-        customerEmail: reservation.customer.email,
+        customerEmail: reservation.customer.email ?? "",
         reservationId: reservation.id,
         redirectPath: `/account/reservations/${reservation.id}?event=payment_received`,
         ttlMs: PAYMENT_RETURN_ACCESS_TTL_MS,
@@ -200,8 +200,11 @@ export const initiatePayment = async (
       stripeAccountId: store.stripeAccountId,
       reservationId: reservation.id,
       reservationNumber: reservation.number,
-      customerEmail: reservation.customer.email,
-      customerName: `${reservation.customer.firstName} ${reservation.customer.lastName}`,
+      customerEmail: reservation.customer.email ?? "",
+      customerName:
+        [reservation.customer.firstName, reservation.customer.lastName].filter(Boolean).join(" ") ||
+        reservation.customer.companyName ||
+        "",
       amount: chargeCents,
       description: paymentRequest.description,
       currency,

@@ -9,8 +9,7 @@ export interface ProductsListInput {
 }
 
 export const productsQueries = {
-  list: (input: ProductsListInput = {}) =>
-    orpc.dashboard.products.list.queryOptions({ input }),
+  list: (input: ProductsListInput = {}) => orpc.dashboard.products.list.queryOptions({ input }),
   /** Broad key for invalidating every filter combination after a mutation. */
   listKey: () => orpc.dashboard.products.list.key(),
 };

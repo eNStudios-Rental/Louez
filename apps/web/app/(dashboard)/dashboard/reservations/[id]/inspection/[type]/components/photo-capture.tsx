@@ -270,7 +270,11 @@ export function PhotoCapture({
 
       {/* Photo preview dialog */}
       <Dialog modal={!readOnly} open={!!previewPhoto} onOpenChange={() => setPreviewPhoto(null)}>
-        <DialogPopup initialFocus={readOnly ? false : undefined} finalFocus={readOnly ? false : undefined} className="max-w-2xl p-0">
+        <DialogPopup
+          initialFocus={readOnly ? false : undefined}
+          finalFocus={readOnly ? false : undefined}
+          className="max-w-2xl p-0"
+        >
           <DialogHeader className="sr-only">
             <DialogTitle>{t("wizard.photoPreview")}</DialogTitle>
           </DialogHeader>

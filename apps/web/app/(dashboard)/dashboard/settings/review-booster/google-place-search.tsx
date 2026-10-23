@@ -203,7 +203,8 @@ export function GooglePlaceSearch({
           <Spinner className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         )}
         {query && !isSearching && !isLoadingDetails && (
-          <button disabled={controlsDisabled}
+          <button
+            disabled={controlsDisabled}
             type="button"
             onClick={() => {
               setQuery("");
@@ -226,7 +227,8 @@ export function GooglePlaceSearch({
           <ul className="py-1">
             {results.map((place) => (
               <li key={place.placeId}>
-                <button disabled={controlsDisabled}
+                <button
+                  disabled={controlsDisabled}
                   type="button"
                   onClick={() => handleSelectPlace(place)}
                   className="w-full px-4 py-3 text-left transition-colors hover:bg-muted/50"

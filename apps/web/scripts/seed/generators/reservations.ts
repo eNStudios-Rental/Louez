@@ -3,7 +3,7 @@
  *
  * Generates reservations with all possible states, items, and activity logs.
  */
-import type { StoreConfig } from '../config';
+import type { StoreConfig } from "../config";
 import {
   addDays,
   addHours,
@@ -22,22 +22,16 @@ import {
   setTime,
   startOfDay,
   weightedRandom,
-} from '../utils';
-import type { GeneratedCustomer } from './customers';
-import type { GeneratedProduct, GeneratedProductUnit } from './products';
+} from "../utils";
+import type { GeneratedCustomer } from "./customers";
+import type { GeneratedProduct, GeneratedProductUnit } from "./products";
 
 export interface GeneratedReservation {
   id: string;
   storeId: string;
   customerId: string;
   number: string;
-  status:
-    | 'pending'
-    | 'confirmed'
-    | 'ongoing'
-    | 'completed'
-    | 'cancelled'
-    | 'rejected';
+  status: "pending" | "confirmed" | "ongoing" | "completed" | "cancelled" | "rejected";
   startDate: Date;
   endDate: Date;
   subtotalAmount: string;
@@ -49,13 +43,13 @@ export interface GeneratedReservation {
   signedAt: Date | null;
   signatureIp: string | null;
   depositStatus:
-    | 'none'
-    | 'pending'
-    | 'card_saved'
-    | 'authorized'
-    | 'captured'
-    | 'released'
-    | 'failed';
+    | "none"
+    | "pending"
+    | "card_saved"
+    | "authorized"
+    | "captured"
+    | "released"
+    | "failed";
   depositPaymentIntentId: string | null;
   depositAuthorizationExpiresAt: Date | null;
   stripeCustomerId: string | null;
@@ -64,7 +58,7 @@ export interface GeneratedReservation {
   returnedAt: Date | null;
   customerNotes: string | null;
   internalNotes: string | null;
-  source: 'online' | 'phone' | 'inperson';
+  source: "online" | "phone" | "inperson";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -73,7 +67,7 @@ export interface PricingBreakdownSeed {
   basePrice: number;
   effectivePrice: number;
   duration: number;
-  pricingMode: 'hour' | 'day' | 'week';
+  pricingMode: "hour" | "day" | "week";
   discountPercent: number | null;
   discountAmount: number;
   tierApplied: string | null;
@@ -116,32 +110,32 @@ export interface GeneratedReservationItemUnit {
 }
 
 export type ActivityType =
-  | 'created'
-  | 'confirmed'
-  | 'rejected'
-  | 'cancelled'
-  | 'picked_up'
-  | 'returned'
-  | 'note_updated'
-  | 'payment_added'
-  | 'payment_updated'
-  | 'payment_received'
-  | 'payment_initiated'
-  | 'payment_failed'
-  | 'payment_expired'
-  | 'deposit_authorized'
-  | 'deposit_captured'
-  | 'deposit_released'
-  | 'deposit_failed'
-  | 'access_link_sent'
-  | 'modified'
+  | "created"
+  | "confirmed"
+  | "rejected"
+  | "cancelled"
+  | "picked_up"
+  | "returned"
+  | "note_updated"
+  | "payment_added"
+  | "payment_updated"
+  | "payment_received"
+  | "payment_initiated"
+  | "payment_failed"
+  | "payment_expired"
+  | "deposit_authorized"
+  | "deposit_captured"
+  | "deposit_released"
+  | "deposit_failed"
+  | "access_link_sent"
+  | "modified"
   // Inspection events
-  | 'inspection_departure_started'
-  | 'inspection_departure_completed'
-  | 'inspection_return_started'
-  | 'inspection_return_completed'
-  | 'inspection_damage_detected'
-  | 'inspection_signed';
+  | "inspection_departure_started"
+  | "inspection_departure_completed"
+  | "inspection_return_started"
+  | "inspection_return_completed"
+  | "inspection_damage_detected"
+  | "inspection_signed";
 
 export interface GeneratedReservationActivity {
   id: string;
@@ -162,14 +156,14 @@ export interface ReservationsGeneratorResult {
 
 // Customer notes templates
 const CUSTOMER_NOTES = [
-  'Arrivée prévue vers 10h.',
-  'Besoin de conseils pour les itinéraires.',
-  'Premier séjour dans la région.',
-  'Groupe familial avec 2 enfants.',
+  "Arrivée prévue vers 10h.",
+  "Besoin de conseils pour les itinéraires.",
+  "Premier séjour dans la région.",
+  "Groupe familial avec 2 enfants.",
   "Sortie d'entreprise.",
-  'Anniversaire de mariage.',
+  "Anniversaire de mariage.",
   "Vacances d'été.",
-  'Week-end prolongé.',
+  "Week-end prolongé.",
   null,
   null,
   null,
@@ -178,30 +172,30 @@ const CUSTOMER_NOTES = [
 // Internal notes templates
 const INTERNAL_NOTES = {
   completed: [
-    'Retour en bon état.',
-    'Client très satisfait.',
-    'Aucun problème signalé.',
-    'Recommande un casque plus confortable.',
+    "Retour en bon état.",
+    "Client très satisfait.",
+    "Aucun problème signalé.",
+    "Recommande un casque plus confortable.",
     null,
   ],
   damage: [
-    'Rayure sur le cadre - usure normale.',
-    'Crevaison arrière - réparé.',
-    'Frein arrière à régler.',
-    'Pédale légèrement tordue - impact mineur.',
+    "Rayure sur le cadre - usure normale.",
+    "Crevaison arrière - réparé.",
+    "Frein arrière à régler.",
+    "Pédale légèrement tordue - impact mineur.",
   ],
   cancelled: [
-    'Annulation pour raison personnelle.',
-    'Changement de programme.',
-    'Météo défavorable.',
-    'Client a trouvé alternative.',
+    "Annulation pour raison personnelle.",
+    "Changement de programme.",
+    "Météo défavorable.",
+    "Client a trouvé alternative.",
     null,
   ],
   rejected: [
-    'Stock insuffisant pour ces dates.',
-    'Dates non disponibles.',
-    'Conflit avec maintenance prévue.',
-    'Demande de dernière minute - délai trop court.',
+    "Stock insuffisant pour ces dates.",
+    "Dates non disponibles.",
+    "Conflit avec maintenance prévue.",
+    "Demande de dernière minute - délai trop court.",
   ],
 };
 
@@ -214,21 +208,15 @@ function determineReservationStatus(
   now: Date,
   storeConfig: StoreConfig,
 ): {
-  status:
-    | 'pending'
-    | 'confirmed'
-    | 'ongoing'
-    | 'completed'
-    | 'cancelled'
-    | 'rejected';
+  status: "pending" | "confirmed" | "ongoing" | "completed" | "cancelled" | "rejected";
   depositStatus:
-    | 'none'
-    | 'pending'
-    | 'card_saved'
-    | 'authorized'
-    | 'captured'
-    | 'released'
-    | 'failed';
+    | "none"
+    | "pending"
+    | "card_saved"
+    | "authorized"
+    | "captured"
+    | "released"
+    | "failed";
 } {
   const isStartPast = startDate < now;
   const isEndPast = endDate < now;
@@ -237,12 +225,12 @@ function determineReservationStatus(
   // Cancelled/rejected can happen anytime
   if (chance(0.05)) {
     return {
-      status: 'cancelled',
-      depositStatus: chance(0.3) ? 'released' : 'none',
+      status: "cancelled",
+      depositStatus: chance(0.3) ? "released" : "none",
     };
   }
-  if (storeConfig.reservationMode === 'request' && chance(0.03)) {
-    return { status: 'rejected', depositStatus: 'none' };
+  if (storeConfig.reservationMode === "request" && chance(0.03)) {
+    return { status: "rejected", depositStatus: "none" };
   }
 
   // Past reservations
@@ -252,35 +240,35 @@ function determineReservationStatus(
       // Completed: 85% released deposit, 15% captured (damage)
       const hasDamage = chance(0.15);
       return {
-        status: 'completed',
-        depositStatus: hasDamage ? 'captured' : 'released',
+        status: "completed",
+        depositStatus: hasDamage ? "captured" : "released",
       };
     }
-    return { status: 'cancelled', depositStatus: 'released' };
+    return { status: "cancelled", depositStatus: "released" };
   }
 
   // Ongoing reservations
   if (isOngoing) {
-    return { status: 'ongoing', depositStatus: 'authorized' };
+    return { status: "ongoing", depositStatus: "authorized" };
   }
 
   // Future reservations
   // Request mode: mix of pending and confirmed
-  if (storeConfig.reservationMode === 'request') {
+  if (storeConfig.reservationMode === "request") {
     if (chance(0.3)) {
-      return { status: 'pending', depositStatus: 'pending' };
+      return { status: "pending", depositStatus: "pending" };
     }
   }
 
   // Confirmed: deposit status varies
   const depositStatus = weightedRandom([
-    { item: 'authorized' as const, weight: 0.6 },
-    { item: 'pending' as const, weight: 0.2 },
-    { item: 'card_saved' as const, weight: 0.1 },
-    { item: 'none' as const, weight: 0.1 },
+    { item: "authorized" as const, weight: 0.6 },
+    { item: "pending" as const, weight: 0.2 },
+    { item: "card_saved" as const, weight: 0.1 },
+    { item: "none" as const, weight: 0.1 },
   ]);
 
-  return { status: 'confirmed', depositStatus };
+  return { status: "confirmed", depositStatus };
 }
 
 /**
@@ -289,17 +277,17 @@ function determineReservationStatus(
 function calculateDuration(
   startDate: Date,
   endDate: Date,
-  pricingMode: 'hour' | 'day' | 'week',
+  pricingMode: "hour" | "day" | "week",
 ): number {
   const diffMs = endDate.getTime() - startDate.getTime();
   const diffHours = diffMs / (1000 * 60 * 60);
 
   switch (pricingMode) {
-    case 'hour':
+    case "hour":
       return Math.ceil(diffHours);
-    case 'day':
+    case "day":
       return Math.ceil(diffHours / 24);
-    case 'week':
+    case "week":
       return Math.ceil(diffHours / (24 * 7));
   }
 }
@@ -309,13 +297,7 @@ function calculateDuration(
  */
 function generateActivityLog(
   reservationId: string,
-  status:
-    | 'pending'
-    | 'confirmed'
-    | 'ongoing'
-    | 'completed'
-    | 'cancelled'
-    | 'rejected',
+  status: "pending" | "confirmed" | "ongoing" | "completed" | "cancelled" | "rejected",
   depositStatus: string,
   createdAt: Date,
   startDate: Date,
@@ -330,31 +312,31 @@ function generateActivityLog(
     id: generateId(),
     reservationId,
     userId: null, // Customer action
-    activityType: 'created',
+    activityType: "created",
     description: null,
-    metadata: { source: 'online' },
+    metadata: { source: "online" },
     createdAt,
   });
 
   // Payment initiated (for payment mode)
-  if (storeConfig.reservationMode === 'payment' && storeConfig.stripeEnabled) {
+  if (storeConfig.reservationMode === "payment" && storeConfig.stripeEnabled) {
     activities.push({
       id: generateId(),
       reservationId,
       userId: null,
-      activityType: 'payment_initiated',
+      activityType: "payment_initiated",
       description: null,
       metadata: null,
       createdAt: addMinutes(createdAt, randomInt(1, 5)),
     });
 
     // Payment received (for completed flow)
-    if (status !== 'pending') {
+    if (status !== "pending") {
       activities.push({
         id: generateId(),
         reservationId,
         userId: null,
-        activityType: 'payment_received',
+        activityType: "payment_received",
         description: null,
         metadata: null,
         createdAt: addMinutes(createdAt, randomInt(5, 15)),
@@ -364,24 +346,24 @@ function generateActivityLog(
 
   // Status-specific activities
   switch (status) {
-    case 'confirmed':
+    case "confirmed":
       activities.push({
         id: generateId(),
         reservationId,
         userId,
-        activityType: 'confirmed',
+        activityType: "confirmed",
         description: null,
         metadata: null,
         createdAt: addMinutes(createdAt, randomInt(30, 120)),
       });
 
       // Deposit authorized
-      if (depositStatus === 'authorized') {
+      if (depositStatus === "authorized") {
         activities.push({
           id: generateId(),
           reservationId,
           userId: null,
-          activityType: 'deposit_authorized',
+          activityType: "deposit_authorized",
           description: null,
           metadata: null,
           createdAt: addHours(createdAt, randomInt(1, 24)),
@@ -389,12 +371,12 @@ function generateActivityLog(
       }
       break;
 
-    case 'ongoing':
+    case "ongoing":
       activities.push({
         id: generateId(),
         reservationId,
         userId,
-        activityType: 'confirmed',
+        activityType: "confirmed",
         description: null,
         metadata: null,
         createdAt: addMinutes(createdAt, randomInt(30, 120)),
@@ -403,7 +385,7 @@ function generateActivityLog(
         id: generateId(),
         reservationId,
         userId: null,
-        activityType: 'deposit_authorized',
+        activityType: "deposit_authorized",
         description: null,
         metadata: null,
         createdAt: addHours(createdAt, randomInt(1, 24)),
@@ -412,19 +394,19 @@ function generateActivityLog(
         id: generateId(),
         reservationId,
         userId,
-        activityType: 'picked_up',
+        activityType: "picked_up",
         description: null,
         metadata: null,
         createdAt: setTime(startDate, randomInt(9, 11)),
       });
       break;
 
-    case 'completed':
+    case "completed":
       activities.push({
         id: generateId(),
         reservationId,
         userId,
-        activityType: 'confirmed',
+        activityType: "confirmed",
         description: null,
         metadata: null,
         createdAt: addMinutes(createdAt, randomInt(30, 120)),
@@ -433,7 +415,7 @@ function generateActivityLog(
         id: generateId(),
         reservationId,
         userId: null,
-        activityType: 'deposit_authorized',
+        activityType: "deposit_authorized",
         description: null,
         metadata: null,
         createdAt: addHours(createdAt, randomInt(1, 24)),
@@ -442,7 +424,7 @@ function generateActivityLog(
         id: generateId(),
         reservationId,
         userId,
-        activityType: 'picked_up',
+        activityType: "picked_up",
         description: null,
         metadata: null,
         createdAt: setTime(startDate, randomInt(9, 11)),
@@ -451,19 +433,19 @@ function generateActivityLog(
         id: generateId(),
         reservationId,
         userId,
-        activityType: 'returned',
+        activityType: "returned",
         description: null,
         metadata: null,
         createdAt: setTime(endDate, randomInt(16, 18)),
       });
 
       // Deposit released or captured
-      if (depositStatus === 'captured') {
+      if (depositStatus === "captured") {
         activities.push({
           id: generateId(),
           reservationId,
           userId,
-          activityType: 'deposit_captured',
+          activityType: "deposit_captured",
           description: pickRandom(INTERNAL_NOTES.damage),
           metadata: { amount: randomDecimal(20, 100) },
           createdAt: addHours(endDate, randomInt(1, 24)),
@@ -473,7 +455,7 @@ function generateActivityLog(
           id: generateId(),
           reservationId,
           userId,
-          activityType: 'deposit_released',
+          activityType: "deposit_released",
           description: null,
           metadata: null,
           createdAt: addHours(endDate, randomInt(1, 48)),
@@ -481,24 +463,24 @@ function generateActivityLog(
       }
       break;
 
-    case 'cancelled':
+    case "cancelled":
       activities.push({
         id: generateId(),
         reservationId,
         userId: null, // Customer cancelled
-        activityType: 'cancelled',
+        activityType: "cancelled",
         description: pickRandom(INTERNAL_NOTES.cancelled),
         metadata: null,
         createdAt: addHours(createdAt, randomInt(1, 72)),
       });
       break;
 
-    case 'rejected':
+    case "rejected":
       activities.push({
         id: generateId(),
         reservationId,
         userId,
-        activityType: 'rejected',
+        activityType: "rejected",
         description: pickRandom(INTERNAL_NOTES.rejected),
         metadata: null,
         createdAt: addHours(createdAt, randomInt(1, 24)),
@@ -529,7 +511,7 @@ export function generateReservations(
   const reservationActivity: GeneratedReservationActivity[] = [];
 
   // Filter active products only
-  const activeProducts = products.filter((p) => p.status === 'active');
+  const activeProducts = products.filter((p) => p.status === "active");
   if (activeProducts.length === 0 || customers.length === 0) {
     return {
       reservations,
@@ -558,21 +540,18 @@ export function generateReservations(
     // Generate reservation dates
     const resStartDate = randomDate(startDate, endDate);
     // Set time to business hours (9-18)
-    const adjustedStartDate = setTime(
-      startOfDay(resStartDate),
-      randomInt(9, 17),
-    );
+    const adjustedStartDate = setTime(startOfDay(resStartDate), randomInt(9, 17));
 
     // Duration varies by pricing mode
     let durationHours: number;
     switch (storeConfig.pricingMode) {
-      case 'hour':
+      case "hour":
         durationHours = randomInt(2, 8);
         break;
-      case 'day':
+      case "day":
         durationHours = randomInt(1, 7) * 24;
         break;
-      case 'week':
+      case "week":
         durationHours = randomInt(1, 3) * 7 * 24;
         break;
     }
@@ -598,11 +577,7 @@ export function generateReservations(
     // Calculate totals
     let subtotal = 0;
     let totalDeposit = 0;
-    const duration = calculateDuration(
-      adjustedStartDate,
-      resEndDate,
-      storeConfig.pricingMode,
-    );
+    const duration = calculateDuration(adjustedStartDate, resEndDate, storeConfig.pricingMode);
 
     const reservationId = generateId();
     const createdAt = new Date(
@@ -633,7 +608,7 @@ export function generateReservations(
 
       if (storeConfig.taxEnabled) {
         taxRate = storeConfig.taxRate.toFixed(2);
-        if (storeConfig.taxMode === 'inclusive') {
+        if (storeConfig.taxMode === "inclusive") {
           // Price includes tax
           const rate = storeConfig.taxRate / 100;
           priceExclTax = (unitPrice / (1 + rate)).toFixed(2);
@@ -682,11 +657,10 @@ export function generateReservations(
       });
 
       // Assign product units if tracking is enabled and reservation is ongoing/completed
-      if (product.trackUnits && ['ongoing', 'completed'].includes(status)) {
+      if (product.trackUnits && ["ongoing", "completed"].includes(status)) {
         const availableUnits =
-          productUnitsMap
-            .get(product.id)
-            ?.filter((unit) => unit.lifecycleStatus === 'active') || [];
+          productUnitsMap.get(product.id)?.filter((unit) => unit.lifecycleStatus === "active") ||
+          [];
 
         const unitsToAssign = availableUnits.slice(0, quantity);
         for (const unit of unitsToAssign) {
@@ -706,7 +680,7 @@ export function generateReservations(
     let totalTaxAmount: string | null = null;
 
     if (storeConfig.taxEnabled) {
-      if (storeConfig.taxMode === 'inclusive') {
+      if (storeConfig.taxMode === "inclusive") {
         const rate = storeConfig.taxRate / 100;
         subtotalExclTax = (subtotal / (1 + rate)).toFixed(2);
         totalTaxAmount = (subtotal - parseFloat(subtotalExclTax)).toFixed(2);
@@ -719,55 +693,52 @@ export function generateReservations(
 
     // Source distribution
     const source = weightedRandom([
-      { item: 'online' as const, weight: 0.7 },
-      { item: 'phone' as const, weight: 0.2 },
-      { item: 'inperson' as const, weight: 0.1 },
+      { item: "online" as const, weight: 0.7 },
+      { item: "phone" as const, weight: 0.2 },
+      { item: "inperson" as const, weight: 0.1 },
     ]);
 
     // Signature for confirmed+ reservations
-    const shouldSign = ['confirmed', 'ongoing', 'completed'].includes(status);
-    const signedAt = shouldSign
-      ? addMinutes(createdAt, randomInt(5, 30))
-      : null;
+    const shouldSign = ["confirmed", "ongoing", "completed"].includes(status);
+    const signedAt = shouldSign ? addMinutes(createdAt, randomInt(5, 30)) : null;
     const signatureIp = shouldSign ? generateIpAddress() : null;
 
     // Pickup and return times
     let pickedUpAt: Date | null = null;
     let returnedAt: Date | null = null;
 
-    if (['ongoing', 'completed'].includes(status)) {
+    if (["ongoing", "completed"].includes(status)) {
       pickedUpAt = setTime(adjustedStartDate, randomInt(9, 11));
     }
-    if (status === 'completed') {
+    if (status === "completed") {
       returnedAt = setTime(resEndDate, randomInt(16, 18));
     }
 
     // Stripe IDs for online payments
-    const hasStripe = storeConfig.stripeEnabled && source === 'online';
-    const stripeCustomerId = hasStripe ? generateStripeId('cus') : null;
+    const hasStripe = storeConfig.stripeEnabled && source === "online";
+    const stripeCustomerId = hasStripe ? generateStripeId("cus") : null;
     const stripePaymentMethodId =
-      hasStripe && depositStatus !== 'none' ? generateStripeId('pm') : null;
+      hasStripe && depositStatus !== "none" ? generateStripeId("pm") : null;
     const depositPaymentIntentId =
-      hasStripe &&
-      ['authorized', 'captured', 'released'].includes(depositStatus)
-        ? generateStripeId('pi')
+      hasStripe && ["authorized", "captured", "released"].includes(depositStatus)
+        ? generateStripeId("pi")
         : null;
 
     // Deposit authorization expiry (7 days after creation for active holds)
     const depositAuthorizationExpiresAt =
-      depositStatus === 'authorized' ? addDays(createdAt, 7) : null;
+      depositStatus === "authorized" ? addDays(createdAt, 7) : null;
 
     // Notes
     const customerNotes = chance(0.3) ? pickRandom(CUSTOMER_NOTES) : null;
     let internalNotes: string | null = null;
 
-    if (status === 'completed' && depositStatus === 'captured') {
+    if (status === "completed" && depositStatus === "captured") {
       internalNotes = pickRandom(INTERNAL_NOTES.damage);
-    } else if (status === 'completed') {
+    } else if (status === "completed") {
       internalNotes = pickRandom(INTERNAL_NOTES.completed);
-    } else if (status === 'cancelled') {
+    } else if (status === "cancelled") {
       internalNotes = pickRandom(INTERNAL_NOTES.cancelled);
-    } else if (status === 'rejected') {
+    } else if (status === "rejected") {
       internalNotes = pickRandom(INTERNAL_NOTES.rejected);
     }
 
@@ -814,11 +785,7 @@ export function generateReservations(
     );
     reservationActivity.push(...activities);
 
-    logProgress(
-      i + 1,
-      storeConfig.reservationCount,
-      `Reservations for ${storeConfig.name}`,
-    );
+    logProgress(i + 1, storeConfig.reservationCount, `Reservations for ${storeConfig.name}`);
   }
 
   return {

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 
 import {
   Drawer,
@@ -9,9 +9,9 @@ import {
   DrawerPanel,
   DrawerPopup,
   DrawerTitle,
-} from '@louez/ui';
+} from "@louez/ui";
 
-import { CategoryManager } from './category-manager';
+import { CategoryManager } from "./category-manager";
 
 interface CategoryManagerDrawerProps {
   open: boolean;
@@ -24,20 +24,17 @@ export const CategoryManagerDrawer = ({
   onOpenChange,
   onCategoryDeleted,
 }: CategoryManagerDrawerProps) => {
-  const t = useTranslations('categories');
+  const t = useTranslations("categories");
 
   return (
     <Drawer position="right" open={open} onOpenChange={onOpenChange}>
       <DrawerPopup variant="inset" showCloseButton>
         <DrawerHeader>
-          <DrawerTitle>{t('title')}</DrawerTitle>
-          <DrawerDescription>{t('description')}</DrawerDescription>
+          <DrawerTitle>{t("title")}</DrawerTitle>
+          <DrawerDescription>{t("description")}</DrawerDescription>
         </DrawerHeader>
         <DrawerPanel>
-          <CategoryManager
-            variant="drawer"
-            onCategoryDeleted={onCategoryDeleted}
-          />
+          <CategoryManager variant="drawer" onCategoryDeleted={onCategoryDeleted} />
         </DrawerPanel>
       </DrawerPopup>
     </Drawer>

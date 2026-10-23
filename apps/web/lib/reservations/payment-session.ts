@@ -149,8 +149,11 @@ export async function createReservationPaymentSessionForCustomer(
       stripeAccountId,
       reservationId,
       reservationNumber: reservation.number,
-      customerEmail: reservation.customer.email,
-      customerName: `${reservation.customer.firstName} ${reservation.customer.lastName}`,
+      customerEmail: reservation.customer.email ?? "",
+      customerName:
+        [reservation.customer.firstName, reservation.customer.lastName].filter(Boolean).join(" ") ||
+        reservation.customer.companyName ||
+        "",
       lineItems,
       depositAmount: toStripeCents(Number.parseFloat(reservation.depositAmount), currency),
       currency,

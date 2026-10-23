@@ -2,21 +2,17 @@ import {
   type CountryCode,
   type MetadataJson,
   parsePhoneNumberFromString,
-} from 'libphonenumber-js/core';
-import metadata from 'libphonenumber-js/metadata.min.json';
+} from "libphonenumber-js/core";
+import metadata from "libphonenumber-js/metadata.min.json";
 
 const phoneMetadata: MetadataJson = metadata;
-const DEFAULT_COUNTRY: CountryCode = 'PL';
+const DEFAULT_COUNTRY: CountryCode = "PL";
 
 export function isPossiblePhoneNumberInput(
   value: string,
   defaultCountry: CountryCode = DEFAULT_COUNTRY,
 ): boolean {
-  const phoneNumber = parsePhoneNumberFromString(
-    value,
-    defaultCountry,
-    phoneMetadata,
-  );
+  const phoneNumber = parsePhoneNumberFromString(value, defaultCountry, phoneMetadata);
 
   return phoneNumber?.isPossible() ?? false;
 }

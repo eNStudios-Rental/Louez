@@ -218,30 +218,32 @@ export function CalendarExportModal({ open, onOpenChange, storeId }: CalendarExp
         </DialogPanel>
 
         <DialogFooter className="sm:justify-between">
-          {canManage && <AlertDialog>
-            <AlertDialogTrigger
-              render={<Button variant="ghost" size="sm" isPending={regenerating} />}
-            >
-              <RepeatSolidIcon data-slot="icon" />
-              {t("regenerate.action")}
-            </AlertDialogTrigger>
-            <AlertDialogPopup className="sm:max-w-sm">
-              <AlertDialogHeader>
-                <AlertDialogTitle>{t("regenerate.confirmTitle")}</AlertDialogTitle>
-                <AlertDialogDescription>{t("regenerate.hint")}</AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogClose render={<Button variant="outline" />}>
-                  {t("cancel")}
-                </AlertDialogClose>
-                <AlertDialogClose
-                  render={<Button variant="destructive" onClick={handleRegenerate} />}
-                >
-                  {t("regenerate.action")}
-                </AlertDialogClose>
-              </AlertDialogFooter>
-            </AlertDialogPopup>
-          </AlertDialog>}
+          {canManage && (
+            <AlertDialog>
+              <AlertDialogTrigger
+                render={<Button variant="ghost" size="sm" isPending={regenerating} />}
+              >
+                <RepeatSolidIcon data-slot="icon" />
+                {t("regenerate.action")}
+              </AlertDialogTrigger>
+              <AlertDialogPopup className="sm:max-w-sm">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t("regenerate.confirmTitle")}</AlertDialogTitle>
+                  <AlertDialogDescription>{t("regenerate.hint")}</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogClose render={<Button variant="outline" />}>
+                    {t("cancel")}
+                  </AlertDialogClose>
+                  <AlertDialogClose
+                    render={<Button variant="destructive" onClick={handleRegenerate} />}
+                  >
+                    {t("regenerate.action")}
+                  </AlertDialogClose>
+                </AlertDialogFooter>
+              </AlertDialogPopup>
+            </AlertDialog>
+          )}
 
           <DialogClose render={<Button variant="outline" />}>{t("done")}</DialogClose>
         </DialogFooter>

@@ -1,39 +1,36 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 
-import { formatDateTime } from '@/lib/utils';
-import { useFormatLocale } from '@/hooks/use-format-locale';
+import { formatDateTime } from "@/lib/utils";
+import { useFormatLocale } from "@/hooks/use-format-locale";
 
-import type { InventoryDowntimeSummary } from '../../queries';
+import type { InventoryDowntimeSummary } from "../../queries";
 
 interface DowntimeCellProps {
   currentDowntime: InventoryDowntimeSummary | null;
   nextDowntime: InventoryDowntimeSummary | null;
 }
 
-export const DowntimeCell = ({
-  currentDowntime,
-  nextDowntime,
-}: DowntimeCellProps) => {
-  const t = useTranslations('dashboard.inventory');
+export const DowntimeCell = ({ currentDowntime, nextDowntime }: DowntimeCellProps) => {
+  const t = useTranslations("dashboard.inventory");
   const { intl: formatLocale } = useFormatLocale();
-  const tReasons = useTranslations('dashboard.inventory.downtimeReasons');
+  const tReasons = useTranslations("dashboard.inventory.downtimeReasons");
 
   if (currentDowntime) {
     return (
       <div className="space-y-1">
         <p className="text-sm font-medium">
-          {t('downtime.current', {
+          {t("downtime.current", {
             reason: tReasons(currentDowntime.reason),
           })}
         </p>
         <p className="text-muted-foreground text-xs">
           {currentDowntime.endsAt
-            ? t('downtime.until', {
+            ? t("downtime.until", {
                 date: formatDateTime(currentDowntime.endsAt, formatLocale),
               })
-            : t('downtime.openEnded')}
+            : t("downtime.openEnded")}
         </p>
       </div>
     );
@@ -43,7 +40,7 @@ export const DowntimeCell = ({
     return (
       <div className="space-y-1">
         <p className="text-sm">
-          {t('downtime.next', {
+          {t("downtime.next", {
             reason: tReasons(nextDowntime.reason),
           })}
         </p>
@@ -54,7 +51,5 @@ export const DowntimeCell = ({
     );
   }
 
-  return (
-    <span className="text-muted-foreground text-sm">{t('downtime.none')}</span>
-  );
+  return <span className="text-muted-foreground text-sm">{t("downtime.none")}</span>;
 };

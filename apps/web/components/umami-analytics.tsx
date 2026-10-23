@@ -1,5 +1,5 @@
-import { env } from '@/env';
-import Script from 'next/script';
+import { env } from "@/env";
+import Script from "next/script";
 
 /**
  * Umami Analytics component
@@ -14,7 +14,7 @@ export function UmamiAnalytics() {
   const scriptUrl = env.NEXT_PUBLIC_UMAMI_SCRIPT_URL;
   const websiteId = env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
 
-  if (!scriptUrl || !websiteId || process.env.NODE_ENV !== 'production') {
+  if (!scriptUrl || !websiteId || process.env.NODE_ENV !== "production") {
     return null;
   }
 

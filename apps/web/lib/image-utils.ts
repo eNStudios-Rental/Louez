@@ -1,22 +1,22 @@
-import sharp from 'sharp'
+import sharp from "sharp";
 
 /**
  * Checks if a URL points to an SVG image.
  */
 export function isSvgUrl(url: string): boolean {
-  const lowerUrl = url.toLowerCase()
+  const lowerUrl = url.toLowerCase();
   return (
-    lowerUrl.endsWith('.svg') ||
-    lowerUrl.includes('image/svg') ||
-    lowerUrl.includes('content-type=image%2Fsvg')
-  )
+    lowerUrl.endsWith(".svg") ||
+    lowerUrl.includes("image/svg") ||
+    lowerUrl.includes("content-type=image%2Fsvg")
+  );
 }
 
 /**
  * Checks if a string is a data URL.
  */
 export function isDataUrl(url: string): boolean {
-  return url.startsWith('data:')
+  return url.startsWith("data:");
 }
 
 /**
@@ -33,50 +33,50 @@ export function isDataUrl(url: string): boolean {
  */
 export async function convertSvgToPngBuffer(
   imageUrl: string,
-  maxSize: number = 400
+  maxSize: number = 400,
 ): Promise<Buffer | null> {
   try {
-    let imageBuffer: Buffer
+    let imageBuffer: Buffer;
 
     if (isDataUrl(imageUrl)) {
-      const base64Matches = imageUrl.match(/^data:([^;]+);base64,(.+)$/)
+      const base64Matches = imageUrl.match(/^data:([^;]+);base64,(.+)$/);
       if (base64Matches) {
-        imageBuffer = Buffer.from(base64Matches[2], 'base64')
+        imageBuffer = Buffer.from(base64Matches[2], "base64");
       } else {
-        const textMatches = imageUrl.match(/^data:([^,]+),(.+)$/)
+        const textMatches = imageUrl.match(/^data:([^,]+),(.+)$/);
         if (!textMatches) {
-          console.warn('[Image] Invalid data URL format for SVG')
-          return null
+          console.warn("[Image] Invalid data URL format for SVG");
+          return null;
         }
-        imageBuffer = Buffer.from(decodeURIComponent(textMatches[2]), 'utf-8')
+        imageBuffer = Buffer.from(decodeURIComponent(textMatches[2]), "utf-8");
       }
     } else {
       const response = await fetch(imageUrl, {
-        headers: { Accept: 'image/*' },
-      })
+        headers: { Accept: "image/*" },
+      });
 
       if (!response.ok) {
-        console.warn(`[Image] Failed to fetch SVG: ${response.status} ${response.statusText}`)
-        return null
+        console.warn(`[Image] Failed to fetch SVG: ${response.status} ${response.statusText}`);
+        return null;
       }
 
-      const arrayBuffer = await response.arrayBuffer()
-      imageBuffer = Buffer.from(arrayBuffer)
+      const arrayBuffer = await response.arrayBuffer();
+      imageBuffer = Buffer.from(arrayBuffer);
     }
 
     return await sharp(imageBuffer)
       .resize(maxSize, maxSize, {
-        fit: 'inside',
+        fit: "inside",
         withoutEnlargement: true,
       })
       .png({
         quality: 90,
         compressionLevel: 6,
       })
-      .toBuffer()
+      .toBuffer();
   } catch (error) {
-    console.error('[Image] Error converting SVG to PNG:', error)
-    return null
+    console.error("[Image] Error converting SVG to PNG:", error);
+    return null;
   }
 }
 
@@ -87,9 +87,9 @@ export async function convertSvgToPngBuffer(
  */
 export async function convertSvgToPng(
   imageUrl: string,
-  maxSize: number = 400
+  maxSize: number = 400,
 ): Promise<string | null> {
-  const buffer = await convertSvgToPngBuffer(imageUrl, maxSize)
-  if (!buffer) return null
-  return `data:image/png;base64,${buffer.toString('base64')}`
+  const buffer = await convertSvgToPngBuffer(imageUrl, maxSize);
+  if (!buffer) return null;
+  return `data:image/png;base64,${buffer.toString("base64")}`;
 }

@@ -7,31 +7,31 @@
  * without a separate card-capture flow.
  */
 
-import { eq } from 'drizzle-orm'
-import { nanoid } from 'nanoid'
+import { eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
-import { aiCreditTransactions, db, stores } from '@louez/db'
+import { aiCreditTransactions, db, stores } from "@louez/db";
 
-import { creditsToMicro } from '@/lib/ai/advisor/credits'
-import { getAiCreditPackages, type AiCreditPackage } from '@/lib/plans'
+import { creditsToMicro } from "@/lib/ai/advisor/credits";
+import { getAiCreditPackages, type AiCreditPackage } from "@/lib/plans";
 
-import { stripe } from './client'
-import { getOrCreateStripeCustomer } from './subscriptions'
+import { stripe } from "./client";
+import { getOrCreateStripeCustomer } from "./subscriptions";
 
 export interface CreateAiCreditTopupOptions {
-  storeId: string
-  pack: AiCreditPackage
-  successUrl: string
-  cancelUrl: string
+  storeId: string;
+  pack: AiCreditPackage;
+  successUrl: string;
+  cancelUrl: string;
   translations: {
-    productName: string // may contain "{credits}"
-    productDescription: string // may contain "{credits}"
-  }
+    productName: string; // may contain "{credits}"
+    productDescription: string; // may contain "{credits}"
+  };
 }
 
 export interface AiCreditTopupCheckoutResult {
-  sessionId: string
-  url: string | null
+  sessionId: string;
+  url: string | null;
 }
 
 /** Whether a requested pack matches one the platform actually sells (env). */
@@ -40,7 +40,7 @@ function resolvePack(pack: AiCreditPackage): AiCreditPackage | null {
     getAiCreditPackages().find(
       (p) => p.credits === pack.credits && p.priceCents === pack.priceCents,
     ) ?? null
-  )
+  );
 }
 
 /**
@@ -54,44 +54,41 @@ export async function createAiCreditTopupCheckoutSession({
   cancelUrl,
   translations,
 }: CreateAiCreditTopupOptions): Promise<AiCreditTopupCheckoutResult> {
-  const store = await db.query.stores.findFirst({ where: eq(stores.id, storeId) })
+  const store = await db.query.stores.findFirst({ where: eq(stores.id, storeId) });
   if (!store) {
-    throw new Error('Store not found')
+    throw new Error("Store not found");
   }
 
-  const valid = resolvePack(pack)
+  const valid = resolvePack(pack);
   if (!valid) {
-    throw new Error('Invalid AI credit package')
+    throw new Error("Invalid AI credit package");
   }
 
-  const stripeCustomerId = await getOrCreateStripeCustomer(storeId)
+  const stripeCustomerId = await getOrCreateStripeCustomer(storeId);
 
-  const transactionId = nanoid()
+  const transactionId = nanoid();
   await db.insert(aiCreditTransactions).values({
     id: transactionId,
     storeId,
-    type: 'topup',
+    type: "topup",
     creditsMicro: creditsToMicro(valid.credits),
     amountCents: valid.priceCents,
-    currency: 'eur',
-    status: 'pending',
-  })
+    currency: "eur",
+    status: "pending",
+  });
 
   const session = await stripe.checkout.sessions.create({
     customer: stripeCustomerId,
-    mode: 'payment',
-    payment_method_types: ['card'],
+    mode: "payment",
+    payment_method_types: ["card"],
     line_items: [
       {
         price_data: {
-          currency: 'eur',
+          currency: "eur",
           product_data: {
-            name: translations.productName.replace(
-              '{credits}',
-              String(valid.credits),
-            ),
+            name: translations.productName.replace("{credits}", String(valid.credits)),
             description: translations.productDescription.replace(
-              '{credits}',
+              "{credits}",
               String(valid.credits),
             ),
           },
@@ -102,9 +99,9 @@ export async function createAiCreditTopupCheckoutSession({
     ],
     // Save the card off-session so the merchant can enable auto-top-up later
     // without building a separate card-capture flow.
-    payment_intent_data: { setup_future_usage: 'off_session' },
+    payment_intent_data: { setup_future_usage: "off_session" },
     metadata: {
-      type: 'ai_credit_topup',
+      type: "ai_credit_topup",
       storeId,
       transactionId,
       credits: String(valid.credits),
@@ -112,15 +109,15 @@ export async function createAiCreditTopupCheckoutSession({
     success_url: successUrl,
     cancel_url: cancelUrl,
     customer_update: {
-      name: 'auto',
-      address: 'auto',
+      name: "auto",
+      address: "auto",
     },
-  })
+  });
 
   await db
     .update(aiCreditTransactions)
     .set({ stripeSessionId: session.id })
-    .where(eq(aiCreditTransactions.id, transactionId))
+    .where(eq(aiCreditTransactions.id, transactionId));
 
-  return { sessionId: session.id, url: session.url }
+  return { sessionId: session.id, url: session.url };
 }

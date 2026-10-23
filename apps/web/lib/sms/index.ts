@@ -8,7 +8,7 @@
  */
 
 // Client functions
-export { sendSms, isSmsConfigured, getSmsConfigStatus, getSmsConfig } from './client'
+export { sendSms, isSmsConfigured, getSmsConfigStatus, getSmsConfig } from "./client";
 
 // High-level send functions
 export {
@@ -19,16 +19,12 @@ export {
   sendCustomSms,
   sendPaymentRequestSms,
   sendDepositAuthorizationRequestSms,
-} from './send'
+} from "./send";
 
 // Phone validation utilities
-export {
-  validateAndNormalizePhone,
-  isValidPhoneFormat,
-  formatPhoneForDisplay,
-} from './phone'
+export { validateAndNormalizePhone, isValidPhoneFormat, formatPhoneForDisplay } from "./phone";
 
 // Types
-export type { SendSmsOptions, SendSmsResult, SmsProviderType, SmsConfig } from './types'
-export type { PhoneValidationResult } from './phone'
-export type { SmsSendResult } from './send'
+export type { SendSmsOptions, SendSmsResult, SmsProviderType, SmsConfig } from "./types";
+export type { PhoneValidationResult } from "./phone";
+export type { SmsSendResult } from "./send";

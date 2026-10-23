@@ -539,10 +539,7 @@ export async function getProductReservationsPage(params: {
       items: { with: { product: true } },
       payments: true,
     },
-    orderBy: (reservations, { desc }) => [
-      desc(reservations.startDate),
-      desc(reservations.id),
-    ],
+    orderBy: (reservations, { desc }) => [desc(reservations.startDate), desc(reservations.id)],
   });
 
   return { items: items as unknown as Reservation[], total };

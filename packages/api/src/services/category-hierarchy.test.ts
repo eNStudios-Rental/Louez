@@ -68,9 +68,7 @@ describe("category hierarchy", () => {
 
     assert.deepEqual(getCategoryIdsWithDescendants(["a"], cyclicCategories), ["a", "b"]);
     assert.deepEqual(
-      getProductIdsByCategoryAndAncestors(cyclicCategories, [
-        { categoryId: "a", productId: "p1" },
-      ]),
+      getProductIdsByCategoryAndAncestors(cyclicCategories, [{ categoryId: "a", productId: "p1" }]),
       new Map([
         ["a", ["p1"]],
         ["b", ["p1"]],

@@ -12,8 +12,8 @@ import { DashboardEmptyState } from "@/components/dashboard/shared/dashboard-emp
 
 interface TopCustomer {
   customerId: string;
-  firstName: string;
-  lastName: string;
+  firstName: string | null;
+  lastName: string | null;
   companyName: string | null;
   customerType: "individual" | "business";
   totalRevenue: string;
@@ -34,9 +34,13 @@ const RANK_VARIANTS = ["review", "expired", "pending"] as const;
 const getDisplayName = (customer: TopCustomer) =>
   customer.customerType === "business" && customer.companyName
     ? customer.companyName
-    : `${customer.firstName} ${customer.lastName}`;
+    : `${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim();
 
-export const TopCustomersTable = ({ customers, readOnly = false, currency = "PLN" }: TopCustomersTableProps) => {
+export const TopCustomersTable = ({
+  customers,
+  readOnly = false,
+  currency = "PLN",
+}: TopCustomersTableProps) => {
   const t = useTranslations("dashboard.statistics");
 
   if (customers.length === 0) {

@@ -5,7 +5,7 @@ import { getAddressAutocomplete } from "./address";
 
 test("address autocomplete includes named businesses and other place types", async (t) => {
   let requestBody: unknown;
-  t.mock.method(globalThis, "fetch", async (_input, init) => {
+  t.mock.method(globalThis, "fetch", async (_input: RequestInfo | URL, init?: RequestInit) => {
     requestBody = JSON.parse(String(init?.body));
     return new Response(
       JSON.stringify({

@@ -1,5 +1,5 @@
-import { Skeleton } from '@louez/ui';
-import { Card, CardContent, CardHeader } from '@louez/ui';
+import { Skeleton } from "@louez/ui";
+import { Card, CardContent, CardHeader } from "@louez/ui";
 
 export default function ProductDetailLoading() {
   return (

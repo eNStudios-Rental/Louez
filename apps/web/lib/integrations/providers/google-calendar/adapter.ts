@@ -1,9 +1,9 @@
 import type {
   IntegrationAdapter,
   IntegrationRuntimeStatus,
-} from '@/lib/integrations/registry/types';
+} from "@/lib/integrations/registry/types";
 
-import { GoogleCalendarConfigurationPanel } from './google-calendar-configuration-panel';
+import { GoogleCalendarConfigurationPanel } from "./google-calendar-configuration-panel";
 
 function getGoogleCalendarRuntimeStatus(): IntegrationRuntimeStatus {
   return {
@@ -18,7 +18,7 @@ export const googleCalendarIntegrationAdapter: IntegrationAdapter = {
   getStatus: getGoogleCalendarRuntimeStatus,
   setEnabled: (settings) =>
     settings || {
-      reservationMode: 'payment',
+      reservationMode: "payment",
       advanceNoticeMinutes: 1440,
     },
   getConfigurationPanel: () => GoogleCalendarConfigurationPanel,

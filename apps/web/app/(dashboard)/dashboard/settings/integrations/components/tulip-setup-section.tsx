@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { type FormEvent, useMemo, useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { type FormEvent, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 import {
   Badge,
@@ -13,16 +13,16 @@ import {
   CardTitle,
   Input,
   Label,
-} from '@louez/ui'
-import { KeyIcon } from '@louez/ui/icons'
+} from "@louez/ui";
+import { KeyIcon } from "@louez/ui/icons";
 
 interface TulipSetupSectionProps {
-  connected: boolean
-  renterUid: string | null
-  connectedAt: string | null
-  calendlyUrl: string
-  isPending: boolean
-  onConnect: (renterUid: string) => Promise<void>
+  connected: boolean;
+  renterUid: string | null;
+  connectedAt: string | null;
+  calendlyUrl: string;
+  isPending: boolean;
+  onConnect: (renterUid: string) => Promise<void>;
 }
 
 export function TulipSetupSection({
@@ -33,54 +33,54 @@ export function TulipSetupSection({
   isPending,
   onConnect,
 }: TulipSetupSectionProps) {
-  const t = useTranslations('dashboard.settings.integrationsPage.assurance.setup')
-  const [inputRenterUid, setInputRenterUid] = useState('')
+  const t = useTranslations("dashboard.settings.integrationsPage.assurance.setup");
+  const [inputRenterUid, setInputRenterUid] = useState("");
 
   const connectedDateLabel = useMemo(() => {
-    if (!connectedAt) return null
+    if (!connectedAt) return null;
 
-    const parsed = new Date(connectedAt)
-    if (Number.isNaN(parsed.getTime())) return null
+    const parsed = new Date(connectedAt);
+    if (Number.isNaN(parsed.getTime())) return null;
 
-    return parsed.toLocaleString()
-  }, [connectedAt])
+    return parsed.toLocaleString();
+  }, [connectedAt]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+    event.preventDefault();
 
-    const sanitized = inputRenterUid.trim()
+    const sanitized = inputRenterUid.trim();
     if (!sanitized) {
-      return
+      return;
     }
 
-    await onConnect(sanitized)
-    setInputRenterUid('')
-  }
+    await onConnect(sanitized);
+    setInputRenterUid("");
+  };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <KeyIcon className="h-5 w-5 shrink-0" />
-          {t('title')}
+          {t("title")}
         </CardTitle>
-        <CardDescription>{t('description')}</CardDescription>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={connected ? 'success' : 'expired'}>
-            {connected ? t('statusConnected') : t('statusNotConnected')}
+          <Badge variant={connected ? "success" : "expired"}>
+            {connected ? t("statusConnected") : t("statusNotConnected")}
           </Badge>
 
           {connected && renterUid && (
             <span className="text-sm text-muted-foreground">
-              {t('connectedWith', { renterUid })}
+              {t("connectedWith", { renterUid })}
             </span>
           )}
 
           {connected && connectedDateLabel && (
             <span className="text-sm text-muted-foreground">
-              {t('connectedAt', { date: connectedDateLabel })}
+              {t("connectedAt", { date: connectedDateLabel })}
             </span>
           )}
         </div>
@@ -88,11 +88,11 @@ export function TulipSetupSection({
         {!connected && (
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="grid gap-2">
-              <Label htmlFor="tulip-renter-id">{t('apiKeyLabel')}</Label>
+              <Label htmlFor="tulip-renter-id">{t("apiKeyLabel")}</Label>
               <Input
                 id="tulip-renter-id"
                 type="text"
-                placeholder={t('apiKeyPlaceholder')}
+                placeholder={t("apiKeyPlaceholder")}
                 value={inputRenterUid}
                 onChange={(event) => setInputRenterUid(event.target.value)}
                 disabled={isPending}
@@ -101,19 +101,19 @@ export function TulipSetupSection({
 
             <div className="flex flex-wrap gap-2">
               <Button type="submit" disabled={isPending || inputRenterUid.trim().length === 0}>
-                {isPending ? t('validatingButton') : t('validateButton')}
+                {isPending ? t("validatingButton") : t("validateButton")}
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 render={<a href={calendlyUrl} target="_blank" rel="noreferrer" />}
               >
-                {t('bookAppointmentButton')}
+                {t("bookAppointmentButton")}
               </Button>
             </div>
           </form>
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -493,7 +493,10 @@ const ImageProcessingDevPage = async ({ searchParams }: ImageProcessingDevPagePr
                           <p className="text-xs text-muted-foreground">Marge brute indicative</p>
                           <p className="text-base font-semibold tabular-nums">
                             {run.economics.grossMarginPercent
-                              ? formatPercentageRange(run.economics.grossMarginPercent, numberFormatter)
+                              ? formatPercentageRange(
+                                  run.economics.grossMarginPercent,
+                                  numberFormatter,
+                                )
                               : "Conversion non configurée"}
                           </p>
                           <p className="text-xs text-muted-foreground">

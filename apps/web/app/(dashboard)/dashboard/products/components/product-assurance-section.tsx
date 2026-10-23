@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronDown, Pencil, Plus } from 'lucide-react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChevronDown, Pencil, Plus } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 import {
   Badge,
@@ -26,17 +26,17 @@ import {
   DropdownMenuTrigger,
   Label,
   toastManager,
-} from '@louez/ui';
-import { ShieldCheckIcon } from '@louez/ui/icons';
+} from "@louez/ui";
+import { ShieldCheckIcon } from "@louez/ui/icons";
 
-import { StoreSettingsAccess } from '@/components/dashboard/store-settings-access';
-import { orpc } from '@/lib/orpc/react';
+import { StoreSettingsAccess } from "@/components/dashboard/store-settings-access";
+import { orpc } from "@/lib/orpc/react";
 
 import {
   type ProductAssuranceActionInput,
   type ProductAssuranceDialogMode,
   ProductAssuranceDialog,
-} from './product-assurance-dialog';
+} from "./product-assurance-dialog";
 
 interface ProductAssuranceSectionProps {
   productId: string;
@@ -50,18 +50,18 @@ function extractErrorKey(error: unknown): string {
     }
   }
 
-  return 'errors.generic';
+  return "errors.generic";
 }
 
 function extractErrorDetails(error: unknown): string | undefined {
   if (
-    typeof error === 'object' &&
+    typeof error === "object" &&
     error !== null &&
-    'data' in error &&
-    typeof error.data === 'object' &&
+    "data" in error &&
+    typeof error.data === "object" &&
     error.data !== null &&
-    'details' in error.data &&
-    typeof error.data.details === 'string'
+    "details" in error.data &&
+    typeof error.data.details === "string"
   ) {
     const normalized = error.data.details.trim();
     return normalized || undefined;
@@ -70,18 +70,15 @@ function extractErrorDetails(error: unknown): string | undefined {
   return undefined;
 }
 
-export const ProductAssuranceSection = ({
-  productId,
-}: ProductAssuranceSectionProps) => {
-  const t = useTranslations('dashboard.products.form.assurance');
-  const tErrors = useTranslations('errors');
+export const ProductAssuranceSection = ({ productId }: ProductAssuranceSectionProps) => {
+  const t = useTranslations("dashboard.products.form.assurance");
+  const tErrors = useTranslations("errors");
   const locale = useLocale();
 
   const queryClient = useQueryClient();
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogMode, setDialogMode] =
-    useState<ProductAssuranceDialogMode>('create');
+  const [dialogMode, setDialogMode] = useState<ProductAssuranceDialogMode>("create");
 
   const productStateQuery = useQuery(
     orpc.dashboard.integrations.getTulipProductState.queryOptions({
@@ -105,15 +102,15 @@ export const ProductAssuranceSection = ({
   const mappingMutation = useMutation(
     orpc.dashboard.integrations.upsertTulipProductMapping.mutationOptions({
       onSuccess: async () => {
-        toastManager.add({ title: t('mappingSaved'), type: 'success' });
+        toastManager.add({ title: t("mappingSaved"), type: "success" });
         await invalidateState();
       },
       onError: (error) => {
         const errorKey = extractErrorKey(error);
         toastManager.add({
-          title: tErrors(errorKey.replace('errors.', '')),
+          title: tErrors(errorKey.replace("errors.", "")),
           description: extractErrorDetails(error),
-          type: 'error',
+          type: "error",
         });
       },
     }),
@@ -122,15 +119,15 @@ export const ProductAssuranceSection = ({
   const pushProductMutation = useMutation(
     orpc.dashboard.integrations.pushTulipProductUpdate.mutationOptions({
       onSuccess: async () => {
-        toastManager.add({ title: t('productUpdated'), type: 'success' });
+        toastManager.add({ title: t("productUpdated"), type: "success" });
         await invalidateState();
       },
       onError: (error) => {
         const errorKey = extractErrorKey(error);
         toastManager.add({
-          title: tErrors(errorKey.replace('errors.', '')),
+          title: tErrors(errorKey.replace("errors.", "")),
           description: extractErrorDetails(error),
-          type: 'error',
+          type: "error",
         });
       },
     }),
@@ -139,15 +136,15 @@ export const ProductAssuranceSection = ({
   const createProductMutation = useMutation(
     orpc.dashboard.integrations.createTulipProduct.mutationOptions({
       onSuccess: async () => {
-        toastManager.add({ title: t('productCreated'), type: 'success' });
+        toastManager.add({ title: t("productCreated"), type: "success" });
         await invalidateState();
       },
       onError: (error) => {
         const errorKey = extractErrorKey(error);
         toastManager.add({
-          title: tErrors(errorKey.replace('errors.', '')),
+          title: tErrors(errorKey.replace("errors.", "")),
           description: extractErrorDetails(error),
-          type: 'error',
+          type: "error",
         });
       },
     }),
@@ -156,29 +153,25 @@ export const ProductAssuranceSection = ({
   if (productStateQuery.isLoading) return null;
 
   const loadErrorKey =
-    productStateQuery.data && 'error' in productStateQuery.data
+    productStateQuery.data && "error" in productStateQuery.data
       ? productStateQuery.data.error
       : productStateQuery.isError
-        ? 'errors.generic'
+        ? "errors.generic"
         : null;
 
-  if (
-    loadErrorKey ||
-    !productStateQuery.data ||
-    'error' in productStateQuery.data
-  ) {
+  if (loadErrorKey || !productStateQuery.data || "error" in productStateQuery.data) {
     return (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShieldCheckIcon className="h-5 w-5 shrink-0" />
-            {t('title')}
+            {t("title")}
           </CardTitle>
-          <CardDescription>{t('description')}</CardDescription>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-destructive text-sm">
-            {tErrors((loadErrorKey ?? 'errors.generic').replace('errors.', ''))}
+            {tErrors((loadErrorKey ?? "errors.generic").replace("errors.", ""))}
           </p>
           <Button
             type="button"
@@ -188,7 +181,7 @@ export const ProductAssuranceSection = ({
               void productStateQuery.refetch();
             }}
           >
-            {t('retry')}
+            {t("retry")}
           </Button>
         </CardContent>
       </Card>
@@ -207,33 +200,24 @@ export const ProductAssuranceSection = ({
     productSubtype: item.productSubtype,
     valueExcl: item.valueExcl,
   }));
-  const tulipProductById = new Map(
-    state.tulipProducts.map((item) => [item.id, item] as const),
-  );
+  const tulipProductById = new Map(state.tulipProducts.map((item) => [item.id, item] as const));
   const hasValidMapping =
-    !!state.product.tulipProductId &&
-    tulipProductById.has(state.product.tulipProductId);
+    !!state.product.tulipProductId && tulipProductById.has(state.product.tulipProductId);
 
   const selectedTulipItem = hasValidMapping
-    ? (tulipItems.find((item) => item.value === state.product.tulipProductId) ??
-      null)
+    ? (tulipItems.find((item) => item.value === state.product.tulipProductId) ?? null)
     : null;
   const hasTulipProductCatalogIssue =
-    state.connectionIssue === 'errors.tulipProductCatalogUnavailable';
+    state.connectionIssue === "errors.tulipProductCatalogUnavailable";
   const hasEmptyTulipProductsForRenter =
-    state.connected &&
-    state.tulipProducts.length === 0 &&
-    !hasTulipProductCatalogIssue;
-  const isMappingBusy =
-    mappingMutation.isPending || productStateQuery.isRefetching;
+    state.connected && state.tulipProducts.length === 0 && !hasTulipProductCatalogIssue;
+  const isMappingBusy = mappingMutation.isPending || productStateQuery.isRefetching;
   const isDialogBusy =
-    isMappingBusy ||
-    pushProductMutation.isPending ||
-    createProductMutation.isPending;
+    isMappingBusy || pushProductMutation.isPending || createProductMutation.isPending;
 
   const currencyFormatter = new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: 'PLN',
+    style: "currency",
+    currency: "PLN",
   });
 
   const formatTulipProductMeta = (item: {
@@ -247,13 +231,13 @@ export const ProductAssuranceSection = ({
       item.brand?.trim(),
       item.model?.trim(),
       item.valueExcl != null
-        ? t('dropdownValueExclTax', {
+        ? t("dropdownValueExclTax", {
             value: currencyFormatter.format(item.valueExcl),
           })
-        : '—',
+        : "—",
     ].filter((part): part is string => Boolean(part && part.length > 0));
 
-    return parts.join(' • ');
+    return parts.join(" • ");
   };
 
   const openProductDialog = (mode: ProductAssuranceDialogMode) => {
@@ -268,30 +252,30 @@ export const ProductAssuranceSection = ({
           <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
             <CardTitle className="flex items-center gap-2">
               <ShieldCheckIcon className="h-5 w-5 shrink-0" />
-              {t('title')}
+              {t("title")}
             </CardTitle>
-            <Badge variant={state.connected ? 'success' : 'expired'}>
-              {state.connected ? t('statusConnected') : t('statusNotConnected')}
+            <Badge variant={state.connected ? "success" : "expired"}>
+              {state.connected ? t("statusConnected") : t("statusNotConnected")}
             </Badge>
           </CardHeader>
           <CardContent className="space-y-4">
             {state.connectionIssue && (
               <p className="text-destructive text-sm">
-                {tErrors(state.connectionIssue.replace('errors.', ''))}
+                {tErrors(state.connectionIssue.replace("errors.", ""))}
               </p>
             )}
 
             <div className="space-y-3">
-              <p className="text-muted-foreground text-sm">
-                {t('linkOrCreateHelper')}
-              </p>
+              <p className="text-muted-foreground text-sm">{t("linkOrCreateHelper")}</p>
 
               <div className="flex flex-col gap-3 md:flex-row md:items-end">
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor={`product-tulip-mapping-${productId}`}>{t('mappingLabel')}</Label>
-                    <Badge variant={hasValidMapping ? 'success' : 'expired'} size="sm">
-                      {hasValidMapping ? t('statusMapped') : t('statusNotMapped')}
+                    <Label htmlFor={`product-tulip-mapping-${productId}`}>
+                      {t("mappingLabel")}
+                    </Label>
+                    <Badge variant={hasValidMapping ? "success" : "expired"} size="sm">
+                      {hasValidMapping ? t("statusMapped") : t("statusNotMapped")}
                     </Badge>
                   </div>
                   <Combobox
@@ -308,24 +292,22 @@ export const ProductAssuranceSection = ({
                       id={`product-tulip-mapping-${productId}`}
                       showTrigger
                       showClear={!!state.product.tulipProductId}
-                      placeholder={t('mappingPlaceholder')}
+                      placeholder={t("mappingPlaceholder")}
                       disabled={isMappingBusy}
                     />
                     <ComboboxPopup>
                       <ComboboxEmpty>
                         {hasTulipProductCatalogIssue
-                          ? tErrors('tulipProductCatalogUnavailable')
+                          ? tErrors("tulipProductCatalogUnavailable")
                           : hasEmptyTulipProductsForRenter
-                            ? t('noRenterProducts')
-                            : t('noResults')}
+                            ? t("noRenterProducts")
+                            : t("noResults")}
                       </ComboboxEmpty>
                       <ComboboxList>
                         {(item) => (
                           <ComboboxItem key={item.value} value={item}>
                             <div className="min-w-0">
-                              <div className="truncate font-medium">
-                                {item.label}
-                              </div>
+                              <div className="truncate font-medium">{item.label}</div>
                               <div className="text-muted-foreground truncate text-xs">
                                 {formatTulipProductMeta(item)}
                               </div>
@@ -343,11 +325,11 @@ export const ProductAssuranceSection = ({
                       type="button"
                       variant="outline"
                       className="rounded-r-none"
-                      onClick={() => openProductDialog('update')}
+                      onClick={() => openProductDialog("update")}
                       disabled={isDialogBusy}
                     >
                       <Pencil />
-                      {t('editMappedProductButton')}
+                      {t("editMappedProductButton")}
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger
@@ -356,7 +338,7 @@ export const ProductAssuranceSection = ({
                             type="button"
                             variant="outline"
                             className="rounded-l-none border-l-0 px-2.5"
-                            aria-label={t('editMappedProductButton')}
+                            aria-label={t("editMappedProductButton")}
                             disabled={isDialogBusy}
                           />
                         }
@@ -364,17 +346,13 @@ export const ProductAssuranceSection = ({
                         <ChevronDown />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuItem
-                          onClick={() => openProductDialog('update')}
-                        >
+                        <DropdownMenuItem onClick={() => openProductDialog("update")}>
                           <Pencil />
-                          {t('editMappedProductButton')}
+                          {t("editMappedProductButton")}
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => openProductDialog('create')}
-                        >
+                        <DropdownMenuItem onClick={() => openProductDialog("create")}>
                           <Plus />
-                          {t('addNewProductButton')}
+                          {t("addNewProductButton")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -383,19 +361,17 @@ export const ProductAssuranceSection = ({
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => openProductDialog('create')}
+                    onClick={() => openProductDialog("create")}
                     disabled={isDialogBusy}
                   >
                     <Plus />
-                    {t('addNewProductButton')}
+                    {t("addNewProductButton")}
                   </Button>
                 )}
               </div>
 
               {mappingMutation.isPending && (
-                <p className="text-muted-foreground text-xs">
-                  {t('mappingSaving')}
-                </p>
+                <p className="text-muted-foreground text-xs">{t("mappingSaving")}</p>
               )}
             </div>
           </CardContent>

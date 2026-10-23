@@ -1,28 +1,28 @@
-'use client'
+"use client";
 
-import { useEffect } from 'react'
+import { useEffect } from "react";
 
-type FhFn = ((...args: unknown[]) => void) & { q?: unknown[][] }
+type FhFn = ((...args: unknown[]) => void) & { q?: unknown[][] };
 
 declare global {
   interface Window {
-    fh?: FhFn
+    fh?: FhFn;
   }
 }
 
 interface FromHelloProviderProps {
   user?: {
-    id: string
-    email: string
-    name?: string | null
-  }
+    id: string;
+    email: string;
+    name?: string | null;
+  };
   store?: {
-    name: string
-    slug: string
-    phone?: string | null
-    email?: string | null
-    plan?: string | null
-  }
+    name: string;
+    slug: string;
+    phone?: string | null;
+    email?: string | null;
+    plan?: string | null;
+  };
 }
 
 /**
@@ -41,18 +41,18 @@ interface FromHelloProviderProps {
  */
 export function FromHelloProvider({ user, store }: FromHelloProviderProps) {
   useEffect(() => {
-    if (!user || typeof window === 'undefined') return
+    if (!user || typeof window === "undefined") return;
 
     if (!window.fh) {
       const stub: FhFn = ((...args: unknown[]) => {
-        ;(stub.q = stub.q || []).push(args)
-      }) as FhFn
-      stub.q = []
-      window.fh = stub
+        (stub.q = stub.q || []).push(args);
+      }) as FhFn;
+      stub.q = [];
+      window.fh = stub;
     }
 
-    window.fh('identify', user.id)
-    window.fh('set', {
+    window.fh("identify", user.id);
+    window.fh("set", {
       email: user.email,
       name: user.name || undefined,
       ...(store && {
@@ -62,8 +62,8 @@ export function FromHelloProvider({ user, store }: FromHelloProviderProps) {
         ...(store.email && { companyEmail: store.email }),
         ...(store.plan && { plan: store.plan }),
       }),
-    })
-  }, [user, store])
+    });
+  }, [user, store]);
 
-  return null
+  return null;
 }

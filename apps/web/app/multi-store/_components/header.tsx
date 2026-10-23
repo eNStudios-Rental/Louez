@@ -1,65 +1,76 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
-import { authClient } from '@louez/auth/client'
-import { LogOut, Store, ChevronDown, Shield } from 'lucide-react'
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { authClient } from "@louez/auth/client";
+import { LogOut, Store, ChevronDown, Shield } from "lucide-react";
 
-import { Button } from '@louez/ui'
-import { Logo } from '@louez/ui'
-import { Avatar, AvatarFallback, AvatarImage } from '@louez/ui'
-import { ThemeToggle } from '@/components/dashboard/theme-toggle'
-import { LanguageSwitcher } from '@/components/ui/language-switcher'
+import { Button } from "@louez/ui";
+import { Logo } from "@louez/ui";
+import { Avatar, AvatarFallback, AvatarImage } from "@louez/ui";
+import { ThemeToggle } from "@/components/dashboard/theme-toggle";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@louez/ui'
-import { setCurrentStoreAction } from '../actions'
+} from "@louez/ui";
+import { setCurrentStoreAction } from "../actions";
 
 interface StoreWithRole {
-  id: string
-  name: string
-  slug: string
-  logoUrl: string | null
-  role: 'owner' | 'admin' | 'member' | 'platform_admin'
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl: string | null;
+  role: "owner" | "admin" | "member" | "platform_admin";
 }
 
 interface MultiStoreHeaderProps {
-  stores: StoreWithRole[]
-  userEmail: string
-  userImage?: string | null
-  isPlatformAdmin?: boolean
-  readOnly?: boolean
+  stores: StoreWithRole[];
+  userEmail: string;
+  userImage?: string | null;
+  isPlatformAdmin?: boolean;
+  readOnly?: boolean;
 }
 
-export function MultiStoreHeader({ stores, userEmail, userImage, isPlatformAdmin, readOnly = false }: MultiStoreHeaderProps) {
-  const t = useTranslations('dashboard.multiStore')
-  const tAuth = useTranslations('auth')
-  const tSettings = useTranslations('dashboard.settings.accountSettings')
-  const router = useRouter()
-  const initials = userEmail.slice(0, 2).toUpperCase()
+export function MultiStoreHeader({
+  stores,
+  userEmail,
+  userImage,
+  isPlatformAdmin,
+  readOnly = false,
+}: MultiStoreHeaderProps) {
+  const t = useTranslations("dashboard.multiStore");
+  const tAuth = useTranslations("auth");
+  const tSettings = useTranslations("dashboard.settings.accountSettings");
+  const router = useRouter();
+  const initials = userEmail.slice(0, 2).toUpperCase();
 
   const handleStoreSelect = async (storeId: string) => {
-    if (readOnly) return
-    await setCurrentStoreAction(storeId)
-    router.push('/dashboard')
-    router.refresh()
-  }
+    if (readOnly) return;
+    await setCurrentStoreAction(storeId);
+    router.push("/dashboard");
+    router.refresh();
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <div className="flex items-center gap-6">
-          <Link href="/multi-store" prefetch={readOnly ? false : undefined} onClick={readOnly ? (event) => event.preventDefault() : undefined} className="flex items-center gap-2">
+          <Link
+            href="/multi-store"
+            prefetch={readOnly ? false : undefined}
+            onClick={readOnly ? (event) => event.preventDefault() : undefined}
+            className="flex items-center gap-2"
+          >
             <Logo className="h-6 w-auto" />
           </Link>
           <span className="hidden text-sm font-medium text-muted-foreground sm:inline">
-            {t('title')}
+            {t("title")}
           </span>
         </div>
 
@@ -68,9 +79,9 @@ export function MultiStoreHeader({ stores, userEmail, userImage, isPlatformAdmin
           {/* Quick store access */}
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="outline" className="gap-2" />}>
-                <Store className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('goToAStore')}</span>
-                <ChevronDown className="h-3 w-3 opacity-50" />
+              <Store className="h-4 w-4" />
+              <span className="hidden sm:inline">{t("goToAStore")}</span>
+              <ChevronDown className="h-3 w-3 opacity-50" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               {stores.map((store) => (
@@ -99,43 +110,55 @@ export function MultiStoreHeader({ stores, userEmail, userImage, isPlatformAdmin
 
           {/* User menu */}
           <DropdownMenu>
-            <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="rounded-full" />}>
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={userImage || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+            <DropdownMenuTrigger
+              render={<Button variant="ghost" size="icon" className="rounded-full" />}
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={userImage || undefined} />
+                <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="px-2 py-1.5">
                 <p className="text-sm font-medium truncate">{userEmail}</p>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem render={<Link href="/dashboard/account" className="cursor-pointer" />}>
-                  {tSettings('title')}
+              <DropdownMenuItem
+                render={<Link href="/dashboard/account" className="cursor-pointer" />}
+              >
+                {tSettings("title")}
               </DropdownMenuItem>
               {isPlatformAdmin && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem render={<Link href="/admin" className="cursor-pointer" />}>
                     <Shield className="mr-2 h-4 w-4" />
-                    {tSettings('administration')}
+                    {tSettings("administration")}
                   </DropdownMenuItem>
                 </>
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => authClient.signOut({ fetchOptions: { onSuccess: () => { window.location.href = '/login' } } })}
+                onClick={() =>
+                  authClient.signOut({
+                    fetchOptions: {
+                      onSuccess: () => {
+                        window.location.href = "/login";
+                      },
+                    },
+                  })
+                }
                 className="text-destructive cursor-pointer"
               >
                 <LogOut className="h-4 w-4 mr-2" />
-                {tAuth('logout')}
+                {tAuth("logout")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
     </header>
-  )
+  );
 }

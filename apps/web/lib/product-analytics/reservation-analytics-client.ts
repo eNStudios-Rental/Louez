@@ -27,8 +27,7 @@ interface ReservationQuickActionsViewedProperties extends ReservationAnalyticsPr
   visibleActions: ReservationAnalyticsAction[];
 }
 
-interface ReservationQuickActionClickedProperties
-  extends ReservationActionAnalyticsProperties {
+interface ReservationQuickActionClickedProperties extends ReservationActionAnalyticsProperties {
   slot: "primary" | "secondary";
 }
 

@@ -14,7 +14,7 @@ export const sendRequestCancelledEmail = async ({
 }: {
   store: { id: string; name: string; email: string; settings: { country?: string } | null };
   reservation: { id: string; number: string };
-  customer: { firstName: string; lastName: string };
+  customer: { firstName?: string | null; lastName?: string | null };
 }): Promise<void> => {
   const locale = getLocaleFromCountry(store.settings?.country);
   const t = await getTranslations({ locale, namespace: "storefront.account.cancellation" });
@@ -24,7 +24,7 @@ export const sendRequestCancelledEmail = async ({
       <EmailHeading>{subject}</EmailHeading>
       <EmailText>
         {t("adminBody", {
-          name: `${customer.firstName} ${customer.lastName}`,
+          name: [customer.firstName, customer.lastName].filter(Boolean).join(" ") || "—",
           number: reservation.number,
         })}
       </EmailText>

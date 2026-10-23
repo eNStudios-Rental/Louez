@@ -1,22 +1,22 @@
-import type { StoreSettings } from '@louez/types'
+import type { StoreSettings } from "@louez/types";
 
-import { providerIntegrations } from '@/lib/integrations/providers'
+import { providerIntegrations } from "@/lib/integrations/providers";
 import type {
   IntegrationCatalogItem,
   IntegrationCategorySummary,
   IntegrationDetail,
   RegisteredIntegration,
-} from '@/lib/integrations/registry/types'
+} from "@/lib/integrations/registry/types";
 
 const integrationMap = new Map(
   providerIntegrations.map((entry) => [entry.manifest.id, entry] as const),
-)
+);
 
 function toCatalogItem(
   entry: RegisteredIntegration,
   settings: StoreSettings | null | undefined,
 ): IntegrationCatalogItem {
-  const runtime = entry.adapter.getStatus(settings)
+  const runtime = entry.adapter.getStatus(settings);
 
   return {
     id: entry.manifest.id,
@@ -30,7 +30,7 @@ function toCatalogItem(
     connected: runtime.connected,
     configured: runtime.configured,
     connectionIssue: runtime.connectionIssue,
-  }
+  };
 }
 
 export function listIntegrations(
@@ -38,58 +38,56 @@ export function listIntegrations(
 ): IntegrationCatalogItem[] {
   return providerIntegrations
     .map((entry) => toCatalogItem(entry, settings))
-    .sort((a, b) => a.id.localeCompare(b.id))
+    .sort((a, b) => a.id.localeCompare(b.id));
 }
 
 export function listCategories(
   settings: StoreSettings | null | undefined,
 ): IntegrationCategorySummary[] {
-  const catalog = listIntegrations(settings)
+  const catalog = listIntegrations(settings);
 
-  const grouped = new Map<string, IntegrationCategorySummary>()
+  const grouped = new Map<string, IntegrationCategorySummary>();
   for (const item of catalog) {
-    const current = grouped.get(item.category)
+    const current = grouped.get(item.category);
     if (!current) {
       grouped.set(item.category, {
         id: item.category,
         count: 1,
         integrationIds: [item.id],
-      })
-      continue
+      });
+      continue;
     }
 
-    current.count += 1
-    current.integrationIds.push(item.id)
+    current.count += 1;
+    current.integrationIds.push(item.id);
   }
 
   return [...grouped.values()]
     .filter((category) => category.count > 0)
-    .sort((a, b) => a.id.localeCompare(b.id))
+    .sort((a, b) => a.id.localeCompare(b.id));
 }
 
 export function listByCategory(
   settings: StoreSettings | null | undefined,
   category: string,
 ): IntegrationCatalogItem[] {
-  return listIntegrations(settings).filter((item) => item.category === category)
+  return listIntegrations(settings).filter((item) => item.category === category);
 }
 
-export function getIntegration(
-  integrationId: string,
-): RegisteredIntegration | null {
-  return integrationMap.get(integrationId) ?? null
+export function getIntegration(integrationId: string): RegisteredIntegration | null {
+  return integrationMap.get(integrationId) ?? null;
 }
 
 export function getIntegrationDetail(
   settings: StoreSettings | null | undefined,
   integrationId: string,
 ): IntegrationDetail | null {
-  const entry = getIntegration(integrationId)
+  const entry = getIntegration(integrationId);
   if (!entry) {
-    return null
+    return null;
   }
 
-  const catalogItem = toCatalogItem(entry, settings)
+  const catalogItem = toCatalogItem(entry, settings);
 
   return {
     ...catalogItem,
@@ -100,5 +98,5 @@ export function getIntegrationDetail(
     aboutKey: entry.manifest.aboutKey,
     aboutSections: entry.manifest.aboutSections,
     websiteUrl: entry.manifest.websiteUrl,
-  }
+  };
 }

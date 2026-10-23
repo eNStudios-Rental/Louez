@@ -1,4 +1,4 @@
-import { env } from '@/env';
+import { env } from "@/env";
 
 /**
  * The shareable referral link a Referrer posts. Points at the marketing apex (e.g.
@@ -8,8 +8,8 @@ import { env } from '@/env';
  */
 export function buildReferralUrl(referralCode: string): string {
   const domain = env.NEXT_PUBLIC_APP_DOMAIN; // "louez.io" or "localhost:3000"
-  const isLocal = domain.includes('localhost') || domain.includes('127.0.0.1');
-  const protocol = isLocal ? 'http' : 'https';
+  const isLocal = domain.includes("localhost") || domain.includes("127.0.0.1");
+  const protocol = isLocal ? "http" : "https";
   return `${protocol}://${domain}/?ref=${referralCode}`;
 }
 
@@ -20,13 +20,13 @@ export function buildReferralUrl(referralCode: string): string {
  */
 export function referralCookieDomain(): string | undefined {
   const domain = env.NEXT_PUBLIC_APP_DOMAIN;
-  if (domain.includes('localhost') || domain.includes('127.0.0.1')) {
+  if (domain.includes("localhost") || domain.includes("127.0.0.1")) {
     return undefined;
   }
-  return `.${domain.split(':')[0]}`;
+  return `.${domain.split(":")[0]}`;
 }
 
 export function referralCookieSecure(): boolean {
   const domain = env.NEXT_PUBLIC_APP_DOMAIN;
-  return !domain.includes('localhost') && !domain.includes('127.0.0.1');
+  return !domain.includes("localhost") && !domain.includes("127.0.0.1");
 }

@@ -14,11 +14,11 @@ const text: Record<Locale, PricingDemoText> = {
   de: { summer: "Sommersaison" },
   es: { summer: "Temporada de verano" },
   pl: { summer: "Sezon letni" },
-  zh: {summer: supplementalMessages.zh.demo_pricing_summer,},
-  ja: {summer: supplementalMessages.ja.demo_pricing_summer,},
-  ru: {summer: supplementalMessages.ru.demo_pricing_summer,},
-  id: {summer: supplementalMessages.id.demo_pricing_summer,},
-  ko: {summer: supplementalMessages.ko.demo_pricing_summer,},
+  zh: { summer: supplementalMessages.zh.demo_pricing_summer },
+  ja: { summer: supplementalMessages.ja.demo_pricing_summer },
+  ru: { summer: supplementalMessages.ru.demo_pricing_summer },
+  id: { summer: supplementalMessages.id.demo_pricing_summer },
+  ko: { summer: supplementalMessages.ko.demo_pricing_summer },
 };
 
 export const getPricingDemoText = (locale?: string): PricingDemoText =>

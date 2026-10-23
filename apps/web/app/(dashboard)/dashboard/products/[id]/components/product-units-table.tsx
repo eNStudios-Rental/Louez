@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
-import { Loader2, Package } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { Loader2, Package } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   Badge,
@@ -16,21 +16,21 @@ import {
   TableHeader,
   TableRow,
   toastManager,
-} from '@louez/ui';
+} from "@louez/ui";
 
-import { EmptyState } from '@/components/ui/empty-state';
-import { formatDate } from '@/lib/utils';
-import { useFormatLocale } from '@/hooks/use-format-locale';
+import { EmptyState } from "@/components/ui/empty-state";
+import { formatDate } from "@/lib/utils";
+import { useFormatLocale } from "@/hooks/use-format-locale";
 
-import { closeDowntime, reinstateUnit } from '../actions';
-import type { ProductInventoryUnit } from '../queries';
-import { DowntimeDialog } from './inventory/downtime-dialog';
-import { EditUnitDetailsDialog } from './inventory/edit-unit-details-dialog';
-import { IndicatorsCell } from './inventory/indicators-cell';
-import { RetireDialog } from './inventory/retire-dialog';
-import { UnitHistorySheet } from './inventory/unit-history-sheet';
-import { UnitRowActions } from './inventory/unit-row-actions';
-import { getTranslatedActionError } from './inventory/util.inventory-format';
+import { closeDowntime, reinstateUnit } from "../actions";
+import type { ProductInventoryUnit } from "../queries";
+import { DowntimeDialog } from "./inventory/downtime-dialog";
+import { EditUnitDetailsDialog } from "./inventory/edit-unit-details-dialog";
+import { IndicatorsCell } from "./inventory/indicators-cell";
+import { RetireDialog } from "./inventory/retire-dialog";
+import { UnitHistorySheet } from "./inventory/unit-history-sheet";
+import { UnitRowActions } from "./inventory/unit-row-actions";
+import { getTranslatedActionError } from "./inventory/util.inventory-format";
 
 interface ProductUnitsTableProps {
   units: ProductInventoryUnit[];
@@ -39,21 +39,19 @@ interface ProductUnitsTableProps {
 
 export const ProductUnitsTable = ({ units, readOnly = false }: ProductUnitsTableProps) => {
   const { intl: formatLocale } = useFormatLocale();
-  const t = useTranslations('dashboard.products.detail.inventory');
-  const tUnitTracking = useTranslations('dashboard.products.form.unitTracking');
-  const tInventory = useTranslations('dashboard.inventory');
-  const tErrors = useTranslations('errors');
+  const t = useTranslations("dashboard.products.detail.inventory");
+  const tUnitTracking = useTranslations("dashboard.products.form.unitTracking");
+  const tInventory = useTranslations("dashboard.inventory");
+  const tErrors = useTranslations("errors");
   const router = useRouter();
 
   const [pendingUnitId, setPendingUnitId] = useState<string | null>(null);
-  const [selectedDowntimeUnit, setSelectedDowntimeUnit] =
-    useState<ProductInventoryUnit | null>(null);
-  const [selectedRetireUnit, setSelectedRetireUnit] =
-    useState<ProductInventoryUnit | null>(null);
-  const [selectedEditUnit, setSelectedEditUnit] =
-    useState<ProductInventoryUnit | null>(null);
-  const [selectedHistoryUnit, setSelectedHistoryUnit] =
-    useState<ProductInventoryUnit | null>(null);
+  const [selectedDowntimeUnit, setSelectedDowntimeUnit] = useState<ProductInventoryUnit | null>(
+    null,
+  );
+  const [selectedRetireUnit, setSelectedRetireUnit] = useState<ProductInventoryUnit | null>(null);
+  const [selectedEditUnit, setSelectedEditUnit] = useState<ProductInventoryUnit | null>(null);
+  const [selectedHistoryUnit, setSelectedHistoryUnit] = useState<ProductInventoryUnit | null>(null);
 
   const handleCloseDowntime = async (unit: ProductInventoryUnit) => {
     if (readOnly || !unit.currentDowntime) {
@@ -66,21 +64,21 @@ export const ProductUnitsTable = ({ units, readOnly = false }: ProductUnitsTable
         downtimeId: unit.currentDowntime.id,
       });
 
-      if ('error' in result && result.error) {
+      if ("error" in result && result.error) {
         toastManager.add({
           title: getTranslatedActionError(result.error, tErrors),
-          type: 'error',
+          type: "error",
         });
         return;
       }
 
       toastManager.add({
-        title: tInventory('toasts.downtimeClosed'),
-        type: 'success',
+        title: tInventory("toasts.downtimeClosed"),
+        type: "success",
       });
       router.refresh();
     } catch {
-      toastManager.add({ title: tErrors('generic'), type: 'error' });
+      toastManager.add({ title: tErrors("generic"), type: "error" });
     } finally {
       setPendingUnitId(null);
     }
@@ -92,25 +90,25 @@ export const ProductUnitsTable = ({ units, readOnly = false }: ProductUnitsTable
     try {
       const result = await reinstateUnit({ unitId: unit.id });
 
-      if ('error' in result && result.error) {
+      if ("error" in result && result.error) {
         toastManager.add({
           title: getTranslatedActionError(result.error, tErrors),
-          type: 'error',
+          type: "error",
         });
         return;
       }
 
-      toastManager.add({ title: tInventory('toasts.reinstated'), type: 'success' });
+      toastManager.add({ title: tInventory("toasts.reinstated"), type: "success" });
       router.refresh();
     } catch {
-      toastManager.add({ title: tErrors('generic'), type: 'error' });
+      toastManager.add({ title: tErrors("generic"), type: "error" });
     } finally {
       setPendingUnitId(null);
     }
   };
 
   if (units.length === 0) {
-    return <EmptyState icon={Package} title={t('noUnits')} />;
+    return <EmptyState icon={Package} title={t("noUnits")} />;
   }
 
   return (
@@ -119,19 +117,17 @@ export const ProductUnitsTable = ({ units, readOnly = false }: ProductUnitsTable
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{t('identifier')}</TableHead>
-              <TableHead>{tUnitTracking('serialNumber')}</TableHead>
-              <TableHead>{t('unitStatus')}</TableHead>
-              <TableHead>{t('lifecycle')}</TableHead>
-              <TableHead className="text-center">
-                {tInventory('table.notes')}
-              </TableHead>
+              <TableHead>{t("identifier")}</TableHead>
+              <TableHead>{tUnitTracking("serialNumber")}</TableHead>
+              <TableHead>{t("unitStatus")}</TableHead>
+              <TableHead>{t("lifecycle")}</TableHead>
+              <TableHead className="text-center">{tInventory("table.notes")}</TableHead>
               <TableHead className="w-[70px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {units.map((unit) => {
-              const isRetired = unit.lifecycleStatus === 'retired';
+              const isRetired = unit.lifecycleStatus === "retired";
 
               return (
                 <TableRow key={unit.id}>
@@ -144,31 +140,29 @@ export const ProductUnitsTable = ({ units, readOnly = false }: ProductUnitsTable
                     </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {unit.serialNumber || '—'}
+                    {unit.serialNumber || "—"}
                   </TableCell>
                   <TableCell>
                     {isRetired ? (
                       <span className="text-xs text-muted-foreground">
                         {unit.retirementReason
-                          ? tInventory(
-                              `retirementReasons.${unit.retirementReason}`,
-                            )
-                          : '—'}
+                          ? tInventory(`retirementReasons.${unit.retirementReason}`)
+                          : "—"}
                         {unit.retiredAt
                           ? ` · ${formatDate(unit.retiredAt, undefined, formatLocale)}`
-                          : ''}
+                          : ""}
                       </span>
                     ) : unit.currentDowntime ? (
-                      <Badge variant="pending">{t('inDowntime')}</Badge>
+                      <Badge variant="pending">{t("inDowntime")}</Badge>
                     ) : unit.isBusyToday ? (
-                      <Badge variant="progress">{t('busyToday')}</Badge>
+                      <Badge variant="progress">{t("busyToday")}</Badge>
                     ) : (
-                      <Badge variant="success">{t('available')}</Badge>
+                      <Badge variant="success">{t("available")}</Badge>
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={isRetired ? 'expired' : 'success'}>
-                      {isRetired ? t('retired') : t('active')}
+                    <Badge variant={isRetired ? "expired" : "success"}>
+                      {isRetired ? t("retired") : t("active")}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">
@@ -193,44 +187,46 @@ export const ProductUnitsTable = ({ units, readOnly = false }: ProductUnitsTable
         </Table>
       </div>
 
-      {!readOnly && <>
-      <DowntimeDialog
-        open={selectedDowntimeUnit !== null}
-        unit={selectedDowntimeUnit}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedDowntimeUnit(null);
-          }
-        }}
-      />
-      <RetireDialog
-        open={selectedRetireUnit !== null}
-        unit={selectedRetireUnit}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedRetireUnit(null);
-          }
-        }}
-      />
-      <EditUnitDetailsDialog
-        open={selectedEditUnit !== null}
-        unit={selectedEditUnit}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedEditUnit(null);
-          }
-        }}
-      />
-      <UnitHistorySheet
-        open={selectedHistoryUnit !== null}
-        unit={selectedHistoryUnit}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedHistoryUnit(null);
-          }
-        }}
-      />
-      </>}
+      {!readOnly && (
+        <>
+          <DowntimeDialog
+            open={selectedDowntimeUnit !== null}
+            unit={selectedDowntimeUnit}
+            onOpenChange={(open) => {
+              if (!open) {
+                setSelectedDowntimeUnit(null);
+              }
+            }}
+          />
+          <RetireDialog
+            open={selectedRetireUnit !== null}
+            unit={selectedRetireUnit}
+            onOpenChange={(open) => {
+              if (!open) {
+                setSelectedRetireUnit(null);
+              }
+            }}
+          />
+          <EditUnitDetailsDialog
+            open={selectedEditUnit !== null}
+            unit={selectedEditUnit}
+            onOpenChange={(open) => {
+              if (!open) {
+                setSelectedEditUnit(null);
+              }
+            }}
+          />
+          <UnitHistorySheet
+            open={selectedHistoryUnit !== null}
+            unit={selectedHistoryUnit}
+            onOpenChange={(open) => {
+              if (!open) {
+                setSelectedHistoryUnit(null);
+              }
+            }}
+          />
+        </>
+      )}
     </>
   );
-}
+};

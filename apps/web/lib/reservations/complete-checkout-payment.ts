@@ -211,9 +211,9 @@ const toNotificationReservation = (reservation: ReservationRow) => ({
 const toNotificationCustomer = (customer: ReservationRow["customer"]) =>
   customer
     ? {
-        firstName: customer.firstName,
-        lastName: customer.lastName,
-        email: customer.email,
+        firstName: customer.firstName ?? "",
+        lastName: customer.lastName ?? "",
+        email: customer.email ?? "",
         phone: customer.phone,
       }
     : undefined;

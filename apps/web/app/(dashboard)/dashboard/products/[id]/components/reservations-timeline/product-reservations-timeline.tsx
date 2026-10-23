@@ -410,7 +410,8 @@ export function ProductReservationsTimeline({
   const dayWidth = (isMobile ? MOBILE_DAY_WIDTHS : DAY_WIDTHS)[zoom];
 
   const hiddenStatuses = useMemo(
-    () => new Set<string>(ALL_STATUSES.filter((status) => !filterState.resaStatus.includes(status))),
+    () =>
+      new Set<string>(ALL_STATUSES.filter((status) => !filterState.resaStatus.includes(status))),
     [filterState.resaStatus],
   );
 
@@ -679,7 +680,9 @@ export function ProductReservationsTimeline({
     return label.charAt(0).toUpperCase() + label.slice(1);
   };
 
-  const [visibleMonthLabel, setVisibleMonthLabel] = useState(() => formatMonthLabel(initialDate ?? new Date()));
+  const [visibleMonthLabel, setVisibleMonthLabel] = useState(() =>
+    formatMonthLabel(initialDate ?? new Date()),
+  );
   const [visibleDate, setVisibleDate] = useState(() => startOfDay(initialDate ?? new Date()));
   const [leftmostVisibleDayIndex, setLeftmostVisibleDayIndex] = useState(0);
 
@@ -999,7 +1002,12 @@ export function ProductReservationsTimeline({
               <ListFilter />
               <TimelineFilterBadge count={visibleStatusBadgeCount(hiddenStatuses)} />
             </PopoverTrigger>
-            <PopoverContent initialFocus={readOnly ? false : undefined} finalFocus={readOnly ? false : undefined} align="end" className="w-52">
+            <PopoverContent
+              initialFocus={readOnly ? false : undefined}
+              finalFocus={readOnly ? false : undefined}
+              align="end"
+              className="w-52"
+            >
               <div className="p-1">
                 <StatusFilterList
                   hiddenStatuses={hiddenStatuses}

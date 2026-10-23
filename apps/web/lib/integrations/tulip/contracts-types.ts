@@ -1,5 +1,5 @@
 export type TulipCustomerInput = {
-  customerType?: 'individual' | 'business' | null;
+  customerType?: "individual" | "business" | null;
   companyName?: string | null;
   firstName: string;
   lastName: string;
@@ -16,7 +16,7 @@ export type TulipItemInput = {
   quantity: number;
 };
 
-export type TulipContractType = 'LCD' | 'LMD' | 'LLD';
+export type TulipContractType = "LCD" | "LMD" | "LLD";
 
 export type ResolvedTulipItemInput = {
   productId: string;

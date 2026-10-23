@@ -135,7 +135,9 @@ export const StorefrontScene = ({
             onPeriodChange={changePeriod}
           />
         }
-        cartControl={cartControl ?? <CartTriggerView count={cart.summary.count} open={() => setOpen(true)} />}
+        cartControl={
+          cartControl ?? <CartTriggerView count={cart.summary.count} open={() => setOpen(true)} />
+        }
       />
       <CatalogLayout
         title={getCatalogTitle(filters.category, DEMO_CATEGORIES, {
@@ -163,7 +165,9 @@ export const StorefrontScene = ({
           onClickCapture={(event) => {
             if (event.target instanceof Element && event.target.closest("a")) {
               event.preventDefault();
-              const productId = event.target.closest("[data-product-id]")?.getAttribute("data-product-id");
+              const productId = event.target
+                .closest("[data-product-id]")
+                ?.getAttribute("data-product-id");
               if (productId) onOpenProduct?.(productId);
             }
           }}

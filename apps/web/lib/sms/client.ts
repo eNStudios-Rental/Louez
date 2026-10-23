@@ -24,18 +24,24 @@
  *   Vonage: VONAGE_API_KEY, VONAGE_API_SECRET
  */
 
-import type { SmsProvider, SmsProviderType, SendSmsOptions, SendSmsResult, SmsConfig } from './types'
-import { SmsPartnerProvider } from './providers'
-import { env } from '@/env'
+import type {
+  SmsProvider,
+  SmsProviderType,
+  SendSmsOptions,
+  SendSmsResult,
+  SmsConfig,
+} from "./types";
+import { SmsPartnerProvider } from "./providers";
+import { env } from "@/env";
 
 // Provider instances cache
-let providerInstance: SmsProvider | null = null
+let providerInstance: SmsProvider | null = null;
 
 /**
  * Get the configured SMS provider type
  */
 function getProviderType(): SmsProviderType {
-  return env.SMS_PROVIDER
+  return env.SMS_PROVIDER;
 }
 
 /**
@@ -43,8 +49,8 @@ function getProviderType(): SmsProviderType {
  */
 function createProvider(type: SmsProviderType): SmsProvider {
   switch (type) {
-    case 'smspartner':
-      return new SmsPartnerProvider()
+    case "smspartner":
+      return new SmsPartnerProvider();
 
     // Add new providers here:
     // case 'twilio':
@@ -53,8 +59,8 @@ function createProvider(type: SmsProviderType): SmsProvider {
     //   return new VonageProvider()
 
     default:
-      console.warn(`Unknown SMS provider: ${type}, falling back to smspartner`)
-      return new SmsPartnerProvider()
+      console.warn(`Unknown SMS provider: ${type}, falling back to smspartner`);
+      return new SmsPartnerProvider();
   }
 }
 
@@ -63,37 +69,37 @@ function createProvider(type: SmsProviderType): SmsProvider {
  */
 function getProvider(): SmsProvider {
   if (!providerInstance) {
-    const type = getProviderType()
-    providerInstance = createProvider(type)
+    const type = getProviderType();
+    providerInstance = createProvider(type);
   }
-  return providerInstance
+  return providerInstance;
 }
 
 /**
  * Check if SMS is properly configured and ready to use
  */
 export function isSmsConfigured(): boolean {
-  const provider = getProvider()
-  return provider.isConfigured()
+  const provider = getProvider();
+  return provider.isConfigured();
 }
 
 /**
  * Get SMS configuration status for diagnostics
  */
 export function getSmsConfigStatus(): {
-  enabled: boolean
-  provider: SmsProviderType
-  configured: boolean
-  missingVars?: string[]
+  enabled: boolean;
+  provider: SmsProviderType;
+  configured: boolean;
+  missingVars?: string[];
 } {
-  const provider = getProvider()
-  const status = provider.getConfigStatus()
+  const provider = getProvider();
+  const status = provider.getConfigStatus();
 
   return {
     enabled: isSmsConfigured(),
     provider: provider.name,
     ...status,
-  }
+  };
 }
 
 /**
@@ -104,7 +110,7 @@ export function getSmsConfig(): SmsConfig {
     provider: getProviderType(),
     enabled: isSmsConfigured(),
     defaultSender: env.SMS_DEFAULT_SENDER,
-  }
+  };
 }
 
 /**
@@ -127,20 +133,20 @@ export function getSmsConfig(): SmsConfig {
  * }
  */
 export async function sendSms(options: SendSmsOptions): Promise<SendSmsResult> {
-  const provider = getProvider()
+  const provider = getProvider();
 
   if (!provider.isConfigured()) {
     return {
       success: false,
       error: `SMS provider '${provider.name}' is not configured`,
       errorCode: -1,
-    }
+    };
   }
 
-  return provider.send(options)
+  return provider.send(options);
 }
 
 /**
  * Re-export types for convenience
  */
-export type { SendSmsOptions, SendSmsResult, SmsProviderType, SmsConfig }
+export type { SendSmsOptions, SendSmsResult, SmsProviderType, SmsConfig };

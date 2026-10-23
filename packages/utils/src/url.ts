@@ -6,11 +6,8 @@
  * absolutize them. Already-absolute URLs pass through untouched, so this is
  * a no-op for cloud deployments with a public bucket URL.
  */
-export function toAbsoluteUrl(
-  url: string,
-  baseUrl: string | undefined,
-): string {
-  if (!url.startsWith('/') || url.startsWith('//')) return url
-  if (!baseUrl) return url
-  return `${baseUrl.replace(/\/+$/, '')}${url}`
+export function toAbsoluteUrl(url: string, baseUrl: string | undefined): string {
+  if (!url.startsWith("/") || url.startsWith("//")) return url;
+  if (!baseUrl) return url;
+  return `${baseUrl.replace(/\/+$/, "")}${url}`;
 }

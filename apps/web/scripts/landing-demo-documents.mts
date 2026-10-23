@@ -39,7 +39,9 @@ const {
 const { ContractDocument }: typeof import("@/lib/pdf/contract") = require("@/lib/pdf/contract");
 // The same react-pdf instance as the app modules: the fonts they register live in it.
 const { renderToBuffer }: typeof import("@react-pdf/renderer") = require("@react-pdf/renderer");
-const { getContractTranslations }: typeof import("@/lib/pdf/contract-i18n") = require("@/lib/pdf/contract-i18n");
+const {
+  getContractTranslations,
+}: typeof import("@/lib/pdf/contract-i18n") = require("@/lib/pdf/contract-i18n");
 const sharp: typeof import("sharp") = require("sharp");
 
 // `pnpm --filter @louez/web demo:documents`. The Docker build runs it before `next build`: the

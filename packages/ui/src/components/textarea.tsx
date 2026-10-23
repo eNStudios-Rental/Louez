@@ -13,7 +13,13 @@ type TextareaProps = React.ComponentProps<"textarea"> & {
   unstyled?: boolean;
 };
 
-function Textarea({ className, size = "default", unstyled = false, disabled, ...props }: TextareaProps) {
+function Textarea({
+  className,
+  size = "default",
+  unstyled = false,
+  disabled,
+  ...props
+}: TextareaProps) {
   const controlsDisabled = useControlsDisabled();
   return (
     <span

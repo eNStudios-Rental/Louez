@@ -1,27 +1,20 @@
-import { and, eq } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
+import { and, eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
-import { db, storeIntegrations, storeTulipIntegrations } from '@louez/db';
-import type { TulipPublicMode } from '@louez/types';
+import { db, storeIntegrations, storeTulipIntegrations } from "@louez/db";
+import type { TulipPublicMode } from "@louez/types";
 
 import {
   DEFAULT_TULIP_SETTINGS,
   type TulipResolvedSettings,
   getTulipApiKey,
-} from '@/lib/integrations/tulip/settings';
+} from "@/lib/integrations/tulip/settings";
 
-export const TULIP_PROVIDER_KEY = 'tulip';
+export const TULIP_PROVIDER_KEY = "tulip";
 
-type TulipIntegrationStatus =
-  | 'disabled'
-  | 'active'
-  | 'needs_reconnect'
-  | 'error'
-  | 'syncing';
+type TulipIntegrationStatus = "disabled" | "active" | "needs_reconnect" | "error" | "syncing";
 
-type TulipIntegrationRecord = Awaited<
-  ReturnType<typeof getTulipIntegrationForStore>
->;
+type TulipIntegrationRecord = Awaited<ReturnType<typeof getTulipIntegrationForStore>>;
 
 export type ResolvedTulipIntegration = {
   integration: TulipIntegrationRecord | null;
@@ -32,10 +25,8 @@ export type ResolvedTulipIntegration = {
   connectionIssue: string | null;
 };
 
-function normalizeOptionalText(
-  value: string | null | undefined,
-): string | null {
-  const normalized = typeof value === 'string' ? value.trim() : '';
+function normalizeOptionalText(value: string | null | undefined): string | null {
+  const normalized = typeof value === "string" ? value.trim() : "";
   return normalized || null;
 }
 
@@ -78,7 +69,7 @@ export async function resolveTulipIntegrationForStore(
       settings: {
         enabled: false,
         connectedAt: null,
-        publicMode: 'no_public',
+        publicMode: "no_public",
         renterUid: null,
       },
       connected: false,
@@ -99,14 +90,13 @@ export async function resolveTulipIntegrationForStore(
     settings: {
       enabled,
       connectedAt: toIsoString(tulipSettings.connectedAt),
-      publicMode: enabled ? storedPublicMode : 'no_public',
+      publicMode: enabled ? storedPublicMode : "no_public",
       renterUid,
     },
     connected,
     storedPublicMode,
     archivedRenterUid: normalizeOptionalText(tulipSettings.archivedRenterUid),
-    connectionIssue:
-      renterUid && !hasApiKey ? 'errors.tulipNotConfigured' : null,
+    connectionIssue: renterUid && !hasApiKey ? "errors.tulipNotConfigured" : null,
   };
 }
 
@@ -125,7 +115,7 @@ export async function saveTulipIntegrationForStore(params: {
   const existing = await getTulipIntegrationForStore(params.storeId);
   const integrationId = existing?.id ?? nanoid();
   const now = new Date();
-  const status = params.status ?? (params.enabled ? 'active' : 'disabled');
+  const status = params.status ?? (params.enabled ? "active" : "disabled");
 
   await db.transaction(async (tx) => {
     if (existing) {
@@ -148,7 +138,7 @@ export async function saveTulipIntegrationForStore(params: {
         id: integrationId,
         storeId: params.storeId,
         providerKey: TULIP_PROVIDER_KEY,
-        category: 'insurance',
+        category: "insurance",
         enabled: params.enabled,
         connectedByUserId: params.connectedByUserId ?? null,
         status,

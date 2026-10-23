@@ -78,9 +78,9 @@ export const StorefrontLayoutContent = async ({ children, params }: StorefrontLa
         customerIdentity={
           customerSession
             ? {
-                firstName: customerSession.customer.firstName,
-                lastName: customerSession.customer.lastName,
-                email: customerSession.customer.email,
+                firstName: customerSession.customer.firstName ?? "",
+                lastName: customerSession.customer.lastName ?? "",
+                email: customerSession.customer.email ?? "",
               }
             : null
         }

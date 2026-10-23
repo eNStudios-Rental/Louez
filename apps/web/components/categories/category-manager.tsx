@@ -1,17 +1,10 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from "react";
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  FolderOpen,
-  Loader2,
-  MoreHorizontal,
-  Pencil,
-  Plus,
-  Trash2,
-} from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { FolderOpen, Loader2, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   AlertDialog,
@@ -42,20 +35,17 @@ import {
   Label,
   Textarea,
   toastManager,
-} from '@louez/ui';
+} from "@louez/ui";
 
-import { DashboardIconTile } from '@/components/dashboard/shared/dashboard-icon-tile';
-import {
-  ImageUploadValidationError,
-  useImageUpload,
-} from '@/hooks/use-image-upload';
-import { orpc } from '@/lib/orpc/react';
-import { cn } from '@/lib/utils';
+import { DashboardIconTile } from "@/components/dashboard/shared/dashboard-icon-tile";
+import { ImageUploadValidationError, useImageUpload } from "@/hooks/use-image-upload";
+import { orpc } from "@/lib/orpc/react";
+import { cn } from "@/lib/utils";
 
-import { CategoryImageControl } from './category-image-control';
-import { buildCategoryHierarchy } from './util.category-hierarchy';
+import { CategoryImageControl } from "./category-image-control";
+import { buildCategoryHierarchy } from "./util.category-hierarchy";
 
-const KEEP_EXISTING_CATEGORIES_VALUE = '__keep_existing_categories__';
+const KEEP_EXISTING_CATEGORIES_VALUE = "__keep_existing_categories__";
 
 export interface CategoryManagerItem {
   id: string;
@@ -68,18 +58,18 @@ export interface CategoryManagerItem {
 
 interface CategoryManagerProps {
   initialCategories?: CategoryManagerItem[];
-  variant?: 'page' | 'drawer';
+  variant?: "page" | "drawer";
   onCategoryDeleted?: (categoryId: string) => void;
 }
 
 export const CategoryManager = ({
   initialCategories,
-  variant = 'page',
+  variant = "page",
   onCategoryDeleted,
 }: CategoryManagerProps) => {
   const t = useTranslations();
   const queryClient = useQueryClient();
-  const categoryFiles = useImageUpload('category');
+  const categoryFiles = useImageUpload("category");
   const categoriesQuery = useQuery(
     orpc.dashboard.categories.list.queryOptions({
       initialData: initialCategories,
@@ -87,25 +77,18 @@ export const CategoryManager = ({
   );
   const categories = categoriesQuery.data ?? initialCategories ?? [];
 
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newCategoryParentId, setNewCategoryParentId] = useState<string | null>(null);
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [newCategoryDescription, setNewCategoryDescription] = useState('');
-  const [newCategoryImageUrl, setNewCategoryImageUrl] = useState<string | null>(
-    null,
-  );
-  const [editingCategory, setEditingCategory] =
-    useState<CategoryManagerItem | null>(null);
-  const [editCategoryParentId, setEditCategoryParentId] =
-    useState<string | null>(null);
-  const [editCategoryName, setEditCategoryName] = useState('');
-  const [editCategoryDescription, setEditCategoryDescription] = useState('');
-  const [editCategoryImageUrl, setEditCategoryImageUrl] = useState<
-    string | null
-  >(null);
-  const [categoryToDelete, setCategoryToDelete] =
-    useState<CategoryManagerItem | null>(null);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryDescription, setNewCategoryDescription] = useState("");
+  const [newCategoryImageUrl, setNewCategoryImageUrl] = useState<string | null>(null);
+  const [editingCategory, setEditingCategory] = useState<CategoryManagerItem | null>(null);
+  const [editCategoryParentId, setEditCategoryParentId] = useState<string | null>(null);
+  const [editCategoryName, setEditCategoryName] = useState("");
+  const [editCategoryDescription, setEditCategoryDescription] = useState("");
+  const [editCategoryImageUrl, setEditCategoryImageUrl] = useState<string | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<CategoryManagerItem | null>(null);
   const [replacementCategoryId, setReplacementCategoryId] = useState(
     KEEP_EXISTING_CATEGORIES_VALUE,
   );
@@ -115,15 +98,9 @@ export const CategoryManager = ({
       queryKey: orpc.dashboard.categories.key(),
     });
 
-  const createMutation = useMutation(
-    orpc.dashboard.categories.create.mutationOptions(),
-  );
-  const updateMutation = useMutation(
-    orpc.dashboard.categories.update.mutationOptions(),
-  );
-  const deleteMutation = useMutation(
-    orpc.dashboard.categories.delete.mutationOptions(),
-  );
+  const createMutation = useMutation(orpc.dashboard.categories.create.mutationOptions());
+  const updateMutation = useMutation(orpc.dashboard.categories.update.mutationOptions());
+  const deleteMutation = useMutation(orpc.dashboard.categories.delete.mutationOptions());
   const isMutating =
     createMutation.isPending ||
     updateMutation.isPending ||
@@ -136,38 +113,34 @@ export const CategoryManager = ({
 
   const closeCreateDialog = () => {
     if (newCategoryImageUrl) deleteUploadedImage(newCategoryImageUrl);
-    setNewCategoryName('');
-    setNewCategoryDescription('');
+    setNewCategoryName("");
+    setNewCategoryDescription("");
     setNewCategoryImageUrl(null);
     setNewCategoryParentId(null);
     setCreateDialogOpen(false);
   };
 
   const closeEditDialog = () => {
-    if (
-      editCategoryImageUrl &&
-      editCategoryImageUrl !== editingCategory?.imageUrl
-    ) {
+    if (editCategoryImageUrl && editCategoryImageUrl !== editingCategory?.imageUrl) {
       deleteUploadedImage(editCategoryImageUrl);
     }
     setEditingCategory(null);
     setEditCategoryParentId(null);
-    setEditCategoryName('');
-    setEditCategoryDescription('');
+    setEditCategoryName("");
+    setEditCategoryDescription("");
     setEditCategoryImageUrl(null);
   };
 
-  const handleImageUpload = async (file: File, target: 'create' | 'edit') => {
-    const currentImageUrl =
-      target === 'create' ? newCategoryImageUrl : editCategoryImageUrl;
-    const savedImageUrl = target === 'edit' ? editingCategory?.imageUrl : null;
+  const handleImageUpload = async (file: File, target: "create" | "edit") => {
+    const currentImageUrl = target === "create" ? newCategoryImageUrl : editCategoryImageUrl;
+    const savedImageUrl = target === "edit" ? editingCategory?.imageUrl : null;
 
     try {
       const uploaded = await categoryFiles.uploadImage(file);
       if (currentImageUrl && currentImageUrl !== savedImageUrl) {
         deleteUploadedImage(currentImageUrl);
       }
-      if (target === 'create') {
+      if (target === "create") {
         setNewCategoryImageUrl(uploaded.url);
       } else {
         setEditCategoryImageUrl(uploaded.url);
@@ -176,9 +149,9 @@ export const CategoryManager = ({
       toastManager.add({
         title:
           error instanceof ImageUploadValidationError
-            ? t('errors.invalidData')
-            : t('errors.generic'),
-        type: 'error',
+            ? t("errors.invalidData")
+            : t("errors.generic"),
+        type: "error",
       });
     }
   };
@@ -189,10 +162,7 @@ export const CategoryManager = ({
   };
 
   const removeEditImage = () => {
-    if (
-      editCategoryImageUrl &&
-      editCategoryImageUrl !== editingCategory?.imageUrl
-    ) {
+    if (editCategoryImageUrl && editCategoryImageUrl !== editingCategory?.imageUrl) {
       deleteUploadedImage(editCategoryImageUrl);
     }
     setEditCategoryImageUrl(null);
@@ -216,7 +186,7 @@ export const CategoryManager = ({
       });
       await invalidateCategories();
       queryClient.setQueryData(
-        orpc.dashboard.categories.list.key({ type: 'query' }),
+        orpc.dashboard.categories.list.key({ type: "query" }),
         (current: CategoryManagerItem[] | undefined) => {
           const latest = current ?? [];
           return latest.some((category) => category.id === created.id)
@@ -227,17 +197,17 @@ export const CategoryManager = ({
       if (newCategoryImageUrl && created.imageUrl !== newCategoryImageUrl) {
         deleteUploadedImage(newCategoryImageUrl);
       }
-      setNewCategoryName('');
-      setNewCategoryDescription('');
+      setNewCategoryName("");
+      setNewCategoryDescription("");
       setNewCategoryImageUrl(null);
       setNewCategoryParentId(null);
       setCreateDialogOpen(false);
       toastManager.add({
-        title: t('categories.categoryCreated'),
-        type: 'success',
+        title: t("categories.categoryCreated"),
+        type: "success",
       });
     } catch {
-      toastManager.add({ title: t('errors.generic'), type: 'error' });
+      toastManager.add({ title: t("errors.generic"), type: "error" });
     }
   };
 
@@ -256,29 +226,26 @@ export const CategoryManager = ({
       });
       await invalidateCategories();
       queryClient.setQueryData(
-        orpc.dashboard.categories.list.key({ type: 'query' }),
+        orpc.dashboard.categories.list.key({ type: "query" }),
         (current: CategoryManagerItem[] | undefined) =>
           current?.map((category) =>
             category.id === updated.id ? { ...category, ...updated } : category,
           ),
       );
-      if (
-        editingCategory.imageUrl &&
-        editingCategory.imageUrl !== updated.imageUrl
-      ) {
+      if (editingCategory.imageUrl && editingCategory.imageUrl !== updated.imageUrl) {
         deleteUploadedImage(editingCategory.imageUrl);
       }
       setEditingCategory(null);
       setEditCategoryParentId(null);
-      setEditCategoryName('');
-      setEditCategoryDescription('');
+      setEditCategoryName("");
+      setEditCategoryDescription("");
       setEditCategoryImageUrl(null);
       toastManager.add({
-        title: t('categories.categoryUpdated'),
-        type: 'success',
+        title: t("categories.categoryUpdated"),
+        type: "success",
       });
     } catch {
-      toastManager.add({ title: t('errors.generic'), type: 'error' });
+      toastManager.add({ title: t("errors.generic"), type: "error" });
     }
   };
 
@@ -289,13 +256,11 @@ export const CategoryManager = ({
       const deleted = await deleteMutation.mutateAsync({
         id: categoryToDelete.id,
         replacementCategoryId:
-          replacementCategoryId === KEEP_EXISTING_CATEGORIES_VALUE
-            ? null
-            : replacementCategoryId,
+          replacementCategoryId === KEEP_EXISTING_CATEGORIES_VALUE ? null : replacementCategoryId,
       });
       await invalidateCategories();
       queryClient.setQueryData(
-        orpc.dashboard.categories.list.key({ type: 'query' }),
+        orpc.dashboard.categories.list.key({ type: "query" }),
         (current: CategoryManagerItem[] | undefined) =>
           current?.filter((category) => category.id !== deleted.id),
       );
@@ -306,11 +271,11 @@ export const CategoryManager = ({
       setCategoryToDelete(null);
       setReplacementCategoryId(KEEP_EXISTING_CATEGORIES_VALUE);
       toastManager.add({
-        title: t('categories.categoryDeleted'),
-        type: 'success',
+        title: t("categories.categoryDeleted"),
+        type: "success",
       });
     } catch {
-      toastManager.add({ title: t('errors.generic'), type: 'error' });
+      toastManager.add({ title: t("errors.generic"), type: "error" });
     }
   };
 
@@ -318,7 +283,7 @@ export const CategoryManager = ({
     setEditingCategory(category);
     setEditCategoryParentId(category.parentId ?? null);
     setEditCategoryName(category.name);
-    setEditCategoryDescription(category.description ?? '');
+    setEditCategoryDescription(category.description ?? "");
     setEditCategoryImageUrl(category.imageUrl ?? null);
   };
 
@@ -334,25 +299,25 @@ export const CategoryManager = ({
           type="search"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          placeholder={t('categories.searchPlaceholder')}
-          aria-label={t('categories.searchPlaceholder')}
+          placeholder={t("categories.searchPlaceholder")}
+          aria-label={t("categories.searchPlaceholder")}
           className="flex-1"
         />
         <Button type="button" onClick={() => setCreateDialogOpen(true)}>
           <Plus className="size-4" />
-          {t('categories.newCategory')}
+          {t("categories.newCategory")}
         </Button>
       </div>
 
       <div
         className={cn(
-          'overflow-hidden rounded-xl border',
-          variant === 'page' && 'bg-card shadow-sm',
+          "overflow-hidden rounded-xl border",
+          variant === "page" && "bg-card shadow-sm",
         )}
       >
         <div className="bg-muted/40 flex items-center justify-between border-b px-4 py-3">
           <p className="text-sm font-medium">
-            {t('categories.totalCount', { count: categories.length })}
+            {t("categories.totalCount", { count: categories.length })}
           </p>
           {categoriesQuery.isFetching && (
             <Loader2 className="text-muted-foreground size-4 animate-spin" />
@@ -368,12 +333,12 @@ export const CategoryManager = ({
             <FolderOpen className="text-muted-foreground size-10" />
             <p className="mt-3 font-medium">
               {categories.length === 0
-                ? t('categories.noCategories')
-                : t('categories.noSearchResults')}
+                ? t("categories.noCategories")
+                : t("categories.noSearchResults")}
             </p>
             {categories.length === 0 && (
               <p className="text-muted-foreground mt-1 max-w-sm text-sm">
-                {t('categories.emptyDescription')}
+                {t("categories.emptyDescription")}
               </p>
             )}
           </div>
@@ -385,14 +350,11 @@ export const CategoryManager = ({
                   <div
                     key={category.id}
                     className={cn(
-                      'flex items-center justify-between gap-4 rounded-lg px-4 py-3',
-                      depth === 0 && 'bg-muted/40',
-                      depth === 1 &&
-                        'ml-5 border-l-2 border-border bg-muted/20 py-2.5',
-                      depth === 2 &&
-                        'ml-10 border-l-2 border-border bg-muted/20 py-2.5',
-                      depth >= 3 &&
-                        'ml-14 border-l-2 border-border bg-muted/20 py-2.5',
+                      "flex items-center justify-between gap-4 rounded-lg px-4 py-3",
+                      depth === 0 && "bg-muted/40",
+                      depth === 1 && "ml-5 border-l-2 border-border bg-muted/20 py-2.5",
+                      depth === 2 && "ml-10 border-l-2 border-border bg-muted/20 py-2.5",
+                      depth >= 3 && "ml-14 border-l-2 border-border bg-muted/20 py-2.5",
                     )}
                   >
                     <div className="flex min-w-0 items-center gap-3">
@@ -401,25 +363,20 @@ export const CategoryManager = ({
                           src={category.imageUrl}
                           alt=""
                           className={cn(
-                            'shrink-0 rounded-lg border object-cover',
-                            depth === 0 ? 'size-10' : 'size-8',
+                            "shrink-0 rounded-lg border object-cover",
+                            depth === 0 ? "size-10" : "size-8",
                           )}
                         />
                       ) : (
-                        <DashboardIconTile
-                          icon={FolderOpen}
-                          size={depth === 0 ? 'md' : 'sm'}
-                        />
+                        <DashboardIconTile icon={FolderOpen} size={depth === 0 ? "md" : "sm"} />
                       )}
                       <div className="min-w-0">
                         {parentName && (
-                          <p className="text-muted-foreground truncate text-xs">
-                            ↳ {parentName}
-                          </p>
+                          <p className="text-muted-foreground truncate text-xs">↳ {parentName}</p>
                         )}
                         <p className="truncate font-medium">{category.name}</p>
                         <p className="text-muted-foreground text-sm">
-                          {t('categories.productCount', {
+                          {t("categories.productCount", {
                             count: category.productCount ?? 0,
                           })}
                         </p>
@@ -432,7 +389,7 @@ export const CategoryManager = ({
                             type="button"
                             variant="ghost"
                             size="icon"
-                            aria-label={t('categories.actionsFor', {
+                            aria-label={t("categories.actionsFor", {
                               name: category.name,
                             })}
                           />
@@ -441,18 +398,16 @@ export const CategoryManager = ({
                         <MoreHorizontal className="size-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => openEditDialog(category)}
-                        >
+                        <DropdownMenuItem onClick={() => openEditDialog(category)}>
                           <Pencil className="size-4" />
-                          {t('common.edit')}
+                          {t("common.edit")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
                           onClick={() => openDeleteDialog(category)}
                         >
                           <Trash2 className="size-4" />
-                          {t('common.delete')}
+                          {t("common.delete")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -473,42 +428,36 @@ export const CategoryManager = ({
       >
         <DialogPopup>
           <DialogHeader>
-            <DialogTitle>{t('categories.newCategory')}</DialogTitle>
-            <DialogDescription>
-              {t('categories.newCategoryDescription')}
-            </DialogDescription>
+            <DialogTitle>{t("categories.newCategory")}</DialogTitle>
+            <DialogDescription>{t("categories.newCategoryDescription")}</DialogDescription>
           </DialogHeader>
           <DialogPanel className="space-y-4">
             <Input
               autoFocus
-              placeholder={t('categories.namePlaceholder')}
+              placeholder={t("categories.namePlaceholder")}
               value={newCategoryName}
               onChange={(event) => setNewCategoryName(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === 'Enter') {
+                if (event.key === "Enter") {
                   event.preventDefault();
                   void handleCreate();
                 }
               }}
             />
             <div className="space-y-2">
-              <Label>{t('categories.parentCategory')}</Label>
+              <Label>{t("categories.parentCategory")}</Label>
               <Select
-                value={newCategoryParentId ?? 'none'}
-                onValueChange={(val) =>
-                  setNewCategoryParentId(val === 'none' ? null : val)
-                }
+                value={newCategoryParentId ?? "none"}
+                onValueChange={(val) => setNewCategoryParentId(val === "none" ? null : val)}
               >
                 <SelectTrigger>
                   <SelectValue>
                     {categories.find((category) => category.id === newCategoryParentId)?.name ??
-                      t('categories.noneParent')}
+                      t("categories.noneParent")}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectPopup>
-                  <SelectItem value="none">
-                    {t('categories.noneParent')}
-                  </SelectItem>
+                  <SelectItem value="none">{t("categories.noneParent")}</SelectItem>
                   {categories.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name}
@@ -519,28 +468,24 @@ export const CategoryManager = ({
             </div>
             <div className="space-y-2">
               <Label htmlFor="new-category-description">
-                {t('categories.categoryDescription')}
+                {t("categories.categoryDescription")}
               </Label>
               <Textarea
                 id="new-category-description"
                 value={newCategoryDescription}
-                onChange={(event) =>
-                  setNewCategoryDescription(event.target.value)
-                }
+                onChange={(event) => setNewCategoryDescription(event.target.value)}
                 rows={3}
               />
             </div>
             <CategoryImageControl
               imageUrl={newCategoryImageUrl}
-              label={t('categories.image')}
+              label={t("categories.image")}
               uploadLabel={t(
-                newCategoryImageUrl
-                  ? 'categories.changeImage'
-                  : 'categories.addImage',
+                newCategoryImageUrl ? "categories.changeImage" : "categories.addImage",
               )}
-              removeLabel={t('categories.removeImage')}
+              removeLabel={t("categories.removeImage")}
               isUploading={categoryFiles.isUploading}
-              onFileSelected={(file) => handleImageUpload(file, 'create')}
+              onFileSelected={(file) => handleImageUpload(file, "create")}
               onRemove={removeCreateImage}
             />
           </DialogPanel>
@@ -551,7 +496,7 @@ export const CategoryManager = ({
               onClick={closeCreateDialog}
               disabled={categoryFiles.isUploading}
             >
-              {t('common.cancel')}
+              {t("common.cancel")}
             </Button>
             <Button
               type="button"
@@ -559,7 +504,7 @@ export const CategoryManager = ({
               isPending={createMutation.isPending}
               disabled={isMutating}
             >
-              {t('common.create')}
+              {t("common.create")}
             </Button>
           </DialogFooter>
         </DialogPopup>
@@ -573,42 +518,36 @@ export const CategoryManager = ({
       >
         <DialogPopup>
           <DialogHeader>
-            <DialogTitle>{t('categories.editCategory')}</DialogTitle>
-            <DialogDescription>
-              {t('categories.editCategoryDescription')}
-            </DialogDescription>
+            <DialogTitle>{t("categories.editCategory")}</DialogTitle>
+            <DialogDescription>{t("categories.editCategoryDescription")}</DialogDescription>
           </DialogHeader>
           <DialogPanel className="space-y-4">
             <Input
               autoFocus
-              placeholder={t('categories.namePlaceholder')}
+              placeholder={t("categories.namePlaceholder")}
               value={editCategoryName}
               onChange={(event) => setEditCategoryName(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === 'Enter') {
+                if (event.key === "Enter") {
                   event.preventDefault();
                   void handleEdit();
                 }
               }}
             />
             <div className="space-y-2">
-              <Label>{t('categories.parentCategory')}</Label>
+              <Label>{t("categories.parentCategory")}</Label>
               <Select
-                value={editCategoryParentId ?? 'none'}
-                onValueChange={(val) =>
-                  setEditCategoryParentId(val === 'none' ? null : val)
-                }
+                value={editCategoryParentId ?? "none"}
+                onValueChange={(val) => setEditCategoryParentId(val === "none" ? null : val)}
               >
                 <SelectTrigger>
                   <SelectValue>
                     {categories.find((category) => category.id === editCategoryParentId)?.name ??
-                      t('categories.noneParent')}
+                      t("categories.noneParent")}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectPopup>
-                  <SelectItem value="none">
-                    {t('categories.noneParent')}
-                  </SelectItem>
+                  <SelectItem value="none">{t("categories.noneParent")}</SelectItem>
                   {categories
                     .filter((c) => c.id !== editingCategory?.id)
                     .map((c) => (
@@ -621,28 +560,24 @@ export const CategoryManager = ({
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-category-description">
-                {t('categories.categoryDescription')}
+                {t("categories.categoryDescription")}
               </Label>
               <Textarea
                 id="edit-category-description"
                 value={editCategoryDescription}
-                onChange={(event) =>
-                  setEditCategoryDescription(event.target.value)
-                }
+                onChange={(event) => setEditCategoryDescription(event.target.value)}
                 rows={3}
               />
             </div>
             <CategoryImageControl
               imageUrl={editCategoryImageUrl}
-              label={t('categories.image')}
+              label={t("categories.image")}
               uploadLabel={t(
-                editCategoryImageUrl
-                  ? 'categories.changeImage'
-                  : 'categories.addImage',
+                editCategoryImageUrl ? "categories.changeImage" : "categories.addImage",
               )}
-              removeLabel={t('categories.removeImage')}
+              removeLabel={t("categories.removeImage")}
               isUploading={categoryFiles.isUploading}
-              onFileSelected={(file) => handleImageUpload(file, 'edit')}
+              onFileSelected={(file) => handleImageUpload(file, "edit")}
               onRemove={removeEditImage}
             />
           </DialogPanel>
@@ -653,7 +588,7 @@ export const CategoryManager = ({
               onClick={closeEditDialog}
               disabled={categoryFiles.isUploading}
             >
-              {t('common.cancel')}
+              {t("common.cancel")}
             </Button>
             <Button
               type="button"
@@ -661,7 +596,7 @@ export const CategoryManager = ({
               isPending={updateMutation.isPending}
               disabled={isMutating}
             >
-              {t('common.save')}
+              {t("common.save")}
             </Button>
           </DialogFooter>
         </DialogPopup>
@@ -675,12 +610,10 @@ export const CategoryManager = ({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('categories.deleteConfirm.title')}
-            </AlertDialogTitle>
+            <AlertDialogTitle>{t("categories.deleteConfirm.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('categories.deleteConfirm.descriptionWithName', {
-                name: categoryToDelete?.name ?? '',
+              {t("categories.deleteConfirm.descriptionWithName", {
+                name: categoryToDelete?.name ?? "",
               })}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -688,14 +621,12 @@ export const CategoryManager = ({
           {categoryToDelete && (categoryToDelete.productCount ?? 0) > 0 && (
             <div className="space-y-3">
               <p className="text-muted-foreground text-sm">
-                {t('categories.deleteConfirm.productsWarning', {
+                {t("categories.deleteConfirm.productsWarning", {
                   count: categoryToDelete.productCount ?? 0,
                 })}
               </p>
               <div className="space-y-2">
-                <p className="text-sm font-medium">
-                  {t('categories.deleteConfirm.reassignLabel')}
-                </p>
+                <p className="text-sm font-medium">{t("categories.deleteConfirm.reassignLabel")}</p>
                 <Select
                   value={replacementCategoryId}
                   onValueChange={(value) => {
@@ -707,7 +638,7 @@ export const CategoryManager = ({
                   </SelectTrigger>
                   <SelectPopup>
                     <SelectItem value={KEEP_EXISTING_CATEGORIES_VALUE}>
-                      {t('categories.deleteConfirm.keepExisting')}
+                      {t("categories.deleteConfirm.keepExisting")}
                     </SelectItem>
                     {categories
                       .filter((category) => category.id !== categoryToDelete.id)
@@ -723,10 +654,8 @@ export const CategoryManager = ({
           )}
 
           <AlertDialogFooter>
-            <AlertDialogClose
-              render={<Button type="button" variant="outline" />}
-            >
-              {t('common.cancel')}
+            <AlertDialogClose render={<Button type="button" variant="outline" />}>
+              {t("common.cancel")}
             </AlertDialogClose>
             <Button
               type="button"
@@ -735,7 +664,7 @@ export const CategoryManager = ({
               isPending={deleteMutation.isPending}
               disabled={isMutating}
             >
-              {t('common.delete')}
+              {t("common.delete")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -144,6 +144,7 @@ async function processEmailRequests(
 
   for (const { reservation, customer } of eligibleReservations) {
     if (sentReservationIds.has(reservation.id)) continue;
+    if (!customer.email) continue;
 
     try {
       await sendThankYouReviewEmail({
@@ -315,6 +316,10 @@ export async function sendManualReviewRequest(
 
   try {
     if (channel === "email") {
+      if (!customer.email) {
+        return { success: false, error: "Customer has no email address" };
+      }
+
       await sendThankYouReviewEmail({
         to: customer.email,
         store: {

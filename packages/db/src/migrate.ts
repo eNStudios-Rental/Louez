@@ -15,22 +15,22 @@
  *   pnpm start:prod         # Runs migrations then starts the app
  */
 
-import { config } from 'dotenv'
+import { config } from "dotenv";
 
 // Load environment variables from .env files (order matters - .env.local takes priority)
-config({ path: '.env.local' })
-config({ path: '.env' })
+config({ path: ".env.local" });
+config({ path: ".env" });
 
-import mysql from 'mysql2/promise'
-import { readMigrationFiles, type MigrationConfig } from 'drizzle-orm/migrator'
-import path from 'path'
-import { fileURLToPath } from 'url'
+import mysql from "mysql2/promise";
+import { readMigrationFiles, type MigrationConfig } from "drizzle-orm/migrator";
+import path from "path";
+import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const MIGRATIONS_TABLE = '__drizzle_migrations'
-const MIGRATIONS_FOLDER = path.join(__dirname, 'migrations')
+const MIGRATIONS_TABLE = "__drizzle_migrations";
+const MIGRATIONS_FOLDER = path.join(__dirname, "migrations");
 
 export interface RunMigrationsOptions {
   /**
@@ -39,43 +39,43 @@ export interface RunMigrationsOptions {
    * Bundled environments (Next.js standalone, Docker) must pass an explicit
    * path because __dirname points inside the bundle output.
    */
-  migrationsFolder?: string
+  migrationsFolder?: string;
 }
 
 export async function runMigrations(options: RunMigrationsOptions = {}) {
-  const migrationsFolder = options.migrationsFolder ?? MIGRATIONS_FOLDER
-  const databaseUrl = process.env.DATABASE_URL
+  const migrationsFolder = options.migrationsFolder ?? MIGRATIONS_FOLDER;
+  const databaseUrl = process.env.DATABASE_URL;
 
   if (!databaseUrl) {
-    throw new Error('DATABASE_URL environment variable is not set')
+    throw new Error("DATABASE_URL environment variable is not set");
   }
 
-  console.log('🔌 Connecting to database...')
+  console.log("🔌 Connecting to database...");
 
   // multipleStatements: some hand-written migrations (e.g. 0032, 0034) hold
   // several statements in one chunk without --> statement-breakpoint markers
   const connection = await mysql.createConnection({
     uri: databaseUrl,
     multipleStatements: true,
-  })
+  });
 
   try {
     const migrationConfig: MigrationConfig = {
       migrationsFolder,
       migrationsTable: MIGRATIONS_TABLE,
-    }
+    };
 
     // Read all migration files
-    const allMigrations = readMigrationFiles(migrationConfig)
-    console.log(`📁 Found ${allMigrations.length} migration file(s)`)
+    const allMigrations = readMigrationFiles(migrationConfig);
+    console.log(`📁 Found ${allMigrations.length} migration file(s)`);
 
     // Check if migrations table exists
     const [tables] = await connection.query<mysql.RowDataPacket[]>(
       `SELECT TABLE_NAME FROM information_schema.TABLES
        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?`,
-      [MIGRATIONS_TABLE]
-    )
-    const migrationsTableExists = tables.length > 0
+      [MIGRATIONS_TABLE],
+    );
+    const migrationsTableExists = tables.length > 0;
 
     // Get list of all user tables (excluding system tables)
     const [userTables] = await connection.query<mysql.RowDataPacket[]>(
@@ -83,26 +83,26 @@ export async function runMigrations(options: RunMigrationsOptions = {}) {
        WHERE TABLE_SCHEMA = DATABASE()
        AND TABLE_NAME NOT LIKE '\\_%'
        AND TABLE_NAME != ?`,
-      [MIGRATIONS_TABLE]
-    )
-    const hasUserTables = userTables.length > 0
+      [MIGRATIONS_TABLE],
+    );
+    const hasUserTables = userTables.length > 0;
 
     console.log(
-      `📊 Database state: ${userTables.length} user tables, migrations table: ${migrationsTableExists ? 'exists' : 'missing'}`
-    )
+      `📊 Database state: ${userTables.length} user tables, migrations table: ${migrationsTableExists ? "exists" : "missing"}`,
+    );
 
     // Get applied migrations from database
-    let appliedHashes: string[] = []
+    let appliedHashes: string[] = [];
     if (migrationsTableExists) {
       const [applied] = await connection.query<mysql.RowDataPacket[]>(
-        `SELECT hash FROM \`${MIGRATIONS_TABLE}\``
-      )
-      appliedHashes = applied.map((row) => row.hash)
-      console.log(`📋 Found ${appliedHashes.length} recorded migration(s) in database`)
+        `SELECT hash FROM \`${MIGRATIONS_TABLE}\``,
+      );
+      appliedHashes = applied.map((row) => row.hash);
+      console.log(`📋 Found ${appliedHashes.length} recorded migration(s) in database`);
     }
 
     // Calculate pending migrations
-    const pendingMigrations = allMigrations.filter((m) => !appliedHashes.includes(m.hash))
+    const pendingMigrations = allMigrations.filter((m) => !appliedHashes.includes(m.hash));
 
     // Detect if we need to create a baseline
     // This happens when:
@@ -111,78 +111,79 @@ export async function runMigrations(options: RunMigrationsOptions = {}) {
     const needsBaseline =
       hasUserTables &&
       pendingMigrations.length > 0 &&
-      (!migrationsTableExists || appliedHashes.length === 0)
+      (!migrationsTableExists || appliedHashes.length === 0);
 
     if (needsBaseline) {
-      console.log('⚠️  Database has tables but migrations are not properly tracked')
-      console.log('📝 Creating baseline (marking existing schema migrations as applied)...')
+      console.log("⚠️  Database has tables but migrations are not properly tracked");
+      console.log("📝 Creating baseline (marking existing schema migrations as applied)...");
 
       // Determine which migrations to mark as applied
       // We check if the first migration would try to create a table that exists
-      const firstPending = pendingMigrations[0]
-      const isInitialMigrationPending = firstPending && allMigrations[0]?.hash === firstPending.hash
+      const firstPending = pendingMigrations[0];
+      const isInitialMigrationPending =
+        firstPending && allMigrations[0]?.hash === firstPending.hash;
 
       if (isInitialMigrationPending) {
         // The initial migration is pending, which means all current migrations should be baselined
-        await createBaseline(connection, allMigrations)
-        console.log('✅ Baseline created - all current migrations marked as applied')
-        console.log('✅ Database is up to date.')
-        return
+        await createBaseline(connection, allMigrations);
+        console.log("✅ Baseline created - all current migrations marked as applied");
+        console.log("✅ Database is up to date.");
+        return;
       }
     }
 
     // Check if pending migrations would fail due to existing tables/columns (partial baseline case)
     // This handles cases where db:push was used after some migrations were already recorded
     if (pendingMigrations.length > 0) {
-      const existingTableNames = userTables.map((t) => t.TABLE_NAME.toLowerCase())
+      const existingTableNames = userTables.map((t) => t.TABLE_NAME.toLowerCase());
 
       // Get all existing columns for conflict detection
       const [existingColumns] = await connection.query<mysql.RowDataPacket[]>(
-        `SELECT TABLE_NAME, COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()`
-      )
+        `SELECT TABLE_NAME, COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()`,
+      );
       const existingColumnSet = new Set(
-        existingColumns.map((c) => `${c.TABLE_NAME.toLowerCase()}.${c.COLUMN_NAME.toLowerCase()}`)
-      )
+        existingColumns.map((c) => `${c.TABLE_NAME.toLowerCase()}.${c.COLUMN_NAME.toLowerCase()}`),
+      );
 
       // Check if any pending migration tries to CREATE TABLE or ADD COLUMN for existing schema
-      const migrationsToSkip: typeof pendingMigrations = []
+      const migrationsToSkip: typeof pendingMigrations = [];
       for (const migration of pendingMigrations) {
         // migration.sql is an array of SQL statements
         const sqlStatements = Array.isArray(migration.sql)
-          ? migration.sql.join('\n')
-          : migration.sql
-        let shouldSkip = false
+          ? migration.sql.join("\n")
+          : migration.sql;
+        let shouldSkip = false;
 
         // Check for CREATE TABLE statements
-        const createTableMatches = sqlStatements.matchAll(/CREATE TABLE [`"]?(\w+)[`"]?/gi)
+        const createTableMatches = sqlStatements.matchAll(/CREATE TABLE [`"]?(\w+)[`"]?/gi);
         for (const match of createTableMatches) {
-          const tableName = match[1].toLowerCase()
+          const tableName = match[1].toLowerCase();
           if (existingTableNames.includes(tableName)) {
-            migrationsToSkip.push(migration)
+            migrationsToSkip.push(migration);
             console.log(
-              `⚠️  Skipping migration (table '${match[1]}' already exists): ${migration.hash.substring(0, 8)}...`
-            )
-            shouldSkip = true
-            break
+              `⚠️  Skipping migration (table '${match[1]}' already exists): ${migration.hash.substring(0, 8)}...`,
+            );
+            shouldSkip = true;
+            break;
           }
         }
 
         // Check for ALTER TABLE ADD COLUMN statements
         if (!shouldSkip) {
           const alterTableMatches = sqlStatements.matchAll(
-            /ALTER TABLE [`"]?(\w+)[`"]?\s+ADD\s+(?:COLUMN\s+)?[`"]?(\w+)[`"]?/gi
-          )
+            /ALTER TABLE [`"]?(\w+)[`"]?\s+ADD\s+(?:COLUMN\s+)?[`"]?(\w+)[`"]?/gi,
+          );
           for (const match of alterTableMatches) {
-            const tableName = match[1].toLowerCase()
-            const columnName = match[2].toLowerCase()
-            const key = `${tableName}.${columnName}`
+            const tableName = match[1].toLowerCase();
+            const columnName = match[2].toLowerCase();
+            const key = `${tableName}.${columnName}`;
             if (existingColumnSet.has(key)) {
-              migrationsToSkip.push(migration)
+              migrationsToSkip.push(migration);
               console.log(
-                `⚠️  Skipping migration (column '${match[1]}.${match[2]}' already exists): ${migration.hash.substring(0, 8)}...`
-              )
-              shouldSkip = true
-              break
+                `⚠️  Skipping migration (column '${match[1]}.${match[2]}' already exists): ${migration.hash.substring(0, 8)}...`,
+              );
+              shouldSkip = true;
+              break;
             }
           }
         }
@@ -191,8 +192,8 @@ export async function runMigrations(options: RunMigrationsOptions = {}) {
       // Mark skipped migrations as applied without running them
       if (migrationsToSkip.length > 0) {
         console.log(
-          `📝 Marking ${migrationsToSkip.length} migration(s) as applied (tables already exist)...`
-        )
+          `📝 Marking ${migrationsToSkip.length} migration(s) as applied (tables already exist)...`,
+        );
 
         // Ensure migrations table exists
         await connection.query(`
@@ -201,29 +202,29 @@ export async function runMigrations(options: RunMigrationsOptions = {}) {
             \`hash\` text NOT NULL,
             \`created_at\` bigint
           )
-        `)
+        `);
 
-        const now = Date.now()
+        const now = Date.now();
         for (const migration of migrationsToSkip) {
           await connection.query(
             `INSERT INTO \`${MIGRATIONS_TABLE}\` (hash, created_at) VALUES (?, ?)`,
-            [migration.hash, now]
-          )
+            [migration.hash, now],
+          );
         }
 
         // Recalculate pending migrations
         const [newApplied] = await connection.query<mysql.RowDataPacket[]>(
-          `SELECT hash FROM \`${MIGRATIONS_TABLE}\``
-        )
-        const newAppliedHashes = newApplied.map((row) => row.hash)
-        const remainingPending = allMigrations.filter((m) => !newAppliedHashes.includes(m.hash))
+          `SELECT hash FROM \`${MIGRATIONS_TABLE}\``,
+        );
+        const newAppliedHashes = newApplied.map((row) => row.hash);
+        const remainingPending = allMigrations.filter((m) => !newAppliedHashes.includes(m.hash));
 
         if (remainingPending.length === 0) {
-          console.log('✅ Database is up to date.')
-          return
+          console.log("✅ Database is up to date.");
+          return;
         }
 
-        console.log(`🚀 Running ${remainingPending.length} remaining migration(s)...`)
+        console.log(`🚀 Running ${remainingPending.length} remaining migration(s)...`);
       }
     }
 
@@ -232,22 +233,22 @@ export async function runMigrations(options: RunMigrationsOptions = {}) {
     const [migrationsTableNow] = await connection.query<mysql.RowDataPacket[]>(
       `SELECT TABLE_NAME FROM information_schema.TABLES
        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?`,
-      [MIGRATIONS_TABLE]
-    )
-    let latestAppliedHashes = new Set<string>()
+      [MIGRATIONS_TABLE],
+    );
+    let latestAppliedHashes = new Set<string>();
     if (migrationsTableNow.length > 0) {
       const [latestApplied] = await connection.query<mysql.RowDataPacket[]>(
-        `SELECT hash FROM \`${MIGRATIONS_TABLE}\``
-      )
-      latestAppliedHashes = new Set(latestApplied.map((row) => row.hash))
+        `SELECT hash FROM \`${MIGRATIONS_TABLE}\``,
+      );
+      latestAppliedHashes = new Set(latestApplied.map((row) => row.hash));
     }
-    const trulyPending = allMigrations.filter((m) => !latestAppliedHashes.has(m.hash))
+    const trulyPending = allMigrations.filter((m) => !latestAppliedHashes.has(m.hash));
 
     // Run pending migrations directly (bypasses Drizzle's migrate() which can silently skip migrations)
     if (trulyPending.length === 0) {
-      console.log('✅ Database is up to date. No pending migrations.')
+      console.log("✅ Database is up to date. No pending migrations.");
     } else {
-      console.log(`🚀 Running ${trulyPending.length} pending migration(s)...`)
+      console.log(`🚀 Running ${trulyPending.length} pending migration(s)...`);
 
       // Ensure migrations table exists
       await connection.query(`
@@ -256,29 +257,29 @@ export async function runMigrations(options: RunMigrationsOptions = {}) {
           \`hash\` text NOT NULL,
           \`created_at\` bigint
         )
-      `)
+      `);
 
-      const now = Date.now()
+      const now = Date.now();
       for (const migration of trulyPending) {
-        const statements: string[] = Array.isArray(migration.sql) ? migration.sql : [migration.sql]
+        const statements: string[] = Array.isArray(migration.sql) ? migration.sql : [migration.sql];
 
         for (const sql of statements) {
-          const trimmed = sql.trim()
-          if (trimmed.length === 0) continue
+          const trimmed = sql.trim();
+          if (trimmed.length === 0) continue;
 
           try {
-            await connection.query(trimmed)
+            await connection.query(trimmed);
           } catch (error) {
             // Handle idempotent cases gracefully
-            const err = error as { code?: string; sqlMessage?: string }
+            const err = error as { code?: string; sqlMessage?: string };
             if (
-              err.code === 'ER_DUP_FIELDNAME' ||
-              err.code === 'ER_DUP_KEYNAME' ||
-              err.code === 'ER_TABLE_EXISTS_ERROR'
+              err.code === "ER_DUP_FIELDNAME" ||
+              err.code === "ER_DUP_KEYNAME" ||
+              err.code === "ER_TABLE_EXISTS_ERROR"
             ) {
-              console.log(`   ⚠️  Skipped (already exists): ${err.sqlMessage}`)
+              console.log(`   ⚠️  Skipped (already exists): ${err.sqlMessage}`);
             } else {
-              throw error
+              throw error;
             }
           }
         }
@@ -286,31 +287,31 @@ export async function runMigrations(options: RunMigrationsOptions = {}) {
         // Record the migration hash
         await connection.query(
           `INSERT INTO \`${MIGRATIONS_TABLE}\` (hash, created_at) VALUES (?, ?)`,
-          [migration.hash, now]
-        )
-        console.log(`   ✅ Applied: ${migration.hash.substring(0, 16)}...`)
+          [migration.hash, now],
+        );
+        console.log(`   ✅ Applied: ${migration.hash.substring(0, 16)}...`);
       }
 
-      console.log('✅ All migrations completed successfully!')
+      console.log("✅ All migrations completed successfully!");
     }
   } catch (error) {
-    console.error('❌ Migration failed:', error instanceof Error ? error.message : error)
+    console.error("❌ Migration failed:", error instanceof Error ? error.message : error);
 
     // Provide helpful context for common errors
-    if (error instanceof Error && error.message.includes('already exists')) {
-      console.error('')
-      console.error('💡 This error means the database schema already exists but migrations')
-      console.error('   are not properly tracked. This can happen if:')
-      console.error('   - The database was initially set up with `pnpm db:push`')
-      console.error('   - The __drizzle_migrations table was deleted or corrupted')
-      console.error('')
-      console.error('   To fix this manually, run: pnpm db:baseline')
+    if (error instanceof Error && error.message.includes("already exists")) {
+      console.error("");
+      console.error("💡 This error means the database schema already exists but migrations");
+      console.error("   are not properly tracked. This can happen if:");
+      console.error("   - The database was initially set up with `pnpm db:push`");
+      console.error("   - The __drizzle_migrations table was deleted or corrupted");
+      console.error("");
+      console.error("   To fix this manually, run: pnpm db:baseline");
     }
 
-    throw error
+    throw error;
   } finally {
-    await connection.end()
-    console.log('🔌 Database connection closed.')
+    await connection.end();
+    console.log("🔌 Database connection closed.");
   }
 }
 
@@ -321,7 +322,7 @@ export async function runMigrations(options: RunMigrationsOptions = {}) {
  */
 async function createBaseline(
   connection: mysql.Connection,
-  migrationsToMark: ReturnType<typeof readMigrationFiles>
+  migrationsToMark: ReturnType<typeof readMigrationFiles>,
 ) {
   // Create migrations table with the exact schema Drizzle expects
   await connection.query(`
@@ -330,61 +331,61 @@ async function createBaseline(
       \`hash\` text NOT NULL,
       \`created_at\` bigint
     )
-  `)
+  `);
 
   // Clear any existing (possibly corrupt) entries
-  await connection.query(`DELETE FROM \`${MIGRATIONS_TABLE}\``)
+  await connection.query(`DELETE FROM \`${MIGRATIONS_TABLE}\``);
 
   // Insert all migrations as already applied
-  const now = Date.now()
+  const now = Date.now();
   for (const migration of migrationsToMark) {
     await connection.query(`INSERT INTO \`${MIGRATIONS_TABLE}\` (hash, created_at) VALUES (?, ?)`, [
       migration.hash,
       now,
-    ])
+    ]);
   }
 
-  console.log(`   Marked ${migrationsToMark.length} migration(s) as applied`)
+  console.log(`   Marked ${migrationsToMark.length} migration(s) as applied`);
 }
 
 // Also export a baseline-only function for manual recovery
 export async function createBaselineOnly() {
-  const databaseUrl = process.env.DATABASE_URL
+  const databaseUrl = process.env.DATABASE_URL;
 
   if (!databaseUrl) {
-    console.error('❌ DATABASE_URL environment variable is not set')
-    process.exit(1)
+    console.error("❌ DATABASE_URL environment variable is not set");
+    process.exit(1);
   }
 
-  console.log('🔌 Connecting to database...')
-  const connection = await mysql.createConnection(databaseUrl)
+  console.log("🔌 Connecting to database...");
+  const connection = await mysql.createConnection(databaseUrl);
 
   try {
     const migrationConfig: MigrationConfig = {
       migrationsFolder: MIGRATIONS_FOLDER,
       migrationsTable: MIGRATIONS_TABLE,
-    }
+    };
 
-    const allMigrations = readMigrationFiles(migrationConfig)
-    console.log(`📁 Found ${allMigrations.length} migration file(s)`)
+    const allMigrations = readMigrationFiles(migrationConfig);
+    console.log(`📁 Found ${allMigrations.length} migration file(s)`);
 
-    await createBaseline(connection, allMigrations)
-    console.log('✅ Baseline created successfully!')
+    await createBaseline(connection, allMigrations);
+    console.log("✅ Baseline created successfully!");
   } finally {
-    await connection.end()
-    console.log('🔌 Database connection closed.')
+    await connection.end();
+    console.log("🔌 Database connection closed.");
   }
 }
 
 // Check if running directly (not imported)
 const isMainModule =
-  process.argv[1]?.includes('migrate.ts') || process.argv[1]?.includes('migrate.js')
+  process.argv[1]?.includes("migrate.ts") || process.argv[1]?.includes("migrate.js");
 
 if (isMainModule) {
   // Check for --baseline flag
-  if (process.argv.includes('--baseline')) {
-    createBaselineOnly()
+  if (process.argv.includes("--baseline")) {
+    createBaselineOnly();
   } else {
-    runMigrations().catch(() => process.exit(1))
+    runMigrations().catch(() => process.exit(1));
   }
 }

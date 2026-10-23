@@ -86,9 +86,7 @@ export function CustomerCombobox({
   };
 
   const getDisplayName = (customer: DashboardCustomer) => {
-    const personalName = [customer.firstName, customer.lastName]
-      .filter(Boolean)
-      .join(" ");
+    const personalName = [customer.firstName, customer.lastName].filter(Boolean).join(" ");
     return personalName || customer.companyName || customer.email || "—";
   };
 
@@ -211,9 +209,7 @@ export function CustomerCombobox({
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium">
-                  {getDisplayName(customer)}
-                </p>
+                <p className="truncate font-medium">{getDisplayName(customer)}</p>
                 {customer.email && (
                   <p className="text-muted-foreground truncate text-xs">{customer.email}</p>
                 )}

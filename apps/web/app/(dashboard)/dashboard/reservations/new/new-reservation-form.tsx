@@ -445,8 +445,7 @@ export function NewReservationForm({
           depositOverride: depositOverride ?? undefined,
           tulipInsuranceOptIn: effectiveTulipInsuranceOptIn,
           sendConfirmationEmail:
-            Boolean(selectedCustomer?.email) &&
-            (sendAsQuoteRef.current || sendConfirmationEmail),
+            Boolean(selectedCustomer?.email) && (sendAsQuoteRef.current || sendConfirmationEmail),
           sendAsQuote: sendAsQuoteRef.current,
           allowOverbooking: options.allowOverbooking,
         },

@@ -31,6 +31,7 @@ export const getDemoCustomer = (index: number) => {
     firstName,
     lastName,
     email: `${firstName}.${lastName}@example.com`.toLowerCase(),
+    companyName: null,
   };
 };
 
@@ -174,6 +175,7 @@ export function createDemoReservationPages(
   );
   const calendar: CalendarReservation[] = rows.map((row) => ({
     ...row,
+    internalTitle: row.internalTitle ?? null,
     outboundMethod: "pickup",
     returnMethod: "pickup",
     deliveryAddress: null,

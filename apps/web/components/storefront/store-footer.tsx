@@ -194,7 +194,11 @@ export const StoreFooter = ({
             <div className="flex flex-col gap-2">
               <p className={HEADING_CLASS_NAME}>{t("account")}</p>
               <nav aria-label={t("account")} className="flex flex-col">
-                <StorefrontLink prefetch={linkPrefetch} href="/account/login" className={LINK_CLASS_NAME}>
+                <StorefrontLink
+                  prefetch={linkPrefetch}
+                  href="/account/login"
+                  className={LINK_CLASS_NAME}
+                >
                   {t("signIn")}
                 </StorefrontLink>
                 <StorefrontLink prefetch={linkPrefetch} href="/account" className={LINK_CLASS_NAME}>

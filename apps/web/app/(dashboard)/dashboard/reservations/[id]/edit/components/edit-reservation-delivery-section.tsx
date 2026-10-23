@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { MapPin, Store, Truck } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useState } from "react";
+import { MapPin, Store, Truck } from "lucide-react";
+import { useTranslations } from "next-intl";
 
-import type { LegMethod } from '@louez/types'
+import type { LegMethod } from "@louez/types";
 import {
   Badge,
   Card,
@@ -15,27 +15,27 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@louez/ui'
-import { cn } from '@louez/utils'
+} from "@louez/ui";
+import { cn } from "@louez/utils";
 
-import { ReservationStoreLegsSummary } from '@/components/dashboard/reservation-store-legs-summary'
-import { resolveStoreLegLocation } from '@/components/dashboard/util.reservation-store-legs'
-import { AddressInput } from '@/components/ui/address-input'
+import { ReservationStoreLegsSummary } from "@/components/dashboard/reservation-store-legs-summary";
+import { resolveStoreLegLocation } from "@/components/dashboard/util.reservation-store-legs";
+import { AddressInput } from "@/components/ui/address-input";
 
-import type { DeliveryLegAddress, DeliveryLegState } from '../hooks/use-edit-reservation-delivery'
-import type { ReservationLocationOption } from '../types'
+import type { DeliveryLegAddress, DeliveryLegState } from "../hooks/use-edit-reservation-delivery";
+import type { ReservationLocationOption } from "../types";
 
 interface DeliveryLegCardProps {
-  variant: 'outbound' | 'return'
-  icon: React.ReactNode
-  leg: DeliveryLegState
-  storeAddress: string | null
-  locations: ReservationLocationOption[]
-  currencySymbol: string
-  isIncluded: boolean
-  onMethodChange: (method: LegMethod) => void
-  onLocationChange: (locationId: string | null) => void
-  onAddressChange: (address: DeliveryLegAddress) => void
+  variant: "outbound" | "return";
+  icon: React.ReactNode;
+  leg: DeliveryLegState;
+  storeAddress: string | null;
+  locations: ReservationLocationOption[];
+  currencySymbol: string;
+  isIncluded: boolean;
+  onMethodChange: (method: LegMethod) => void;
+  onLocationChange: (locationId: string | null) => void;
+  onAddressChange: (address: DeliveryLegAddress) => void;
 }
 
 function DeliveryLegCard({
@@ -50,19 +50,19 @@ function DeliveryLegCard({
   onLocationChange,
   onAddressChange,
 }: DeliveryLegCardProps) {
-  const t = useTranslations('dashboard.reservations.edit.delivery')
-  const isOutbound = variant === 'outbound'
-  const title = isOutbound ? t('outboundTitle') : t('returnTitle')
+  const t = useTranslations("dashboard.reservations.edit.delivery");
+  const isOutbound = variant === "outbound";
+  const title = isOutbound ? t("outboundTitle") : t("returnTitle");
   const selectedLocation =
-    locations.find((location) => location.id === leg.locationId) ??
-    locations[0] ??
-    null
+    locations.find((location) => location.id === leg.locationId) ?? locations[0] ?? null;
   const selectedLocationAddress = selectedLocation
     ? [
         selectedLocation.address,
-        [selectedLocation.postalCode, selectedLocation.city].filter(Boolean).join(' '),
-      ].filter(Boolean).join(', ')
-    : storeAddress
+        [selectedLocation.postalCode, selectedLocation.city].filter(Boolean).join(" "),
+      ]
+        .filter(Boolean)
+        .join(", ")
+    : storeAddress;
 
   return (
     <div className="space-y-3">
@@ -74,66 +74,63 @@ function DeliveryLegCard({
       <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
-          onClick={() => onMethodChange('store')}
+          onClick={() => onMethodChange("store")}
           className={cn(
-            'flex items-center gap-2 rounded-lg border p-3 text-left text-sm transition-colors',
-            leg.method === 'store'
-              ? 'border-primary bg-primary/5 ring-1 ring-primary'
-              : 'hover:border-muted-foreground/30',
+            "flex items-center gap-2 rounded-lg border p-3 text-left text-sm transition-colors",
+            leg.method === "store"
+              ? "border-primary bg-primary/5 ring-1 ring-primary"
+              : "hover:border-muted-foreground/30",
           )}
         >
           <Store className="h-4 w-4 shrink-0" />
           <div className="min-w-0">
-            <p className="font-medium">
-              {isOutbound ? t('storePickup') : t('storeReturn')}
-            </p>
+            <p className="font-medium">{isOutbound ? t("storePickup") : t("storeReturn")}</p>
             {selectedLocationAddress && (
-              <p className="truncate text-xs text-muted-foreground">
-                {selectedLocationAddress}
-              </p>
+              <p className="truncate text-xs text-muted-foreground">{selectedLocationAddress}</p>
             )}
           </div>
         </button>
 
         <button
           type="button"
-          onClick={() => onMethodChange('address')}
+          onClick={() => onMethodChange("address")}
           className={cn(
-            'flex items-center gap-2 rounded-lg border p-3 text-left text-sm transition-colors',
-            leg.method === 'address'
-              ? 'border-primary bg-primary/5 ring-1 ring-primary'
-              : 'hover:border-muted-foreground/30',
+            "flex items-center gap-2 rounded-lg border p-3 text-left text-sm transition-colors",
+            leg.method === "address"
+              ? "border-primary bg-primary/5 ring-1 ring-primary"
+              : "hover:border-muted-foreground/30",
           )}
         >
           <MapPin className="h-4 w-4 shrink-0" />
           <div className="min-w-0">
             <p className="font-medium">
-              {isOutbound ? t('deliverToAddress') : t('collectFromAddress')}
+              {isOutbound ? t("deliverToAddress") : t("collectFromAddress")}
             </p>
             {isIncluded ? (
-              <p className="text-xs text-emerald-600">{t('included')}</p>
+              <p className="text-xs text-emerald-600">{t("included")}</p>
             ) : leg.fee > 0 ? (
               <p className="text-xs text-muted-foreground">
-                {leg.fee.toFixed(2)}{currencySymbol}
+                {leg.fee.toFixed(2)}
+                {currencySymbol}
               </p>
             ) : null}
           </div>
         </button>
       </div>
 
-      {leg.method === 'store' && locations.length > 1 && (
+      {leg.method === "store" && locations.length > 1 && (
         <div className="space-y-2">
           <Label className="text-xs">
-            {isOutbound ? t('pickupLocation') : t('returnLocation')}
+            {isOutbound ? t("pickupLocation") : t("returnLocation")}
           </Label>
           <Select
-            value={leg.locationId ?? 'primary'}
-            onValueChange={(value) => onLocationChange(value === 'primary' ? null : value)}
+            value={leg.locationId ?? "primary"}
+            onValueChange={(value) => onLocationChange(value === "primary" ? null : value)}
           >
             <SelectTrigger className="h-auto min-h-10 w-full min-w-0 max-w-full items-start overflow-hidden py-2 text-left">
               <SelectValue className="min-w-0">
                 <span className="block max-w-full truncate text-sm font-medium">
-                  {selectedLocation?.name ?? t('storeLocationFallback')}
+                  {selectedLocation?.name ?? t("storeLocationFallback")}
                 </span>
                 {selectedLocationAddress && (
                   <span className="block max-w-full truncate text-xs text-muted-foreground">
@@ -144,11 +141,13 @@ function DeliveryLegCard({
             </SelectTrigger>
             <SelectContent>
               {locations.map((location) => {
-                const value = location.id ?? 'primary'
+                const value = location.id ?? "primary";
                 const locationAddress = [
                   location.address,
-                  [location.postalCode, location.city].filter(Boolean).join(' '),
-                ].filter(Boolean).join(', ')
+                  [location.postalCode, location.city].filter(Boolean).join(" "),
+                ]
+                  .filter(Boolean)
+                  .join(", ");
 
                 return (
                   <SelectItem key={value} value={value} label={location.name}>
@@ -161,16 +160,16 @@ function DeliveryLegCard({
                       </span>
                     )}
                   </SelectItem>
-                )
+                );
               })}
             </SelectContent>
           </Select>
         </div>
       )}
 
-      {leg.method === 'address' && (
+      {leg.method === "address" && (
         <div className="space-y-2">
-          <Label className="text-xs">{t('addressPlaceholder')}</Label>
+          <Label className="text-xs">{t("addressPlaceholder")}</Label>
           <AddressInput
             value={leg.address.address}
             latitude={leg.address.latitude}
@@ -183,58 +182,57 @@ function DeliveryLegCard({
                 country: leg.address.country,
                 latitude,
                 longitude,
-              })
+              });
             }}
-            placeholder={t('addressPlaceholder')}
+            placeholder={t("addressPlaceholder")}
           />
 
           {leg.distance !== null && !leg.error && (
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>
-                {t('distance')}: {leg.distance.toFixed(1)} km
+                {t("distance")}: {leg.distance.toFixed(1)} km
               </span>
               {isIncluded ? (
                 <Badge variant="success" className="text-[10px]">
-                  {t('included')}
+                  {t("included")}
                 </Badge>
               ) : leg.fee > 0 ? (
                 <span>
-                  {t('fee')}: {leg.fee.toFixed(2)}{currencySymbol}
+                  {t("fee")}: {leg.fee.toFixed(2)}
+                  {currencySymbol}
                 </span>
               ) : (
                 <Badge variant="success" className="text-[10px]">
-                  {t('free')}
+                  {t("free")}
                 </Badge>
               )}
             </div>
           )}
 
           {leg.error && (
-            <p className="text-xs text-destructive">
-              {t('tooFar', { maxDistance: '' })}
-            </p>
+            <p className="text-xs text-destructive">{t("tooFar", { maxDistance: "" })}</p>
           )}
         </div>
       )}
     </div>
-  )
+  );
 }
 
 interface EditReservationDeliverySectionProps {
-  outbound: DeliveryLegState & { fee: number }
-  inbound: DeliveryLegState & { fee: number }
-  totalFee: number
-  isDeliveryIncluded: boolean
-  deliveryMinimumWarning: string | null
-  storeAddress: string | null
-  locations: ReservationLocationOption[]
-  currencySymbol: string
-  onOutboundMethodChange: (method: LegMethod) => void
-  onInboundMethodChange: (method: LegMethod) => void
-  onOutboundLocationChange: (locationId: string | null) => void
-  onInboundLocationChange: (locationId: string | null) => void
-  onOutboundAddressChange: (address: DeliveryLegAddress) => void
-  onInboundAddressChange: (address: DeliveryLegAddress) => void
+  outbound: DeliveryLegState & { fee: number };
+  inbound: DeliveryLegState & { fee: number };
+  totalFee: number;
+  isDeliveryIncluded: boolean;
+  deliveryMinimumWarning: string | null;
+  storeAddress: string | null;
+  locations: ReservationLocationOption[];
+  currencySymbol: string;
+  onOutboundMethodChange: (method: LegMethod) => void;
+  onInboundMethodChange: (method: LegMethod) => void;
+  onOutboundLocationChange: (locationId: string | null) => void;
+  onInboundLocationChange: (locationId: string | null) => void;
+  onOutboundAddressChange: (address: DeliveryLegAddress) => void;
+  onInboundAddressChange: (address: DeliveryLegAddress) => void;
 }
 
 export function EditReservationDeliverySection({
@@ -253,46 +251,41 @@ export function EditReservationDeliverySection({
   onOutboundAddressChange,
   onInboundAddressChange,
 }: EditReservationDeliverySectionProps) {
-  const t = useTranslations('dashboard.reservations.edit.delivery')
-  const [isExpanded, setIsExpanded] = useState(false)
+  const t = useTranslations("dashboard.reservations.edit.delivery");
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  const hasDeliveryLegs =
-    outbound.method === 'address' || inbound.method === 'address'
-  const isCollapsed = !isExpanded && !hasDeliveryLegs
+  const hasDeliveryLegs = outbound.method === "address" || inbound.method === "address";
+  const isCollapsed = !isExpanded && !hasDeliveryLegs;
 
   if (isCollapsed) {
     return (
       <Card>
         <CardContent className="p-4 sm:p-6">
-          <h2 className="mb-4 text-sm font-medium text-muted-foreground">
-            {t('title')}
-          </h2>
+          <h2 className="mb-4 text-sm font-medium text-muted-foreground">{t("title")}</h2>
           <ReservationStoreLegsSummary
             pickupLocation={resolveStoreLegLocation({
               locations,
               selectedLocationId: outbound.locationId,
               storeAddress,
-              fallbackName: t('storeLocationFallback'),
+              fallbackName: t("storeLocationFallback"),
             })}
             returnLocation={resolveStoreLegLocation({
               locations,
               selectedLocationId: inbound.locationId,
               storeAddress,
-              fallbackName: t('storeLocationFallback'),
+              fallbackName: t("storeLocationFallback"),
             })}
             onEdit={() => setIsExpanded(true)}
           />
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
     <Card>
       <CardContent className="p-4 sm:p-6">
-        <h2 className="mb-4 text-sm font-medium text-muted-foreground">
-          {t('title')}
-        </h2>
+        <h2 className="mb-4 text-sm font-medium text-muted-foreground">{t("title")}</h2>
 
         <div className="space-y-4 sm:space-y-6">
           {deliveryMinimumWarning && (
@@ -329,23 +322,24 @@ export function EditReservationDeliverySection({
 
           {hasDeliveryLegs && !isDeliveryIncluded && totalFee > 0 && (
             <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
-              <span className="text-sm font-medium">{t('totalFee')}</span>
+              <span className="text-sm font-medium">{t("totalFee")}</span>
               <span className="text-sm font-semibold">
-                {totalFee.toFixed(2)}{currencySymbol}
+                {totalFee.toFixed(2)}
+                {currencySymbol}
               </span>
             </div>
           )}
 
           {hasDeliveryLegs && isDeliveryIncluded && (
             <div className="flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-2 dark:bg-emerald-950/20">
-              <span className="text-sm font-medium">{t('totalFee')}</span>
+              <span className="text-sm font-medium">{t("totalFee")}</span>
               <Badge variant="success" className="">
-                {t('included')}
+                {t("included")}
               </Badge>
             </div>
           )}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

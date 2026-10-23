@@ -20,18 +20,18 @@ import type { EmailLocale } from "@/lib/email/i18n";
 import {
   DEFAULT_SUBJECTS,
   DEFAULT_SMS_TEMPLATES,
-} from '@/app/(dashboard)/dashboard/settings/notifications/customer-template-defaults'
+} from "@/app/(dashboard)/dashboard/settings/notifications/customer-template-defaults";
 
 interface NotificationTemplateSheetProps {
-  autoFocus?: boolean
-  modal?: boolean
-  renderSmsPreview?: (message: string) => ReactNode
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  eventType: CustomerNotificationEventType | 'thank_you_review'
-  template?: CustomerNotificationTemplate
-  onSave: (template: CustomerNotificationTemplate) => void
-  locale: EmailLocale
+  autoFocus?: boolean;
+  modal?: boolean;
+  renderSmsPreview?: (message: string) => ReactNode;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  eventType: CustomerNotificationEventType | "thank_you_review";
+  template?: CustomerNotificationTemplate;
+  onSave: (template: CustomerNotificationTemplate) => void;
+  locale: EmailLocale;
   store: {
     name: string;
     logoUrl?: string | null;
@@ -651,7 +651,11 @@ export function NotificationTemplateSheet({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal={modal}>
-      <DialogPopup initialFocus={autoFocus} finalFocus={autoFocus} className="sm:max-w-4xl p-0 gap-0 max-h-[90vh] overflow-hidden">
+      <DialogPopup
+        initialFocus={autoFocus}
+        finalFocus={autoFocus}
+        className="sm:max-w-4xl p-0 gap-0 max-h-[90vh] overflow-hidden"
+      >
         <DialogHeader className="px-6 py-4 border-b shrink-0">
           <DialogTitle className="text-base">{eventLabel}</DialogTitle>
         </DialogHeader>
@@ -673,7 +677,7 @@ export function NotificationTemplateSheet({
             </button>
             <button
               data-demo-target="notification-template-sms"
-              onClick={() => setActiveTab('sms')}
+              onClick={() => setActiveTab("sms")}
               className={cn(
                 "inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                 activeTab === "sms"
@@ -768,8 +772,8 @@ export function NotificationTemplateSheet({
                   />
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     {/* The hint lists `{placeholders}` literally: formatting it would read them as arguments. */}
-                    <span>{t.raw('smsVariables')}</span>
-                    <span className={smsMessage.length > 160 ? 'text-amber-500 font-medium' : ''}>
+                    <span>{t.raw("smsVariables")}</span>
+                    <span className={smsMessage.length > 160 ? "text-amber-500 font-medium" : ""}>
                       {smsMessage.length}/160
                     </span>
                   </div>
@@ -869,37 +873,40 @@ export function NotificationTemplateSheet({
                 </div>
               )}
 
-              {activeTab === 'sms' && (renderSmsPreview ? renderSmsPreview(previewSms) : (
-                <div className="rounded-lg border overflow-hidden">
-                  <div className="bg-muted/50 px-4 py-3 border-b flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <span className="text-xs font-bold text-primary">
-                        {store.name.charAt(0).toUpperCase()}
+              {activeTab === "sms" &&
+                (renderSmsPreview ? (
+                  renderSmsPreview(previewSms)
+                ) : (
+                  <div className="rounded-lg border overflow-hidden">
+                    <div className="bg-muted/50 px-4 py-3 border-b flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <span className="text-xs font-bold text-primary">
+                          {store.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{store.name}</p>
+                        <p className="text-xs text-muted-foreground">SMS</p>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-muted/20 min-h-[200px]">
+                      <div className="bg-card border rounded-2xl rounded-tl-md px-4 py-3 max-w-[85%] shadow-sm">
+                        <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+                          {previewSms}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground mt-2 text-right">
+                          Maintenant
+                        </p>
+                      </div>
+                    </div>
+                    <div className="px-4 py-2 border-t bg-muted/30 flex items-center justify-between text-xs text-muted-foreground">
+                      <span>{Math.ceil(smsMessage.length / 160) || 1} SMS</span>
+                      <span className={smsMessage.length > 160 ? "text-amber-500 font-medium" : ""}>
+                        {smsMessage.length} caractères
                       </span>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium">{store.name}</p>
-                      <p className="text-xs text-muted-foreground">SMS</p>
-                    </div>
                   </div>
-                  <div className="p-4 bg-muted/20 min-h-[200px]">
-                    <div className="bg-card border rounded-2xl rounded-tl-md px-4 py-3 max-w-[85%] shadow-sm">
-                      <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-                        {previewSms}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground mt-2 text-right">
-                        Maintenant
-                      </p>
-                    </div>
-                  </div>
-                  <div className="px-4 py-2 border-t bg-muted/30 flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{Math.ceil(smsMessage.length / 160) || 1} SMS</span>
-                    <span className={smsMessage.length > 160 ? "text-amber-500 font-medium" : ""}>
-                      {smsMessage.length} caractères
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         </div>

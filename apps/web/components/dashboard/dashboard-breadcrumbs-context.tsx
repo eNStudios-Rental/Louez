@@ -1,15 +1,8 @@
-'use client';
+"use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-import { usePathname } from 'next/navigation';
+import { usePathname } from "next/navigation";
 
 interface DashboardBreadcrumbsContextValue {
   /** Set where the page is not the one in the address bar: a demo scene. */
@@ -19,8 +12,7 @@ interface DashboardBreadcrumbsContextValue {
   clearLabel: (pathname: string) => void;
 }
 
-const DashboardBreadcrumbsContext =
-  createContext<DashboardBreadcrumbsContextValue | null>(null);
+const DashboardBreadcrumbsContext = createContext<DashboardBreadcrumbsContextValue | null>(null);
 
 export const DashboardBreadcrumbsProvider = ({
   children,
@@ -63,9 +55,7 @@ export const useDashboardBreadcrumbs = () => {
   const context = useContext(DashboardBreadcrumbsContext);
 
   if (!context) {
-    throw new Error(
-      'useDashboardBreadcrumbs must be used within DashboardBreadcrumbsProvider.',
-    );
+    throw new Error("useDashboardBreadcrumbs must be used within DashboardBreadcrumbsProvider.");
   }
 
   return context;
@@ -76,16 +66,9 @@ interface DashboardBreadcrumbLabelProps {
   pathname?: string;
 }
 
-export const DashboardBreadcrumbLabel = ({
-  label,
-  pathname,
-}: DashboardBreadcrumbLabelProps) => {
+export const DashboardBreadcrumbLabel = ({ label, pathname }: DashboardBreadcrumbLabelProps) => {
   const currentPathname = usePathname();
-  const {
-    clearLabel,
-    setLabel,
-    pathname: providedPathname,
-  } = useDashboardBreadcrumbs();
+  const { clearLabel, setLabel, pathname: providedPathname } = useDashboardBreadcrumbs();
   const labelPathname = pathname ?? providedPathname ?? currentPathname;
 
   useEffect(() => {

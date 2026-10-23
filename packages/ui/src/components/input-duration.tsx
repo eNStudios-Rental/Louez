@@ -1,17 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
-import { cn } from '@louez/utils';
+import { cn } from "@louez/utils";
 
-import { InputGroup, InputGroupInput } from './input-group';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './select';
+import { InputGroup, InputGroupInput } from "./input-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 
 interface DurationUnitOption<TUnit extends string = string> {
   value: TUnit;
@@ -30,7 +24,7 @@ interface InputDurationProps<TUnit extends string = string> {
   units: DurationUnitOption<TUnit>[];
   ariaLabel: string;
   unitAriaLabel?: string;
-  'aria-invalid'?: boolean;
+  "aria-invalid"?: boolean;
   disabled?: boolean;
   /** Called when the user cancels with Escape (the draft is discarded) */
   onCancel?: () => void;
@@ -39,7 +33,7 @@ interface InputDurationProps<TUnit extends string = string> {
 
 /** An amount of 0 renders as an empty field */
 function formatAmount(value: number) {
-  return value === 0 ? '' : String(value);
+  return value === 0 ? "" : String(value);
 }
 
 function InputDuration<TUnit extends string = string>({
@@ -50,7 +44,7 @@ function InputDuration<TUnit extends string = string>({
   units,
   ariaLabel,
   unitAriaLabel,
-  'aria-invalid': ariaInvalid,
+  "aria-invalid": ariaInvalid,
   disabled,
   onCancel,
   className,
@@ -82,13 +76,13 @@ function InputDuration<TUnit extends string = string>({
   }
 
   return (
-    <InputGroup className={cn('w-40', className)}>
+    <InputGroup className={cn("w-40", className)}>
       <InputGroupInput
         inputMode="numeric"
         value={localValue}
         onChange={(event) => {
           const raw = event.target.value;
-          if (raw === '' || /^\d+$/.test(raw)) {
+          if (raw === "" || /^\d+$/.test(raw)) {
             isEditingRef.current = true;
             setLocalValue(raw);
           }
@@ -97,7 +91,7 @@ function InputDuration<TUnit extends string = string>({
         onFocus={(event) => event.target.select()}
         onBlur={commit}
         onKeyDown={(event) => {
-          if (event.key === 'Escape') {
+          if (event.key === "Escape") {
             event.preventDefault();
             isEditingRef.current = false;
             setLocalValue(formatAmount(value));
@@ -105,7 +99,7 @@ function InputDuration<TUnit extends string = string>({
             return;
           }
 
-          if (event.key === 'Enter') {
+          if (event.key === "Enter") {
             event.preventDefault();
             commit();
           }
@@ -134,11 +128,7 @@ function InputDuration<TUnit extends string = string>({
         </SelectTrigger>
         <SelectContent>
           {units.map((option) => (
-            <SelectItem
-              key={option.value}
-              value={option.value}
-              label={option.label}
-            >
+            <SelectItem key={option.value} value={option.value} label={option.label}>
               {option.label}
             </SelectItem>
           ))}

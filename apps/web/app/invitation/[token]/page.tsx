@@ -1,9 +1,9 @@
-import { redirect, notFound } from 'next/navigation'
-import { db } from '@louez/db'
-import { storeInvitations, storeMembers, users } from '@louez/db'
-import { eq, and } from 'drizzle-orm'
-import { auth } from '@/lib/auth'
-import { InvitationContent } from './invitation-content'
+import { redirect, notFound } from "next/navigation";
+import { db } from "@louez/db";
+import { storeInvitations, storeMembers, users } from "@louez/db";
+import { eq, and } from "drizzle-orm";
+import { auth } from "@/lib/auth";
+import { InvitationContent } from "./invitation-content";
 
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
@@ -11,12 +11,12 @@ export const instant = false;
 
 interface InvitationPageProps {
   params: Promise<{
-    token: string
-  }>
+    token: string;
+  }>;
 }
 
 export default async function InvitationPage({ params }: InvitationPageProps) {
-  const { token } = await params
+  const { token } = await params;
 
   // Find the invitation
   const invitation = await db.query.storeInvitations.findFirst({
@@ -25,24 +25,24 @@ export default async function InvitationPage({ params }: InvitationPageProps) {
       store: true,
       invitedByUser: true,
     },
-  })
+  });
 
   if (!invitation) {
-    notFound()
+    notFound();
   }
 
   // Check if invitation is expired
-  const isExpired = new Date() > new Date(invitation.expiresAt)
+  const isExpired = new Date() > new Date(invitation.expiresAt);
 
   // Check if invitation was already used or cancelled
-  if (invitation.status !== 'pending') {
+  if (invitation.status !== "pending") {
     return (
       <InvitationContent
         type="used"
         storeName={invitation.store.name}
         storeLogoUrl={invitation.store.logoUrl}
       />
-    )
+    );
   }
 
   if (isExpired) {
@@ -52,11 +52,11 @@ export default async function InvitationPage({ params }: InvitationPageProps) {
         storeName={invitation.store.name}
         storeLogoUrl={invitation.store.logoUrl}
       />
-    )
+    );
   }
 
   // Check if user is logged in
-  const session = await auth()
+  const session = await auth();
 
   if (!session?.user?.id) {
     // Not logged in - show login/signup prompt
@@ -65,20 +65,22 @@ export default async function InvitationPage({ params }: InvitationPageProps) {
         type="login_required"
         storeName={invitation.store.name}
         storeLogoUrl={invitation.store.logoUrl}
-        inviterName={invitation.invitedByUser?.name || invitation.invitedByUser?.email || 'Un membre'}
+        inviterName={
+          invitation.invitedByUser?.name || invitation.invitedByUser?.email || "Un membre"
+        }
         invitedEmail={invitation.email}
         token={token}
       />
-    )
+    );
   }
 
   // User is logged in - check if email matches
   const user = await db.query.users.findFirst({
     where: eq(users.id, session.user.id),
-  })
+  });
 
   if (!user) {
-    redirect('/login')
+    redirect("/login");
   }
 
   // Check if user email matches invitation email
@@ -91,20 +93,20 @@ export default async function InvitationPage({ params }: InvitationPageProps) {
         invitedEmail={invitation.email}
         currentEmail={user.email}
       />
-    )
+    );
   }
 
   // Check if already a member
   const existingMember = await db.query.storeMembers.findFirst({
     where: and(
       eq(storeMembers.storeId, invitation.storeId),
-      eq(storeMembers.userId, session.user.id)
+      eq(storeMembers.userId, session.user.id),
     ),
-  })
+  });
 
   if (existingMember) {
     // Already a member, redirect to dashboard
-    redirect('/dashboard')
+    redirect("/dashboard");
   }
 
   // All checks passed - show accept button
@@ -113,9 +115,9 @@ export default async function InvitationPage({ params }: InvitationPageProps) {
       type="ready"
       storeName={invitation.store.name}
       storeLogoUrl={invitation.store.logoUrl}
-      inviterName={invitation.invitedByUser?.name || invitation.invitedByUser?.email || 'Un membre'}
+      inviterName={invitation.invitedByUser?.name || invitation.invitedByUser?.email || "Un membre"}
       token={token}
       needsName={!user.name}
     />
-  )
+  );
 }

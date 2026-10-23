@@ -138,6 +138,10 @@ export async function buildManualReservationEmail({
     return "error" in result ? result : { ...result, attachments: [] };
   }
 
+  if (!reservation.customer.email) {
+    return { error: "errors.emailSendFailed" };
+  }
+
   // A real send earns the real links (freshly minted access tokens) and an
   // email-client-safe logo (SVGs become an inline cid: PNG attachment).
   const logo = await resolveEmailLogo(getLogoForLightBackground(store));

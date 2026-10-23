@@ -330,7 +330,11 @@ export function SendEmailModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange} modal={modal}>
-      <DialogPopup initialFocus={autoFocus} finalFocus={autoFocus} className={cn("max-w-lg", showSidePreview && "lg:max-w-5xl")}>
+      <DialogPopup
+        initialFocus={autoFocus}
+        finalFocus={autoFocus}
+        className={cn("max-w-lg", showSidePreview && "lg:max-w-5xl")}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">{t("title")}</DialogTitle>
           <DialogDescription>
@@ -387,7 +391,11 @@ export function SendEmailModal({
                             {t(`templates.${template.id}.description`)}
                           </span>
                         </span>
-                        <Radio data-demo-target={`email-template-${template.id}`} className="shrink-0" value={template.id} />
+                        <Radio
+                          data-demo-target={`email-template-${template.id}`}
+                          className="shrink-0"
+                          value={template.id}
+                        />
                       </Label>
                     );
                   })}
@@ -443,7 +451,6 @@ export function SendEmailModal({
                   />
                 </div>
               )}
-
             </div>
 
             {/* Wide screens read the email beside the form, live, instead of
@@ -486,7 +493,11 @@ export function SendEmailModal({
               {t("preview")}
             </Button>
           )}
-          <Button disabled={readOnly || !selectedTemplate} isPending={isLoading} onClick={handleSend}>
+          <Button
+            disabled={readOnly || !selectedTemplate}
+            isPending={isLoading}
+            onClick={handleSend}
+          >
             <SendIcon />
             {t("send")}
           </Button>

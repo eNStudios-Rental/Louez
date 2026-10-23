@@ -1,12 +1,12 @@
-import { desc, inArray, sql } from 'drizzle-orm';
+import { desc, inArray, sql } from "drizzle-orm";
 
-import { db } from '@louez/db';
-import { platformFees, stores, subscriptions } from '@louez/db';
-import type { BillingMode } from '@louez/types';
+import { db } from "@louez/db";
+import { platformFees, stores, subscriptions } from "@louez/db";
+import type { BillingMode } from "@louez/types";
 
-import { isCurrentUserPlatformAdmin } from '@/lib/platform-admin';
+import { isCurrentUserPlatformAdmin } from "@/lib/platform-admin";
 
-import { billingMonthOf } from './metering';
+import { billingMonthOf } from "./metering";
 
 /**
  * Hard authorization guard for every cross-store finance read. These functions expose
@@ -15,7 +15,7 @@ import { billingMonthOf } from './metering';
  */
 async function assertPlatformAdmin(): Promise<void> {
   if (!(await isCurrentUserPlatformAdmin())) {
-    throw new Error('Unauthorized: platform admin required');
+    throw new Error("Unauthorized: platform admin required");
   }
 }
 
@@ -36,8 +36,8 @@ async function assertPlatformAdmin(): Promise<void> {
  * the rare multi-currency case.
  */
 
-type FeeStatus = 'pending' | 'collected' | 'billed' | 'voided' | 'reversed';
-type FeeSource = 'online' | 'manual' | 'free';
+type FeeStatus = "pending" | "collected" | "billed" | "voided" | "reversed";
+type FeeSource = "online" | "manual" | "free";
 
 export interface FinanceBucket {
   /** Realized reservation-commission revenue (collected/billed, net of refunds). */
@@ -103,20 +103,20 @@ function emptyBucket(): FinanceBucket {
 /** Fold one grouped ledger row into a running bucket. */
 function fold(bucket: FinanceBucket, row: GroupedRow): void {
   // Waived (free welcome-allowance) rentals: count them, but they carry no revenue.
-  if (row.source === 'free') {
-    if (row.status !== 'voided') bucket.freeCount += row.count;
+  if (row.source === "free") {
+    if (row.status !== "voided") bucket.freeCount += row.count;
     return;
   }
-  if (row.status === 'collected' || row.status === 'billed') {
+  if (row.status === "collected" || row.status === "billed") {
     // Net of any PARTIAL refund still sitting on a collected/billed row.
     const net = Math.max(0, row.totalCents - row.reversedCents);
     bucket.realizedCents += net;
     bucket.reservationCount += row.count;
     bucket.reversedCents += row.reversedCents;
-  } else if (row.status === 'pending') {
+  } else if (row.status === "pending") {
     bucket.pendingCents += row.totalCents;
     bucket.reservationCount += row.count;
-  } else if (row.status === 'reversed') {
+  } else if (row.status === "reversed") {
     // Fully reversed rows: the whole amount is reversed, nothing realized.
     bucket.reversedCents += row.totalCents;
   }
@@ -127,9 +127,7 @@ function fold(bucket: FinanceBucket, row: GroupedRow): void {
  * Build the platform-wide finance summary from the `platform_fee` ledger.
  * One grouped query over the ledger; store metadata fetched once for the stores that appear.
  */
-export async function getPlatformFinance(
-  reference: Date = new Date(),
-): Promise<PlatformFinance> {
+export async function getPlatformFinance(reference: Date = new Date()): Promise<PlatformFinance> {
   await assertPlatformAdmin();
   const currentMonth = billingMonthOf(reference);
 
@@ -177,14 +175,10 @@ export async function getPlatformFinance(
   // amounts are never summed across currencies.
   const currencyCounts = new Map<string, number>();
   for (const row of normalized) {
-    currencyCounts.set(
-      row.currency,
-      (currencyCounts.get(row.currency) ?? 0) + row.count,
-    );
+    currencyCounts.set(row.currency, (currencyCounts.get(row.currency) ?? 0) + row.count);
   }
   const currencies = [...currencyCounts.keys()].sort();
-  const currency =
-    [...currencyCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'eur';
+  const currency = [...currencyCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "eur";
 
   const scoped = normalized.filter((row) => row.currency === currency);
 
@@ -233,7 +227,7 @@ export async function getPlatformFinance(
       if (storeBuckets.has(meta.id)) {
         storeMeta.set(meta.id, {
           name: meta.name,
-          billingMode: meta.billingMode ?? 'subscription',
+          billingMode: meta.billingMode ?? "subscription",
         });
       }
     }
@@ -247,7 +241,7 @@ export async function getPlatformFinance(
     .map(([storeId, bucket]) => ({
       storeId,
       storeName: storeMeta.get(storeId)?.name ?? storeId,
-      billingMode: storeMeta.get(storeId)?.billingMode ?? 'subscription',
+      billingMode: storeMeta.get(storeId)?.billingMode ?? "subscription",
       ...bucket,
     }))
     .sort((a, b) => b.realizedCents - a.realizedCents);
@@ -276,9 +270,7 @@ export interface FinanceLedgerEntry {
   createdAt: Date;
 }
 
-export async function getRecentPlatformFees(
-  limit = 50,
-): Promise<FinanceLedgerEntry[]> {
+export async function getRecentPlatformFees(limit = 50): Promise<FinanceLedgerEntry[]> {
   await assertPlatformAdmin();
   const rows = await db
     .select({

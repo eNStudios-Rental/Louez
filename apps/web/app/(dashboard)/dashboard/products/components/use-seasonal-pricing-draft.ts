@@ -35,10 +35,7 @@ export function toStoredTiers(
 }
 
 /** Tiers keep the base rate's scale, like the main ladder (see `tierDisplayMaxUnit`). */
-function toFormTiers(
-  tiers: SeasonalPricingData["tiers"],
-  baseUnit: DurationUnit,
-): RateTierInput[] {
+function toFormTiers(tiers: SeasonalPricingData["tiers"], baseUnit: DurationUnit): RateTierInput[] {
   const maxUnit = tierDisplayMaxUnit(baseUnit);
   return tiers
     .filter((tier) => tier.period !== null && tier.price !== null)

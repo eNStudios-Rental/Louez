@@ -1,22 +1,22 @@
-import { createProductPromotionSchema, productPromotionSchema } from './product-promotion';
-import { z } from 'zod';
+import { createProductPromotionSchema, productPromotionSchema } from "./product-promotion";
+import { z } from "zod";
 
-import { getVariantAxisIdentity } from '@louez/utils';
+import { getVariantAxisIdentity } from "@louez/utils";
 
-import { AI_ADVISOR_PRODUCT_CONTEXT_MAX_LENGTH } from './ai-advisor';
-import { imageUrlSchema as storedImageUrlSchema } from './image';
+import { AI_ADVISOR_PRODUCT_CONTEXT_MAX_LENGTH } from "./ai-advisor";
+import { imageUrlSchema as storedImageUrlSchema } from "./image";
 
 // Image URL validation - allows public URLs, same-origin stored assets and
 // legacy base64 data URIs.
 // Note: base64 is allowed for backwards compatibility with old products,
 // but new uploads should go through S3
 const isProductImageUrl = (url: string) => {
-  if (url.startsWith('data:image/')) return true;
-  if (url.startsWith('/') && !url.startsWith('//')) return true;
+  if (url.startsWith("data:image/")) return true;
+  if (url.startsWith("/") && !url.startsWith("//")) return true;
 
   try {
     const parsed = new URL(url);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
   } catch {
     return false;
   }
@@ -26,13 +26,13 @@ const imageUrlSchema = z
   .string()
   .refine(
     isProductImageUrl,
-    'Invalid image URL. Must be a valid stored image URL or image data URI.',
+    "Invalid image URL. Must be a valid stored image URL or image data URI.",
   );
 
 export const productImageVersionSchema = z.object({
   id: z.string().min(1).max(128),
   url: imageUrlSchema,
-  kind: z.enum(['original', 'cropped', 'ai-enhanced', 'background-removed']),
+  kind: z.enum(["original", "cropped", "ai-enhanced", "background-removed"]),
   createdAt: z.iso.datetime().optional(),
 });
 
@@ -44,37 +44,37 @@ export const productImageHistorySchema = z.object({
 // Pricing tier schema
 export const pricingTierSchema = z.object({
   id: z.string().optional(),
-  minDuration: z.number().int().min(1, 'La durée minimum doit être au moins 1'),
+  minDuration: z.number().int().min(1, "La durée minimum doit être au moins 1"),
   discountPercent: z
     .number()
-    .min(0, 'La réduction ne peut pas être négative')
-    .max(99, 'La réduction ne peut pas dépasser 99%'),
+    .min(0, "La réduction ne peut pas être négative")
+    .max(99, "La réduction ne peut pas dépasser 99%"),
 });
 
-export const durationUnitSchema = z.enum(['minute', 'hour', 'day', 'week']);
+export const durationUnitSchema = z.enum(["minute", "hour", "day", "week"]);
 
 export const priceDurationSchema = z.object({
   price: z
     .string()
-    .regex(/^\d+([.,]\d{1,2})?$/, 'validation.positive')
-    .refine(
-      (price) => Number.parseFloat(price.replace(',', '.')) > 0,
-      'validation.positive',
-    ),
-  duration: z.number().int().min(1, 'validation.minValue'),
+    .regex(/^\d+([.,]\d{1,2})?$/, "validation.positive")
+    .refine((price) => Number.parseFloat(price.replace(",", ".")) > 0, "validation.positive"),
+  duration: z.number().int().min(1, "validation.minValue"),
   unit: durationUnitSchema,
 });
 
 const negotiablePriceDurationSchema = z.object({
-  price: z.string().regex(/^\d+([.,]\d{1,2})?$/, 'validation.positive').or(z.literal('')),
-  duration: z.number().int().min(1, 'validation.minValue'),
+  price: z
+    .string()
+    .regex(/^\d+([.,]\d{1,2})?$/, "validation.positive")
+    .or(z.literal("")),
+  duration: z.number().int().min(1, "validation.minValue"),
   unit: durationUnitSchema,
 });
 
 export const rateTierSchema = z.object({
   id: z.string().optional(),
-  price: z.string().regex(/^\d+([.,]\d{1,2})?$/, 'validation.positive'),
-  duration: z.number().int().min(1, 'validation.minValue'),
+  price: z.string().regex(/^\d+([.,]\d{1,2})?$/, "validation.positive"),
+  duration: z.number().int().min(1, "validation.minValue"),
   unit: durationUnitSchema,
   // UI-only, derived value. Never persisted in DB.
   discountPercent: z.number().min(0).max(99).optional(),
@@ -83,17 +83,13 @@ export const rateTierSchema = z.object({
 const optionalMoneyInputSchema = z
   .string()
   .trim()
-  .regex(/^\d+([.,]\d{1,2})?$/, 'validation.positive')
+  .regex(/^\d+([.,]\d{1,2})?$/, "validation.positive")
   .optional()
   .nullable()
-  .or(z.literal(''));
+  .or(z.literal(""));
 
 const optionalDateInputSchema = z
-  .union([
-    z.date(),
-    z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'validation.date'),
-    z.literal(''),
-  ])
+  .union([z.date(), z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "validation.date"), z.literal("")])
   .optional()
   .nullable();
 
@@ -104,14 +100,14 @@ export const productTaxSettingsSchema = z.object({
 });
 
 const productUnitBaseSchema = z.object({
-  identifier: z.string().max(255, 'validation.maxLength'),
-  serialNumber: z.string().max(255, 'validation.maxLength').optional().or(z.literal('')),
+  identifier: z.string().max(255, "validation.maxLength"),
+  serialNumber: z.string().max(255, "validation.maxLength").optional().or(z.literal("")),
   attributes: z.record(z.string(), z.string()).optional(),
   hasActiveAssignment: z.boolean().optional(),
 });
 
 const newProductUnitDetailsSchema = z.object({
-  notes: z.string().max(1000).optional().or(z.literal('')),
+  notes: z.string().max(1000).optional().or(z.literal("")),
   purchasePrice: optionalMoneyInputSchema,
   purchasedAt: optionalDateInputSchema,
   images: z.array(z.string().max(2048)).max(4).optional(),
@@ -153,11 +149,11 @@ export const productAccessoryLinkSchema = z
     z.object({
       accessoryId: z.string().min(1),
       required: z.boolean().optional(),
-      quantity: z.number().int().min(1, 'validation.minValue').optional(),
+      quantity: z.number().int().min(1, "validation.minValue").optional(),
     }),
   ])
   .transform((link) =>
-    typeof link === 'string'
+    typeof link === "string"
       ? { accessoryId: link, required: false, quantity: 1 }
       : {
           accessoryId: link.accessoryId,
@@ -169,13 +165,10 @@ export const productAccessoryLinkSchema = z
 export const bookingAttributeAxisSchema = z.object({
   key: z
     .string()
-    .min(1, 'validation.required')
-    .max(32, 'validation.maxLength')
-    .regex(/^[a-z0-9_-]+$/, 'validation.invalidFormat'),
-  label: z
-    .string()
-    .min(1, 'validation.required')
-    .max(50, 'validation.maxLength'),
+    .min(1, "validation.required")
+    .max(32, "validation.maxLength")
+    .regex(/^[a-z0-9_-]+$/, "validation.invalidFormat"),
+  label: z.string().min(1, "validation.required").max(50, "validation.maxLength"),
   position: z.number().int().min(0),
 });
 
@@ -183,25 +176,21 @@ export type PricingTierInput = z.infer<typeof pricingTierSchema>;
 export type PriceDurationInput = z.infer<typeof priceDurationSchema>;
 export type RateTierInput = z.infer<typeof rateTierSchema>;
 export type ProductUnitInput = z.infer<typeof productUnitSchema>;
-export type ProductAccessoryLinkInput = z.infer<
-  typeof productAccessoryLinkSchema
->;
-export type BookingAttributeAxisInput = z.infer<
-  typeof bookingAttributeAxisSchema
->;
+export type ProductAccessoryLinkInput = z.infer<typeof productAccessoryLinkSchema>;
+export type BookingAttributeAxisInput = z.infer<typeof bookingAttributeAxisSchema>;
 
 function priceDurationToMinutes(
   duration: number,
-  unit: 'minute' | 'hour' | 'day' | 'week',
+  unit: "minute" | "hour" | "day" | "week",
 ): number {
   switch (unit) {
-    case 'minute':
+    case "minute":
       return duration;
-    case 'hour':
+    case "hour":
       return duration * 60;
-    case 'day':
+    case "day":
       return duration * 60 * 24;
-    case 'week':
+    case "week":
       return duration * 60 * 24 * 7;
     default:
       return duration;
@@ -211,7 +200,7 @@ function priceDurationToMinutes(
 function hasDuplicateRateTierPeriods(
   rateTiers: Array<{
     duration: number;
-    unit: 'minute' | 'hour' | 'day' | 'week';
+    unit: "minute" | "hour" | "day" | "week";
   }>,
 ): boolean {
   const periods = new Set<number>();
@@ -227,7 +216,7 @@ function hasDuplicateRateTierPeriods(
 
 function ignoreDurationPricingForFixed(input: unknown): unknown {
   const parsed = z.record(z.string(), z.unknown()).safeParse(input);
-  if (!parsed.success || parsed.data.pricingKind !== 'fixed') {
+  if (!parsed.success || parsed.data.pricingKind !== "fixed") {
     return input;
   }
 
@@ -243,7 +232,7 @@ function ignoreDurationPricingForFixed(input: unknown): unknown {
 const moneyInputRegex = /^\d+([.,]\d{1,2})?$/;
 
 function isPositiveMoneyInput(value: string): boolean {
-  return Number.parseFloat(value.replace(',', '.')) > 0;
+  return Number.parseFloat(value.replace(",", ".")) > 0;
 }
 
 // Schema factory that accepts translation function
@@ -258,42 +247,40 @@ export const createProductSchema = (
     .object({
       name: z
         .string()
-        .min(2, t('minLength', { min: 2 }))
-        .max(255, t('maxLength', { max: 255 })),
+        .min(2, t("minLength", { min: 2 }))
+        .max(255, t("maxLength", { max: 255 })),
       description: z.string(),
       aiContext: z
         .string()
         .max(
           AI_ADVISOR_PRODUCT_CONTEXT_MAX_LENGTH,
-          t('maxLength', { max: AI_ADVISOR_PRODUCT_CONTEXT_MAX_LENGTH }),
+          t("maxLength", { max: AI_ADVISOR_PRODUCT_CONTEXT_MAX_LENGTH }),
         ),
       categoryIds: z.array(z.string()),
       price: z
         .string()
-        .regex(/^\d+([.,]\d{1,2})?$/, t('positive'))
-        .or(z.literal('')),
+        .regex(/^\d+([.,]\d{1,2})?$/, t("positive"))
+        .or(z.literal("")),
       deposit: z
         .string()
-        .regex(/^\d+([.,]\d{1,2})?$/, t('positive'))
-        .or(z.literal('')),
-      quantity: z.string().regex(/^\d+$/, t('integer')),
-      status: z.enum(['draft', 'active', 'archived']),
-      images: z.array(
-        z.string().refine(isProductImageUrl, t('invalidImageUrl')),
-      ),
+        .regex(/^\d+([.,]\d{1,2})?$/, t("positive"))
+        .or(z.literal("")),
+      quantity: z.string().regex(/^\d+$/, t("integer")),
+      status: z.enum(["draft", "active", "archived"]),
+      images: z.array(z.string().refine(isProductImageUrl, t("invalidImageUrl"))),
       imageHistory: z.array(productImageHistorySchema).max(5),
       // The dashboard form always carries a stock kind; only the server-side
       // schema below defaults it, for callers that omit it.
-      stockKind: z.enum(['returnable', 'consumable', 'untracked']),
-      pricingKind: z.enum(['duration', 'fixed']),
-      pricingMode: z.enum(['hour', 'day', 'week']),
+      stockKind: z.enum(["returnable", "consumable", "untracked"]),
+      pricingKind: z.enum(["duration", "fixed"]),
+      pricingMode: z.enum(["hour", "day", "week"]),
       // Kept structurally required so the form can hold on to a base period
       // while the user edits a fixed price; its content is only validated for
       // duration pricing (see the superRefine below).
       basePriceDuration: z.object({
         price: z.string(),
         duration: z.number(),
-        unit: z.enum(['minute', 'hour', 'day', 'week']),
+        unit: z.enum(["minute", "hour", "day", "week"]),
       }),
       pricingTiers: z.array(
         z.object({
@@ -307,7 +294,7 @@ export const createProductSchema = (
           id: z.string().optional(),
           price: z.string(),
           duration: z.number(),
-          unit: z.enum(['minute', 'hour', 'day', 'week']),
+          unit: z.enum(["minute", "hour", "day", "week"]),
           discountPercent: z.number().optional(),
         }),
       ),
@@ -315,13 +302,10 @@ export const createProductSchema = (
       priceNegotiable: z.boolean(),
       promotion: createProductPromotionSchema(t).nullable(),
       taxSettings: productTaxSettingsSchema,
-      videoUrl: z
-        .string()
-        .regex(youtubeUrlRegex, t('invalidYoutubeUrl'))
-        .or(z.literal('')),
+      videoUrl: z.string().regex(youtubeUrlRegex, t("invalidYoutubeUrl")).or(z.literal("")),
       accessories: z.array(
         buildProductAccessoryLinkSchema({
-          quantityMin: t('minValue', { min: 1 }),
+          quantityMin: t("minValue", { min: 1 }),
         }),
       ),
       // Unit tracking
@@ -330,28 +314,28 @@ export const createProductSchema = (
         z.union([
           z.object({
             id: z.string().min(1),
-            identifier: z.string().max(255, t('maxLength', { max: 255 })),
+            identifier: z.string().max(255, t("maxLength", { max: 255 })),
             serialNumber: z
               .string()
-              .max(255, t('maxLength', { max: 255 }))
+              .max(255, t("maxLength", { max: 255 }))
               .optional()
-              .or(z.literal('')),
+              .or(z.literal("")),
             attributes: z.record(z.string(), z.string()).optional(),
             hasActiveAssignment: z.boolean().optional(),
           }),
           z.object({
             id: z.undefined().optional(),
-            identifier: z.string().max(255, t('maxLength', { max: 255 })),
+            identifier: z.string().max(255, t("maxLength", { max: 255 })),
             serialNumber: z
               .string()
-              .max(255, t('maxLength', { max: 255 }))
+              .max(255, t("maxLength", { max: 255 }))
               .optional()
-              .or(z.literal('')),
+              .or(z.literal("")),
             notes: z
               .string()
-              .max(1000, t('maxLength', { max: 1000 }))
+              .max(1000, t("maxLength", { max: 1000 }))
               .optional()
-              .or(z.literal('')),
+              .or(z.literal("")),
             purchasePrice: optionalMoneyInputSchema,
             purchasedAt: optionalDateInputSchema,
             images: z.array(z.string().max(2048)).max(4).optional(),
@@ -365,29 +349,28 @@ export const createProductSchema = (
           z.object({
             key: z
               .string()
-              .min(1, t('required'))
-              .max(32, t('maxLength', { max: 32 }))
-              .regex(/^[a-z0-9_-]+$/, t('invalidFormat')),
+              .min(1, t("required"))
+              .max(32, t("maxLength", { max: 32 }))
+              .regex(/^[a-z0-9_-]+$/, t("invalidFormat")),
             label: z
               .string()
-              .min(1, t('required'))
-              .max(50, t('maxLength', { max: 50 })),
+              .min(1, t("required"))
+              .max(50, t("maxLength", { max: 50 })),
             position: z.number().int().min(0),
           }),
         )
-        .max(3, t('maxItems', { max: 3 })),
+        .max(3, t("maxItems", { max: 3 })),
     })
     .superRefine((data, ctx) => {
-      if (data.pricingKind === 'fixed') {
+      if (data.pricingKind === "fixed") {
         if (
           !data.priceNegotiable &&
-          (!data.price ||
-            (data.stockKind !== 'consumable' && !isPositiveMoneyInput(data.price)))
+          (!data.price || (data.stockKind !== "consumable" && !isPositiveMoneyInput(data.price)))
         ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: t('positive'),
-            path: ['price'],
+            message: t("positive"),
+            path: ["price"],
           });
         }
       } else {
@@ -399,16 +382,16 @@ export const createProductSchema = (
         ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: t('positive'),
-            path: ['basePriceDuration', 'price'],
+            message: t("positive"),
+            path: ["basePriceDuration", "price"],
           });
         }
 
         if (!Number.isInteger(baseRate.duration) || baseRate.duration < 1) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: t('minValue', { min: 1 }),
-            path: ['basePriceDuration', 'duration'],
+            message: t("minValue", { min: 1 }),
+            path: ["basePriceDuration", "duration"],
           });
         }
 
@@ -417,18 +400,16 @@ export const createProductSchema = (
           if (!Number.isInteger(tier.minDuration) || tier.minDuration < 1) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
-              message: t('minValue', { min: 1 }),
-              path: ['pricingTiers', index, 'minDuration'],
+              message: t("minValue", { min: 1 }),
+              path: ["pricingTiers", index, "minDuration"],
             });
           }
           if (tier.discountPercent < 0 || tier.discountPercent > 99) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message:
-                tier.discountPercent < 0
-                  ? t('minValue', { min: 0 })
-                  : t('maxValue', { max: 99 }),
-              path: ['pricingTiers', index, 'discountPercent'],
+                tier.discountPercent < 0 ? t("minValue", { min: 0 }) : t("maxValue", { max: 99 }),
+              path: ["pricingTiers", index, "discountPercent"],
             });
           }
         }
@@ -438,15 +419,15 @@ export const createProductSchema = (
           if (!moneyInputRegex.test(tier.price)) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
-              message: t('positive'),
-              path: ['rateTiers', index, 'price'],
+              message: t("positive"),
+              path: ["rateTiers", index, "price"],
             });
           }
           if (!Number.isInteger(tier.duration) || tier.duration < 1) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
-              message: t('minValue', { min: 1 }),
-              path: ['rateTiers', index, 'duration'],
+              message: t("minValue", { min: 1 }),
+              path: ["rateTiers", index, "duration"],
             });
           }
           if (
@@ -456,35 +437,31 @@ export const createProductSchema = (
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message:
-                tier.discountPercent < 0
-                  ? t('minValue', { min: 0 })
-                  : t('maxValue', { max: 99 }),
-              path: ['rateTiers', index, 'discountPercent'],
+                tier.discountPercent < 0 ? t("minValue", { min: 0 }) : t("maxValue", { max: 99 }),
+              path: ["rateTiers", index, "discountPercent"],
             });
           }
         }
       }
 
-      if (data.stockKind === 'consumable' && data.pricingKind !== 'fixed') {
+      if (data.stockKind === "consumable" && data.pricingKind !== "fixed") {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: t('invalidData'),
-          path: ['pricingKind'],
+          message: t("invalidData"),
+          path: ["pricingKind"],
         });
       }
 
-      if (data.stockKind !== 'returnable' && data.trackUnits) {
+      if (data.stockKind !== "returnable" && data.trackUnits) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: t('invalidData'),
-          path: ['trackUnits'],
+          message: t("invalidData"),
+          path: ["trackUnits"],
         });
       }
 
       const axes = data.bookingAttributeAxes || [];
-      const normalizedAxisKeys = axes.map((axis) =>
-        getVariantAxisIdentity(axis.key),
-      );
+      const normalizedAxisKeys = axes.map((axis) => getVariantAxisIdentity(axis.key));
       const duplicateKeys = normalizedAxisKeys.filter(
         (key, index) => normalizedAxisKeys.indexOf(key) !== index,
       );
@@ -492,16 +469,16 @@ export const createProductSchema = (
       if (duplicateKeys.length > 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: t('duplicateValue'),
-          path: ['bookingAttributeAxes'],
+          message: t("duplicateValue"),
+          path: ["bookingAttributeAxes"],
         });
       }
 
       if (!data.trackUnits && axes.length > 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: t('invalidData'),
-          path: ['bookingAttributeAxes'],
+          message: t("invalidData"),
+          path: ["bookingAttributeAxes"],
         });
       }
 
@@ -510,8 +487,8 @@ export const createProductSchema = (
           if (!data.units[i].identifier || !data.units[i].identifier.trim()) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
-              message: t('required'),
-              path: ['units', i, 'identifier'],
+              message: t("required"),
+              path: ["units", i, "identifier"],
             });
           }
 
@@ -521,8 +498,8 @@ export const createProductSchema = (
               if (!value || !value.trim()) {
                 ctx.addIssue({
                   code: z.ZodIssueCode.custom,
-                  message: t('required'),
-                  path: ['units', i, 'attributes', axis.key],
+                  message: t("required"),
+                  path: ["units", i, "attributes", axis.key],
                 });
               }
             }
@@ -531,15 +508,15 @@ export const createProductSchema = (
       }
 
       if (
-        data.pricingKind !== 'fixed' &&
+        data.pricingKind !== "fixed" &&
         data.rateTiers &&
         data.rateTiers.length > 0 &&
         hasDuplicateRateTierPeriods(data.rateTiers)
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: t('duplicateValue'),
-          path: ['rateTiers'],
+          message: t("duplicateValue"),
+          path: ["rateTiers"],
         });
       }
     });
@@ -550,109 +527,102 @@ export const createCategorySchema = (
   z.object({
     name: z
       .string()
-      .min(2, t('minLength', { min: 2 }))
-      .max(255, t('maxLength', { max: 255 })),
+      .min(2, t("minLength", { min: 2 }))
+      .max(255, t("maxLength", { max: 255 })),
     description: z.string().optional().nullable(),
     imageUrl: storedImageUrlSchema.optional().nullable(),
   });
 
 // Default schemas for server-side validation
 export const productSchema = z
-  .preprocess(ignoreDurationPricingForFixed, z.object({
-    name: z
-      .string()
-      .min(2, 'validation.minLength')
-      .max(255, 'validation.maxLength'),
-    description: z.string().optional(),
-    aiContext: z
-      .string()
-      .max(AI_ADVISOR_PRODUCT_CONTEXT_MAX_LENGTH, 'validation.maxLength')
-      .optional(),
-    // Legacy single category (kept for API/MCP backward compatibility).
-    categoryId: z.string().optional().nullable(),
-    categoryIds: z.array(z.string()).optional(),
-    price: z
-      .string()
-      .regex(/^\d+([.,]\d{1,2})?$/, 'validation.positive')
-      .or(z.literal('')),
-    deposit: z
-      .string()
-      .regex(/^\d+([.,]\d{1,2})?$/, 'validation.positive')
-      .optional()
-      .or(z.literal('')),
-    quantity: z.string().regex(/^\d+$/, 'validation.integer'),
-    status: z.enum(['draft', 'active', 'archived']),
-    images: z.array(imageUrlSchema).optional(),
-    imageHistory: z.array(productImageHistorySchema).max(5).optional(),
-    stockKind: z
-      .enum(['returnable', 'consumable', 'untracked'])
-      .default('returnable'),
-    pricingKind: z.enum(['duration', 'fixed']).default('duration'),
-    pricingMode: z.enum(['hour', 'day', 'week']),
-    basePriceDuration: z
-      .union([priceDurationSchema, negotiablePriceDurationSchema])
-      .optional(),
-    pricingTiers: z.array(pricingTierSchema).optional(),
-    rateTiers: z.array(rateTierSchema).optional(),
-    enforceStrictTiers: z.boolean().optional(),
-    priceNegotiable: z.boolean().optional(),
-    promotion: productPromotionSchema.nullable().optional(),
-    taxSettings: productTaxSettingsSchema.optional(),
-    videoUrl: z
-      .string()
-      .regex(youtubeUrlRegex, 'validation.invalidYoutubeUrl')
-      .optional()
-      .or(z.literal('')),
-    accessories: z.array(productAccessoryLinkSchema).optional(),
-    // Unit tracking
-    trackUnits: z.boolean().optional(),
-    units: z.array(productUnitSchema).optional(),
-    bookingAttributeAxes: z
-      .array(bookingAttributeAxisSchema)
-      .max(3, 'validation.maxItems')
-      .optional(),
-  }))
+  .preprocess(
+    ignoreDurationPricingForFixed,
+    z.object({
+      name: z.string().min(2, "validation.minLength").max(255, "validation.maxLength"),
+      description: z.string().optional(),
+      aiContext: z
+        .string()
+        .max(AI_ADVISOR_PRODUCT_CONTEXT_MAX_LENGTH, "validation.maxLength")
+        .optional(),
+      // Legacy single category (kept for API/MCP backward compatibility).
+      categoryId: z.string().optional().nullable(),
+      categoryIds: z.array(z.string()).optional(),
+      price: z
+        .string()
+        .regex(/^\d+([.,]\d{1,2})?$/, "validation.positive")
+        .or(z.literal("")),
+      deposit: z
+        .string()
+        .regex(/^\d+([.,]\d{1,2})?$/, "validation.positive")
+        .optional()
+        .or(z.literal("")),
+      quantity: z.string().regex(/^\d+$/, "validation.integer"),
+      status: z.enum(["draft", "active", "archived"]),
+      images: z.array(imageUrlSchema).optional(),
+      imageHistory: z.array(productImageHistorySchema).max(5).optional(),
+      stockKind: z.enum(["returnable", "consumable", "untracked"]).default("returnable"),
+      pricingKind: z.enum(["duration", "fixed"]).default("duration"),
+      pricingMode: z.enum(["hour", "day", "week"]),
+      basePriceDuration: z.union([priceDurationSchema, negotiablePriceDurationSchema]).optional(),
+      pricingTiers: z.array(pricingTierSchema).optional(),
+      rateTiers: z.array(rateTierSchema).optional(),
+      enforceStrictTiers: z.boolean().optional(),
+      priceNegotiable: z.boolean().optional(),
+      promotion: productPromotionSchema.nullable().optional(),
+      taxSettings: productTaxSettingsSchema.optional(),
+      videoUrl: z
+        .string()
+        .regex(youtubeUrlRegex, "validation.invalidYoutubeUrl")
+        .optional()
+        .or(z.literal("")),
+      accessories: z.array(productAccessoryLinkSchema).optional(),
+      // Unit tracking
+      trackUnits: z.boolean().optional(),
+      units: z.array(productUnitSchema).optional(),
+      bookingAttributeAxes: z
+        .array(bookingAttributeAxisSchema)
+        .max(3, "validation.maxItems")
+        .optional(),
+    }),
+  )
   .superRefine((data, ctx) => {
-    if (data.pricingKind === 'fixed') {
+    if (data.pricingKind === "fixed") {
       if (
         !data.priceNegotiable &&
-        (!data.price ||
-          (data.stockKind !== 'consumable' && !isPositiveMoneyInput(data.price)))
+        (!data.price || (data.stockKind !== "consumable" && !isPositiveMoneyInput(data.price)))
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'validation.positive',
-          path: ['price'],
+          message: "validation.positive",
+          path: ["price"],
         });
       }
     } else if (!data.basePriceDuration) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'validation.required',
-        path: ['basePriceDuration'],
+        message: "validation.required",
+        path: ["basePriceDuration"],
       });
     }
 
-    if (data.stockKind === 'consumable' && data.pricingKind !== 'fixed') {
+    if (data.stockKind === "consumable" && data.pricingKind !== "fixed") {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'validation.invalidData',
-        path: ['pricingKind'],
+        message: "validation.invalidData",
+        path: ["pricingKind"],
       });
     }
 
-    if (data.stockKind !== 'returnable' && data.trackUnits) {
+    if (data.stockKind !== "returnable" && data.trackUnits) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'validation.invalidData',
-        path: ['trackUnits'],
+        message: "validation.invalidData",
+        path: ["trackUnits"],
       });
     }
 
     const axes = data.bookingAttributeAxes || [];
-    const normalizedAxisKeys = axes.map((axis) =>
-      getVariantAxisIdentity(axis.key),
-    );
+    const normalizedAxisKeys = axes.map((axis) => getVariantAxisIdentity(axis.key));
     const duplicateKeys = normalizedAxisKeys.filter(
       (key, index) => normalizedAxisKeys.indexOf(key) !== index,
     );
@@ -660,16 +630,16 @@ export const productSchema = z
     if (duplicateKeys.length > 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'validation.duplicateValue',
-        path: ['bookingAttributeAxes'],
+        message: "validation.duplicateValue",
+        path: ["bookingAttributeAxes"],
       });
     }
 
     if (!data.trackUnits && axes.length > 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'validation.invalidData',
-        path: ['bookingAttributeAxes'],
+        message: "validation.invalidData",
+        path: ["bookingAttributeAxes"],
       });
     }
 
@@ -678,8 +648,8 @@ export const productSchema = z
         if (!data.units[i].identifier || !data.units[i].identifier.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: 'validation.required',
-            path: ['units', i, 'identifier'],
+            message: "validation.required",
+            path: ["units", i, "identifier"],
           });
         }
 
@@ -689,8 +659,8 @@ export const productSchema = z
             if (!value || !value.trim()) {
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                message: 'validation.required',
-                path: ['units', i, 'attributes', axis.key],
+                message: "validation.required",
+                path: ["units", i, "attributes", axis.key],
               });
             }
           }
@@ -705,19 +675,15 @@ export const productSchema = z
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'validation.duplicateValue',
-        path: ['rateTiers'],
+        message: "validation.duplicateValue",
+        path: ["rateTiers"],
       });
     }
   });
 
 export const categorySchema = z.object({
   parentId: z.string().trim().min(1).nullable().optional(),
-  name: z
-    .string()
-    .trim()
-    .min(2, 'validation.minLength')
-    .max(255, 'validation.maxLength'),
+  name: z.string().trim().min(2, "validation.minLength").max(255, "validation.maxLength"),
   description: z.string().optional().nullable(),
   imageUrl: storedImageUrlSchema.optional().nullable(),
 });
@@ -725,10 +691,10 @@ export const categorySchema = z.object({
 type ParsedProductInput = z.infer<typeof productSchema>;
 export type ProductInput = Omit<
   ParsedProductInput,
-  'basePriceDuration' | 'pricingKind' | 'stockKind'
+  "basePriceDuration" | "pricingKind" | "stockKind"
 > & {
   basePriceDuration: PriceDurationInput;
-  pricingKind?: 'duration' | 'fixed';
-  stockKind?: 'returnable' | 'consumable' | 'untracked';
+  pricingKind?: "duration" | "fixed";
+  stockKind?: "returnable" | "consumable" | "untracked";
 };
 export type CategoryInput = z.infer<typeof categorySchema>;

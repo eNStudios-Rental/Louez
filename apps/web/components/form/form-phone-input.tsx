@@ -1,24 +1,17 @@
-'use client';
+"use client";
 
-import { Label } from '@louez/ui';
+import { Label } from "@louez/ui";
 
-import { PhoneInput, type PhoneInputProps } from '@/components/ui/phone-input';
+import { PhoneInput, type PhoneInputProps } from "@/components/ui/phone-input";
 
-import { getFieldError, useFieldContext } from '@/hooks/form/form-context';
+import { getFieldError, useFieldContext } from "@/hooks/form/form-context";
 
-interface FormPhoneInputProps extends Omit<
-  PhoneInputProps,
-  'value' | 'onChange'
-> {
+interface FormPhoneInputProps extends Omit<PhoneInputProps, "value" | "onChange"> {
   label?: string;
   description?: string;
 }
 
-export const FormPhoneInput = ({
-  label,
-  description,
-  ...props
-}: FormPhoneInputProps) => {
+export const FormPhoneInput = ({ label, description, ...props }: FormPhoneInputProps) => {
   const field = useFieldContext<string>();
   const errors = field.state.meta.errors;
   const error = errors[0];
@@ -41,9 +34,7 @@ export const FormPhoneInput = ({
         aria-describedby={error ? errorId : undefined}
         {...props}
       />
-      {description && (
-        <p className="text-muted-foreground text-sm">{description}</p>
-      )}
+      {description && <p className="text-muted-foreground text-sm">{description}</p>}
       {error && (
         <p id={errorId} className="text-destructive text-sm">
           {getFieldError(error)}

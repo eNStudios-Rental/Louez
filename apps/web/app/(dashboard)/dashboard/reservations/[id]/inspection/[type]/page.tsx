@@ -1,9 +1,9 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound, redirect } from "next/navigation";
 
-import { and, eq, inArray } from 'drizzle-orm';
-import { getTranslations } from 'next-intl/server';
+import { and, eq, inArray } from "drizzle-orm";
+import { getTranslations } from "next-intl/server";
 
-import { db } from '@louez/db';
+import { db } from "@louez/db";
 import {
   customers,
   inspectionItems,
@@ -16,16 +16,16 @@ import {
   reservations,
   stores,
   users,
-} from '@louez/db';
-import { DEFAULT_INSPECTION_SETTINGS } from '@louez/types';
-import type { ConditionRating, InspectionType } from '@louez/types';
+} from "@louez/db";
+import { DEFAULT_INSPECTION_SETTINGS } from "@louez/types";
+import type { ConditionRating, InspectionType } from "@louez/types";
 
-import { DashboardBreadcrumbLabel } from '@/components/dashboard/dashboard-breadcrumbs-context';
+import { DashboardBreadcrumbLabel } from "@/components/dashboard/dashboard-breadcrumbs-context";
 
-import { getCurrentStore } from '@/lib/store-context';
+import { getCurrentStore } from "@/lib/store-context";
 
-import { InspectionView } from './components/inspection-view';
-import { InspectionWizard } from './components/inspection-wizard';
+import { InspectionView } from "./components/inspection-view";
+import { InspectionWizard } from "./components/inspection-wizard";
 
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
@@ -55,7 +55,7 @@ export default async function InspectionPage({ params }: PageProps) {
   const { id: reservationId, type } = await params;
 
   // Validate type
-  if (type !== 'departure' && type !== 'return') {
+  if (type !== "departure" && type !== "return") {
     notFound();
   }
 
@@ -63,7 +63,7 @@ export default async function InspectionPage({ params }: PageProps) {
 
   const store = await getCurrentStore();
   if (!store) {
-    redirect('/login');
+    redirect("/login");
   }
 
   // Get store settings
@@ -76,8 +76,7 @@ export default async function InspectionPage({ params }: PageProps) {
   const settings = storeData?.settings as {
     inspection?: typeof DEFAULT_INSPECTION_SETTINGS;
   } | null;
-  const inspectionSettings =
-    settings?.inspection || DEFAULT_INSPECTION_SETTINGS;
+  const inspectionSettings = settings?.inspection || DEFAULT_INSPECTION_SETTINGS;
 
   // Check if inspections are enabled
   if (!inspectionSettings.enabled) {
@@ -93,23 +92,18 @@ export default async function InspectionPage({ params }: PageProps) {
       customerId: reservations.customerId,
     })
     .from(reservations)
-    .where(
-      and(
-        eq(reservations.id, reservationId),
-        eq(reservations.storeId, store.id),
-      ),
-    )
+    .where(and(eq(reservations.id, reservationId), eq(reservations.storeId, store.id)))
     .limit(1);
 
   if (!reservation) {
     notFound();
   }
 
-  const tInspection = await getTranslations('dashboard.settings.inspection');
+  const tInspection = await getTranslations("dashboard.settings.inspection");
   const inspectionBreadcrumbLabel =
-    inspectionType === 'departure'
-      ? tInspection('wizard.departureInspection')
-      : tInspection('wizard.returnInspection');
+    inspectionType === "departure"
+      ? tInspection("wizard.departureInspection")
+      : tInspection("wizard.returnInspection");
   const breadcrumbLabels = (
     <>
       <DashboardBreadcrumbLabel
@@ -131,9 +125,7 @@ export default async function InspectionPage({ params }: PageProps) {
     .where(eq(customers.id, reservation.customerId))
     .limit(1);
 
-  const customerName = customer
-    ? `${customer.firstName} ${customer.lastName}`
-    : 'Client';
+  const customerName = customer ? `${customer.firstName} ${customer.lastName}` : "Client";
 
   // Check if inspection already exists
   const [existingInspection] = await db
@@ -149,12 +141,7 @@ export default async function InspectionPage({ params }: PageProps) {
       customerSignature: inspections.customerSignature,
     })
     .from(inspections)
-    .where(
-      and(
-        eq(inspections.reservationId, reservationId),
-        eq(inspections.type, inspectionType),
-      ),
-    )
+    .where(and(eq(inspections.reservationId, reservationId), eq(inspections.type, inspectionType)))
     .limit(1);
 
   // If inspection exists, show the view
@@ -198,8 +185,8 @@ export default async function InspectionPage({ params }: PageProps) {
           unitIdentifier?: string | null;
         };
         const productName = productSnapshot?.unitIdentifier
-          ? `${productSnapshot.name || 'Équipement'} — ${productSnapshot.unitIdentifier}`
-          : productSnapshot?.name || 'Équipement';
+          ? `${productSnapshot.name || "Équipement"} — ${productSnapshot.unitIdentifier}`
+          : productSnapshot?.name || "Équipement";
 
         return {
           id: item.id,
@@ -223,10 +210,7 @@ export default async function InspectionPage({ params }: PageProps) {
           inspection={{
             id: existingInspection.id,
             type: existingInspection.type as InspectionType,
-            status: existingInspection.status as
-              | 'draft'
-              | 'completed'
-              | 'signed',
+            status: existingInspection.status as "draft" | "completed" | "signed",
             hasDamage: existingInspection.hasDamage,
             notes: existingInspection.notes,
             performedByName,
@@ -244,11 +228,11 @@ export default async function InspectionPage({ params }: PageProps) {
   }
 
   // Validate reservation status for creating new inspection
-  if (inspectionType === 'departure' && reservation.status !== 'confirmed') {
+  if (inspectionType === "departure" && reservation.status !== "confirmed") {
     redirect(`/dashboard/reservations/${reservationId}`);
   }
 
-  if (inspectionType === 'return' && reservation.status !== 'ongoing') {
+  if (inspectionType === "return" && reservation.status !== "ongoing") {
     redirect(`/dashboard/reservations/${reservationId}`);
   }
 
@@ -275,13 +259,8 @@ export default async function InspectionPage({ params }: PageProps) {
             identifier: productUnits.identifier,
           })
           .from(reservationItemUnits)
-          .innerJoin(
-            productUnits,
-            eq(productUnits.id, reservationItemUnits.productUnitId),
-          )
-          .where(
-            inArray(reservationItemUnits.reservationItemId, reservationItemIds),
-          )
+          .innerJoin(productUnits, eq(productUnits.id, reservationItemUnits.productUnitId))
+          .where(inArray(reservationItemUnits.reservationItemId, reservationItemIds))
       : [];
 
   const assignedUnitsByItemId = new Map<

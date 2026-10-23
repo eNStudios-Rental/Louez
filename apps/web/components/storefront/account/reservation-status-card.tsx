@@ -23,7 +23,7 @@ interface ReservationStatusCardProps {
   /** Payment is the next step (confirmed, unpaid, Stripe active). */
   paymentRequired: boolean;
   /** Where the store's answer will land. Named in the pending copy. */
-  customerEmail: string;
+  customerEmail?: string | null;
   checkoutFailure?: CheckoutFailure | null;
 }
 
@@ -94,7 +94,7 @@ export const ReservationStatusCard = ({
   // and leaves the fallback — cancelling — to the line under it.
   const nextStep =
     status === "pending" && !paymentRequired
-      ? t("status.pendingNextStep", { email: customerEmail })
+      ? t("status.pendingNextStep", { email: customerEmail ?? "" })
       : null;
 
   return (

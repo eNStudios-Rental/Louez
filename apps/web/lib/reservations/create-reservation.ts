@@ -535,7 +535,7 @@ const findResumableCheckout = async (
       payments: { columns: { type: true, status: true } },
     },
   });
-  if (!existing) return null;
+  if (!existing || !existing.customer.email) return null;
   if (existing.customer.email.trim().toLowerCase() !== customerEmail.trim().toLowerCase()) {
     return null;
   }
@@ -568,7 +568,7 @@ const findMarketplaceReplay = async (
     reservationId: existing.id,
     reservationNumber: existing.number,
     customerId: existing.customerId,
-    customerEmail: existing.customer.email,
+    customerEmail: existing.customer.email ?? "",
   };
 };
 
@@ -880,7 +880,7 @@ const writeReservation = async (
         reservationId: resumable.id,
         reservationNumber: resumable.number,
         customerId: customer.id,
-        customerEmail: customer.email,
+        customerEmail: customer.email ?? request.customer.email,
       };
     }
 
@@ -955,7 +955,7 @@ const writeReservation = async (
       reservationId,
       reservationNumber,
       customerId: customer.id,
-      customerEmail: customer.email,
+      customerEmail: customer.email ?? request.customer.email,
     };
   });
 

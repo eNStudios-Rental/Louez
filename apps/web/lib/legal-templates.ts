@@ -4,11 +4,11 @@
  * and because legal text should be carefully controlled.
  */
 
-export type SupportedLocale = 'fr' | 'en'
+export type SupportedLocale = "fr" | "en";
 
 export interface LegalTemplates {
-  cgv: string
-  legalNotice: string
+  cgv: string;
+  legalNotice: string;
 }
 
 const frenchTemplates: LegalTemplates = {
@@ -44,7 +44,7 @@ const frenchTemplates: LegalTemplates = {
 <p>Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et de suppression de vos données personnelles. Pour exercer ce droit, contactez-nous à l'adresse email indiquée ci-dessus.</p>
 <h2>Cookies</h2>
 <p>Ce site utilise des cookies pour améliorer votre expérience de navigation. En poursuivant votre navigation, vous acceptez l'utilisation de cookies.</p>`,
-}
+};
 
 const englishTemplates: LegalTemplates = {
   cgv: `<h1>Terms and Conditions</h1>
@@ -79,22 +79,22 @@ const englishTemplates: LegalTemplates = {
 <p>In accordance with GDPR, you have the right to access, rectify, and delete your personal data. To exercise this right, contact us at the email address indicated above.</p>
 <h2>Cookies</h2>
 <p>This website uses cookies to improve your browsing experience. By continuing to browse, you accept the use of cookies.</p>`,
-}
+};
 
 const templates: Record<SupportedLocale, LegalTemplates> = {
   fr: frenchTemplates,
   en: englishTemplates,
-}
+};
 
 export function getLegalTemplates(locale: string): LegalTemplates {
-  const supportedLocale = (locale === 'en' ? 'en' : 'fr') as SupportedLocale
-  return templates[supportedLocale]
+  const supportedLocale = (locale === "en" ? "en" : "fr") as SupportedLocale;
+  return templates[supportedLocale];
 }
 
 export function getCgvTemplate(locale: string): string {
-  return getLegalTemplates(locale).cgv
+  return getLegalTemplates(locale).cgv;
 }
 
 export function getLegalNoticeTemplate(locale: string): string {
-  return getLegalTemplates(locale).legalNotice
+  return getLegalTemplates(locale).legalNotice;
 }

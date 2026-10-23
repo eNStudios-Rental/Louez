@@ -803,13 +803,15 @@ export async function updateReservationStatus(
     }));
 
     try {
-      const contractUrl = await createReservationInstantAccessUrl({
-        storeId: store.id,
-        storeSlug: store.slug,
-        customerEmail: reservation.customer.email,
-        reservationId,
-        redirectPath: `/account/reservations/${reservationId}/contract`,
-      });
+      const contractUrl = reservation.customer.email
+        ? await createReservationInstantAccessUrl({
+            storeId: store.id,
+            storeSlug: store.slug,
+            customerEmail: reservation.customer.email,
+            reservationId,
+            redirectPath: `/account/reservations/${reservationId}/contract`,
+          })
+        : reservationUrl;
       const termsUrl = store.cgv?.trim() ? getStorefrontUrl(store.slug, "/terms") : null;
 
       dispatchCustomerNotification("customer_request_accepted", {
@@ -2226,41 +2228,43 @@ export async function createManualReservation(data: CreateReservationData) {
     ];
 
     if (data.sendAsQuote) {
-      // Generate authenticated access token for the quote URL
-      const token = nanoid(64);
-      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-      await db.insert(verificationCodes).values({
-        id: nanoid(),
-        email: customer.email,
-        storeId: store.id,
-        code: "",
-        type: "instant_access",
-        token,
-        reservationId,
-        expiresAt,
-        createdAt: new Date(),
-      });
-      const quoteAccessUrl = getStorefrontUrl(store.slug, `/r/${reservationId}?token=${token}`);
+      if (customer.email) {
+        // Generate authenticated access token for the quote URL
+        const token = nanoid(64);
+        const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+        await db.insert(verificationCodes).values({
+          id: nanoid(),
+          email: customer.email,
+          storeId: store.id,
+          code: "",
+          type: "instant_access",
+          token,
+          reservationId,
+          expiresAt,
+          createdAt: new Date(),
+        });
+        const quoteAccessUrl = getStorefrontUrl(store.slug, `/r/${reservationId}?token=${token}`);
 
-      // Send quote email via dispatcher
-      dispatchCustomerNotification("customer_quote_sent", {
-        store: storeData,
-        customer: customerData,
-        reservation: {
-          id: reservationId,
-          number: reservationNumber,
-          startDate: data.startDate,
-          endDate: data.endDate,
-          totalAmount,
-          subtotalAmount,
-          depositAmount,
-        },
-        items: emailItems,
-        reservationUrl: quoteAccessUrl,
-      }).catch((error) => {
-        console.error("Failed to send quote email:", error);
-      });
-    } else {
+        // Send quote email via dispatcher
+        dispatchCustomerNotification("customer_quote_sent", {
+          store: storeData,
+          customer: customerData,
+          reservation: {
+            id: reservationId,
+            number: reservationNumber,
+            startDate: data.startDate,
+            endDate: data.endDate,
+            totalAmount,
+            subtotalAmount,
+            depositAmount,
+          },
+          items: emailItems,
+          reservationUrl: quoteAccessUrl,
+        }).catch((error) => {
+          console.error("Failed to send quote email:", error);
+        });
+      }
+    } else if (customer.email) {
       // Send confirmation email
       const reservationUrl = getStorefrontUrl(store.slug, `/account/reservations/${reservationId}`);
       sendReservationConfirmationEmail({
@@ -2287,7 +2291,9 @@ export async function createManualReservation(data: CreateReservationData) {
 
   // Platform admin notification
   const customerName = customer
-    ? `${customer.firstName} ${customer.lastName}`
+    ? [customer.firstName, customer.lastName].filter(Boolean).join(" ") ||
+      customer.companyName ||
+      "—"
     : data.newCustomer
       ? `${data.newCustomer.firstName} ${data.newCustomer.lastName}`
       : "Unknown";
@@ -2523,9 +2529,9 @@ function createEmptyReservationTulipQuotePreview(
 type ReservationTulipQuotePreviewCustomer = {
   customerType?: "individual" | "business" | null;
   companyName?: string | null;
-  firstName: string;
-  lastName: string;
-  email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
   phone?: string | null;
   address?: string | null;
   city?: string | null;
@@ -2608,9 +2614,9 @@ async function resolveReservationTulipQuotePreview(params: {
   const customer = {
     customerType: params.customer.customerType,
     companyName: params.customer.companyName,
-    firstName: params.customer.firstName,
-    lastName: params.customer.lastName,
-    email: params.customer.email,
+    firstName: params.customer.firstName ?? "",
+    lastName: params.customer.lastName ?? "",
+    email: params.customer.email ?? "",
     phone: params.customer.phone || "",
     address: params.customer.address || "",
     city: params.customer.city || "",
@@ -3293,9 +3299,9 @@ export async function updateReservation(
           storeId: store.id,
           customer: {
             ...resolveReservationBilling(reservation, reservation.customer),
-            firstName: reservation.customer.firstName,
-            lastName: reservation.customer.lastName,
-            email: reservation.customer.email,
+            firstName: reservation.customer.firstName ?? "",
+            lastName: reservation.customer.lastName ?? "",
+            email: reservation.customer.email ?? "",
             phone: reservation.customer.phone || "",
             address: reservation.customer.address || "",
             city: reservation.customer.city || "",
@@ -4007,12 +4013,12 @@ export async function updateReservation(
       emailNotification = {
         status: "failed",
         error: emailResult.error,
-        to: reservation.customer.email,
+        to: reservation.customer.email ?? "",
       };
     } else {
       emailNotification = {
         status: "sent",
-        to: reservation.customer.email,
+        to: reservation.customer.email ?? "",
       };
     }
   }
@@ -5041,6 +5047,10 @@ export async function sendReservationModificationEmail(
     return { error: "errors.reservationNotFound" };
   }
 
+  if (!reservation.customer.email) {
+    return { error: "errors.customerEmailRequired" };
+  }
+
   const storeData = {
     id: store.id,
     name: store.name,
@@ -5256,7 +5266,7 @@ export async function generateAccessUrl(reservationId: string) {
 
   await db.insert(verificationCodes).values({
     id: nanoid(),
-    email: reservation.customer.email,
+    email: reservation.customer.email ?? "",
     storeId: store.id,
     code: "",
     type: "instant_access",
@@ -5306,7 +5316,7 @@ export async function sendAccessLink(reservationId: string, data?: { customMessa
     // Store token in verificationCodes table
     await db.insert(verificationCodes).values({
       id: nanoid(),
-      email: reservation.customer.email,
+      email: reservation.customer.email ?? "",
       storeId: store.id,
       code: "", // Not used for instant_access
       type: "instant_access",
@@ -5433,7 +5443,7 @@ export async function sendAccessLinkBySms(reservationId: string) {
     // Store token in verificationCodes table
     await db.insert(verificationCodes).values({
       id: nanoid(),
-      email: reservation.customer.email,
+      email: reservation.customer.email ?? "",
       storeId: store.id,
       code: "", // Not used for instant_access
       type: "instant_access",
@@ -5591,7 +5601,7 @@ export async function requestPayment(
       // Store token in verificationCodes table
       await db.insert(verificationCodes).values({
         id: nanoid(),
-        email: reservation.customer.email,
+        email: reservation.customer.email ?? "",
         storeId: store.id,
         code: "", // Not used for instant_access
         type: "instant_access",
@@ -5630,6 +5640,10 @@ export async function requestPayment(
     const notificationResults: { email?: boolean; sms?: boolean } = {};
 
     if (data.channels.email) {
+      if (!reservation.customer.email) {
+        return { error: "errors.customerEmailRequired" };
+      }
+
       try {
         if (data.type === "deposit") {
           await sendDepositAuthorizationRequestEmail({

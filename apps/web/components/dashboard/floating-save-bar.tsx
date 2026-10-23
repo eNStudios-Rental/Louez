@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 
-import { Button } from '@louez/ui';
-import { cn } from '@louez/utils';
+import { Button } from "@louez/ui";
+import { cn } from "@louez/utils";
 
-import { useKeyboardHotkey } from '@/components/shared/keyboard-shortcuts-provider';
-import { setSaveBarVisible } from '@/hooks/use-save-bar';
+import { useKeyboardHotkey } from "@/components/shared/keyboard-shortcuts-provider";
+import { setSaveBarVisible } from "@/hooks/use-save-bar";
 
 interface FloatingSaveBarProps {
   /** Whether the form has unsaved changes */
@@ -56,8 +56,8 @@ export function FloatingSaveBar({
   formId,
   className,
 }: FloatingSaveBarProps) {
-  const t = useTranslations('common');
-  const saveShortcut = useKeyboardHotkey('save');
+  const t = useTranslations("common");
+  const saveShortcut = useKeyboardHotkey("save");
 
   // Let other bottom-fixed UI (the PWA install banner) yield while the save bar
   // can be on screen, so it never covers the Save/Cancel actions.
@@ -73,8 +73,8 @@ export function FloatingSaveBar({
         aria-live="polite"
         aria-atomic="true"
         className={cn(
-          'pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-6 transition-all duration-300 ease-out',
-          isDirty ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0',
+          "pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-6 transition-all duration-300 ease-out",
+          isDirty ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0",
           className,
         )}
       >
@@ -85,7 +85,7 @@ export function FloatingSaveBar({
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75 motion-reduce:animate-none" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-amber-500" />
             </span>
-            <span>{t('unsavedChanges')}</span>
+            <span>{t("unsavedChanges")}</span>
           </div>
 
           {/* Divider */}
@@ -100,19 +100,17 @@ export function FloatingSaveBar({
               disabled={isLoading}
               className="border-zinc-600 bg-transparent text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800 hover:text-white"
             >
-              {t('cancel')}
+              {t("cancel")}
             </Button>
             <Button
-              type={onSubmit || formId ? 'button' : 'submit'}
+              type={onSubmit || formId ? "button" : "submit"}
               form={formId}
               isPending={isLoading}
-              data-keyboard-shortcut-save={isDirty ? '' : undefined}
+              data-keyboard-shortcut-save={isDirty ? "" : undefined}
               onClick={onSubmit}
             >
-              {t('save')}
-              <kbd className="font-mono text-[10px] text-current/70">
-                {saveShortcut.label}
-              </kbd>
+              {t("save")}
+              <kbd className="font-mono text-[10px] text-current/70">{saveShortcut.label}</kbd>
             </Button>
           </div>
         </div>

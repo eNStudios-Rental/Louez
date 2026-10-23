@@ -1,15 +1,13 @@
-'use client';
+"use client";
 
-import type { ReactNode } from 'react';
+import type { ReactNode } from "react";
 
-import { Card } from '@louez/ui';
+import { Card } from "@louez/ui";
 
 interface LoginCardProps {
   children: ReactNode;
 }
 
 export const LoginCard = ({ children }: LoginCardProps) => {
-  return (
-    <Card className="border-0 *:py-0">{children}</Card>
-  );
+  return <Card className="border-0 *:py-0">{children}</Card>;
 };

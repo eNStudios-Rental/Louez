@@ -1,12 +1,12 @@
-import nodemailer from 'nodemailer';
-import type { Transporter } from 'nodemailer';
+import nodemailer from "nodemailer";
+import type { Transporter } from "nodemailer";
 
-import { env } from './env';
-import type { SendEmailOptions } from './types';
+import { env } from "./env";
+import type { SendEmailOptions } from "./types";
 
 function toBoolean(value: unknown): boolean {
-  if (typeof value === 'boolean') return value;
-  return String(value).toLowerCase() === 'true';
+  if (typeof value === "boolean") return value;
+  return String(value).toLowerCase() === "true";
 }
 
 function toPort(value: unknown): number {
@@ -18,7 +18,7 @@ function toPort(value: unknown): number {
 function readSmtpSetting(value: string | undefined): string {
   // Compose files and some hosts inject empty strings for unset variables;
   // treat those as "not configured" rather than as real values.
-  return (value ?? '').trim();
+  return (value ?? "").trim();
 }
 
 /**
@@ -32,9 +32,9 @@ function readSmtpSetting(value: string | undefined): string {
 export function isEmailConfigured(): boolean {
   return Boolean(
     readSmtpSetting(env.SMTP_HOST) &&
-      readSmtpSetting(env.SMTP_USER) &&
-      readSmtpSetting(env.SMTP_PASSWORD) &&
-      readSmtpSetting(env.SMTP_FROM),
+    readSmtpSetting(env.SMTP_USER) &&
+    readSmtpSetting(env.SMTP_PASSWORD) &&
+    readSmtpSetting(env.SMTP_FROM),
   );
 }
 
@@ -42,15 +42,15 @@ export function isEmailConfigured(): boolean {
 // DEV_EMAIL_ALLOWLIST so real customers are never contacted from a dev machine.
 // Entries are comma-separated and may be full addresses (you@example.com) or
 // domain suffixes (@example.com). Empty/unset blocks all dev sends.
-const devRecipientAllowlist = (env.DEV_EMAIL_ALLOWLIST ?? '')
-  .split(',')
+const devRecipientAllowlist = (env.DEV_EMAIL_ALLOWLIST ?? "")
+  .split(",")
   .map((entry) => entry.trim().toLowerCase())
   .filter(Boolean);
 
 function isAllowedDevRecipient(email: string) {
   const to = email.trim().toLowerCase();
   return devRecipientAllowlist.some((entry) =>
-    entry.startsWith('@') ? to.endsWith(entry) : to === entry,
+    entry.startsWith("@") ? to.endsWith(entry) : to === entry,
   );
 }
 
@@ -58,7 +58,7 @@ function getDevPreviewUrl(html: string, explicitUrl?: string): string | undefine
   if (explicitUrl) return explicitUrl;
 
   const href = html.match(/\bhref=(["'])(.*?)\1/i)?.[2];
-  return href?.replaceAll('&amp;', '&');
+  return href?.replaceAll("&amp;", "&");
 }
 
 // Created lazily so importing this module never requires SMTP settings —
@@ -103,23 +103,23 @@ export async function sendEmail({
     // Extract email address from SMTP_FROM (e.g. "Louez.io <noreply@lumy.agency>" → "noreply@lumy.agency")
     const emailMatch = smtpFrom.match(/<(.+)>/);
     const emailAddress = emailMatch ? emailMatch[1] : smtpFrom;
-    from = `"${fromName.replace(/"/g, '')}" <${emailAddress}>`;
+    from = `"${fromName.replace(/"/g, "")}" <${emailAddress}>`;
   }
 
   // Fail-closed: anything that is not explicitly production keeps the dev allowlist guard
   // ON. Reads process.env directly because env.NODE_ENV's .default('development') is skipped
   // under SKIP_ENV_VALIDATION (an unset NODE_ENV must not silently send to all recipients).
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('[DEV] Email from:', from);
-    console.log('[DEV] Email to:', to);
-    console.log('[DEV] Subject:', subject);
+  if (process.env.NODE_ENV !== "production") {
+    console.log("[DEV] Email from:", from);
+    console.log("[DEV] Email to:", to);
+    console.log("[DEV] Subject:", subject);
 
     if (!isAllowedDevRecipient(to)) {
       const previewUrl = getDevPreviewUrl(html, devPreviewUrl);
       if (previewUrl) {
-        console.log('[DEV] Email link:', previewUrl);
+        console.log("[DEV] Email link:", previewUrl);
       }
-      console.log('[DEV] Email skipped: recipient not in DEV_EMAIL_ALLOWLIST');
+      console.log("[DEV] Email skipped: recipient not in DEV_EMAIL_ALLOWLIST");
 
       return { messageId: `dev-skipped-${Date.now()}`, success: true };
     }

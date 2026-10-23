@@ -154,10 +154,7 @@ export function ProductFormSummaryPanel({
                 <p className="text-sm font-bold">
                   {watchedValues.priceNegotiable
                     ? t("priceNegotiableValue")
-                    : formatCurrency(
-                        Number.parseFloat(basePrice.replace(",", ".")) || 0,
-                        currency,
-                      )}
+                    : formatCurrency(Number.parseFloat(basePrice.replace(",", ".")) || 0, currency)}
                 </p>
                 {!watchedValues.priceNegotiable && (
                   <p className="text-muted-foreground text-xs">{priceLabel}</p>

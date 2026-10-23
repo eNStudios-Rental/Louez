@@ -1,19 +1,17 @@
-import { createEnv } from '@t3-oss/env-core';
-import { z } from 'zod';
+import { createEnv } from "@t3-oss/env-core";
+import { z } from "zod";
 
 export const env = createEnv({
   server: {
-    NODE_ENV: z
-      .enum(['development', 'test', 'production'])
-      .default('development'),
+    NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
     // SMTP is optional: without it, outgoing email is disabled and sendEmail
     // logs-and-skips instead of sending (see isEmailConfigured in send.ts).
     SMTP_HOST: z.string().optional(),
     SMTP_PORT: z.coerce.number().int().positive().default(587),
     SMTP_SECURE: z
       .string()
-      .default('false')
-      .transform((val) => val === 'true'),
+      .default("false")
+      .transform((val) => val === "true"),
     SMTP_USER: z.string().optional(),
     SMTP_PASSWORD: z.string().optional(),
     SMTP_FROM: z.string().optional(),

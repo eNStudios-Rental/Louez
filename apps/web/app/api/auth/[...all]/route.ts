@@ -1,5 +1,5 @@
-import { toNextJsHandler } from '@louez/auth'
+import { toNextJsHandler } from "@louez/auth";
 
-import { authInstance } from '@/lib/auth'
+import { authInstance } from "@/lib/auth";
 
-export const { POST, GET } = toNextJsHandler(authInstance)
+export const { POST, GET } = toNextJsHandler(authInstance);

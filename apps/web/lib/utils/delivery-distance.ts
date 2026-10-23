@@ -1,12 +1,12 @@
-import type { QueryClient } from '@tanstack/react-query'
+import type { QueryClient } from "@tanstack/react-query";
 
-import { orpc } from '@/lib/orpc/react'
+import { orpc } from "@/lib/orpc/react";
 
 interface DeliveryDistanceParams {
-  originLatitude: number
-  originLongitude: number
-  destinationLatitude: number
-  destinationLongitude: number
+  originLatitude: number;
+  originLongitude: number;
+  destinationLatitude: number;
+  destinationLongitude: number;
 }
 
 export async function fetchDeliveryDistanceKm(
@@ -17,7 +17,7 @@ export async function fetchDeliveryDistanceKm(
     orpc.public.address.distance.queryOptions({
       input: params,
     }),
-  )
+  );
 
-  return data.distanceKm
+  return data.distanceKm;
 }

@@ -1,60 +1,60 @@
-import { and, eq, inArray, ne, sql } from 'drizzle-orm'
+import { and, eq, inArray, ne, sql } from "drizzle-orm";
 
-import type { Database, Transaction } from './index'
-import { products, reservationItems, reservations } from './schema'
-import type { BlockingReservationStatus } from './unit-availability'
+import type { Database, Transaction } from "./index";
+import { products, reservationItems, reservations } from "./schema";
+import type { BlockingReservationStatus } from "./unit-availability";
 
 export interface ConsumableStockItem {
-  itemId: string
-  productId: string
-  quantity: number
-  consumedQuantity: number
+  itemId: string;
+  productId: string;
+  quantity: number;
+  consumedQuantity: number;
 }
 
-export type ConsumableStockMutationMode = 'consume' | 'restore' | 'reconcile'
+export type ConsumableStockMutationMode = "consume" | "restore" | "reconcile";
 
 export interface ConsumableStockMutationPlan {
-  itemChanges: Array<{ itemId: string; consumedQuantity: number }>
-  productChanges: Array<{ productId: string; quantityDelta: number }>
+  itemChanges: Array<{ itemId: string; consumedQuantity: number }>;
+  productChanges: Array<{ productId: string; quantityDelta: number }>;
 }
 
 export interface StockKindChangeBlocker {
-  id: string
-  number: string
+  id: string;
+  number: string;
 }
 
-type ReservationStatus = typeof reservations.$inferSelect.status
+type ReservationStatus = typeof reservations.$inferSelect.status;
 
-const stockConsumingReservationStatuses: ReservationStatus[] = ['confirmed', 'ongoing']
+const stockConsumingReservationStatuses: ReservationStatus[] = ["confirmed", "ongoing"];
 
 const reservationStatusTransitions: Partial<
   Record<ReservationStatus, readonly ReservationStatus[]>
 > = {
-  pending: ['confirmed', 'rejected', 'cancelled'],
-  quote: ['confirmed', 'declined', 'cancelled'],
-  confirmed: ['ongoing', 'cancelled'],
-  ongoing: ['completed', 'cancelled'],
-}
+  pending: ["confirmed", "rejected", "cancelled"],
+  quote: ["confirmed", "declined", "cancelled"],
+  confirmed: ["ongoing", "cancelled"],
+  ongoing: ["completed", "cancelled"],
+};
 
 export function getAllowedReservationStatusTransitions(
   status: ReservationStatus,
 ): readonly ReservationStatus[] {
-  return reservationStatusTransitions[status] ?? []
+  return reservationStatusTransitions[status] ?? [];
 }
 
 export function canTransitionReservationStatus(
   from: ReservationStatus,
   to: ReservationStatus,
 ): boolean {
-  return getAllowedReservationStatusTransitions(from).includes(to)
+  return getAllowedReservationStatusTransitions(from).includes(to);
 }
 
 export function reservationStatusConsumesStock(status: ReservationStatus): boolean {
-  return stockConsumingReservationStatuses.includes(status)
+  return stockConsumingReservationStatuses.includes(status);
 }
 
 export function canChangeProductStockKind(statuses: ReservationStatus[]): boolean {
-  return statuses.every((status) => !reservationStatusConsumesStock(status))
+  return statuses.every((status) => !reservationStatusConsumesStock(status));
 }
 
 export async function getProductStockKindChangeBlockers(
@@ -72,7 +72,7 @@ export async function getProductStockKindChangeBlockers(
         inArray(reservations.status, stockConsumingReservationStatuses),
       ),
     )
-    .orderBy(reservations.number)
+    .orderBy(reservations.number);
 }
 
 export async function lockProductReservationsForStockKindChange(
@@ -90,30 +90,30 @@ export async function lockProductReservationsForStockKindChange(
       ),
     )
     .orderBy(reservations.id)
-    .for('update')
+    .for("update");
 
-  return canChangeProductStockKind(linkedReservations.map(({ status }) => status))
+  return canChangeProductStockKind(linkedReservations.map(({ status }) => status));
 }
 
 export class ConsumableStockError extends Error {
-  readonly code: 'INSUFFICIENT_STOCK' | 'PRODUCT_NOT_FOUND' | 'RESERVATION_NOT_FOUND'
-  readonly productId: string | null
-  readonly requestedQuantity: number | null
-  readonly availableQuantity: number | null
+  readonly code: "INSUFFICIENT_STOCK" | "PRODUCT_NOT_FOUND" | "RESERVATION_NOT_FOUND";
+  readonly productId: string | null;
+  readonly requestedQuantity: number | null;
+  readonly availableQuantity: number | null;
 
   constructor(params: {
-    code: 'INSUFFICIENT_STOCK' | 'PRODUCT_NOT_FOUND' | 'RESERVATION_NOT_FOUND'
-    message: string
-    productId?: string
-    requestedQuantity?: number
-    availableQuantity?: number
+    code: "INSUFFICIENT_STOCK" | "PRODUCT_NOT_FOUND" | "RESERVATION_NOT_FOUND";
+    message: string;
+    productId?: string;
+    requestedQuantity?: number;
+    availableQuantity?: number;
   }) {
-    super(params.message)
-    this.name = 'ConsumableStockError'
-    this.code = params.code
-    this.productId = params.productId ?? null
-    this.requestedQuantity = params.requestedQuantity ?? null
-    this.availableQuantity = params.availableQuantity ?? null
+    super(params.message);
+    this.name = "ConsumableStockError";
+    this.code = params.code;
+    this.productId = params.productId ?? null;
+    this.requestedQuantity = params.requestedQuantity ?? null;
+    this.availableQuantity = params.availableQuantity ?? null;
   }
 }
 
@@ -121,31 +121,31 @@ export function planConsumableStockMutation(
   items: ConsumableStockItem[],
   mode: ConsumableStockMutationMode,
 ): ConsumableStockMutationPlan {
-  const itemChanges: ConsumableStockMutationPlan['itemChanges'] = []
-  const productQuantityDeltas = new Map<string, number>()
+  const itemChanges: ConsumableStockMutationPlan["itemChanges"] = [];
+  const productQuantityDeltas = new Map<string, number>();
 
   for (const item of items) {
     const nextConsumedQuantity =
-      mode === 'restore'
+      mode === "restore"
         ? 0
-        : mode === 'consume'
+        : mode === "consume"
           ? Math.max(item.consumedQuantity, item.quantity)
-          : item.quantity
+          : item.quantity;
 
     if (nextConsumedQuantity === item.consumedQuantity) {
-      continue
+      continue;
     }
 
     itemChanges.push({
       itemId: item.itemId,
       consumedQuantity: nextConsumedQuantity,
-    })
+    });
     productQuantityDeltas.set(
       item.productId,
       (productQuantityDeltas.get(item.productId) ?? 0) +
         item.consumedQuantity -
         nextConsumedQuantity,
-    )
+    );
   }
 
   return {
@@ -153,7 +153,7 @@ export function planConsumableStockMutation(
     productChanges: [...productQuantityDeltas.entries()]
       .filter(([, quantityDelta]) => quantityDelta !== 0)
       .map(([productId, quantityDelta]) => ({ productId, quantityDelta })),
-  }
+  };
 }
 
 async function mutateReservationStock(
@@ -166,13 +166,13 @@ async function mutateReservationStock(
     .select({ id: reservations.id })
     .from(reservations)
     .where(and(eq(reservations.id, reservationId), eq(reservations.storeId, storeId)))
-    .for('update')
+    .for("update");
 
   if (lockedReservation.length === 0) {
     throw new ConsumableStockError({
-      code: 'RESERVATION_NOT_FOUND',
-      message: 'errors.reservationNotFound',
-    })
+      code: "RESERVATION_NOT_FOUND",
+      message: "errors.reservationNotFound",
+    });
   }
 
   const items = await tx
@@ -190,11 +190,11 @@ async function mutateReservationStock(
         eq(reservationItems.reservationId, reservationId),
         eq(reservations.storeId, storeId),
         eq(products.storeId, storeId),
-        eq(products.stockKind, 'consumable'),
+        eq(products.stockKind, "consumable"),
       ),
     )
     .orderBy(products.id, reservationItems.id)
-    .for('update')
+    .for("update");
 
   const consumableItems = items.flatMap((item) =>
     item.productId
@@ -207,49 +207,49 @@ async function mutateReservationStock(
           },
         ]
       : [],
-  )
-  const plan = planConsumableStockMutation(consumableItems, mode)
+  );
+  const plan = planConsumableStockMutation(consumableItems, mode);
 
   if (plan.itemChanges.length === 0) {
-    return
+    return;
   }
 
-  const productIds = plan.productChanges.map((change) => change.productId)
+  const productIds = plan.productChanges.map((change) => change.productId);
   const lockedProducts = await tx
     .select({ id: products.id, quantity: products.quantity })
     .from(products)
     .where(
       and(
         eq(products.storeId, storeId),
-        eq(products.stockKind, 'consumable'),
+        eq(products.stockKind, "consumable"),
         inArray(products.id, productIds),
       ),
     )
     .orderBy(products.id)
-    .for('update')
+    .for("update");
   const quantityByProductId = new Map(
     lockedProducts.map((product) => [product.id, product.quantity]),
-  )
+  );
 
   for (const change of plan.productChanges) {
-    const currentQuantity = quantityByProductId.get(change.productId)
+    const currentQuantity = quantityByProductId.get(change.productId);
     if (currentQuantity === undefined) {
       throw new ConsumableStockError({
-        code: 'PRODUCT_NOT_FOUND',
-        message: 'errors.productNotFound',
+        code: "PRODUCT_NOT_FOUND",
+        message: "errors.productNotFound",
         productId: change.productId,
-      })
+      });
     }
 
-    const nextQuantity = currentQuantity + change.quantityDelta
+    const nextQuantity = currentQuantity + change.quantityDelta;
     if (nextQuantity < 0) {
       throw new ConsumableStockError({
-        code: 'INSUFFICIENT_STOCK',
-        message: 'errors.consumableInsufficientStock',
+        code: "INSUFFICIENT_STOCK",
+        message: "errors.consumableInsufficientStock",
         productId: change.productId,
         requestedQuantity: -change.quantityDelta,
         availableQuantity: currentQuantity,
-      })
+      });
     }
   }
 
@@ -264,9 +264,9 @@ async function mutateReservationStock(
         and(
           eq(products.id, change.productId),
           eq(products.storeId, storeId),
-          eq(products.stockKind, 'consumable'),
+          eq(products.stockKind, "consumable"),
         ),
-      )
+      );
   }
 
   for (const change of plan.itemChanges) {
@@ -278,7 +278,7 @@ async function mutateReservationStock(
           eq(reservationItems.id, change.itemId),
           eq(reservationItems.reservationId, reservationId),
         ),
-      )
+      );
   }
 }
 
@@ -287,7 +287,7 @@ export async function consumeReservationStock(
   reservationId: string,
   storeId: string,
 ): Promise<void> {
-  await mutateReservationStock(tx, reservationId, storeId, 'consume')
+  await mutateReservationStock(tx, reservationId, storeId, "consume");
 }
 
 export async function restoreReservationStock(
@@ -295,7 +295,7 @@ export async function restoreReservationStock(
   reservationId: string,
   storeId: string,
 ): Promise<void> {
-  await mutateReservationStock(tx, reservationId, storeId, 'restore')
+  await mutateReservationStock(tx, reservationId, storeId, "restore");
 }
 
 export async function reconcileReservationStock(
@@ -303,20 +303,20 @@ export async function reconcileReservationStock(
   reservationId: string,
   storeId: string,
 ): Promise<void> {
-  await mutateReservationStock(tx, reservationId, storeId, 'reconcile')
+  await mutateReservationStock(tx, reservationId, storeId, "reconcile");
 }
 
 export async function loadConsumableReservedQuantities(
-  database: Pick<Database, 'select'>,
+  database: Pick<Database, "select">,
   params: {
-    storeId: string
-    productIds: string[]
-    blockingStatuses: BlockingReservationStatus[]
-    excludeReservationId?: string
+    storeId: string;
+    productIds: string[];
+    blockingStatuses: BlockingReservationStatus[];
+    excludeReservationId?: string;
   },
 ): Promise<Map<string, number>> {
   if (params.productIds.length === 0) {
-    return new Map()
+    return new Map();
   }
 
   const reservationPredicate = params.excludeReservationId
@@ -328,7 +328,7 @@ export async function loadConsumableReservedQuantities(
     : and(
         eq(reservations.storeId, params.storeId),
         inArray(reservations.status, params.blockingStatuses),
-      )
+      );
   const rows = await database
     .select({
       productId: reservationItems.productId,
@@ -342,20 +342,23 @@ export async function loadConsumableReservedQuantities(
       and(
         reservationPredicate,
         eq(products.storeId, params.storeId),
-        eq(products.stockKind, 'consumable'),
+        eq(products.stockKind, "consumable"),
         inArray(products.id, params.productIds),
       ),
-    )
-  const reservedByProduct = new Map<string, number>()
+    );
+  const reservedByProduct = new Map<string, number>();
 
   for (const row of rows) {
     if (!row.productId) {
-      continue
+      continue;
     }
 
-    const heldQuantity = Math.max(0, row.quantity - row.consumedQuantity)
-    reservedByProduct.set(row.productId, (reservedByProduct.get(row.productId) ?? 0) + heldQuantity)
+    const heldQuantity = Math.max(0, row.quantity - row.consumedQuantity);
+    reservedByProduct.set(
+      row.productId,
+      (reservedByProduct.get(row.productId) ?? 0) + heldQuantity,
+    );
   }
 
-  return reservedByProduct
+  return reservedByProduct;
 }

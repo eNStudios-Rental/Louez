@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 import {
   Archive,
   ArrowLeft,
@@ -14,7 +14,7 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
-} from 'lucide-react';
+} from "lucide-react";
 
 import {
   AlertDialog,
@@ -31,17 +31,17 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@louez/ui';
+} from "@louez/ui";
 
-import { ProductImage } from '@/components/product/product-image';
+import { ProductImage } from "@/components/product/product-image";
 
-import { useProductActions } from '../hooks/use-product-actions';
+import { useProductActions } from "../hooks/use-product-actions";
 
 const STATUS_VARIANTS = {
-  active: 'success',
-  draft: 'pending',
-  archived: 'expired',
-} as const
+  active: "success",
+  draft: "pending",
+  archived: "expired",
+} as const;
 
 /**
  * True once the observed element has fully scrolled out of view. Drives the
@@ -72,7 +72,7 @@ interface ProductHeaderProps {
     id: string;
     name: string;
     images: string[] | null;
-    status: 'draft' | 'active' | 'archived' | null;
+    status: "draft" | "active" | "archived" | null;
     categories: Array<{ id: string; name: string }>;
   };
   storeSlug: string;
@@ -80,11 +80,16 @@ interface ProductHeaderProps {
   onBack?: () => void;
 }
 
-export const ProductHeader = ({ product, storeSlug, readOnly = false, onBack }: ProductHeaderProps) => {
+export const ProductHeader = ({
+  product,
+  storeSlug,
+  readOnly = false,
+  onBack,
+}: ProductHeaderProps) => {
   const headerRef = useRef<HTMLDivElement>(null);
-  const t = useTranslations('dashboard.products');
-  const tDetail = useTranslations('dashboard.products.detail');
-  const tCommon = useTranslations('common');
+  const t = useTranslations("dashboard.products");
+  const tDetail = useTranslations("dashboard.products.detail");
+  const tCommon = useTranslations("common");
 
   const {
     isLoading,
@@ -97,7 +102,7 @@ export const ProductHeader = ({ product, storeSlug, readOnly = false, onBack }: 
     handleDelete,
   } = useProductActions({ readOnly });
 
-  const status = product.status || 'draft';
+  const status = product.status || "draft";
   const image = product.images?.[0];
   const isHeaderScrolledOut = useIsScrolledOut(headerRef);
   const editHref = `/dashboard/products/${product.id}/edit`;
@@ -108,45 +113,46 @@ export const ProductHeader = ({ product, storeSlug, readOnly = false, onBack }: 
         render={<Button variant="outline" size="icon" disabled={readOnly || isLoading} />}
       >
         <MoreHorizontal className="h-4 w-4" />
-        <span className="sr-only">{tCommon('actions')}</span>
+        <span className="sr-only">{tCommon("actions")}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem disabled={readOnly} render={readOnly ? undefined : <Link href={editHref} />}>
+        <DropdownMenuItem
+          disabled={readOnly}
+          render={readOnly ? undefined : <Link href={editHref} />}
+        >
           <Pencil className="mr-2 h-4 w-4" />
-          {tCommon('edit')}
+          {tCommon("edit")}
         </DropdownMenuItem>
-        {status === 'active' && (
+        {status === "active" && (
           <DropdownMenuItem
-            onClick={() =>
-              window.open(`/${storeSlug}/product/${product.id}`, '_blank')
-            }
+            onClick={() => window.open(`/${storeSlug}/product/${product.id}`, "_blank")}
           >
             <ExternalLink className="mr-2 h-4 w-4" />
-            {tDetail('viewOnStorefront')}
+            {tDetail("viewOnStorefront")}
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onClick={() => handleDuplicate(product)}>
           <Copy className="mr-2 h-4 w-4" />
-          {t('duplicate')}
+          {t("duplicate")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => handleStatusToggle(product)}>
-          {status === 'active' ? (
+          {status === "active" ? (
             <>
               <EyeOff className="mr-2 h-4 w-4" />
-              {t('unpublish')}
+              {t("unpublish")}
             </>
           ) : (
             <>
               <Eye className="mr-2 h-4 w-4" />
-              {t('publish')}
+              {t("publish")}
             </>
           )}
         </DropdownMenuItem>
-        {status !== 'archived' && (
+        {status !== "archived" && (
           <DropdownMenuItem onClick={() => handleArchive(product)}>
             <Archive className="mr-2 h-4 w-4" />
-            {t('archive')}
+            {t("archive")}
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
@@ -155,7 +161,7 @@ export const ProductHeader = ({ product, storeSlug, readOnly = false, onBack }: 
           onClick={() => requestDelete(product)}
         >
           <Trash2 className="mr-2 h-4 w-4" />
-          {tCommon('delete')}
+          {tCommon("delete")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -181,15 +187,13 @@ export const ProductHeader = ({ product, storeSlug, readOnly = false, onBack }: 
             className="-ml-2 shrink-0"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">{tCommon('back')}</span>
+            <span className="sr-only">{tCommon("back")}</span>
           </Button>
-          <h2 className="min-w-0 flex-1 truncate text-base font-semibold">
-            {product.name}
-          </h2>
+          <h2 className="min-w-0 flex-1 truncate text-base font-semibold">{product.name}</h2>
           <div className="flex shrink-0 items-center gap-2">
             <Button disabled={readOnly} render={readOnly ? undefined : <Link href={editHref} />}>
               <Pencil className="mr-2 h-4 w-4" />
-              {tCommon('edit')}
+              {tCommon("edit")}
             </Button>
             {actionsMenu}
           </div>
@@ -210,7 +214,7 @@ export const ProductHeader = ({ product, storeSlug, readOnly = false, onBack }: 
             className="shrink-0 -ml-2 mt-0.5"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">{tCommon('back')}</span>
+            <span className="sr-only">{tCommon("back")}</span>
           </Button>
 
           <ProductImage
@@ -236,37 +240,39 @@ export const ProductHeader = ({ product, storeSlug, readOnly = false, onBack }: 
         </div>
 
         <div className="flex items-center gap-2 sm:shrink-0">
-          <Button className="flex-1 sm:flex-none" disabled={readOnly} render={readOnly ? undefined : <Link href={editHref} />}>
+          <Button
+            className="flex-1 sm:flex-none"
+            disabled={readOnly}
+            render={readOnly ? undefined : <Link href={editHref} />}
+          >
             <Pencil className="h-4 w-4 mr-2" />
-            {tCommon('edit')}
+            {tCommon("edit")}
           </Button>
           {actionsMenu}
         </div>
       </div>
 
-      {!readOnly && <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('deleteConfirm.title')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('deleteConfirm.description')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogClose render={<Button variant="outline" />}>
-              {tCommon('cancel')}
-            </AlertDialogClose>
-            <AlertDialogClose
-              render={<Button variant="destructive" />}
-              onClick={() =>
-                handleDelete({ redirectTo: '/dashboard/products' })
-              }
-            >
-              {tCommon('delete')}
-            </AlertDialogClose>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>}
+      {!readOnly && (
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t("deleteConfirm.title")}</AlertDialogTitle>
+              <AlertDialogDescription>{t("deleteConfirm.description")}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogClose render={<Button variant="outline" />}>
+                {tCommon("cancel")}
+              </AlertDialogClose>
+              <AlertDialogClose
+                render={<Button variant="destructive" />}
+                onClick={() => handleDelete({ redirectTo: "/dashboard/products" })}
+              >
+                {tCommon("delete")}
+              </AlertDialogClose>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
-}
+};

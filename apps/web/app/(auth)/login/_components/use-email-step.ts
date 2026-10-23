@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from "react";
 
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams } from "next/navigation";
 
-import { revalidateLogic } from '@tanstack/react-form';
-import { useMutation } from '@tanstack/react-query';
-import { useTranslations } from 'next-intl';
-import { z } from 'zod';
+import { revalidateLogic } from "@tanstack/react-form";
+import { useMutation } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { z } from "zod";
 
-import { authClient } from '@louez/auth/client';
+import { authClient } from "@louez/auth/client";
 
 import {
   createAuthMutationError,
@@ -17,23 +17,23 @@ import {
   getMutationAuthCode,
   hasAuthError,
   resolveAuthErrorMessage,
-} from '@/lib/utils/util.auth-error';
+} from "@/lib/utils/util.auth-error";
 
-import { useAppForm } from '@/hooks/form/form';
+import { useAppForm } from "@/hooks/form/form";
 
-import { useCallbackUrl } from './use-callback-url';
+import { useCallbackUrl } from "./use-callback-url";
 
 interface UseEmailStepParams {
   onOtpSent: (email: string) => void;
 }
 
 export const useEmailStep = ({ onOtpSent }: UseEmailStepParams) => {
-  const t = useTranslations('auth');
+  const t = useTranslations("auth");
   const callbackUrl = useCallbackUrl();
 
   // The `error` search param comes from the OAuth callback redirect, so it
   // only concerns this step.
-  const initialErrorCode = useSearchParams().get('error');
+  const initialErrorCode = useSearchParams().get("error");
 
   const initialErrorMessage = useMemo(
     () => resolveAuthErrorMessage(t, initialErrorCode),
@@ -55,7 +55,7 @@ export const useEmailStep = ({ onOtpSent }: UseEmailStepParams) => {
     mutationFn: async (email: string) => {
       const result = await authClient.emailOtp.sendVerificationOtp({
         email,
-        type: 'sign-in',
+        type: "sign-in",
       });
 
       if (hasAuthError(result)) {
@@ -67,7 +67,7 @@ export const useEmailStep = ({ onOtpSent }: UseEmailStepParams) => {
   const googleSignInMutation = useMutation({
     mutationFn: async () => {
       const result = await authClient.signIn.social({
-        provider: 'google',
+        provider: "google",
         callbackURL: callbackUrl,
       });
 
@@ -83,18 +83,18 @@ export const useEmailStep = ({ onOtpSent }: UseEmailStepParams) => {
   const emailSchema = useMemo(
     () =>
       z.object({
-        email: z.email(t('errors.invalidEmail')),
+        email: z.email(t("errors.invalidEmail")),
       }),
     [t],
   );
 
   const form = useAppForm({
     defaultValues: {
-      email: '',
+      email: "",
     },
     validationLogic: revalidateLogic({
-      mode: 'submit',
-      modeAfterSubmission: 'change',
+      mode: "submit",
+      modeAfterSubmission: "change",
     }),
     validators: {
       onSubmit: emailSchema,

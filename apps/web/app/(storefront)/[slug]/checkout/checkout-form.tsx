@@ -383,7 +383,8 @@ export const CheckoutForm = ({
       summaryProps={summaryProps}
       stepRef={stepRef}
       error={
-        serverError && serverErrorMessage && (
+        serverError &&
+        serverErrorMessage && (
           <Alert variant="error" className="mb-4">
             <AlertCircle />
             <AlertTitle>{t("submitError.title")}</AlertTitle>

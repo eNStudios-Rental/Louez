@@ -192,7 +192,8 @@ export function EditReservationItemCard({
                 </>
               ) : (
                 <>
-                  {item.quantity} × {item.displayDuration} {unitLabel} · {displayedUnitPrice.toFixed(2)}
+                  {item.quantity} × {item.displayDuration} {unitLabel} ·{" "}
+                  {displayedUnitPrice.toFixed(2)}
                   {currencySymbol}/{unitLabel}
                 </>
               )}

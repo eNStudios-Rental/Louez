@@ -12,14 +12,8 @@ import {
 
 import { ProductsFiltersView } from "./products-filters-view";
 
-import {
-  type CategoryFilterOption,
-} from "./category-filter-combobox";
-import {
-  PRODUCT_STATUS_FILTERS,
-  type ProductCounts,
-  type ProductStatusFilter,
-} from "./types";
+import { type CategoryFilterOption } from "./category-filter-combobox";
+import { PRODUCT_STATUS_FILTERS, type ProductCounts, type ProductStatusFilter } from "./types";
 
 /**
  * Products list filters, kept in the URL so links stay shareable.
@@ -68,7 +62,18 @@ interface ProductsFiltersProps {
   isLoadingCategories?: boolean;
 }
 
-export const ProductsFilters = ({ categories, counts, isLoadingCategories }: ProductsFiltersProps) => {
+export const ProductsFilters = ({
+  categories,
+  counts,
+  isLoadingCategories,
+}: ProductsFiltersProps) => {
   const filters = useProductsFilters();
-  return <ProductsFiltersView categories={categories} counts={counts} isLoadingCategories={isLoadingCategories} {...filters} />;
+  return (
+    <ProductsFiltersView
+      categories={categories}
+      counts={counts}
+      isLoadingCategories={isLoadingCategories}
+      {...filters}
+    />
+  );
 };

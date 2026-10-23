@@ -219,11 +219,10 @@ export async function getDashboardProductsList({
           quantity: row.quantity,
           stockKind: row.stockKind,
           status: row.status,
-          categories: visibleCategoryIds
-            .flatMap((categoryId) => {
-              const name = getCategoryDisplayPath(categoryId, categoriesById);
-              return name ? [{ id: categoryId, name }] : [];
-            }),
+          categories: visibleCategoryIds.flatMap((categoryId) => {
+            const name = getCategoryDisplayPath(categoryId, categoriesById);
+            return name ? [{ id: categoryId, name }] : [];
+          }),
         };
       }),
     counts,

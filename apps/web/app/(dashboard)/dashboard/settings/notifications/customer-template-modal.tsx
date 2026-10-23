@@ -30,8 +30,8 @@ interface CustomerTemplateModalProps {
   locale: EmailLocale;
 }
 
-import { DEFAULT_SUBJECTS, DEFAULT_SMS_TEMPLATES } from './customer-template-defaults'
-export { DEFAULT_SUBJECTS, DEFAULT_SMS_TEMPLATES } from './customer-template-defaults'
+import { DEFAULT_SUBJECTS, DEFAULT_SMS_TEMPLATES } from "./customer-template-defaults";
+export { DEFAULT_SUBJECTS, DEFAULT_SMS_TEMPLATES } from "./customer-template-defaults";
 
 export function CustomerTemplateModal({
   open,

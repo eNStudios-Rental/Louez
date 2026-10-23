@@ -130,8 +130,8 @@ export const CartLineItem = ({
             {item.priceNegotiable
               ? t("priceNegotiable")
               : subtotal === 0 && isRequiredLine
-              ? t("included")
-              : `${formatMoney(unitPrice)} × ${item.quantity}`}
+                ? t("included")
+                : `${formatMoney(unitPrice)} × ${item.quantity}`}
             {!item.priceNegotiable && isFixedPriceProduct(item) ? ` · ${t("fixedPrice")}` : null}
           </p>
           {!isRequiredLine ? (

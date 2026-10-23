@@ -387,9 +387,7 @@ export function NewReservationSummaryPanel({
           </label>
         </div>
         {hasSelectedCustomerWithoutEmail && (
-          <p className="text-muted-foreground pl-6 text-xs">
-            {t("customerEmailNotConfigured")}
-          </p>
+          <p className="text-muted-foreground pl-6 text-xs">{t("customerEmailNotConfigured")}</p>
         )}
       </CardContent>
     </Card>

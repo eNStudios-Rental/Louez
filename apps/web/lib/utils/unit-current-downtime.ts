@@ -1,11 +1,7 @@
-import { and, eq, inArray } from 'drizzle-orm';
-import 'server-only';
+import { and, eq, inArray } from "drizzle-orm";
+import "server-only";
 
-import {
-  buildUnitInDowntimeAtPredicate,
-  db,
-  productUnitDowntimes,
-} from '@louez/db';
+import { buildUnitInDowntimeAtPredicate, db, productUnitDowntimes } from "@louez/db";
 
 export async function getCurrentDowntimeUnitIds(
   unitIds: string[],

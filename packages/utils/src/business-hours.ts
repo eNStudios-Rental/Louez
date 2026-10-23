@@ -1,4 +1,4 @@
-import type { DaySchedule } from '@louez/types'
+import type { DaySchedule } from "@louez/types";
 
 /**
  * Normalizes a DaySchedule from either legacy or current format,
@@ -14,12 +14,12 @@ import type { DaySchedule } from '@louez/types'
  * the old format stored in their JSON settings column.
  */
 export function normalizeDaySchedule(schedule: Record<string, unknown>): DaySchedule {
-  if ('ranges' in schedule && Array.isArray(schedule.ranges)) {
-    const typed = schedule as unknown as DaySchedule
+  if ("ranges" in schedule && Array.isArray(schedule.ranges)) {
+    const typed = schedule as unknown as DaySchedule;
     return {
       ...typed,
       ranges: [...typed.ranges].sort((a, b) => a.openTime.localeCompare(b.openTime)),
-    }
+    };
   }
 
   // Legacy format: single openTime/closeTime at the top level
@@ -27,9 +27,9 @@ export function normalizeDaySchedule(schedule: Record<string, unknown>): DaySche
     isOpen: Boolean(schedule.isOpen),
     ranges: [
       {
-        openTime: (schedule.openTime as string) ?? '09:00',
-        closeTime: (schedule.closeTime as string) ?? '18:00',
+        openTime: (schedule.openTime as string) ?? "09:00",
+        closeTime: (schedule.closeTime as string) ?? "18:00",
       },
     ],
-  }
+  };
 }

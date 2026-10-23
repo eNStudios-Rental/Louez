@@ -16,7 +16,7 @@ import {
   DialogPopup,
   DialogTitle,
 } from "@louez/ui";
-import { type CustomerType, createCustomerSchema } from "@louez/validations";
+import { type CustomerInput, createCustomerSchema } from "@louez/validations";
 
 import { createCustomer } from "@/app/(dashboard)/dashboard/customers/actions";
 
@@ -35,17 +35,12 @@ interface CustomerCreateDialogProps {
   onCreated: (customer: DashboardCustomer) => void;
 }
 
-interface QuickCustomerValues {
-  customerType: CustomerType;
-  email: string;
-  firstName: string;
-  lastName: string;
-  phone?: string;
-}
-
-const toFormValues = (prefill: CustomerQueryPrefill): QuickCustomerValues => ({
-  ...prefill,
+const toFormValues = (prefill: CustomerQueryPrefill): CustomerInput => ({
   customerType: "individual",
+  email: prefill.email ?? "",
+  firstName: prefill.firstName ?? "",
+  lastName: prefill.lastName ?? "",
+  phone: prefill.phone ?? "",
 });
 
 export const CustomerCreateDialog = ({
@@ -62,25 +57,32 @@ export const CustomerCreateDialog = ({
   const customerSchema = useMemo(() => createCustomerSchema(tValidation), [tValidation]);
 
   const createCustomerMutation = useMutation({
-    mutationFn: async (values: QuickCustomerValues) => {
-      const customer = {
-        email: values.email.trim().toLowerCase(),
-        firstName: values.firstName.trim(),
-        lastName: values.lastName.trim(),
-        phone: values.phone?.trim() || null,
-      };
+    mutationFn: async (values: CustomerInput) => {
+      const email = values.email?.trim().toLowerCase() || null;
+      const firstName = values.firstName?.trim() || null;
+      const lastName = values.lastName?.trim() || null;
+      const phone = values.phone?.trim() || null;
 
       const result = await createCustomer({
-        ...customer,
+        ...values,
+        email: email ?? undefined,
+        firstName: firstName ?? undefined,
+        lastName: lastName ?? undefined,
+        phone: phone ?? undefined,
         customerType: values.customerType,
-        phone: customer.phone ?? undefined,
       });
 
       if (result.error || !result.customerId) {
         throw new Error(result.error ?? "errors.createCustomerError");
       }
 
-      return { id: result.customerId, ...customer } satisfies DashboardCustomer;
+      return {
+        id: result.customerId,
+        email,
+        firstName,
+        lastName,
+        phone,
+      } satisfies DashboardCustomer;
     },
   });
 

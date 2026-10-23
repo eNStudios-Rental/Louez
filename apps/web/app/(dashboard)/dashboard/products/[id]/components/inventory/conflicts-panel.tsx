@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from "react";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-import { AlertTriangle, CheckCircle2, ExternalLink } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { AlertTriangle, CheckCircle2, ExternalLink } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   AlertDialog,
@@ -23,21 +23,21 @@ import {
   SelectTrigger,
   SelectValue,
   toastManager,
-} from '@louez/ui';
+} from "@louez/ui";
 
-import { formatDateRange } from '@/lib/utils';
-import { useFormatLocale } from '@/hooks/use-format-locale';
+import { formatDateRange } from "@/lib/utils";
+import { useFormatLocale } from "@/hooks/use-format-locale";
 
-import { reassignReservationItemUnit } from '../../actions';
-import type { InventoryConflict } from './unit-types';
-import { getTranslatedActionError } from './util.inventory-format';
+import { reassignReservationItemUnit } from "../../actions";
+import type { InventoryConflict } from "./unit-types";
+import { getTranslatedActionError } from "./util.inventory-format";
 
 interface ConflictsPanelProps {
   conflicts: InventoryConflict[];
   fromUnitId: string;
 }
 
-type ResolutionState = 'left' | 'reassigned';
+type ResolutionState = "left" | "reassigned";
 
 type BufferOverrideRequest = {
   conflict: InventoryConflict;
@@ -45,44 +45,31 @@ type BufferOverrideRequest = {
   failedUnitIds: string[];
 };
 
-export const ConflictsPanel = ({
-  conflicts,
-  fromUnitId,
-}: ConflictsPanelProps) => {
-  const t = useTranslations('dashboard.inventory.conflicts');
+export const ConflictsPanel = ({ conflicts, fromUnitId }: ConflictsPanelProps) => {
+  const t = useTranslations("dashboard.inventory.conflicts");
   const { intl: formatLocale } = useFormatLocale();
-  const tErrors = useTranslations('errors');
+  const tErrors = useTranslations("errors");
   const router = useRouter();
-  const [selectedCandidates, setSelectedCandidates] = useState<
-    Record<string, string>
-  >({});
-  const [resolutionByItemId, setResolutionByItemId] = useState<
-    Record<string, ResolutionState>
-  >({});
+  const [selectedCandidates, setSelectedCandidates] = useState<Record<string, string>>({});
+  const [resolutionByItemId, setResolutionByItemId] = useState<Record<string, ResolutionState>>({});
   const [pendingItemId, setPendingItemId] = useState<string | null>(null);
-  const [bufferOverrideRequest, setBufferOverrideRequest] =
-    useState<BufferOverrideRequest | null>(null);
+  const [bufferOverrideRequest, setBufferOverrideRequest] = useState<BufferOverrideRequest | null>(
+    null,
+  );
 
   const unresolvedCount = useMemo(
-    () =>
-      conflicts.filter(
-        (conflict) => !resolutionByItemId[conflict.reservationItemId],
-      ).length,
+    () => conflicts.filter((conflict) => !resolutionByItemId[conflict.reservationItemId]).length,
     [conflicts, resolutionByItemId],
   );
 
-  const getCandidateIdentifiers = (
-    conflict: InventoryConflict,
-    unitIds: string[],
-  ) => {
+  const getCandidateIdentifiers = (conflict: InventoryConflict, unitIds: string[]) => {
     return unitIds
       .map(
         (unitId) =>
-          conflict.replacementCandidates.find(
-            (candidate) => candidate.id === unitId,
-          )?.identifier ?? unitId,
+          conflict.replacementCandidates.find((candidate) => candidate.id === unitId)?.identifier ??
+          unitId,
       )
-      .join(', ');
+      .join(", ");
   };
 
   const handleReassign = async (
@@ -107,7 +94,7 @@ export const ConflictsPanel = ({
         overrideTurnoverBuffer: options?.overrideTurnoverBuffer,
       });
 
-      if ('error' in result && result.error) {
+      if ("error" in result && result.error) {
         if (result.bufferConflict && result.failedUnitIds) {
           setBufferOverrideRequest({
             conflict,
@@ -120,26 +107,23 @@ export const ConflictsPanel = ({
         toastManager.add({
           title:
             result.failedUnitIds && result.failedUnitIds.length > 0
-              ? t('invalidUnitsToast', {
-                  identifiers: getCandidateIdentifiers(
-                    conflict,
-                    result.failedUnitIds,
-                  ),
+              ? t("invalidUnitsToast", {
+                  identifiers: getCandidateIdentifiers(conflict, result.failedUnitIds),
                 })
               : getTranslatedActionError(result.error, tErrors),
-          type: 'error',
+          type: "error",
         });
         return;
       }
 
       setResolutionByItemId((current) => ({
         ...current,
-        [conflict.reservationItemId]: 'reassigned',
+        [conflict.reservationItemId]: "reassigned",
       }));
-      toastManager.add({ title: t('reassignedToast'), type: 'success' });
+      toastManager.add({ title: t("reassignedToast"), type: "success" });
       router.refresh();
     } catch {
-      toastManager.add({ title: tErrors('generic'), type: 'error' });
+      toastManager.add({ title: tErrors("generic"), type: "error" });
     } finally {
       setPendingItemId(null);
     }
@@ -148,7 +132,7 @@ export const ConflictsPanel = ({
   const handleLeaveAsIs = (conflict: InventoryConflict) => {
     setResolutionByItemId((current) => ({
       ...current,
-      [conflict.reservationItemId]: 'left',
+      [conflict.reservationItemId]: "left",
     }));
   };
 
@@ -161,9 +145,9 @@ export const ConflictsPanel = ({
       <div className="flex gap-2">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
         <div className="space-y-1">
-          <h4 className="text-sm font-medium">{t('title')}</h4>
+          <h4 className="text-sm font-medium">{t("title")}</h4>
           <p className="text-muted-foreground text-sm">
-            {t('description', { count: unresolvedCount })}
+            {t("description", { count: unresolvedCount })}
           </p>
         </div>
       </div>
@@ -174,14 +158,11 @@ export const ConflictsPanel = ({
           const selectedCandidateId =
             selectedCandidates[conflict.reservationItemId] ??
             conflict.replacementCandidates[0]?.id ??
-            '';
+            "";
           const isPending = pendingItemId === conflict.reservationItemId;
 
           return (
-            <div
-              key={conflict.reservationItemId}
-              className="bg-background rounded-md border p-3"
-            >
+            <div key={conflict.reservationItemId} className="bg-background rounded-md border p-3">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -189,7 +170,7 @@ export const ConflictsPanel = ({
                       href={`/dashboard/reservations/${conflict.reservationId}`}
                       className="font-medium hover:underline"
                     >
-                      {t('reservation', {
+                      {t("reservation", {
                         number: conflict.reservationNumber,
                       })}
                     </Link>
@@ -199,16 +180,14 @@ export const ConflictsPanel = ({
                     {formatDateRange(conflict.startDate, conflict.endDate, formatLocale)}
                   </p>
                   <p className="text-muted-foreground text-sm">
-                    {conflict.customerName ?? t('unknownCustomer')}
+                    {conflict.customerName ?? t("unknownCustomer")}
                   </p>
                 </div>
 
                 {resolution ? (
                   <div className="text-muted-foreground flex items-center gap-1 text-sm">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    {resolution === 'reassigned'
-                      ? t('reassigned')
-                      : t('leftAsIs')}
+                    {resolution === "reassigned" ? t("reassigned") : t("leftAsIs")}
                   </div>
                 ) : null}
               </div>
@@ -229,10 +208,10 @@ export const ConflictsPanel = ({
                       className="sm:w-[220px]"
                       disabled={conflict.replacementCandidates.length === 0}
                     >
-                      <SelectValue placeholder={t('replacementUnit')}>
+                      <SelectValue placeholder={t("replacementUnit")}>
                         {conflict.replacementCandidates.find(
                           (candidate) => candidate.id === selectedCandidateId,
-                        )?.identifier ?? t('noCandidates')}
+                        )?.identifier ?? t("noCandidates")}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -253,7 +232,7 @@ export const ConflictsPanel = ({
                     isPending={isPending}
                     disabled={conflict.replacementCandidates.length === 0}
                   >
-                    {t('reassign')}
+                    {t("reassign")}
                   </Button>
                   <Button
                     type="button"
@@ -261,7 +240,7 @@ export const ConflictsPanel = ({
                     onClick={() => handleLeaveAsIs(conflict)}
                     disabled={isPending}
                   >
-                    {t('leaveAsIs')}
+                    {t("leaveAsIs")}
                   </Button>
                 </div>
               ) : null}
@@ -279,21 +258,21 @@ export const ConflictsPanel = ({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('bufferConflictTitle')}</AlertDialogTitle>
+            <AlertDialogTitle>{t("bufferConflictTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('bufferConflictDescription', {
+              {t("bufferConflictDescription", {
                 identifiers: bufferOverrideRequest
                   ? getCandidateIdentifiers(
                       bufferOverrideRequest.conflict,
                       bufferOverrideRequest.failedUnitIds,
                     )
-                  : '',
+                  : "",
               })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogClose render={<Button variant="outline" />}>
-              {t('bufferConflictCancel')}
+              {t("bufferConflictCancel")}
             </AlertDialogClose>
             <AlertDialogClose
               render={<Button />}
@@ -309,7 +288,7 @@ export const ConflictsPanel = ({
                 });
               }}
             >
-              {t('bufferConflictConfirm')}
+              {t("bufferConflictConfirm")}
             </AlertDialogClose>
           </AlertDialogFooter>
         </AlertDialogContent>

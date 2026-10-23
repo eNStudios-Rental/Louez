@@ -1,33 +1,27 @@
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { and, desc, eq, sql } from 'drizzle-orm';
-import { z } from 'zod';
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { and, desc, eq, sql } from "drizzle-orm";
+import { z } from "zod";
 
-import { customers, db, reservations } from '@louez/db';
+import { customers, db, reservations } from "@louez/db";
 
-import type { McpSessionContext } from '../auth/context';
-import { requirePermission } from '../auth/context';
-import { toolError, toolResult } from '../utils/errors';
-import { formatCurrency, formatDate, formatStatus } from '../utils/formatting';
-import { paginationParams } from '../utils/pagination';
+import type { McpSessionContext } from "../auth/context";
+import { requirePermission } from "../auth/context";
+import { toolError, toolResult } from "../utils/errors";
+import { formatCurrency, formatDate, formatStatus } from "../utils/formatting";
+import { paginationParams } from "../utils/pagination";
 
-export function registerCustomerTools(
-  server: McpServer,
-  ctx: McpSessionContext,
-) {
+export function registerCustomerTools(server: McpServer, ctx: McpSessionContext) {
   server.tool(
-    'list_customers',
-    'List customers with optional search and filters',
+    "list_customers",
+    "List customers with optional search and filters",
     {
-      search: z.string().optional().describe('Search by name or email'),
-      type: z
-        .enum(['individual', 'business'])
-        .optional()
-        .describe('Filter by customer type'),
+      search: z.string().optional().describe("Search by name or email"),
+      type: z.enum(["individual", "business"]).optional().describe("Filter by customer type"),
       page: z.number().optional(),
       pageSize: z.number().optional(),
     },
     async ({ search, type, page, pageSize }) => {
-      requirePermission(ctx, 'customers', 'read');
+      requirePermission(ctx, "customers", "read");
       const { limit, offset } = paginationParams({ page, pageSize });
 
       const conditions = [eq(customers.storeId, ctx.storeId)];
@@ -60,30 +54,27 @@ export function registerCustomerTools(
       const lines = rows.map(
         (c) =>
           `- **${c.firstName} ${c.lastName}** (${c.id})\n` +
-          `  ${c.email}${c.phone ? ` | ${c.phone}` : ''} | ${c.customerType}\n` +
+          `  ${c.email}${c.phone ? ` | ${c.phone}` : ""} | ${c.customerType}\n` +
           `  Registered: ${formatDate(c.createdAt)}`,
       );
 
       return toolResult(
-        `## Customers (${total} result${total !== 1 ? 's' : ''})\n\n${lines.join('\n\n') || 'No customers found.'}`,
+        `## Customers (${total} result${total !== 1 ? "s" : ""})\n\n${lines.join("\n\n") || "No customers found."}`,
       );
     },
   );
 
   server.tool(
-    'get_customer',
-    'Get detailed customer profile with reservation history',
+    "get_customer",
+    "Get detailed customer profile with reservation history",
     {
-      customerId: z.string().describe('The customer ID'),
+      customerId: z.string().describe("The customer ID"),
     },
     async ({ customerId }) => {
-      requirePermission(ctx, 'customers', 'read');
+      requirePermission(ctx, "customers", "read");
 
       const customer = await db.query.customers.findFirst({
-        where: and(
-          eq(customers.storeId, ctx.storeId),
-          eq(customers.id, customerId),
-        ),
+        where: and(eq(customers.storeId, ctx.storeId), eq(customers.id, customerId)),
         with: {
           reservations: {
             orderBy: [desc(reservations.createdAt)],
@@ -92,20 +83,18 @@ export function registerCustomerTools(
         },
       });
 
-      if (!customer) return toolError('Customer not found.');
+      if (!customer) return toolError("Customer not found.");
 
       let text =
         `## ${customer.firstName} ${customer.lastName}\n\n` +
         `- **ID**: ${customer.id}\n` +
         `- **Type**: ${customer.customerType}\n` +
         `- **Email**: ${customer.email}\n` +
-        (customer.phone ? `- **Phone**: ${customer.phone}\n` : '') +
-        (customer.companyName
-          ? `- **Company**: ${customer.companyName}\n`
-          : '') +
+        (customer.phone ? `- **Phone**: ${customer.phone}\n` : "") +
+        (customer.companyName ? `- **Company**: ${customer.companyName}\n` : "") +
         (customer.address
           ? `- **Address**: ${customer.address}, ${customer.city} ${customer.postalCode}\n`
-          : '') +
+          : "") +
         `- **Registered**: ${formatDate(customer.createdAt)}\n`;
 
       if (customer.notes) {
@@ -124,24 +113,18 @@ export function registerCustomerTools(
   );
 
   server.tool(
-    'create_customer',
-    'Create a new customer',
+    "create_customer",
+    "Create a new customer",
     {
-      email: z.email().describe('Customer email'),
-      firstName: z.string().min(1).describe('First name'),
-      lastName: z.string().min(1).describe('Last name'),
-      phone: z.string().optional().describe('Phone number'),
-      customerType: z
-        .enum(['individual', 'business'])
-        .optional()
-        .describe('Customer type'),
-      companyName: z
-        .string()
-        .optional()
-        .describe('Company name (for business customers)'),
-      address: z.string().optional().describe('Street address'),
-      city: z.string().optional().describe('City'),
-      postalCode: z.string().optional().describe('Postal code'),
+      email: z.email().describe("Customer email"),
+      firstName: z.string().min(1).describe("First name"),
+      lastName: z.string().min(1).describe("Last name"),
+      phone: z.string().optional().describe("Phone number"),
+      customerType: z.enum(["individual", "business"]).optional().describe("Customer type"),
+      companyName: z.string().optional().describe("Company name (for business customers)"),
+      address: z.string().optional().describe("Street address"),
+      city: z.string().optional().describe("City"),
+      postalCode: z.string().optional().describe("Postal code"),
     },
     async ({
       email,
@@ -154,19 +137,14 @@ export function registerCustomerTools(
       city,
       postalCode,
     }) => {
-      requirePermission(ctx, 'customers', 'write');
+      requirePermission(ctx, "customers", "write");
 
       const existingEmail = await db.query.customers.findFirst({
-        where: and(
-          eq(customers.storeId, ctx.storeId),
-          eq(customers.email, email),
-        ),
+        where: and(eq(customers.storeId, ctx.storeId), eq(customers.email, email)),
         columns: { id: true },
       });
       if (existingEmail) {
-        return toolError(
-          'A customer with this email already exists in this store.',
-        );
+        return toolError("A customer with this email already exists in this store.");
       }
 
       const [created] = await db
@@ -177,7 +155,7 @@ export function registerCustomerTools(
           firstName,
           lastName,
           phone: phone ?? null,
-          customerType: customerType ?? 'individual',
+          customerType: customerType ?? "individual",
           companyName: companyName ?? null,
           address: address ?? null,
           city: city ?? null,
@@ -195,10 +173,10 @@ export function registerCustomerTools(
   );
 
   server.tool(
-    'update_customer',
-    'Update an existing customer',
+    "update_customer",
+    "Update an existing customer",
     {
-      customerId: z.string().describe('The customer ID'),
+      customerId: z.string().describe("The customer ID"),
       firstName: z.string().optional(),
       lastName: z.string().optional(),
       email: z.email().optional(),
@@ -209,29 +187,21 @@ export function registerCustomerTools(
       notes: z.string().optional(),
     },
     async ({ customerId, ...updates }) => {
-      requirePermission(ctx, 'customers', 'write');
+      requirePermission(ctx, "customers", "write");
 
       const existing = await db.query.customers.findFirst({
-        where: and(
-          eq(customers.storeId, ctx.storeId),
-          eq(customers.id, customerId),
-        ),
+        where: and(eq(customers.storeId, ctx.storeId), eq(customers.id, customerId)),
         columns: { id: true, email: true },
       });
-      if (!existing) return toolError('Customer not found.');
+      if (!existing) return toolError("Customer not found.");
 
       if (updates.email && updates.email !== existing.email) {
         const emailTaken = await db.query.customers.findFirst({
-          where: and(
-            eq(customers.storeId, ctx.storeId),
-            eq(customers.email, updates.email),
-          ),
+          where: and(eq(customers.storeId, ctx.storeId), eq(customers.email, updates.email)),
           columns: { id: true },
         });
         if (emailTaken) {
-          return toolError(
-            'A customer with this email already exists in this store.',
-          );
+          return toolError("A customer with this email already exists in this store.");
         }
       }
 
@@ -241,13 +211,10 @@ export function registerCustomerTools(
       }
 
       if (Object.keys(updateData).length === 0) {
-        return toolError('No fields to update.');
+        return toolError("No fields to update.");
       }
 
-      await db
-        .update(customers)
-        .set(updateData)
-        .where(eq(customers.id, customerId));
+      await db.update(customers).set(updateData).where(eq(customers.id, customerId));
 
       return toolResult(`Customer ${customerId} updated successfully.`);
     },

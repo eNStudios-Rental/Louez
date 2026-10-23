@@ -163,9 +163,7 @@ export const ProductCard = ({
           )}
         </h3>
         {product.priceNegotiable ? (
-          <span className="text-sm font-medium text-muted-foreground">
-            {t("priceNegotiable")}
-          </span>
+          <span className="text-sm font-medium text-muted-foreground">{t("priceNegotiable")}</span>
         ) : (
           <Price
             amount={pricing.amount}
@@ -194,7 +192,11 @@ export const ProductCard = ({
   );
 
   return (
-    <article className={cn("group relative", className)} data-slot="product-card" data-product-id={product.id}>
+    <article
+      className={cn("group relative", className)}
+      data-slot="product-card"
+      data-product-id={product.id}
+    >
       {href !== undefined ? (
         <div className={shellClassName}>{content}</div>
       ) : (

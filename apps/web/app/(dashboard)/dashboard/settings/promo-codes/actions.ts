@@ -1,35 +1,32 @@
-'use server'
+"use server";
 
-import { revalidatePath } from 'next/cache'
-import { and, eq, sql } from 'drizzle-orm'
+import { revalidatePath } from "next/cache";
+import { and, eq, sql } from "drizzle-orm";
 
-import { db } from '@louez/db'
-import { promoCodes } from '@louez/db'
-import { promoCodeServerSchema } from '@louez/validations'
-import { getCurrentStore, hasPermission } from '@/lib/store-context'
+import { db } from "@louez/db";
+import { promoCodes } from "@louez/db";
+import { promoCodeServerSchema } from "@louez/validations";
+import { getCurrentStore, hasPermission } from "@/lib/store-context";
 
 export async function createPromoCode(data: unknown) {
-  const store = await getCurrentStore()
-  if (!store) return { error: 'errors.unauthorized' }
+  const store = await getCurrentStore();
+  if (!store) return { error: "errors.unauthorized" };
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    return { error: 'errors.permissionDenied' }
+  if (!hasPermission(store.role, "manage_settings")) {
+    return { error: "errors.permissionDenied" };
   }
 
-  const validated = promoCodeServerSchema.safeParse(data)
-  if (!validated.success) return { error: 'errors.invalidData' }
+  const validated = promoCodeServerSchema.safeParse(data);
+  if (!validated.success) return { error: "errors.invalidData" };
 
-  const code = validated.data.code.toUpperCase()
+  const code = validated.data.code.toUpperCase();
 
   // Check for duplicate
   const existing = await db.query.promoCodes.findFirst({
-    where: and(
-      eq(promoCodes.storeId, store.id),
-      sql`UPPER(${promoCodes.code}) = ${code}`
-    ),
-  })
+    where: and(eq(promoCodes.storeId, store.id), sql`UPPER(${promoCodes.code}) = ${code}`),
+  });
 
-  if (existing) return { error: 'errors.promoCodeDuplicate' }
+  if (existing) return { error: "errors.promoCodeDuplicate" };
 
   await db.insert(promoCodes).values({
     storeId: store.id,
@@ -42,35 +39,35 @@ export async function createPromoCode(data: unknown) {
     startsAt: validated.data.startsAt,
     expiresAt: validated.data.expiresAt,
     isActive: validated.data.isActive,
-  })
+  });
 
-  revalidatePath('/dashboard/settings/promo-codes')
-  return { success: true }
+  revalidatePath("/dashboard/settings/promo-codes");
+  return { success: true };
 }
 
 export async function updatePromoCode(id: string, data: unknown) {
-  const store = await getCurrentStore()
-  if (!store) return { error: 'errors.unauthorized' }
+  const store = await getCurrentStore();
+  if (!store) return { error: "errors.unauthorized" };
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    return { error: 'errors.permissionDenied' }
+  if (!hasPermission(store.role, "manage_settings")) {
+    return { error: "errors.permissionDenied" };
   }
 
-  const validated = promoCodeServerSchema.safeParse(data)
-  if (!validated.success) return { error: 'errors.invalidData' }
+  const validated = promoCodeServerSchema.safeParse(data);
+  if (!validated.success) return { error: "errors.invalidData" };
 
-  const code = validated.data.code.toUpperCase()
+  const code = validated.data.code.toUpperCase();
 
   // Check for duplicate (excluding this code)
   const existing = await db.query.promoCodes.findFirst({
     where: and(
       eq(promoCodes.storeId, store.id),
       sql`UPPER(${promoCodes.code}) = ${code}`,
-      sql`${promoCodes.id} != ${id}`
+      sql`${promoCodes.id} != ${id}`,
     ),
-  })
+  });
 
-  if (existing) return { error: 'errors.promoCodeDuplicate' }
+  if (existing) return { error: "errors.promoCodeDuplicate" };
 
   await db
     .update(promoCodes)
@@ -86,25 +83,25 @@ export async function updatePromoCode(id: string, data: unknown) {
       isActive: validated.data.isActive,
       updatedAt: new Date(),
     })
-    .where(and(eq(promoCodes.id, id), eq(promoCodes.storeId, store.id)))
+    .where(and(eq(promoCodes.id, id), eq(promoCodes.storeId, store.id)));
 
-  revalidatePath('/dashboard/settings/promo-codes')
-  return { success: true }
+  revalidatePath("/dashboard/settings/promo-codes");
+  return { success: true };
 }
 
 export async function togglePromoCode(id: string) {
-  const store = await getCurrentStore()
-  if (!store) return { error: 'errors.unauthorized' }
+  const store = await getCurrentStore();
+  if (!store) return { error: "errors.unauthorized" };
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    return { error: 'errors.permissionDenied' }
+  if (!hasPermission(store.role, "manage_settings")) {
+    return { error: "errors.permissionDenied" };
   }
 
   const promoCode = await db.query.promoCodes.findFirst({
     where: and(eq(promoCodes.id, id), eq(promoCodes.storeId, store.id)),
-  })
+  });
 
-  if (!promoCode) return { error: 'errors.notFound' }
+  if (!promoCode) return { error: "errors.notFound" };
 
   await db
     .update(promoCodes)
@@ -112,24 +109,22 @@ export async function togglePromoCode(id: string) {
       isActive: !promoCode.isActive,
       updatedAt: new Date(),
     })
-    .where(eq(promoCodes.id, id))
+    .where(eq(promoCodes.id, id));
 
-  revalidatePath('/dashboard/settings/promo-codes')
-  return { success: true }
+  revalidatePath("/dashboard/settings/promo-codes");
+  return { success: true };
 }
 
 export async function deletePromoCode(id: string) {
-  const store = await getCurrentStore()
-  if (!store) return { error: 'errors.unauthorized' }
+  const store = await getCurrentStore();
+  if (!store) return { error: "errors.unauthorized" };
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    return { error: 'errors.permissionDenied' }
+  if (!hasPermission(store.role, "manage_settings")) {
+    return { error: "errors.permissionDenied" };
   }
 
-  await db
-    .delete(promoCodes)
-    .where(and(eq(promoCodes.id, id), eq(promoCodes.storeId, store.id)))
+  await db.delete(promoCodes).where(and(eq(promoCodes.id, id), eq(promoCodes.storeId, store.id)));
 
-  revalidatePath('/dashboard/settings/promo-codes')
-  return { success: true }
+  revalidatePath("/dashboard/settings/promo-codes");
+  return { success: true };
 }

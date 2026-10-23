@@ -268,13 +268,15 @@ export async function acceptQuote(storeSlug: string, reservationId: string) {
   }));
 
   try {
-    const contractUrl = await createReservationInstantAccessUrl({
-      storeId: store.id,
-      storeSlug,
-      customerEmail: reservation.customer.email,
-      reservationId,
-      redirectPath: `/account/reservations/${reservationId}/contract`,
-    });
+    const contractUrl = reservation.customer.email
+      ? await createReservationInstantAccessUrl({
+          storeId: store.id,
+          storeSlug,
+          customerEmail: reservation.customer.email,
+          reservationId,
+          redirectPath: `/account/reservations/${reservationId}/contract`,
+        })
+      : reservationUrl;
     const termsUrl = store.cgv?.trim() ? getStorefrontUrl(storeSlug, "/terms") : null;
 
     dispatchCustomerNotification("customer_quote_accepted", {
@@ -618,7 +620,7 @@ export async function createDepositAuthorizationLink(
   const now = new Date();
   await db.insert(verificationCodes).values({
     id: nanoid(),
-    email: session.customer.email,
+    email: session.customer.email ?? "",
     storeId: store.id,
     code: "",
     type: "instant_access",

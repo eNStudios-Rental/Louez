@@ -1,5 +1,5 @@
 /** How a Reservation payment reached the Store. Only an online (Stripe) payment can qualify a referral. */
-export type QualifyingPaymentChannel = 'online' | 'manual';
+export type QualifyingPaymentChannel = "online" | "manual";
 
 export interface QualificationInput {
   /** The amount actually paid online, in cents (e.g. Stripe `amount_total`). */
@@ -16,7 +16,7 @@ export interface QualificationInput {
  * the configured minimum. Pure.
  */
 export function qualifiesForReferralReward(input: QualificationInput): boolean {
-  if (input.channel !== 'online') return false;
+  if (input.channel !== "online") return false;
   if (!Number.isFinite(input.amountCents) || input.amountCents <= 0) return false;
   const min = Math.max(0, input.minQualifyingAmountCents);
   return input.amountCents >= min;

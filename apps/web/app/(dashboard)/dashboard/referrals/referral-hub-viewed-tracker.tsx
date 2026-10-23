@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
-import { usePostHog } from 'posthog-js/react';
+import { usePostHog } from "posthog-js/react";
 
 import {
   referralAnalyticsBaseProperties,
   referralAnalyticsEvents,
-} from '@/lib/referral/analytics-events';
+} from "@/lib/referral/analytics-events";
 
 interface ReferralHubViewedTrackerProps {
   storeId: string;
@@ -16,7 +16,7 @@ interface ReferralHubViewedTrackerProps {
   freeReservationsEarned: number;
   rewardValueCents: number;
   freeReservationsRemaining: number;
-  rewardKind: 'free_reservations' | 'invoice_credit';
+  rewardKind: "free_reservations" | "invoice_credit";
   referrerReward: number;
   referredReward: number;
   minQualifyingAmountCents: number;
@@ -45,7 +45,7 @@ export const ReferralHubViewedTracker = ({
     hasTracked.current = true;
     posthog.capture(referralAnalyticsEvents.hubViewed, {
       ...referralAnalyticsBaseProperties,
-      placement: 'dashboard_referrals',
+      placement: "dashboard_referrals",
       referrer_store_id: storeId,
       total_referrals: totalReferrals,
       qualified_referrals: qualifiedReferrals,

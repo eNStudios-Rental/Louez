@@ -13,7 +13,12 @@ interface RevenueHeroProps {
   currency?: string;
 }
 
-export const RevenueHero = ({ stats, window, formatLocale, currency = "PLN" }: RevenueHeroProps) => {
+export const RevenueHero = ({
+  stats,
+  window,
+  formatLocale,
+  currency = "PLN",
+}: RevenueHeroProps) => {
   const t = useTranslations("dashboard.statistics");
   const periodDateFormat = new Intl.DateTimeFormat(formatLocale, {
     dateStyle: "medium",

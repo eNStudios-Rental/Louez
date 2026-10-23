@@ -8,30 +8,30 @@
  * - Pay as you go: 0.07€ per SMS (no included allowance — every SMS is bought)
  */
 
-import { stripe } from './client'
-import { db } from '@louez/db'
-import { stores, smsTopupTransactions } from '@louez/db'
-import { eq } from 'drizzle-orm'
-import { nanoid } from 'nanoid'
-import { SMS_TOPUP_PRICING } from '@/lib/plans'
-import type { SmsTopupPackage } from '@/lib/sms/sms-topup.constants'
-import { getStorePlan } from '@/lib/plan-limits'
-import { getOrCreateStripeCustomer } from './subscriptions'
+import { stripe } from "./client";
+import { db } from "@louez/db";
+import { stores, smsTopupTransactions } from "@louez/db";
+import { eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
+import { SMS_TOPUP_PRICING } from "@/lib/plans";
+import type { SmsTopupPackage } from "@/lib/sms/sms-topup.constants";
+import { getStorePlan } from "@/lib/plan-limits";
+import { getOrCreateStripeCustomer } from "./subscriptions";
 
 export interface CreateSmsTopupCheckoutOptions {
-  storeId: string
-  quantity: SmsTopupPackage
-  successUrl: string
-  cancelUrl: string
+  storeId: string;
+  quantity: SmsTopupPackage;
+  successUrl: string;
+  cancelUrl: string;
   translations: {
-    productName: string
-    productDescription: string
-  }
+    productName: string;
+    productDescription: string;
+  };
 }
 
 export interface SmsTopupCheckoutResult {
-  sessionId: string
-  url: string | null
+  sessionId: string;
+  url: string | null;
 }
 
 /**
@@ -39,18 +39,18 @@ export interface SmsTopupCheckoutResult {
  * Returns canTopup=false / null price for any plan slug not in SMS_TOPUP_PRICING.
  */
 export async function getSmsTopupPrice(storeId: string): Promise<{
-  canTopup: boolean
-  priceCents: number | null
-  planSlug: string
+  canTopup: boolean;
+  priceCents: number | null;
+  planSlug: string;
 }> {
-  const plan = await getStorePlan(storeId)
-  const priceCents = SMS_TOPUP_PRICING[plan.slug] ?? null
+  const plan = await getStorePlan(storeId);
+  const priceCents = SMS_TOPUP_PRICING[plan.slug] ?? null;
 
   return {
     canTopup: priceCents !== null,
     priceCents,
     planSlug: plan.slug,
-  }
+  };
 }
 
 /**
@@ -66,57 +66,56 @@ export async function createSmsTopupCheckoutSession({
   // Validate store exists
   const store = await db.query.stores.findFirst({
     where: eq(stores.id, storeId),
-  })
+  });
 
   if (!store) {
-    throw new Error('Store not found')
+    throw new Error("Store not found");
   }
 
   // Check if store can top-up based on plan
-  const { canTopup, priceCents, planSlug } = await getSmsTopupPrice(storeId)
+  const { canTopup, priceCents, planSlug } = await getSmsTopupPrice(storeId);
 
   if (!canTopup || priceCents === null) {
-    throw new Error('SMS top-up not available for your plan')
+    throw new Error("SMS top-up not available for your plan");
   }
 
   // Calculate total
-  const totalAmountCents = quantity * priceCents
+  const totalAmountCents = quantity * priceCents;
 
   // Get or create Stripe customer (persisted to DB to avoid duplicates on abandoned checkouts)
-  const stripeCustomerId = await getOrCreateStripeCustomer(storeId)
+  const stripeCustomerId = await getOrCreateStripeCustomer(storeId);
 
   // Create pending transaction record
-  const transactionId = nanoid()
+  const transactionId = nanoid();
   await db.insert(smsTopupTransactions).values({
     id: transactionId,
     storeId,
     quantity,
     unitPriceCents: priceCents,
     totalAmountCents,
-    currency: 'eur',
-    status: 'pending',
-  })
+    currency: "eur",
+    status: "pending",
+  });
 
   // Format price for display
-  const unitPriceEuros = (priceCents / 100).toFixed(2).replace('.', ',')
-  const planName = planSlug.charAt(0).toUpperCase() + planSlug.slice(1)
+  const unitPriceEuros = (priceCents / 100).toFixed(2).replace(".", ",");
+  const planName = planSlug.charAt(0).toUpperCase() + planSlug.slice(1);
 
   // Create the checkout session with translated product info
   const session = await stripe.checkout.sessions.create({
     customer: stripeCustomerId,
-    mode: 'payment',
-    payment_method_types: ['card'],
+    mode: "payment",
+    payment_method_types: ["card"],
     line_items: [
       {
         price_data: {
-          currency: 'eur',
+          currency: "eur",
           product_data: {
-            name: translations.productName
-              .replace('{quantity}', quantity.toString()),
+            name: translations.productName.replace("{quantity}", quantity.toString()),
             description: translations.productDescription
-              .replace('{quantity}', quantity.toString())
-              .replace('{price}', unitPriceEuros)
-              .replace('{plan}', planName),
+              .replace("{quantity}", quantity.toString())
+              .replace("{price}", unitPriceEuros)
+              .replace("{plan}", planName),
           },
           unit_amount: priceCents,
         },
@@ -124,7 +123,7 @@ export async function createSmsTopupCheckoutSession({
       },
     ],
     metadata: {
-      type: 'sms_topup',
+      type: "sms_topup",
       storeId,
       transactionId,
       quantity: quantity.toString(),
@@ -134,21 +133,21 @@ export async function createSmsTopupCheckoutSession({
     cancel_url: cancelUrl,
     // Allow updating existing customer's info during checkout
     customer_update: {
-      name: 'auto',
-      address: 'auto',
+      name: "auto",
+      address: "auto",
     },
-  })
+  });
 
   // Update transaction with Stripe session ID
   await db
     .update(smsTopupTransactions)
     .set({ stripeSessionId: session.id })
-    .where(eq(smsTopupTransactions.id, transactionId))
+    .where(eq(smsTopupTransactions.id, transactionId));
 
   return {
     sessionId: session.id,
     url: session.url,
-  }
+  };
 }
 
 /**
@@ -157,5 +156,5 @@ export async function createSmsTopupCheckoutSession({
 export async function getTopupTransactionBySessionId(sessionId: string) {
   return db.query.smsTopupTransactions.findFirst({
     where: eq(smsTopupTransactions.stripeSessionId, sessionId),
-  })
+  });
 }

@@ -1,12 +1,12 @@
-'use server'
+"use server";
 
-import { db } from '@louez/db'
-import { stores } from '@louez/db'
-import { users } from '@louez/db'
-import { isStripeConfigured } from '@/lib/plans'
-import { getCurrentStore, hasPermission } from '@/lib/store-context'
-import { eq } from 'drizzle-orm'
-import { revalidatePath } from 'next/cache'
+import { db } from "@louez/db";
+import { stores } from "@louez/db";
+import { users } from "@louez/db";
+import { isStripeConfigured } from "@/lib/plans";
+import { getCurrentStore, hasPermission } from "@/lib/store-context";
+import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import {
   RENTAL_MCC,
   createConnectAccount,
@@ -14,9 +14,9 @@ import {
   createAccountLoginLink,
   getAccountStatus,
   toStatementDescriptor,
-} from '@/lib/stripe'
-import { getStorefrontUrl } from '@/lib/storefront-url'
-import { sanitizeStripeNextPath, stripeReturnUrls } from './stripe-return'
+} from "@/lib/stripe";
+import { getStorefrontUrl } from "@/lib/storefront-url";
+import { sanitizeStripeNextPath, stripeReturnUrls } from "./stripe-return";
 
 /**
  * Start Stripe Connect onboarding
@@ -24,42 +24,40 @@ import { sanitizeStripeNextPath, stripeReturnUrls } from './stripe-return'
  * `options.next` (allowlisted) sends the user there after the Stripe return
  * instead of the settings callback screen — used by the onboarding flow.
  */
-export async function startStripeOnboarding(options?: {
-  next?: string
-}): Promise<{
-  url?: string
-  error?: string
+export async function startStripeOnboarding(options?: { next?: string }): Promise<{
+  url?: string;
+  error?: string;
 }> {
   if (!isStripeConfigured()) {
-    return { error: 'errors.stripeNotConfigured' }
+    return { error: "errors.stripeNotConfigured" };
   }
 
-  const store = await getCurrentStore()
+  const store = await getCurrentStore();
 
   if (!store) {
-    return { error: 'errors.unauthorized' }
+    return { error: "errors.unauthorized" };
   }
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    return { error: 'errors.permissionDenied' }
+  if (!hasPermission(store.role, "manage_settings")) {
+    return { error: "errors.permissionDenied" };
   }
 
   try {
-    let accountId = store.stripeAccountId
-    const storeCountry = (store.settings?.country || 'FR').toUpperCase()
+    let accountId = store.stripeAccountId;
+    const storeCountry = (store.settings?.country || "FR").toUpperCase();
 
     // If already has an active account, return error
     if (accountId && store.stripeChargesEnabled) {
-      return { error: 'errors.stripe.alreadyConnected' }
+      return { error: "errors.stripe.alreadyConnected" };
     }
 
     // A Stripe account's country is immutable. If the store country changed
     // since a pending (not yet chargeable) account was created, abandon it
     // and start over — its KYC progress targets the wrong country anyway.
     if (accountId) {
-      const { country } = await getAccountStatus(accountId)
+      const { country } = await getAccountStatus(accountId);
       if (country && country.toUpperCase() !== storeCountry) {
-        accountId = null
+        accountId = null;
       }
     }
 
@@ -68,21 +66,19 @@ export async function startStripeOnboarding(options?: {
       const owner = await db.query.users.findFirst({
         where: eq(users.id, store.userId),
         columns: { email: true },
-      })
-      const accountEmail = (store.email || owner?.email || '').trim()
+      });
+      const accountEmail = (store.email || owner?.email || "").trim();
 
       if (!accountEmail) {
-        return { error: 'errors.email' }
+        return { error: "errors.email" };
       }
 
       // Prefill the KYC's business-details step with what we already know.
       // Stripe only accepts publicly reachable https URLs, so skip the
       // storefront URL on localhost dev environments.
-      const storefrontUrl = getStorefrontUrl(store.slug)
-      const httpsStorefrontUrl = storefrontUrl.startsWith('https://')
-        ? storefrontUrl
-        : undefined
-      const description = store.description?.trim()
+      const storefrontUrl = getStorefrontUrl(store.slug);
+      const httpsStorefrontUrl = storefrontUrl.startsWith("https://") ? storefrontUrl : undefined;
+      const description = store.description?.trim();
 
       const account = await createConnectAccount({
         email: accountEmail,
@@ -101,8 +97,8 @@ export async function startStripeOnboarding(options?: {
           storeId: store.id,
           storeName: store.name,
         },
-      })
-      accountId = account.id
+      });
+      accountId = account.id;
 
       // Save account ID
       await db
@@ -111,20 +107,18 @@ export async function startStripeOnboarding(options?: {
           stripeAccountId: accountId,
           updatedAt: new Date(),
         })
-        .where(eq(stores.id, store.id))
+        .where(eq(stores.id, store.id));
     }
 
     // Create onboarding link
-    const { returnUrl, refreshUrl } = stripeReturnUrls(
-      sanitizeStripeNextPath(options?.next)
-    )
-    const url = await createAccountLink(accountId, returnUrl, refreshUrl)
+    const { returnUrl, refreshUrl } = stripeReturnUrls(sanitizeStripeNextPath(options?.next));
+    const url = await createAccountLink(accountId, returnUrl, refreshUrl);
 
-    revalidatePath('/dashboard/settings/payments')
-    return { url }
+    revalidatePath("/dashboard/settings/payments");
+    return { url };
   } catch (error) {
-    console.error('Stripe onboarding error:', error)
-    return { error: 'errors.stripe.onboardingFailed' }
+    console.error("Stripe onboarding error:", error);
+    return { error: "errors.stripe.onboardingFailed" };
   }
 }
 
@@ -133,26 +127,26 @@ export async function startStripeOnboarding(options?: {
  * Syncs the account status
  */
 export async function completeStripeOnboarding(): Promise<{
-  success?: boolean
+  success?: boolean;
   status?: {
-    chargesEnabled: boolean
-    detailsSubmitted: boolean
-    requirementsCount: number
-  }
-  error?: string
+    chargesEnabled: boolean;
+    detailsSubmitted: boolean;
+    requirementsCount: number;
+  };
+  error?: string;
 }> {
-  const store = await getCurrentStore()
+  const store = await getCurrentStore();
 
   if (!store || !store.stripeAccountId) {
-    return { error: 'errors.unauthorized' }
+    return { error: "errors.unauthorized" };
   }
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    return { error: 'errors.permissionDenied' }
+  if (!hasPermission(store.role, "manage_settings")) {
+    return { error: "errors.permissionDenied" };
   }
 
   try {
-    const status = await getAccountStatus(store.stripeAccountId)
+    const status = await getAccountStatus(store.stripeAccountId);
 
     // Update store with latest status
     await db
@@ -162,10 +156,10 @@ export async function completeStripeOnboarding(): Promise<{
         stripeOnboardingComplete: status.chargesEnabled && status.detailsSubmitted,
         updatedAt: new Date(),
       })
-      .where(eq(stores.id, store.id))
+      .where(eq(stores.id, store.id));
 
-    revalidatePath('/dashboard/settings/payments')
-    revalidatePath('/dashboard/settings')
+    revalidatePath("/dashboard/settings/payments");
+    revalidatePath("/dashboard/settings");
 
     return {
       success: true,
@@ -174,10 +168,10 @@ export async function completeStripeOnboarding(): Promise<{
         detailsSubmitted: status.detailsSubmitted,
         requirementsCount: status.requirements.currentlyDue.length,
       },
-    }
+    };
   } catch (error) {
-    console.error('Stripe completion error:', error)
-    return { error: 'errors.stripe.verificationFailed' }
+    console.error("Stripe completion error:", error);
+    return { error: "errors.stripe.verificationFailed" };
   }
 }
 
@@ -185,22 +179,22 @@ export async function completeStripeOnboarding(): Promise<{
  * Sync Stripe account status
  */
 export async function syncStripeStatus(): Promise<{
-  success?: boolean
-  chargesEnabled?: boolean
-  error?: string
+  success?: boolean;
+  chargesEnabled?: boolean;
+  error?: string;
 }> {
-  const store = await getCurrentStore()
+  const store = await getCurrentStore();
 
   if (!store || !store.stripeAccountId) {
-    return { error: 'errors.noStripeAccount' }
+    return { error: "errors.noStripeAccount" };
   }
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    return { error: 'errors.permissionDenied' }
+  if (!hasPermission(store.role, "manage_settings")) {
+    return { error: "errors.permissionDenied" };
   }
 
   try {
-    const status = await getAccountStatus(store.stripeAccountId)
+    const status = await getAccountStatus(store.stripeAccountId);
 
     await db
       .update(stores)
@@ -209,17 +203,17 @@ export async function syncStripeStatus(): Promise<{
         stripeOnboardingComplete: status.chargesEnabled && status.detailsSubmitted,
         updatedAt: new Date(),
       })
-      .where(eq(stores.id, store.id))
+      .where(eq(stores.id, store.id));
 
-    revalidatePath('/dashboard/settings/payments')
+    revalidatePath("/dashboard/settings/payments");
 
     return {
       success: true,
       chargesEnabled: status.chargesEnabled,
-    }
+    };
   } catch (error) {
-    console.error('Stripe sync error:', error)
-    return { error: 'errors.stripe.syncFailed' }
+    console.error("Stripe sync error:", error);
+    return { error: "errors.stripe.syncFailed" };
   }
 }
 
@@ -227,25 +221,25 @@ export async function syncStripeStatus(): Promise<{
  * Get Stripe dashboard link (Express login link, or the hosted dashboard for Standard)
  */
 export async function getStripeDashboardUrl(): Promise<{
-  url?: string
-  error?: string
+  url?: string;
+  error?: string;
 }> {
-  const store = await getCurrentStore()
+  const store = await getCurrentStore();
 
   if (!store || !store.stripeAccountId) {
-    return { error: 'errors.noStripeAccount' }
+    return { error: "errors.noStripeAccount" };
   }
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    return { error: 'errors.permissionDenied' }
+  if (!hasPermission(store.role, "manage_settings")) {
+    return { error: "errors.permissionDenied" };
   }
 
   try {
-    const url = await createAccountLoginLink(store.stripeAccountId)
-    return { url }
+    const url = await createAccountLoginLink(store.stripeAccountId);
+    return { url };
   } catch (error) {
-    console.error('Stripe dashboard link error:', error)
-    return { error: 'errors.stripe.dashboardLinkFailed' }
+    console.error("Stripe dashboard link error:", error);
+    return { error: "errors.stripe.dashboardLinkFailed" };
   }
 }
 
@@ -253,17 +247,17 @@ export async function getStripeDashboardUrl(): Promise<{
  * Disconnect Stripe account
  */
 export async function disconnectStripe(): Promise<{
-  success?: boolean
-  error?: string
+  success?: boolean;
+  error?: string;
 }> {
-  const store = await getCurrentStore()
+  const store = await getCurrentStore();
 
   if (!store) {
-    return { error: 'errors.unauthorized' }
+    return { error: "errors.unauthorized" };
   }
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    return { error: 'errors.permissionDenied' }
+  if (!hasPermission(store.role, "manage_settings")) {
+    return { error: "errors.permissionDenied" };
   }
 
   // Note: We don't delete the Stripe account, just unlink it
@@ -275,10 +269,10 @@ export async function disconnectStripe(): Promise<{
       stripeOnboardingComplete: false,
       updatedAt: new Date(),
     })
-    .where(eq(stores.id, store.id))
+    .where(eq(stores.id, store.id));
 
-  revalidatePath('/dashboard/settings/payments')
-  revalidatePath('/dashboard/settings')
+  revalidatePath("/dashboard/settings/payments");
+  revalidatePath("/dashboard/settings");
 
-  return { success: true }
+  return { success: true };
 }

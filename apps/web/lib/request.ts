@@ -23,38 +23,36 @@
  * @param headers - Request headers object or Headers instance
  * @returns The client IP address or 'unknown' if not determinable
  */
-export function getClientIp(
-  headers: Headers | { get: (name: string) => string | null }
-): string {
+export function getClientIp(headers: Headers | { get: (name: string) => string | null }): string {
   // Cloudflare always provides the real client IP in this header
-  const cfConnectingIp = headers.get('cf-connecting-ip')
+  const cfConnectingIp = headers.get("cf-connecting-ip");
   if (cfConnectingIp) {
-    return cfConnectingIp.trim()
+    return cfConnectingIp.trim();
   }
 
   // Akamai provides the real client IP here
-  const trueClientIp = headers.get('true-client-ip')
+  const trueClientIp = headers.get("true-client-ip");
   if (trueClientIp) {
-    return trueClientIp.trim()
+    return trueClientIp.trim();
   }
 
   // nginx/Traefik typically set this to the real client IP
-  const realIp = headers.get('x-real-ip')
+  const realIp = headers.get("x-real-ip");
   if (realIp) {
-    return realIp.trim()
+    return realIp.trim();
   }
 
   // Standard proxy header - the first IP is typically the client
   // Format: "client, proxy1, proxy2, ..."
-  const forwardedFor = headers.get('x-forwarded-for')
+  const forwardedFor = headers.get("x-forwarded-for");
   if (forwardedFor) {
-    const firstIp = forwardedFor.split(',')[0]?.trim()
+    const firstIp = forwardedFor.split(",")[0]?.trim();
     if (firstIp) {
-      return firstIp
+      return firstIp;
     }
   }
 
-  return 'unknown'
+  return "unknown";
 }
 
 /**
@@ -62,16 +60,16 @@ export function getClientIp(
  * Supports both IPv4 and IPv6 addresses
  */
 export function isValidIp(ip: string): boolean {
-  if (!ip || ip === 'unknown') return false
+  if (!ip || ip === "unknown") return false;
 
   // IPv4 pattern
   const ipv4Pattern =
-    /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+    /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 
   // IPv6 pattern (simplified - accepts common formats)
-  const ipv6Pattern = /^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$/
+  const ipv6Pattern = /^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$/;
 
-  return ipv4Pattern.test(ip) || ipv6Pattern.test(ip)
+  return ipv4Pattern.test(ip) || ipv6Pattern.test(ip);
 }
 
 /**
@@ -80,23 +78,23 @@ export function isValidIp(ip: string): boolean {
  * - IPv6: Masks the last 64 bits
  */
 export function anonymizeIp(ip: string): string {
-  if (!ip || ip === 'unknown') return 'unknown'
+  if (!ip || ip === "unknown") return "unknown";
 
   // IPv4
-  if (ip.includes('.') && !ip.includes(':')) {
-    const parts = ip.split('.')
+  if (ip.includes(".") && !ip.includes(":")) {
+    const parts = ip.split(".");
     if (parts.length === 4) {
-      return `${parts[0]}.${parts[1]}.${parts[2]}.xxx`
+      return `${parts[0]}.${parts[1]}.${parts[2]}.xxx`;
     }
   }
 
   // IPv6
-  if (ip.includes(':')) {
-    const parts = ip.split(':')
+  if (ip.includes(":")) {
+    const parts = ip.split(":");
     if (parts.length >= 4) {
-      return `${parts.slice(0, 4).join(':')}:xxxx:xxxx:xxxx:xxxx`
+      return `${parts.slice(0, 4).join(":")}:xxxx:xxxx:xxxx:xxxx`;
     }
   }
 
-  return 'unknown'
+  return "unknown";
 }

@@ -3,10 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { and, eq, inArray } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 
-import {
-  getAccessoryCandidates,
-  removeRedundantAssignedCategoryIds,
-} from "@louez/api/services";
+import { getAccessoryCandidates, removeRedundantAssignedCategoryIds } from "@louez/api/services";
 import {
   categories,
   db,

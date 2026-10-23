@@ -899,7 +899,7 @@ type BookingRow = {
   attemptStatus: string;
   bookingAttemptId: string;
   bookingNumber: string;
-  customerEmail: string;
+  customerEmail: string | null;
   depositAmount: string;
   endAt: Date;
   expiresAt: Date;
@@ -964,7 +964,7 @@ async function snapshotsFromRows(
     currency: row.storeSettings?.currency ?? "PLN",
     totalAmount: row.totalAmount,
     depositAmount: row.depositAmount,
-    customerEmail: row.customerEmail,
+    customerEmail: row.customerEmail ?? "",
     marketplaceUserId: row.marketplaceUserId,
     items: itemsByReservation.get(row.id) ?? [],
     manageUrl: getCanonicalUrl(
@@ -1343,6 +1343,7 @@ export async function getMarketplaceReservationContext(reservationId: string): P
   }
   return {
     ...row,
+    customerEmail: row.customerEmail ?? "",
     contractAvailable: CONTRACT_READY_RESERVATION_STATUSES.includes(row.reservationStatus),
   };
 }

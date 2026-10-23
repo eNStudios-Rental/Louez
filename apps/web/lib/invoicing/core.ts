@@ -61,8 +61,8 @@ interface SnapshotLegalProfile {
 
 interface SnapshotCustomer {
   customerType: "individual" | "business";
-  firstName: string;
-  lastName: string;
+  firstName: string | null;
+  lastName: string | null;
   companyName: string | null;
   companyNumber: string | null;
   companyNumberScheme: InvoiceCompanyNumberScheme | null;
@@ -71,7 +71,7 @@ interface SnapshotCustomer {
   city: string | null;
   postalCode: string | null;
   country: string | null;
-  email: string;
+  email: string | null;
   phone: string | null;
 }
 

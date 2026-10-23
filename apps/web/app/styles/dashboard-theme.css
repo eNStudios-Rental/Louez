@@ -21,7 +21,9 @@
 
 /* Stat card accent variants */
 .stat-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .stat-card:hover {
@@ -57,7 +59,7 @@
 .action-btn:hover {
   border-color: oklch(0.546 0.228 264 / 0.3);
   background: oklch(0.546 0.228 264 / 0.08);
-  color: oklch(0.50 0.20 264);
+  color: oklch(0.5 0.2 264);
 }
 
 .action-btn:active {
@@ -73,14 +75,14 @@
 .dark .action-btn:hover {
   border-color: oklch(0.65 0.22 258 / 0.4);
   background: oklch(0.65 0.22 258 / 0.15);
-  color: oklch(0.70 0.18 258);
+  color: oklch(0.7 0.18 258);
 }
 
 /* Action button variants */
 .action-btn--primary {
   border-color: oklch(0.546 0.228 264 / 0.25);
   background: oklch(0.546 0.228 264 / 0.1);
-  color: oklch(0.50 0.20 264);
+  color: oklch(0.5 0.2 264);
 }
 
 .action-btn--primary:hover {
@@ -91,7 +93,7 @@
 .dark .action-btn--primary {
   border-color: oklch(0.65 0.22 258 / 0.35);
   background: oklch(0.65 0.22 258 / 0.15);
-  color: oklch(0.70 0.18 258);
+  color: oklch(0.7 0.18 258);
 }
 
 .dark .action-btn--primary:hover {
@@ -146,7 +148,7 @@
 
 .share-option-icon--copy {
   background: linear-gradient(135deg, oklch(0.9 0.1 264) 0%, oklch(0.85 0.15 264) 100%);
-  color: oklch(0.50 0.20 264);
+  color: oklch(0.5 0.2 264);
 }
 
 .share-option-icon--whatsapp {
@@ -161,7 +163,7 @@
 
 .share-option-icon--sms {
   background: linear-gradient(135deg, oklch(0.9 0.1 264) 0%, oklch(0.85 0.15 264) 100%);
-  color: oklch(0.50 0.20 264);
+  color: oklch(0.5 0.2 264);
 }
 
 .share-option-icon--qr {
@@ -171,7 +173,7 @@
 
 .dark .share-option-icon--copy {
   background: linear-gradient(135deg, oklch(0.35 0.15 258) 0%, oklch(0.3 0.2 258) 100%);
-  color: oklch(0.70 0.18 258);
+  color: oklch(0.7 0.18 258);
 }
 
 .dark .share-option-icon--whatsapp {
@@ -186,7 +188,7 @@
 
 .dark .share-option-icon--sms {
   background: linear-gradient(135deg, oklch(0.35 0.12 258) 0%, oklch(0.3 0.15 258) 100%);
-  color: oklch(0.70 0.18 258);
+  color: oklch(0.7 0.18 258);
 }
 
 .dark .share-option-icon--qr {
@@ -294,7 +296,11 @@
 
 /* Subtitle / Tagline */
 .welcome-overlay__subtitle {
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-family:
+    var(--font-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: clamp(1rem, 3.5vw, 1.75rem);
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -335,7 +341,11 @@
   bottom: 2.5rem;
   left: 50%;
   transform: translateX(-50%);
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-family:
+    var(--font-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 0.8125rem;
   font-weight: 400;
   letter-spacing: 0.02em;
@@ -354,7 +364,6 @@
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-
   .welcome-overlay,
   .welcome-overlay__title,
   .welcome-overlay__subtitle,

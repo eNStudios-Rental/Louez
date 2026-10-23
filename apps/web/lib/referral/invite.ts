@@ -1,13 +1,13 @@
-import { cookies } from 'next/headers';
+import { cookies } from "next/headers";
 
-import { eq } from 'drizzle-orm';
+import { eq } from "drizzle-orm";
 
-import { db } from '@louez/db';
-import { stores } from '@louez/db';
+import { db } from "@louez/db";
+import { stores } from "@louez/db";
 
-import { isValidReferralCode } from '@/lib/utils/referral';
+import { isValidReferralCode } from "@/lib/utils/referral";
 
-import { getReferralProgramConfig } from './defaults';
+import { getReferralProgramConfig } from "./defaults";
 
 export interface ReferralInviteContext {
   /** The Referrer's store name, when resolvable (for "X invited you"). */
@@ -22,7 +22,7 @@ export interface ReferralInviteContext {
  * null when there is no valid pending referral. Server-only.
  */
 export async function getReferralInviteContext(): Promise<ReferralInviteContext | null> {
-  const code = (await cookies()).get('louez_referral')?.value;
+  const code = (await cookies()).get("louez_referral")?.value;
   if (!code || !isValidReferralCode(code)) return null;
 
   const referrer = await db.query.stores.findFirst({

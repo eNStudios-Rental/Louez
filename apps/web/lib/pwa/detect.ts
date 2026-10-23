@@ -6,8 +6,8 @@
  * Screen" both depend on browser APIs that have no server equivalent.
  */
 
-export type PwaOs = 'ios' | 'android' | 'desktop' | 'other';
-export type PwaBrowser = 'safari' | 'chrome' | 'firefox' | 'edge' | 'other';
+export type PwaOs = "ios" | "android" | "desktop" | "other";
+export type PwaBrowser = "safari" | "chrome" | "firefox" | "edge" | "other";
 
 export interface PlatformInfo {
   os: PwaOs;
@@ -34,46 +34,41 @@ const IN_APP_BROWSER_PATTERN =
  */
 function isIPadOS(ua: string): boolean {
   if (/ipad/i.test(ua)) return true;
-  if (typeof navigator === 'undefined') return false;
-  const looksLikeMac =
-    /macintosh|mac os x/i.test(ua) || navigator.platform === 'MacIntel';
+  if (typeof navigator === "undefined") return false;
+  const looksLikeMac = /macintosh|mac os x/i.test(ua) || navigator.platform === "MacIntel";
   return (
-    looksLikeMac &&
-    typeof navigator.maxTouchPoints === 'number' &&
-    navigator.maxTouchPoints > 1
+    looksLikeMac && typeof navigator.maxTouchPoints === "number" && navigator.maxTouchPoints > 1
   );
 }
 
 export function detectPlatform(userAgent?: string): PlatformInfo {
-  const ua =
-    userAgent ??
-    (typeof navigator !== 'undefined' ? navigator.userAgent : '');
+  const ua = userAgent ?? (typeof navigator !== "undefined" ? navigator.userAgent : "");
 
   if (!ua) {
-    return { os: 'other', browser: 'other', isInAppBrowser: false };
+    return { os: "other", browser: "other", isInAppBrowser: false };
   }
 
-  let os: PwaOs = 'other';
+  let os: PwaOs = "other";
   if (/iphone|ipod/i.test(ua) || isIPadOS(ua)) {
-    os = 'ios';
+    os = "ios";
   } else if (/android/i.test(ua)) {
-    os = 'android';
+    os = "android";
   } else if (/windows|macintosh|mac os x|linux|cros/i.test(ua)) {
-    os = 'desktop';
+    os = "desktop";
   }
 
   // Order matters: Edge, Firefox and Chrome on iOS all also contain "Safari"
   // (and on iOS additionally "CriOS"/"FxiOS"/"EdgiOS"), so check the more
   // specific tokens first and fall back to Safari last.
-  let browser: PwaBrowser = 'other';
+  let browser: PwaBrowser = "other";
   if (/edg(a|ios)?\//i.test(ua)) {
-    browser = 'edge';
+    browser = "edge";
   } else if (/firefox|fxios/i.test(ua)) {
-    browser = 'firefox';
+    browser = "firefox";
   } else if (/crios|chrome|chromium/i.test(ua)) {
-    browser = 'chrome';
+    browser = "chrome";
   } else if (/safari/i.test(ua)) {
-    browser = 'safari';
+    browser = "safari";
   }
 
   return {

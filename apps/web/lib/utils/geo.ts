@@ -1,10 +1,10 @@
-import type { DeliverySettings } from '@louez/types'
+import type { DeliverySettings } from "@louez/types";
 
 /**
  * Convert degrees to radians
  */
 function toRadians(degrees: number): number {
-  return degrees * (Math.PI / 180)
+  return degrees * (Math.PI / 180);
 }
 
 /**
@@ -19,23 +19,20 @@ export function calculateHaversineDistance(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number
+  lon2: number,
 ): number {
-  const R = 6371 // Earth's radius in km
+  const R = 6371; // Earth's radius in km
 
-  const dLat = toRadians(lat2 - lat1)
-  const dLon = toRadians(lon2 - lon1)
+  const dLat = toRadians(lat2 - lat1);
+  const dLon = toRadians(lon2 - lon1);
 
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRadians(lat1)) *
-      Math.cos(toRadians(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2)
+    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
 
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-  return R * c
+  return R * c;
 }
 
 // ---------------------------------------------------------------------------
@@ -50,12 +47,9 @@ export function calculateHaversineDistance(
  * @param settings - Delivery settings from store
  * @returns Fee for this leg in store currency
  */
-export function calculateLegFee(
-  distanceKm: number,
-  settings: DeliverySettings
-): number {
-  const fee = distanceKm * settings.pricePerKm
-  return Math.round(Math.max(fee, settings.minimumFee) * 100) / 100
+export function calculateLegFee(distanceKm: number, settings: DeliverySettings): number {
+  const fee = distanceKm * settings.pricePerKm;
+  return Math.round(Math.max(fee, settings.minimumFee) * 100) / 100;
 }
 
 /**
@@ -73,26 +67,22 @@ export function calculateTotalDeliveryFee(
   outboundDistanceKm: number | null,
   returnDistanceKm: number | null,
   settings: DeliverySettings,
-  orderSubtotal: number
+  orderSubtotal: number,
 ): { outboundFee: number; returnFee: number; totalFee: number } {
   // Free delivery threshold applies to total order
-  if (
-    settings.freeDeliveryThreshold !== null &&
-    orderSubtotal >= settings.freeDeliveryThreshold
-  ) {
-    return { outboundFee: 0, returnFee: 0, totalFee: 0 }
+  if (settings.freeDeliveryThreshold !== null && orderSubtotal >= settings.freeDeliveryThreshold) {
+    return { outboundFee: 0, returnFee: 0, totalFee: 0 };
   }
 
   const outboundFee =
-    outboundDistanceKm !== null ? calculateLegFee(outboundDistanceKm, settings) : 0
-  const returnFee =
-    returnDistanceKm !== null ? calculateLegFee(returnDistanceKm, settings) : 0
+    outboundDistanceKm !== null ? calculateLegFee(outboundDistanceKm, settings) : 0;
+  const returnFee = returnDistanceKm !== null ? calculateLegFee(returnDistanceKm, settings) : 0;
 
   return {
     outboundFee,
     returnFee,
     totalFee: Math.round((outboundFee + returnFee) * 100) / 100,
-  }
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -107,24 +97,21 @@ export function calculateTotalDeliveryFee(
  */
 export function validateDelivery(
   distanceKm: number,
-  settings: DeliverySettings
+  settings: DeliverySettings,
 ): { valid: boolean; errorKey?: string; errorParams?: Record<string, unknown> } {
   if (!settings.enabled) {
-    return { valid: false, errorKey: 'errors.deliveryNotEnabled' }
+    return { valid: false, errorKey: "errors.deliveryNotEnabled" };
   }
 
-  if (
-    settings.maximumDistance !== null &&
-    distanceKm > settings.maximumDistance
-  ) {
+  if (settings.maximumDistance !== null && distanceKm > settings.maximumDistance) {
     return {
       valid: false,
-      errorKey: 'errors.deliveryTooFar',
+      errorKey: "errors.deliveryTooFar",
       errorParams: { maxDistance: settings.maximumDistance },
-    }
+    };
   }
 
-  return { valid: true }
+  return { valid: true };
 }
 
 /**
@@ -133,23 +120,17 @@ export function validateDelivery(
  * @param settings - Delivery settings from store
  * @returns True if free delivery applies
  */
-export function isFreeDelivery(
-  orderSubtotal: number,
-  settings: DeliverySettings
-): boolean {
-  return (
-    settings.freeDeliveryThreshold !== null &&
-    orderSubtotal >= settings.freeDeliveryThreshold
-  )
+export function isFreeDelivery(orderSubtotal: number, settings: DeliverySettings): boolean {
+  return settings.freeDeliveryThreshold !== null && orderSubtotal >= settings.freeDeliveryThreshold;
 }
 
 export function isDeliveryOrderAmountEligible(
   orderSubtotal: number,
-  settings: DeliverySettings
+  settings: DeliverySettings,
 ): boolean {
   return (
-    settings.mode !== 'optional' ||
+    settings.mode !== "optional" ||
     settings.minimumOrderAmountForDelivery == null ||
     orderSubtotal >= settings.minimumOrderAmountForDelivery
-  )
+  );
 }

@@ -1,40 +1,40 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
-import { and, eq } from 'drizzle-orm';
-import { createHash } from 'node:crypto';
+import { and, eq } from "drizzle-orm";
+import { createHash } from "node:crypto";
 
-import { db } from '@louez/db';
-import { reservations, stores } from '@louez/db';
+import { db } from "@louez/db";
+import { reservations, stores } from "@louez/db";
 
-import { buildReservationCalendarDescription } from '@/lib/integrations/calendar/reservation-event-details';
+import { buildReservationCalendarDescription } from "@/lib/integrations/calendar/reservation-event-details";
 
-import { env } from '@/env';
+import { env } from "@/env";
 
-const CALENDAR_REFRESH_INTERVAL = 'PT5M';
+const CALENDAR_REFRESH_INTERVAL = "PT5M";
 const CALENDAR_EVENT_FORMAT_VERSION = 2;
 
 // Format date to ICS format (YYYYMMDDTHHMMSS)
 function formatICSDate(date: Date): string {
-  const pad = (n: number) => n.toString().padStart(2, '0');
+  const pad = (n: number) => n.toString().padStart(2, "0");
   return (
     date.getUTCFullYear().toString() +
     pad(date.getUTCMonth() + 1) +
     pad(date.getUTCDate()) +
-    'T' +
+    "T" +
     pad(date.getUTCHours()) +
     pad(date.getUTCMinutes()) +
     pad(date.getUTCSeconds()) +
-    'Z'
+    "Z"
   );
 }
 
 // Escape special characters for ICS text fields
 function escapeICSText(text: string): string {
   return text
-    .replace(/\\/g, '\\\\')
-    .replace(/;/g, '\\;')
-    .replace(/,/g, '\\,')
-    .replace(/\n/g, '\\n');
+    .replace(/\\/g, "\\\\")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,")
+    .replace(/\n/g, "\\n");
 }
 
 // Fold long lines per ICS spec (max 75 octets per line)
@@ -47,11 +47,11 @@ function foldLine(line: string): string {
 
   while (remaining.length > maxLength) {
     lines.push(remaining.substring(0, maxLength));
-    remaining = ' ' + remaining.substring(maxLength);
+    remaining = " " + remaining.substring(maxLength);
   }
   lines.push(remaining);
 
-  return lines.join('\r\n');
+  return lines.join("\r\n");
 }
 
 function getReservationSequence(updatedAt: Date | string | null): number {
@@ -60,34 +60,30 @@ function getReservationSequence(updatedAt: Date | string | null): number {
   const timestamp = new Date(updatedAt).getTime();
   if (!Number.isFinite(timestamp)) return CALENDAR_EVENT_FORMAT_VERSION;
 
-  return (
-    Math.max(0, Math.floor(timestamp / 1000)) + CALENDAR_EVENT_FORMAT_VERSION
-  );
+  return Math.max(0, Math.floor(timestamp / 1000)) + CALENDAR_EVENT_FORMAT_VERSION;
 }
 
 function buildWeakEtag(content: string): string {
-  const hash = createHash('sha256').update(content).digest('base64url');
+  const hash = createHash("sha256").update(content).digest("base64url");
   return `W/"${hash}"`;
 }
 
 function requestHasMatchingEtag(request: Request, etag: string): boolean {
-  const ifNoneMatch = request.headers.get('if-none-match');
+  const ifNoneMatch = request.headers.get("if-none-match");
   if (!ifNoneMatch) return false;
-  if (ifNoneMatch.trim() === '*') return true;
+  if (ifNoneMatch.trim() === "*") return true;
 
   return ifNoneMatch
-    .split(',')
+    .split(",")
     .map((value) => value.trim())
     .includes(etag);
 }
 
-function joinAddressParts(
-  parts: Array<string | null | undefined>,
-): string | null {
+function joinAddressParts(parts: Array<string | null | undefined>): string | null {
   const address = parts
     .map((part) => part?.trim())
     .filter((part): part is string => Boolean(part))
-    .join(', ');
+    .join(", ");
 
   return address || null;
 }
@@ -109,22 +105,15 @@ function formatReservationLocationSnapshotAddress(
   ]);
 }
 
-function formatOutboundAddress(
-  reservation: typeof reservations.$inferSelect,
-): string | null {
+function formatOutboundAddress(reservation: typeof reservations.$inferSelect): string | null {
   return joinAddressParts([
     reservation.deliveryAddress,
-    joinAddressParts([
-      reservation.deliveryPostalCode,
-      reservation.deliveryCity,
-    ]),
+    joinAddressParts([reservation.deliveryPostalCode, reservation.deliveryCity]),
     reservation.deliveryCountry,
   ]);
 }
 
-function formatReturnAddress(
-  reservation: typeof reservations.$inferSelect,
-): string | null {
+function formatReturnAddress(reservation: typeof reservations.$inferSelect): string | null {
   return joinAddressParts([
     reservation.returnAddress,
     joinAddressParts([reservation.returnPostalCode, reservation.returnCity]),
@@ -132,46 +121,37 @@ function formatReturnAddress(
   ]);
 }
 
-function hasOutboundDelivery(
-  reservation: typeof reservations.$inferSelect,
-): boolean {
+function hasOutboundDelivery(reservation: typeof reservations.$inferSelect): boolean {
   return (
-    reservation.outboundMethod === 'address' ||
-    (reservation.deliveryOption === 'delivery' &&
-      Boolean(formatOutboundAddress(reservation)))
+    reservation.outboundMethod === "address" ||
+    (reservation.deliveryOption === "delivery" && Boolean(formatOutboundAddress(reservation)))
   );
 }
 
-function hasReturnCollection(
-  reservation: typeof reservations.$inferSelect,
-): boolean {
-  return reservation.returnMethod === 'address';
+function hasReturnCollection(reservation: typeof reservations.$inferSelect): boolean {
+  return reservation.returnMethod === "address";
 }
 
-function buildSummaryPrefix(
-  reservation: typeof reservations.$inferSelect,
-): string | null {
+function buildSummaryPrefix(reservation: typeof reservations.$inferSelect): string | null {
   const isOutboundDelivery = hasOutboundDelivery(reservation);
   const isReturnCollection = hasReturnCollection(reservation);
 
   if (isOutboundDelivery && isReturnCollection) {
-    return 'LIVRAISON + RETOUR CLIENT';
+    return "LIVRAISON + RETOUR CLIENT";
   }
 
   if (isOutboundDelivery) {
-    return 'LIVRAISON';
+    return "LIVRAISON";
   }
 
   if (isReturnCollection) {
-    return 'RETOUR CLIENT';
+    return "RETOUR CLIENT";
   }
 
   return null;
 }
 
-function getReservationLocation(
-  reservation: typeof reservations.$inferSelect,
-): string | null {
+function getReservationLocation(reservation: typeof reservations.$inferSelect): string | null {
   if (hasOutboundDelivery(reservation)) {
     return formatOutboundAddress(reservation);
   }
@@ -180,18 +160,16 @@ function getReservationLocation(
     return formatReturnAddress(reservation);
   }
 
-  return formatReservationLocationSnapshotAddress(
-    reservation.pickupLocationSnapshot,
-  );
+  return formatReservationLocationSnapshotAddress(reservation.pickupLocationSnapshot);
 }
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const storeId = searchParams.get('store');
-  const token = searchParams.get('token');
+  const storeId = searchParams.get("store");
+  const token = searchParams.get("token");
 
   if (!storeId || !token) {
-    return new NextResponse('Missing parameters', { status: 400 });
+    return new NextResponse("Missing parameters", { status: 400 });
   }
 
   // Verify store and token
@@ -200,7 +178,7 @@ export async function GET(request: Request) {
   });
 
   if (!store) {
-    return new NextResponse('Invalid store or token', { status: 401 });
+    return new NextResponse("Invalid store or token", { status: 401 });
   }
 
   // Get all reservations including cancelled/rejected (needed for proper ICS STATUS:CANCELLED)
@@ -219,11 +197,11 @@ export async function GET(request: Request) {
 
   // Generate ICS content
   const lines: string[] = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Louez//Calendar//FR',
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Louez//Calendar//FR",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
     `REFRESH-INTERVAL;VALUE=DURATION:${CALENDAR_REFRESH_INTERVAL}`,
     `X-PUBLISHED-TTL:${CALENDAR_REFRESH_INTERVAL}`,
     `X-WR-CALNAME:${escapeICSText(store.name)} - Reservations`,
@@ -239,11 +217,10 @@ export async function GET(request: Request) {
     // Build product list
     const productNames = reservation.items
       .map((item) => {
-        const name =
-          item.productSnapshot?.name || item.product?.name || 'Unknown';
+        const name = item.productSnapshot?.name || item.product?.name || "Unknown";
         return item.quantity > 1 ? `${name} (x${item.quantity})` : name;
       })
-      .join(', ');
+      .join(", ");
 
     const reservationUrl = `${env.NEXT_PUBLIC_APP_URL}/dashboard/reservations/${reservation.id}`;
     const description = buildReservationCalendarDescription({
@@ -255,44 +232,43 @@ export async function GET(request: Request) {
 
     // Status emoji prefix for visual identification
     const statusEmoji: Record<string, string> = {
-      pending: '[?]',
-      confirmed: '[OK]',
-      ongoing: '[>>]',
-      completed: '[V]',
-      cancelled: '[X]',
-      rejected: '[X]',
-      quote: '[QUOTE]',
-      declined: '[X]',
+      pending: "[?]",
+      confirmed: "[OK]",
+      ongoing: "[>>]",
+      completed: "[V]",
+      cancelled: "[X]",
+      rejected: "[X]",
+      quote: "[QUOTE]",
+      declined: "[X]",
     };
 
     const summaryPrefix = buildSummaryPrefix(reservation);
-    const summaryPrefixText = summaryPrefix ? `${summaryPrefix} - ` : '';
+    const summaryPrefixText = summaryPrefix ? `${summaryPrefix} - ` : "";
     const customerName =
       reservation.customer.companyName ||
-      [reservation.customer.firstName, reservation.customer.lastName].filter(Boolean).join(' ') ||
+      [reservation.customer.firstName, reservation.customer.lastName].filter(Boolean).join(" ") ||
       reservation.customer.email ||
-      'Customer';
-    const summary = `${statusEmoji[reservation.status || 'pending']} ${summaryPrefixText}${customerName} - ${productNames}`;
+      "Customer";
+    const summary = `${statusEmoji[reservation.status || "pending"]} ${summaryPrefixText}${customerName} - ${productNames}`;
     const location = getReservationLocation(reservation);
 
-    const isCancelled =
-      reservation.status === 'cancelled' || reservation.status === 'rejected';
+    const isCancelled = reservation.status === "cancelled" || reservation.status === "rejected";
 
     // RFC 5545 STATUS mapping
     let icsStatus: string;
     if (isCancelled) {
-      icsStatus = 'CANCELLED';
+      icsStatus = "CANCELLED";
     } else if (
-      reservation.status === 'confirmed' ||
-      reservation.status === 'ongoing' ||
-      reservation.status === 'completed'
+      reservation.status === "confirmed" ||
+      reservation.status === "ongoing" ||
+      reservation.status === "completed"
     ) {
-      icsStatus = 'CONFIRMED';
+      icsStatus = "CONFIRMED";
     } else {
-      icsStatus = 'TENTATIVE';
+      icsStatus = "TENTATIVE";
     }
 
-    lines.push('BEGIN:VEVENT');
+    lines.push("BEGIN:VEVENT");
     lines.push(`UID:${reservation.id}@louez.io`);
     lines.push(`SEQUENCE:${getReservationSequence(updatedAt)}`);
     lines.push(`DTSTAMP:${formatICSDate(updatedAt)}`);
@@ -305,35 +281,32 @@ export async function GET(request: Request) {
       lines.push(foldLine(`LOCATION:${escapeICSText(location)}`));
     }
     lines.push(`STATUS:${icsStatus}`);
-    lines.push(`TRANSP:${isCancelled ? 'TRANSPARENT' : 'OPAQUE'}`);
+    lines.push(`TRANSP:${isCancelled ? "TRANSPARENT" : "OPAQUE"}`);
 
     // Add URL to reservation details
     lines.push(`URL:${reservationUrl}`);
 
-    lines.push('END:VEVENT');
+    lines.push("END:VEVENT");
   }
 
-  lines.push('END:VCALENDAR');
+  lines.push("END:VCALENDAR");
 
   // Join with CRLF as per ICS spec
-  const icsContent = lines.join('\r\n');
+  const icsContent = lines.join("\r\n");
   const etag = buildWeakEtag(icsContent);
-  const lastModifiedAt = storeReservations.reduce<Date>(
-    (latest, reservation) => {
-      const updatedAt = new Date(reservation.updatedAt);
-      return updatedAt > latest ? updatedAt : latest;
-    },
-    new Date(store.updatedAt),
-  );
+  const lastModifiedAt = storeReservations.reduce<Date>((latest, reservation) => {
+    const updatedAt = new Date(reservation.updatedAt);
+    return updatedAt > latest ? updatedAt : latest;
+  }, new Date(store.updatedAt));
   const sharedHeaders = {
-    'Cache-Control': 'private, no-cache, max-age=0, must-revalidate',
-    'CDN-Cache-Control': 'no-store',
-    'Vercel-CDN-Cache-Control': 'no-store',
-    Pragma: 'no-cache',
-    Expires: '0',
+    "Cache-Control": "private, no-cache, max-age=0, must-revalidate",
+    "CDN-Cache-Control": "no-store",
+    "Vercel-CDN-Cache-Control": "no-store",
+    Pragma: "no-cache",
+    Expires: "0",
     ETag: etag,
-    'Last-Modified': lastModifiedAt.toUTCString(),
-    'X-Robots-Tag': 'noindex, nofollow',
+    "Last-Modified": lastModifiedAt.toUTCString(),
+    "X-Robots-Tag": "noindex, nofollow",
   };
 
   if (requestHasMatchingEtag(request, etag)) {
@@ -345,8 +318,8 @@ export async function GET(request: Request) {
 
   return new NextResponse(icsContent, {
     headers: {
-      'Content-Type': 'text/calendar; charset=utf-8',
-      'Content-Disposition': `attachment; filename="${store.slug}-calendar.ics"`,
+      "Content-Type": "text/calendar; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${store.slug}-calendar.ics"`,
       ...sharedHeaders,
     },
   });

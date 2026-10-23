@@ -91,14 +91,15 @@ export async function prepareInitialInvoiceEmailDelivery(
   }
 
   const reservation = initialInvoice.reservation;
-  const contractSignatureUrl = reservation.signedAt
-    ? undefined
-    : await createReservationInstantAccessUrl({
-        storeId: reservation.store.id,
-        storeSlug: reservation.store.slug,
-        customerEmail: reservation.customer.email,
-        reservationId,
-      });
+  const contractSignatureUrl =
+    reservation.signedAt || !reservation.customer.email
+      ? undefined
+      : await createReservationInstantAccessUrl({
+          storeId: reservation.store.id,
+          storeSlug: reservation.store.slug,
+          customerEmail: reservation.customer.email,
+          reservationId,
+        });
 
   return { attachments, contractSignatureUrl };
 }
@@ -155,6 +156,7 @@ export async function trySendInitialInvoicePaymentConfirmation(paymentId: string
     if (!payment) return;
 
     const { reservation } = payment;
+    if (!reservation.customer.email) return;
     const delivery = await tryPrepareInitialInvoiceEmailDelivery(reservation.id);
     await sendPaymentConfirmationEmail({
       to: reservation.customer.email,

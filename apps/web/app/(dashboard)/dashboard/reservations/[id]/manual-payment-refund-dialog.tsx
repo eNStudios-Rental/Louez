@@ -28,10 +28,7 @@ import {
 import { orpc } from "@/lib/orpc/react";
 import { invalidateReservationAll } from "@/lib/orpc/invalidation";
 
-import {
-  isManualPaymentMethod,
-  type ManualPaymentMethod,
-} from "./util.payment-refunds";
+import { isManualPaymentMethod, type ManualPaymentMethod } from "./util.payment-refunds";
 
 interface ManualPaymentRefundDialogProps {
   reservationId: string;
@@ -69,11 +66,7 @@ export const ManualPaymentRefundDialog = ({
 
   const handleRefund = async () => {
     const parsedAmount = Number(amount);
-    if (
-      !Number.isFinite(parsedAmount) ||
-      parsedAmount <= 0 ||
-      parsedAmount > remainingAmount
-    ) {
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0 || parsedAmount > remainingAmount) {
       toastManager.add({ title: t("payment.invalidRefundAmount"), type: "error" });
       return;
     }

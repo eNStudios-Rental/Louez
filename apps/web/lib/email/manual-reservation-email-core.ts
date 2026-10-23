@@ -1,4 +1,4 @@
-import { render } from '@react-email/render'
+import { render } from "@react-email/render";
 
 import {
   composeContractEmail,
@@ -9,8 +9,8 @@ import {
   composeReminderReturnEmail,
   type ComposeCustomer,
   type ComposeStore,
-} from './compose'
-import { getLocaleFromCountry } from './i18n'
+} from "./compose";
+import { getLocaleFromCountry } from "./i18n";
 
 /**
  * The emails a store owner sends by hand from a reservation. This module is
@@ -20,21 +20,21 @@ import { getLocaleFromCountry } from './i18n'
  * with the callers and comes in through the context/options.
  */
 export const MANUAL_RESERVATION_EMAIL_TEMPLATE_IDS = [
-  'contract',
-  'payment_request',
-  'reminder_pickup',
-  'reminder_return',
-  'access_link',
-  'custom',
-] as const
+  "contract",
+  "payment_request",
+  "reminder_pickup",
+  "reminder_return",
+  "access_link",
+  "custom",
+] as const;
 
 export type ManualReservationEmailTemplateId =
-  (typeof MANUAL_RESERVATION_EMAIL_TEMPLATE_IDS)[number]
+  (typeof MANUAL_RESERVATION_EMAIL_TEMPLATE_IDS)[number];
 
 export interface ManualReservationEmailPayload {
-  templateId: string
-  customSubject?: string
-  customMessage?: string
+  templateId: string;
+  customSubject?: string;
+  customMessage?: string;
 }
 
 /**
@@ -43,62 +43,62 @@ export interface ManualReservationEmailPayload {
  * strings; the builder normalizes them back.
  */
 export interface ManualEmailRenderContext {
-  store: ComposeStore
-  customer: ComposeCustomer
+  store: ComposeStore;
+  customer: ComposeCustomer;
   reservation: {
-    id: string
-    number: string
-    startDate: string
-    endDate: string
-    totalAmount: string
-    depositAmount: string
-    items: { name: string; quantity: number; totalPrice: string }[]
-  }
-  reservationUrl: string
+    id: string;
+    number: string;
+    startDate: string;
+    endDate: string;
+    totalAmount: string;
+    depositAmount: string;
+    items: { name: string; quantity: number; totalPrice: string }[];
+  };
+  reservationUrl: string;
   /** Absolute logo URL for a browser rendering (never a `cid:` reference). */
-  logoUrl: string | null
+  logoUrl: string | null;
   /** Precomputed so Stripe account details never cross the network. */
-  showPaymentCta: boolean
+  showPaymentCta: boolean;
 }
 
 export interface BuildManualEmailFromContextOptions {
   /** Real minted URL for a send; falls back to the reservation page (preview). */
-  contractUrl?: string
+  contractUrl?: string;
   /** Real minted URL for a send; falls back to the reservation page (preview). */
-  accessUrl?: string
+  accessUrl?: string;
   /** `cid:` logo reference for a send; falls back to the context's URL. */
-  logoUrl?: string | null
+  logoUrl?: string | null;
 }
 
 export interface BuiltManualReservationEmail {
-  to: string
-  subject: string
-  html: string
+  to: string;
+  subject: string;
+  html: string;
   /**
    * `email_logs.templateType` to record once sent. Only the templates that
    * were historically logged carry one; the others stay out of the log.
    */
-  logTemplateType?: string
+  logTemplateType?: string;
 }
 
 export type BuildManualReservationEmailFromContextResult =
   | BuiltManualReservationEmail
-  | { error: string }
+  | { error: string };
 
 export async function buildManualReservationEmailFromContext(
   context: ManualEmailRenderContext,
   payload: ManualReservationEmailPayload,
   options: BuildManualEmailFromContextOptions = {},
 ): Promise<BuildManualReservationEmailFromContextResult> {
-  const { store, customer, reservation } = context
-  const to = customer.email
-  const locale = getLocaleFromCountry(store.settings?.country)
-  const logoUrl = options.logoUrl !== undefined ? options.logoUrl : context.logoUrl
-  const additionalMessage = payload.customMessage?.trim() || null
-  const customSubject = payload.customSubject?.trim() || null
+  const { store, customer, reservation } = context;
+  const to = customer.email ?? "";
+  const locale = getLocaleFromCountry(store.settings?.country);
+  const logoUrl = options.logoUrl !== undefined ? options.logoUrl : context.logoUrl;
+  const additionalMessage = payload.customMessage?.trim() || null;
+  const customSubject = payload.customSubject?.trim() || null;
 
   switch (payload.templateId) {
-    case 'contract': {
+    case "contract": {
       const { subject, element } = composeContractEmail({
         store,
         customer,
@@ -108,14 +108,14 @@ export async function buildManualReservationEmailFromContext(
         customSubject,
         locale,
         logoUrl,
-      })
+      });
 
-      return { to, subject, html: await render(element) }
+      return { to, subject, html: await render(element) };
     }
 
-    case 'payment_request': {
+    case "payment_request": {
       const amount =
-        Number.parseFloat(reservation.totalAmount) + Number.parseFloat(reservation.depositAmount)
+        Number.parseFloat(reservation.totalAmount) + Number.parseFloat(reservation.depositAmount);
 
       const { subject, element } = composeManualPaymentRequestEmail({
         store,
@@ -127,12 +127,12 @@ export async function buildManualReservationEmailFromContext(
         customSubject,
         locale,
         logoUrl,
-      })
+      });
 
-      return { to, subject, html: await render(element) }
+      return { to, subject, html: await render(element) };
     }
 
-    case 'reminder_pickup': {
+    case "reminder_pickup": {
       const { subject, element } = composeReminderPickupEmail({
         store,
         customer,
@@ -144,12 +144,12 @@ export async function buildManualReservationEmailFromContext(
         additionalMessage,
         locale,
         logoUrl,
-      })
+      });
 
-      return { to, subject, html: await render(element), logTemplateType: 'reminder_pickup' }
+      return { to, subject, html: await render(element), logTemplateType: "reminder_pickup" };
     }
 
-    case 'reminder_return': {
+    case "reminder_return": {
       const { subject, element } = composeReminderReturnEmail({
         store,
         customer,
@@ -160,12 +160,12 @@ export async function buildManualReservationEmailFromContext(
         additionalMessage,
         locale,
         logoUrl,
-      })
+      });
 
-      return { to, subject, html: await render(element), logTemplateType: 'reminder_return' }
+      return { to, subject, html: await render(element), logTemplateType: "reminder_return" };
     }
 
-    case 'access_link': {
+    case "access_link": {
       const { subject, element } = composeInstantAccessEmail({
         store,
         customer,
@@ -185,14 +185,14 @@ export async function buildManualReservationEmailFromContext(
         additionalMessage,
         locale,
         logoUrl,
-      })
+      });
 
-      return { to, subject, html: await render(element), logTemplateType: 'instant_access' }
+      return { to, subject, html: await render(element), logTemplateType: "instant_access" };
     }
 
-    case 'custom': {
+    case "custom": {
       if (!additionalMessage) {
-        return { error: 'errors.messageRequired' }
+        return { error: "errors.messageRequired" };
       }
 
       const { subject, element } = composeCustomMessageEmail({
@@ -204,12 +204,12 @@ export async function buildManualReservationEmailFromContext(
         customSubject,
         locale,
         logoUrl,
-      })
+      });
 
-      return { to, subject, html: await render(element) }
+      return { to, subject, html: await render(element) };
     }
 
     default:
-      return { error: 'errors.invalidEmailTemplate' }
+      return { error: "errors.invalidEmailTemplate" };
   }
 }

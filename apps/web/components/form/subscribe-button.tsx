@@ -1,13 +1,10 @@
-'use client'
+"use client";
 
-import { useFormContext } from '@/hooks/form/form-context'
-import { Button } from '@louez/ui'
+import { useFormContext } from "@/hooks/form/form-context";
+import { Button } from "@louez/ui";
 
-export function SubscribeButton({
-  children,
-  ...props
-}: React.ComponentProps<typeof Button>) {
-  const form = useFormContext()
+export function SubscribeButton({ children, ...props }: React.ComponentProps<typeof Button>) {
+  const form = useFormContext();
 
   return (
     <form.Subscribe selector={(state) => state.isSubmitting}>
@@ -17,5 +14,5 @@ export function SubscribeButton({
         </Button>
       )}
     </form.Subscribe>
-  )
+  );
 }

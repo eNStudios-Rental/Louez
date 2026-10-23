@@ -14,7 +14,13 @@ interface StoreLogoProps {
 }
 
 /** Logo (or the store name) linking home; 44 px tall so it is a real target. */
-export const StoreLogo = ({ storeName, logoUrl, href = "/", className, prefetch }: StoreLogoProps) => (
+export const StoreLogo = ({
+  storeName,
+  logoUrl,
+  href = "/",
+  className,
+  prefetch,
+}: StoreLogoProps) => (
   <StorefrontLink
     href={href}
     prefetch={prefetch}

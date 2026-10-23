@@ -1,12 +1,12 @@
-const LEGACY_INSURANCE_LABELS = ['garantie casse/vol', 'breakage/theft coverage'];
+const LEGACY_INSURANCE_LABELS = ["garantie casse/vol", "breakage/theft coverage"];
 
 function getNormalizedInsuranceItemName(productSnapshot: unknown): string {
   const snapshotName =
-    productSnapshot && typeof productSnapshot === 'object'
+    productSnapshot && typeof productSnapshot === "object"
       ? (productSnapshot as { name?: unknown }).name
       : null;
 
-  return typeof snapshotName === 'string' ? snapshotName.trim().toLowerCase() : '';
+  return typeof snapshotName === "string" ? snapshotName.trim().toLowerCase() : "";
 }
 
 export function isLegacyTulipInsuranceItem(item: {
@@ -17,9 +17,7 @@ export function isLegacyTulipInsuranceItem(item: {
     return false;
   }
 
-  return LEGACY_INSURANCE_LABELS.includes(
-    getNormalizedInsuranceItemName(item.productSnapshot),
-  );
+  return LEGACY_INSURANCE_LABELS.includes(getNormalizedInsuranceItemName(item.productSnapshot));
 }
 
 function getLegacyTulipInsuranceAmount(
@@ -62,7 +60,7 @@ export function getReservationInsuranceSelection(reservation: {
     };
   }
 
-  const parsedAmount = Number(reservation.tulipInsuranceAmount ?? '0');
+  const parsedAmount = Number(reservation.tulipInsuranceAmount ?? "0");
   return {
     optIn: reservation.tulipInsuranceOptIn === true,
     amount: Number.isFinite(parsedAmount) && parsedAmount > 0 ? parsedAmount : 0,

@@ -75,7 +75,10 @@ export const Price = ({
             {formatMoney(Math.round(compareAt / (1 + vatRate)))}
           </s>
         ) : null}
-        <data value={amountNet} className={cn("font-semibold tracking-tight", AMOUNT_CLASS_NAMES[size])}>
+        <data
+          value={amountNet}
+          className={cn("font-semibold tracking-tight", AMOUNT_CLASS_NAMES[size])}
+        >
           {formatMoney(amountNet)}
         </data>
         <span className={cn("font-normal text-muted-foreground", SUFFIX_CLASS_NAMES[size])}>

@@ -1,6 +1,6 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import type { PayAsYouGoConfig, PayAsYouGoTier } from '@louez/types';
+import type { PayAsYouGoConfig, PayAsYouGoTier } from "@louez/types";
 
 /**
  * Canonical validation for a pay-as-you-go pricing config. Shared by the admin
@@ -23,21 +23,19 @@ export const payAsYouGoConfigSchema = z
     // Reject contradictory ladders: no two bands sharing an upper bound and at most
     // one open-ended band (otherwise the monthly total becomes order-dependent).
     const tiers = config.tiers ?? [];
-    const bounds = tiers
-      .map((t) => t.upToCount)
-      .filter((c): c is number => c !== null);
+    const bounds = tiers.map((t) => t.upToCount).filter((c): c is number => c !== null);
     if (new Set(bounds).size !== bounds.length) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Duplicate tier limit',
-        path: ['tiers'],
+        message: "Duplicate tier limit",
+        path: ["tiers"],
       });
     }
     if (tiers.filter((t) => t.upToCount === null).length > 1) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Multiple open-ended tiers',
-        path: ['tiers'],
+        message: "Multiple open-ended tiers",
+        path: ["tiers"],
       });
     }
   });
@@ -50,9 +48,9 @@ export const payAsYouGoConfigSchema = z
  * re-validating here makes every consumer immune to that, and rejects malformed input.
  */
 export function parsePayAsYouGoConfig(raw: unknown): PayAsYouGoConfig | null {
-  if (raw === null || raw === undefined || raw === '') return null;
+  if (raw === null || raw === undefined || raw === "") return null;
   let value: unknown = raw;
-  if (typeof raw === 'string') {
+  if (typeof raw === "string") {
     try {
       value = JSON.parse(raw);
     } catch {
@@ -84,7 +82,7 @@ export const DEFAULT_PAY_AS_YOU_GO_TIERS: PayAsYouGoTier[] = [
   { upToCount: null, priceCents: 50 }, // 0,50€ beyond 200
 ];
 
-export const DEFAULT_PAY_AS_YOU_GO_CURRENCY = 'eur';
+export const DEFAULT_PAY_AS_YOU_GO_CURRENCY = "eur";
 
 export interface ResolvedPayAsYouGoConfig {
   flatRateCents: number | null;
@@ -111,33 +109,26 @@ function sortTiers(tiers: PayAsYouGoTier[]): PayAsYouGoTier[] {
 export function resolvePayAsYouGoConfig(
   config: PayAsYouGoConfig | null | undefined,
 ): ResolvedPayAsYouGoConfig {
-  const currency = (config?.currency || DEFAULT_PAY_AS_YOU_GO_CURRENCY)
-    .toLowerCase()
-    .slice(0, 3);
+  const currency = (config?.currency || DEFAULT_PAY_AS_YOU_GO_CURRENCY).toLowerCase().slice(0, 3);
 
   const flatRateCents =
-    typeof config?.flatRateCents === 'number' && config.flatRateCents >= 0
+    typeof config?.flatRateCents === "number" && config.flatRateCents >= 0
       ? Math.round(config.flatRateCents)
       : null;
 
   const rawTiers =
-    config?.tiers && config.tiers.length > 0
-      ? config.tiers
-      : DEFAULT_PAY_AS_YOU_GO_TIERS;
+    config?.tiers && config.tiers.length > 0 ? config.tiers : DEFAULT_PAY_AS_YOU_GO_TIERS;
 
   // Keep only well-formed bands, then sort. If everything was filtered out, fall
   // back to the platform default so pricing never silently becomes free.
   const cleaned = rawTiers.filter(
     (t) =>
-      (t.upToCount === null ||
-        (typeof t.upToCount === 'number' && t.upToCount > 0)) &&
-      typeof t.priceCents === 'number' &&
+      (t.upToCount === null || (typeof t.upToCount === "number" && t.upToCount > 0)) &&
+      typeof t.priceCents === "number" &&
       t.priceCents >= 0,
   );
 
-  const sorted = sortTiers(
-    cleaned.length > 0 ? cleaned : DEFAULT_PAY_AS_YOU_GO_TIERS,
-  );
+  const sorted = sortTiers(cleaned.length > 0 ? cleaned : DEFAULT_PAY_AS_YOU_GO_TIERS);
 
   // Drop duplicate `upToCount` bands (keep first) and anything after the first
   // open-ended band, so the resolved ladder is deterministic regardless of input
@@ -168,10 +159,7 @@ export function resolvePayAsYouGoConfig(
 /**
  * Price (in cents) for the rental at 1-based monthly position `index`.
  */
-export function priceForLocationIndex(
-  config: ResolvedPayAsYouGoConfig,
-  index: number,
-): number {
+export function priceForLocationIndex(config: ResolvedPayAsYouGoConfig, index: number): number {
   if (index < 1) return 0;
   if (config.flatRateCents !== null) return config.flatRateCents;
 
@@ -188,10 +176,7 @@ export function priceForLocationIndex(
  * Graduated total (in cents) for `n` rentals in a month: `Σ_{i=1..n} price(i)`.
  * Computed band-by-band, so it's O(tiers) regardless of `n`.
  */
-export function graduatedTotalCents(
-  config: ResolvedPayAsYouGoConfig,
-  n: number,
-): number {
+export function graduatedTotalCents(config: ResolvedPayAsYouGoConfig, n: number): number {
   if (n <= 0) return 0;
   if (config.flatRateCents !== null) return n * config.flatRateCents;
 
@@ -214,15 +199,15 @@ export function graduatedTotalCents(
  */
 export function buildPayAsYouGoConfig(
   values: {
-    useFlatRate: boolean
-    flatRateEuros: number
-    tiers: { upToCount: number | null; priceEuros: number }[]
+    useFlatRate: boolean;
+    flatRateEuros: number;
+    tiers: { upToCount: number | null; priceEuros: number }[];
   },
   currency: string,
 ): { flatRateCents: number | null; tiers: PayAsYouGoTier[]; currency: string } {
-  const toCents = (euros: number) => Math.round(euros * 100)
+  const toCents = (euros: number) => Math.round(euros * 100);
   if (values.useFlatRate) {
-    return { flatRateCents: toCents(values.flatRateEuros), tiers: [], currency }
+    return { flatRateCents: toCents(values.flatRateEuros), tiers: [], currency };
   }
   return {
     flatRateCents: null,
@@ -231,7 +216,7 @@ export function buildPayAsYouGoConfig(
       priceCents: toCents(tier.priceEuros),
     })),
     currency,
-  }
+  };
 }
 
 export interface PayAsYouGoBandSummary {

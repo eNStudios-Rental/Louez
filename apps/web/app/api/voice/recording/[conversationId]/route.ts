@@ -1,9 +1,9 @@
-import { and, eq } from 'drizzle-orm'
+import { and, eq } from "drizzle-orm";
 
-import { aiAdvisorConversations, db } from '@louez/db'
+import { aiAdvisorConversations, db } from "@louez/db";
 
-import { getCurrentStore } from '@/lib/store-context'
-import { getVoiceProvider } from '@/lib/voice/client'
+import { getCurrentStore } from "@/lib/store-context";
+import { getVoiceProvider } from "@/lib/voice/client";
 
 // Dashboard-only [SE-01]: streams a call recording's audio to the merchant.
 // Session-authenticated AND store-scoped [SE-05] — the conversation must belong
@@ -15,12 +15,12 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ conversationId: string }> },
 ) {
-  const store = await getCurrentStore()
-  if (!store) return new Response('Unauthorized', { status: 401 })
+  const store = await getCurrentStore();
+  if (!store) return new Response("Unauthorized", { status: 401 });
 
-  const { conversationId } = await params
+  const { conversationId } = await params;
   if (conversationId.length > 32) {
-    return new Response('Not found', { status: 404 })
+    return new Response("Not found", { status: 404 });
   }
 
   const conversation = await db.query.aiAdvisorConversations.findFirst({
@@ -29,13 +29,13 @@ export async function GET(
       eq(aiAdvisorConversations.storeId, store.id),
     ),
     columns: { recordingSid: true },
-  })
+  });
   if (!conversation?.recordingSid) {
-    return new Response('Not found', { status: 404 })
+    return new Response("Not found", { status: 404 });
   }
 
   return getVoiceProvider().fetchRecordingMedia({
     recordingSid: conversation.recordingSid,
-    range: req.headers.get('range'),
-  })
+    range: req.headers.get("range"),
+  });
 }

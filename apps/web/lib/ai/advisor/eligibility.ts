@@ -1,9 +1,9 @@
-import type { AiAdvisorSettings } from '@louez/types'
+import type { AiAdvisorSettings } from "@louez/types";
 
-import { checkAdvisorCredits } from '@/lib/ai/advisor/credits'
-import { isAIChatConfigured } from '@/lib/ai/provider'
-import { areAiCreditsEnabled } from '@/lib/plans'
-import { getStorePlan } from '@/lib/plan-limits'
+import { checkAdvisorCredits } from "@/lib/ai/advisor/credits";
+import { isAIChatConfigured } from "@/lib/ai/provider";
+import { areAiCreditsEnabled } from "@/lib/plans";
+import { getStorePlan } from "@/lib/plan-limits";
 
 /**
  * Single source of truth for whether the AI advisor is active for a store:
@@ -12,13 +12,13 @@ import { getStorePlan } from '@/lib/plan-limits'
  * the chat route — a checkout must never be blocked by an inactive advisor.
  */
 export async function isAdvisorActiveForStore(store: {
-  id: string
-  aiAdvisorSettings: AiAdvisorSettings | null
+  id: string;
+  aiAdvisorSettings: AiAdvisorSettings | null;
 }): Promise<boolean> {
   if (!store.aiAdvisorSettings?.enabled || !isAIChatConfigured()) {
-    return false
+    return false;
   }
-  return (await getStorePlan(store.id)).features.aiAdvisor
+  return (await getStorePlan(store.id)).features.aiAdvisor;
 }
 
 /**
@@ -30,21 +30,21 @@ export async function isAdvisorActiveForStore(store: {
  * isAdvisorActiveForStore and shows a neutral message on exhaustion.)
  */
 export async function isAdvisorReachableForStore(store: {
-  id: string
-  aiAdvisorSettings: AiAdvisorSettings | null
+  id: string;
+  aiAdvisorSettings: AiAdvisorSettings | null;
 }): Promise<boolean> {
   if (!store.aiAdvisorSettings?.enabled || !isAIChatConfigured()) {
-    return false
+    return false;
   }
-  const plan = await getStorePlan(store.id)
+  const plan = await getStorePlan(store.id);
   if (!plan.features.aiAdvisor) {
-    return false
+    return false;
   }
   if (areAiCreditsEnabled()) {
-    const check = await checkAdvisorCredits(store.id, plan)
+    const check = await checkAdvisorCredits(store.id, plan);
     if (!check.allowed) {
-      return false
+      return false;
     }
   }
-  return true
+  return true;
 }

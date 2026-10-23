@@ -17,7 +17,11 @@ interface TeamMembersCardProps {
   readOnly?: boolean;
 }
 
-export const TeamMembersCard = ({ members, canManageMembers, readOnly = false }: TeamMembersCardProps) => {
+export const TeamMembersCard = ({
+  members,
+  canManageMembers,
+  readOnly = false,
+}: TeamMembersCardProps) => {
   const t = useTranslations("dashboard.team");
 
   return (
@@ -37,7 +41,12 @@ export const TeamMembersCard = ({ members, canManageMembers, readOnly = false }:
       ) : (
         <div className="-mx-2 space-y-0.5 sm:-mx-3">
           {members.map((member) => (
-            <TeamMemberRow key={member.id} member={member} canManageMembers={canManageMembers} readOnly={readOnly} />
+            <TeamMemberRow
+              key={member.id}
+              member={member}
+              canManageMembers={canManageMembers}
+              readOnly={readOnly}
+            />
           ))}
         </div>
       )}

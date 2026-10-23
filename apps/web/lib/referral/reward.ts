@@ -1,8 +1,8 @@
 /** The Referrer's billing mode at reward time — decides the reward currency. */
-export type ReferrerBillingMode = 'pay_as_you_go' | 'subscription';
+export type ReferrerBillingMode = "pay_as_you_go" | "subscription";
 
 /** Free reservations for a pay-as-you-go Referrer; euro invoice credit for a subscribed one. */
-export type ReferralRewardKind = 'free_reservations' | 'invoice_credit';
+export type ReferralRewardKind = "free_reservations" | "invoice_credit";
 
 export interface ReferrerRewardInput {
   billingMode: ReferrerBillingMode;
@@ -33,9 +33,9 @@ export function computeReferrerReward(input: ReferrerRewardInput): ReferrerRewar
   const unitValueCents = Math.max(0, Math.trunc(input.unitValueCents));
   const displayValueCents = freeReservations * unitValueCents;
 
-  if (input.billingMode === 'subscription') {
+  if (input.billingMode === "subscription") {
     return {
-      kind: 'invoice_credit',
+      kind: "invoice_credit",
       freeReservations: 0,
       creditCents: displayValueCents,
       displayValueCents,
@@ -43,7 +43,7 @@ export function computeReferrerReward(input: ReferrerRewardInput): ReferrerRewar
   }
 
   return {
-    kind: 'free_reservations',
+    kind: "free_reservations",
     freeReservations,
     creditCents: 0,
     displayValueCents,

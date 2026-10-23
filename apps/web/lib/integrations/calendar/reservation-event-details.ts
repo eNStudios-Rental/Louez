@@ -1,4 +1,4 @@
-import type { ReservationLocationSnapshot } from '@louez/types';
+import type { ReservationLocationSnapshot } from "@louez/types";
 
 type CalendarStoreLocation = {
   name: string;
@@ -22,8 +22,9 @@ type CalendarReservationLogistics = {
 
 type CalendarReservationDescription = CalendarReservationLogistics & {
   customer: {
-    firstName: string;
-    lastName: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    companyName?: string | null;
     email?: string | null;
     phone?: string | null;
   };
@@ -38,13 +39,9 @@ function formatAddress(parts: {
   country?: string | null;
 }): string | null {
   return (
-    [
-      parts.address,
-      [parts.postalCode, parts.city].filter(Boolean).join(' '),
-      parts.country,
-    ]
+    [parts.address, [parts.postalCode, parts.city].filter(Boolean).join(" "), parts.country]
       .filter(Boolean)
-      .join(', ') || null
+      .join(", ") || null
   );
 }
 
@@ -72,30 +69,29 @@ export function buildReservationLogisticsDescriptionLines({
   store: CalendarStoreLocation;
 }): string[] {
   const pickup =
-    reservation.outboundMethod === 'address'
+    reservation.outboundMethod === "address"
       ? `Livraison - ${
           formatAddress({
             address: reservation.deliveryAddress,
             city: reservation.deliveryCity,
             postalCode: reservation.deliveryPostalCode,
             country: reservation.deliveryCountry,
-          }) ?? 'Adresse non renseignee'
+          }) ?? "Adresse non renseignee"
         }`
       : formatLocation(reservation.pickupLocationSnapshot, store);
 
   const dropoff =
-    reservation.returnMethod === 'address'
+    reservation.returnMethod === "address"
       ? `Reprise - ${
           formatAddress({
             address: reservation.returnAddress,
             city: reservation.returnCity,
             postalCode: reservation.returnPostalCode,
             country: reservation.returnCountry,
-          }) ?? 'Adresse non renseignee'
+          }) ?? "Adresse non renseignee"
         }`
       : formatLocation(
-          reservation.returnLocationSnapshot ??
-            reservation.pickupLocationSnapshot,
+          reservation.returnLocationSnapshot ?? reservation.pickupLocationSnapshot,
           store,
         );
 
@@ -103,7 +99,7 @@ export function buildReservationLogisticsDescriptionLines({
 }
 
 function joinSection(lines: Array<string | null | undefined>): string {
-  return lines.filter(Boolean).join('\n');
+  return lines.filter(Boolean).join("\n");
 }
 
 export function buildReservationCalendarDescription({
@@ -119,29 +115,29 @@ export function buildReservationCalendarDescription({
 }): string {
   return [
     joinSection([
-      'CLIENT',
-      `Nom: ${reservation.customer.firstName} ${reservation.customer.lastName}`,
-      reservation.customer.email
-        ? `Email: ${reservation.customer.email}`
-        : null,
-      reservation.customer.phone
-        ? `Telephone: ${reservation.customer.phone}`
-        : null,
+      "CLIENT",
+      `Nom: ${
+        reservation.customer.companyName ||
+        [reservation.customer.firstName, reservation.customer.lastName].filter(Boolean).join(" ") ||
+        "—"
+      }`,
+      reservation.customer.email ? `Email: ${reservation.customer.email}` : null,
+      reservation.customer.phone ? `Telephone: ${reservation.customer.phone}` : null,
     ]),
     joinSection([
-      'RESERVATION',
+      "RESERVATION",
       `Produits: ${productNames}`,
       `Total: ${reservation.totalAmount} EUR`,
       `Lien: ${reservationUrl}`,
     ]),
     joinSection([
-      'LOGISTIQUE',
+      "LOGISTIQUE",
       ...buildReservationLogisticsDescriptionLines({ reservation, store }),
     ]),
     reservation.customerNotes
-      ? joinSection(['NOTES', `Notes client: ${reservation.customerNotes}`])
+      ? joinSection(["NOTES", `Notes client: ${reservation.customerNotes}`])
       : null,
   ]
     .filter(Boolean)
-    .join('\n\n');
+    .join("\n\n");
 }

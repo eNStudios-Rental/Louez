@@ -1,23 +1,23 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@louez/ui"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@louez/ui"
-import { AlertTriangle, ArrowRight, ChevronDown, X } from "lucide-react"
-import { cn } from "@louez/utils"
-import type { StorePlanLimit } from "@/lib/dashboard/multi-store-metrics"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@louez/ui";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@louez/ui";
+import { AlertTriangle, ArrowRight, ChevronDown, X } from "lucide-react";
+import { cn } from "@louez/utils";
+import type { StorePlanLimit } from "@/lib/dashboard/multi-store-metrics";
 
 interface PlanLimitsAlertProps {
-  limits: StorePlanLimit[]
+  limits: StorePlanLimit[];
   translations: {
-    title: string
-    description: string
-    products: string
-    reservationsPerMonth: string
-    customers: string
-    upgrade: string
-  }
+    title: string;
+    description: string;
+    products: string;
+    reservationsPerMonth: string;
+    customers: string;
+    upgrade: string;
+  };
 }
 
 const limitTypeLabels: Record<
@@ -27,36 +27,36 @@ const limitTypeLabels: Record<
   products: "products",
   reservations: "reservationsPerMonth",
   customers: "customers",
-}
+};
 
 function setCurrentStoreCookie(storeId: string) {
-  document.cookie = `currentStoreId=${storeId}; path=/; max-age=31536000`
+  document.cookie = `currentStoreId=${storeId}; path=/; max-age=31536000`;
 }
 
 function getProgressColor(percent: number): string {
-  if (percent >= 100) return "bg-red-500"
-  if (percent >= 90) return "bg-amber-500"
-  return "bg-amber-400"
+  if (percent >= 100) return "bg-red-500";
+  if (percent >= 90) return "bg-amber-500";
+  return "bg-amber-400";
 }
 
 function getDisplayPercent(percent: number): number {
-  return Math.min(percent, 100)
+  return Math.min(percent, 100);
 }
 
 export function PlanLimitsAlert({ limits, translations }: PlanLimitsAlertProps) {
-  const router = useRouter()
-  const [isDismissed, setIsDismissed] = useState(false)
-  const [isOpen, setIsOpen] = useState(true)
+  const router = useRouter();
+  const [isDismissed, setIsDismissed] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   if (limits.length === 0 || isDismissed) {
-    return null
+    return null;
   }
 
   const handleUpgradeClick = (storeId: string) => {
-    setCurrentStoreCookie(storeId)
-    router.push("/dashboard/settings/subscription")
-    router.refresh()
-  }
+    setCurrentStoreCookie(storeId);
+    router.push("/dashboard/settings/subscription");
+    router.refresh();
+  };
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -156,5 +156,5 @@ export function PlanLimitsAlert({ limits, translations }: PlanLimitsAlertProps) 
         </CollapsibleContent>
       </div>
     </Collapsible>
-  )
+  );
 }

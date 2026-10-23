@@ -1,11 +1,11 @@
-import { Suspense } from 'react'
-import { getTranslations } from 'next-intl/server'
+import { Suspense } from "react";
+import { getTranslations } from "next-intl/server";
 
-import { getUserStores } from '@/lib/store-context'
-import { getRequestFormatLocale } from '@/lib/i18n/format-locale.server'
-import { Skeleton } from '@louez/ui'
-import { Card, CardContent, CardHeader } from '@louez/ui'
-import { MultiStorePageShell } from './_components/multi-store-page-shell'
+import { getUserStores } from "@/lib/store-context";
+import { getRequestFormatLocale } from "@/lib/i18n/format-locale.server";
+import { Skeleton } from "@louez/ui";
+import { Card, CardContent, CardHeader } from "@louez/ui";
+import { MultiStorePageShell } from "./_components/multi-store-page-shell";
 
 import {
   getMultiStoreMetrics,
@@ -13,7 +13,7 @@ import {
   getStoresApproachingLimits,
   getMultiStoreRevenueTrend,
   type Period,
-} from '@/lib/dashboard/multi-store-metrics'
+} from "@/lib/dashboard/multi-store-metrics";
 
 import {
   AggregateStats,
@@ -21,7 +21,7 @@ import {
   PlanLimitsAlert,
   StoresRevenueChart,
   MultiStorePeriodFilter,
-} from './_components'
+} from "./_components";
 
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
@@ -29,8 +29,8 @@ export const instant = false;
 
 interface MultiStorePageProps {
   searchParams: Promise<{
-    period?: string
-  }>
+    period?: string;
+  }>;
 }
 
 function StatCardSkeleton() {
@@ -47,7 +47,7 @@ function StatCardSkeleton() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function TableSkeleton() {
@@ -72,7 +72,7 @@ function TableSkeleton() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function ChartSkeleton() {
@@ -86,138 +86,119 @@ function ChartSkeleton() {
         <Skeleton className="h-[300px] w-full" />
       </CardContent>
     </Card>
-  )
+  );
 }
 
-async function AggregateStatsSection({
-  storeIds,
-  period,
-}: {
-  storeIds: string[]
-  period: Period
-}) {
-  const t = await getTranslations('dashboard.multiStore')
-  const tAnalytics = await getTranslations('dashboard.analytics')
-  const metrics = await getMultiStoreMetrics(storeIds, period)
+async function AggregateStatsSection({ storeIds, period }: { storeIds: string[]; period: Period }) {
+  const t = await getTranslations("dashboard.multiStore");
+  const tAnalytics = await getTranslations("dashboard.analytics");
+  const metrics = await getMultiStoreMetrics(storeIds, period);
 
   return (
     <AggregateStats
       metrics={metrics}
       translations={{
-        totalRevenue: t('stats.totalRevenue'),
-        reservations: t('stats.reservations'),
-        pending: t('stats.pending'),
-        customers: t('stats.customers'),
-        newCustomers: t('stats.newCustomers'),
+        totalRevenue: t("stats.totalRevenue"),
+        reservations: t("stats.reservations"),
+        pending: t("stats.pending"),
+        customers: t("stats.customers"),
+        newCustomers: t("stats.newCustomers"),
       }}
-      vsPreviousPeriod={tAnalytics('vsPreviousPeriod')}
+      vsPreviousPeriod={tAnalytics("vsPreviousPeriod")}
     />
-  )
+  );
 }
 
 async function PlanLimitsSection({ storeIds }: { storeIds: string[] }) {
-  const t = await getTranslations('dashboard.multiStore')
-  const limits = await getStoresApproachingLimits(storeIds, 80)
+  const t = await getTranslations("dashboard.multiStore");
+  const limits = await getStoresApproachingLimits(storeIds, 80);
 
   if (limits.length === 0) {
-    return null
+    return null;
   }
 
   return (
     <PlanLimitsAlert
       limits={limits}
       translations={{
-        title: t('limits.title'),
-        description: t('limits.description', { count: limits.length }),
-        products: t('limits.products'),
-        reservationsPerMonth: t('limits.reservations'),
-        customers: t('limits.customers'),
-        upgrade: t('limits.upgrade'),
+        title: t("limits.title"),
+        description: t("limits.description", { count: limits.length }),
+        products: t("limits.products"),
+        reservationsPerMonth: t("limits.reservations"),
+        customers: t("limits.customers"),
+        upgrade: t("limits.upgrade"),
       }}
     />
-  )
+  );
 }
 
-async function StoresTableSection({
-  storeIds,
-  period,
-}: {
-  storeIds: string[]
-  period: Period
-}) {
-  const t = await getTranslations('dashboard.multiStore')
+async function StoresTableSection({ storeIds, period }: { storeIds: string[]; period: Period }) {
+  const t = await getTranslations("dashboard.multiStore");
   const [performance, limits] = await Promise.all([
     getStorePerformance(storeIds, period),
     getStoresApproachingLimits(storeIds, 80),
-  ])
+  ]);
 
   const limitsMap = limits.reduce(
     (acc, limit) => {
-      acc[limit.storeId] = true
-      return acc
+      acc[limit.storeId] = true;
+      return acc;
     },
-    {} as Record<string, boolean>
-  )
+    {} as Record<string, boolean>,
+  );
 
   return (
     <StoresTable
       stores={performance}
       translations={{
-        title: t('table.title'),
-        store: t('table.store'),
-        plan: t('table.plan'),
-        revenue: t('table.revenue'),
-        change: t('table.change'),
-        reservations: t('table.reservations'),
-        pending: t('stats.pending'),
-        customers: t('table.customers'),
-        goToStore: t('table.goToStore'),
+        title: t("table.title"),
+        store: t("table.store"),
+        plan: t("table.plan"),
+        revenue: t("table.revenue"),
+        change: t("table.change"),
+        reservations: t("table.reservations"),
+        pending: t("stats.pending"),
+        customers: t("table.customers"),
+        goToStore: t("table.goToStore"),
       }}
       limitsMap={limitsMap}
     />
-  )
+  );
 }
 
-async function RevenueChartSection({
-  storeIds,
-  period,
-}: {
-  storeIds: string[]
-  period: Period
-}) {
-  const t = await getTranslations('dashboard.multiStore')
-  const tEmpty = await getTranslations('dashboard.multiStore.empty')
-  const { dateFns } = await getRequestFormatLocale()
-  const { data, storeNames } = await getMultiStoreRevenueTrend(storeIds, period, dateFns)
+async function RevenueChartSection({ storeIds, period }: { storeIds: string[]; period: Period }) {
+  const t = await getTranslations("dashboard.multiStore");
+  const tEmpty = await getTranslations("dashboard.multiStore.empty");
+  const { dateFns } = await getRequestFormatLocale();
+  const { data, storeNames } = await getMultiStoreRevenueTrend(storeIds, period, dateFns);
 
   return (
     <StoresRevenueChart
       data={data}
       storeNames={storeNames}
       translations={{
-        title: t('chart.title'),
-        description: t('chart.description'),
+        title: t("chart.title"),
+        description: t("chart.description"),
       }}
-      emptyMessage={tEmpty('description')}
+      emptyMessage={tEmpty("description")}
     />
-  )
+  );
 }
 
 export default async function MultiStorePage({ searchParams }: MultiStorePageProps) {
-  const stores = await getUserStores()
-  const storeIds = stores.map((s) => s.id)
-  const params = await searchParams
-  const period = (params.period as Period) || '30d'
+  const stores = await getUserStores();
+  const storeIds = stores.map((s) => s.id);
+  const params = await searchParams;
+  const period = (params.period as Period) || "30d";
 
-  const t = await getTranslations('dashboard.multiStore')
+  const t = await getTranslations("dashboard.multiStore");
 
   return (
     <MultiStorePageShell
-      title={t('title')}
-      description={t('description', { count: stores.length })}
+      title={t("title")}
+      description={t("description", { count: stores.length })}
       periodFilter={<MultiStorePeriodFilter />}
     >
-
       {/* Aggregate Stats */}
       <Suspense
         fallback={
@@ -246,5 +227,5 @@ export default async function MultiStorePage({ searchParams }: MultiStorePagePro
         <RevenueChartSection storeIds={storeIds} period={period} />
       </Suspense>
     </MultiStorePageShell>
-  )
+  );
 }

@@ -271,8 +271,8 @@ export async function getTopProductsByRevenue(
 
 export interface TopCustomerRow {
   customerId: string;
-  firstName: string;
-  lastName: string;
+  firstName: string | null;
+  lastName: string | null;
   companyName: string | null;
   customerType: "individual" | "business";
   totalRevenue: string;

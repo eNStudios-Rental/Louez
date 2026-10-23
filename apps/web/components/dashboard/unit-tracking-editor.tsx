@@ -4,15 +4,7 @@ import { useMemo, useRef, useState } from "react";
 
 import Link from "next/link";
 
-import {
-  AlertCircle,
-  ChevronDown,
-  ImagePlus,
-  Loader2,
-  Plus,
-  Trash2,
-  X,
-} from "lucide-react";
+import { AlertCircle, ChevronDown, ImagePlus, Loader2, Plus, Trash2, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button, InputPrice, Separator } from "@louez/ui";
@@ -183,7 +175,6 @@ function UnitRow({
           </div>
 
           {isEmpty && <p className="text-destructive mt-1.5 text-xs">{t("identifierRequired")}</p>}
-
         </div>
 
         {/* Expanded details: product form only edits details for new units. */}
@@ -630,7 +621,6 @@ export function UnitTrackingEditor({
               <span>{t("duplicateIdentifier")}</span>
             </div>
           )}
-
         </>
       )}
     </div>

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   createContext,
@@ -8,169 +8,166 @@ import {
   useCallback,
   useState,
   ReactNode,
-} from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { useRouter } from 'next/navigation'
-import { toastManager } from '@louez/ui'
-import type { ReservationPollResponse } from '@louez/types'
-import { useTranslations } from 'next-intl'
-import { orpc } from '@/lib/orpc/react'
-import {
-  invalidateReservationList,
-  invalidateReservationTimelines,
-} from '@/lib/orpc/invalidation'
+} from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { toastManager } from "@louez/ui";
+import type { ReservationPollResponse } from "@louez/types";
+import { useTranslations } from "next-intl";
+import { orpc } from "@/lib/orpc/react";
+import { invalidateReservationList, invalidateReservationTimelines } from "@/lib/orpc/invalidation";
 
 interface ReservationPollingContextValue {
-  pendingCount: number
-  pendingSupplierInvoices: number
-  pendingReservations: ReservationPollResponse['pendingReservations']
-  isPolling: boolean
-  lastUpdated: Date | null
-  refresh: () => Promise<void>
+  pendingCount: number;
+  pendingSupplierInvoices: number;
+  pendingReservations: ReservationPollResponse["pendingReservations"];
+  isPolling: boolean;
+  lastUpdated: Date | null;
+  refresh: () => Promise<void>;
 }
 
-const ReservationPollingContext = createContext<ReservationPollingContextValue | null>(null)
+const ReservationPollingContext = createContext<ReservationPollingContextValue | null>(null);
 
 interface ReservationPollingProviderProps {
-  children: ReactNode
+  children: ReactNode;
   /** Polling interval in milliseconds (default: 30000 = 30 seconds) */
-  interval?: number
+  interval?: number;
   /** Whether to play sound on new reservation (default: true) */
-  playSound?: boolean
+  playSound?: boolean;
   /** Sound file path (default: /sounds/notification.mp3) */
-  soundPath?: string
+  soundPath?: string;
 }
 
 export function ReservationPollingProvider({
   children,
   interval = 30000,
   playSound = true,
-  soundPath = '/sounds/notification.mp3',
+  soundPath = "/sounds/notification.mp3",
 }: ReservationPollingProviderProps) {
-  const router = useRouter()
-  const queryClient = useQueryClient()
-  const t = useTranslations('dashboard.notifications')
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const t = useTranslations("dashboard.notifications");
 
-  const [pendingCount, setPendingCount] = useState(0)
-  const [pendingSupplierInvoices, setPendingSupplierInvoices] = useState(0)
+  const [pendingCount, setPendingCount] = useState(0);
+  const [pendingSupplierInvoices, setPendingSupplierInvoices] = useState(0);
   const [pendingReservations, setPendingReservations] = useState<
-    ReservationPollResponse['pendingReservations']
-  >([])
-  const [isPolling, setIsPolling] = useState(false)
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+    ReservationPollResponse["pendingReservations"]
+  >([]);
+  const [isPolling, setIsPolling] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const lastReservationIdRef = useRef<string | null>(null)
-  const lastReservationCreatedAtRef = useRef<number | null>(null)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const isFirstPollRef = useRef(true)
+  const lastReservationIdRef = useRef<string | null>(null);
+  const lastReservationCreatedAtRef = useRef<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isFirstPollRef = useRef(true);
 
   // Initialize audio element
   useEffect(() => {
-    if (playSound && typeof window !== 'undefined') {
-      audioRef.current = new Audio(soundPath)
-      audioRef.current.volume = 0.5
+    if (playSound && typeof window !== "undefined") {
+      audioRef.current = new Audio(soundPath);
+      audioRef.current.volume = 0.5;
     }
     return () => {
-      audioRef.current = null
-    }
-  }, [playSound, soundPath])
+      audioRef.current = null;
+    };
+  }, [playSound, soundPath]);
 
   const playNotificationSound = useCallback(() => {
     if (audioRef.current && playSound) {
-      audioRef.current.currentTime = 0
+      audioRef.current.currentTime = 0;
       audioRef.current.play().catch((error) => {
-        console.debug('Could not play notification sound:', error)
-      })
+        console.debug("Could not play notification sound:", error);
+      });
     }
-  }, [playSound])
+  }, [playSound]);
 
   const poll = useCallback(async () => {
     try {
-      setIsPolling(true)
+      setIsPolling(true);
       const data: ReservationPollResponse = await queryClient.fetchQuery(
         orpc.dashboard.reservations.poll.queryOptions({
           input: {},
         }),
-      )
+      );
 
       // Always update pending count
-      setPendingCount(data.pendingCount)
-      setPendingSupplierInvoices(data.pendingSupplierInvoices)
-      setPendingReservations(data.pendingReservations)
-      setLastUpdated(new Date())
+      setPendingCount(data.pendingCount);
+      setPendingSupplierInvoices(data.pendingSupplierInvoices);
+      setPendingReservations(data.pendingReservations);
+      setLastUpdated(new Date());
 
       // On first poll, just store the reference values
       if (isFirstPollRef.current) {
-        lastReservationIdRef.current = data.latestReservation?.id || null
+        lastReservationIdRef.current = data.latestReservation?.id || null;
         lastReservationCreatedAtRef.current = data.latestReservation
           ? Date.parse(data.latestReservation.createdAt)
-          : null
-        isFirstPollRef.current = false
-        return
+          : null;
+        isFirstPollRef.current = false;
+        return;
       }
 
       const latestReservationCreatedAt = data.latestReservation
         ? Date.parse(data.latestReservation.createdAt)
-        : null
+        : null;
 
       // Check if there's a newly submitted storefront reservation request
       const hasNewReservation =
         data.latestReservation &&
         lastReservationIdRef.current !== data.latestReservation.id &&
         latestReservationCreatedAt !== null &&
-        latestReservationCreatedAt > (lastReservationCreatedAtRef.current || 0)
+        latestReservationCreatedAt > (lastReservationCreatedAtRef.current || 0);
 
       if (hasNewReservation) {
         // Update references
-        lastReservationIdRef.current = data.latestReservation!.id
-        lastReservationCreatedAtRef.current = latestReservationCreatedAt
+        lastReservationIdRef.current = data.latestReservation!.id;
+        lastReservationCreatedAtRef.current = latestReservationCreatedAt;
 
         // Play sound
-        playNotificationSound()
+        playNotificationSound();
 
         // Show toast notification
         toastManager.add({
-          title: t('newReservation', { number: data.latestReservation!.number }),
-          description: t('newReservationDescription'),
-          type: 'info',
-        })
+          title: t("newReservation", { number: data.latestReservation!.number }),
+          description: t("newReservationDescription"),
+          type: "info",
+        });
 
         // Refresh the page data
-        router.refresh()
+        router.refresh();
         await Promise.all([
           invalidateReservationList(queryClient),
           invalidateReservationTimelines(queryClient),
-        ])
+        ]);
       } else if (
         data.latestReservation &&
         latestReservationCreatedAt !== null &&
         latestReservationCreatedAt > (lastReservationCreatedAtRef.current || 0)
       ) {
-        lastReservationIdRef.current = data.latestReservation.id
-        lastReservationCreatedAtRef.current = latestReservationCreatedAt
+        lastReservationIdRef.current = data.latestReservation.id;
+        lastReservationCreatedAtRef.current = latestReservationCreatedAt;
       }
     } catch (error) {
-      console.debug('Polling error:', error)
+      console.debug("Polling error:", error);
     } finally {
-      setIsPolling(false)
+      setIsPolling(false);
     }
-  }, [queryClient, router, playNotificationSound, t])
+  }, [queryClient, router, playNotificationSound, t]);
 
   const refresh = useCallback(async () => {
-    await poll()
-  }, [poll])
+    await poll();
+  }, [poll]);
 
   useEffect(() => {
     // Initial poll
-    poll()
+    poll();
 
     // Set up interval
-    const intervalId = setInterval(poll, interval)
+    const intervalId = setInterval(poll, interval);
 
     return () => {
-      clearInterval(intervalId)
-    }
-  }, [poll, interval])
+      clearInterval(intervalId);
+    };
+  }, [poll, interval]);
 
   return (
     <ReservationPollingContext.Provider
@@ -185,13 +182,13 @@ export function ReservationPollingProvider({
     >
       {children}
     </ReservationPollingContext.Provider>
-  )
+  );
 }
 
 export function useReservationPolling() {
-  const context = useContext(ReservationPollingContext)
+  const context = useContext(ReservationPollingContext);
   if (!context) {
-    throw new Error('useReservationPolling must be used within a ReservationPollingProvider')
+    throw new Error("useReservationPolling must be used within a ReservationPollingProvider");
   }
-  return context
+  return context;
 }

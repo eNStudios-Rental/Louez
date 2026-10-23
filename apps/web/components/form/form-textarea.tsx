@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { useFieldContext, getFieldError } from '@/hooks/form/form-context'
-import { Label, Textarea, type TextareaProps } from '@louez/ui'
+import { useFieldContext, getFieldError } from "@/hooks/form/form-context";
+import { Label, Textarea, type TextareaProps } from "@louez/ui";
 
 export function FormTextarea({
   label,
@@ -9,8 +9,8 @@ export function FormTextarea({
   description,
   ...props
 }: { label?: string; labelHelper?: string; description?: string } & TextareaProps) {
-  const field = useFieldContext<string>()
-  const errors = field.state.meta.errors
+  const field = useFieldContext<string>();
+  const errors = field.state.meta.errors;
 
   return (
     <div className="grid gap-2 min-w-0">
@@ -28,14 +28,8 @@ export function FormTextarea({
         aria-invalid={errors.length > 0}
         {...props}
       />
-      {description && (
-        <p className="text-muted-foreground text-sm">{description}</p>
-      )}
-      {errors.length > 0 && (
-        <p className="text-destructive text-sm">
-          {getFieldError(errors[0])}
-        </p>
-      )}
+      {description && <p className="text-muted-foreground text-sm">{description}</p>}
+      {errors.length > 0 && <p className="text-destructive text-sm">{getFieldError(errors[0])}</p>}
     </div>
-  )
+  );
 }

@@ -1,9 +1,9 @@
-import { Card } from '@louez/ui';
-import type { StockKind } from '@louez/types';
+import { Card } from "@louez/ui";
+import type { StockKind } from "@louez/types";
 
-import type { Reservation } from '@/app/(dashboard)/dashboard/reservations/reservations-types';
+import type { Reservation } from "@/app/(dashboard)/dashboard/reservations/reservations-types";
 
-import { ProductReservationsSectionBody } from './product-reservations-section-body';
+import { ProductReservationsSectionBody } from "./product-reservations-section-body";
 
 interface ProductReservationsSectionProps {
   reservationsPage: { items: Reservation[]; total: number };

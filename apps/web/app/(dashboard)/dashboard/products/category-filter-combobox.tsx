@@ -90,7 +90,12 @@ export const CategoryFilterCombobox = ({
           className="size-4 shrink-0 opacity-70 transition-opacity group-hover:opacity-100"
         />
       </PopoverTrigger>
-      <PopoverContent initialFocus={autoFocus ? undefined : false} finalFocus={autoFocus ? undefined : false} align="start" className="w-72 p-0 pt-1 *:p-0">
+      <PopoverContent
+        initialFocus={autoFocus ? undefined : false}
+        finalFocus={autoFocus ? undefined : false}
+        align="start"
+        className="w-72 p-0 pt-1 *:p-0"
+      >
         <Command open items={filteredCategories} filter={null}>
           <CommandInput
             autoFocus={autoFocus}
@@ -127,7 +132,13 @@ export const CategoryFilterCombobox = ({
         </Command>
         {selectedIds.size > 0 && (
           <div className="border-t p-1">
-            <Button data-demo-target="products-clear-categories" variant="ghost" size="sm" className="w-full" onClick={() => onChange([])}>
+            <Button
+              data-demo-target="products-clear-categories"
+              variant="ghost"
+              size="sm"
+              className="w-full"
+              onClick={() => onChange([])}
+            >
               {t("allCategories")}
             </Button>
           </div>

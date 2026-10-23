@@ -187,7 +187,7 @@ export async function getDashboardReservationEditContext(params: {
         columns: { id: true, metadata: true },
         orderBy: (activity, { desc }) => [desc(activity.createdAt)],
       },
-      customer: { columns: { firstName: true, lastName: true } },
+      customer: { columns: { firstName: true, lastName: true, companyName: true } },
       items: {
         with: {
           product: {
@@ -304,10 +304,7 @@ export async function getDashboardReservationEditContext(params: {
         product: item.product ? mapProduct(withEffectiveQuantity(item.product)) : null,
       })),
       customer: {
-        firstName:
-          reservation.customer.firstName ??
-          reservation.customer.companyName ??
-          "",
+        firstName: reservation.customer.firstName ?? reservation.customer.companyName ?? "",
         lastName: reservation.customer.lastName ?? "",
       },
     },

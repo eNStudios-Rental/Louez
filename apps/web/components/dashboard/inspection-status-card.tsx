@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { useTranslations } from 'next-intl'
-import { ClipboardCheck, ArrowRight, Camera, Download, MoreVertical } from 'lucide-react'
-import { cn } from '@louez/utils'
-import { Button } from '@louez/ui'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@louez/ui'
-import { Badge } from '@louez/ui'
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { ClipboardCheck, ArrowRight, Camera, Download, MoreVertical } from "lucide-react";
+import { cn } from "@louez/utils";
+import { Button } from "@louez/ui";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@louez/ui";
+import { Badge } from "@louez/ui";
 import {
   ClockSolidIcon,
   FailedSolidIcon,
@@ -18,85 +18,85 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@louez/ui'
-import type { InspectionStatus, InspectionType } from '@louez/types'
+} from "@louez/ui";
+import type { InspectionStatus, InspectionType } from "@louez/types";
 
 interface InspectionData {
-  id: string
-  type: InspectionType
-  status: InspectionStatus
-  hasDamage: boolean
-  itemCount: number
-  photoCount: number
-  createdAt: Date
-  signedAt?: Date | null
+  id: string;
+  type: InspectionType;
+  status: InspectionStatus;
+  hasDamage: boolean;
+  itemCount: number;
+  photoCount: number;
+  createdAt: Date;
+  signedAt?: Date | null;
 }
 
 interface InspectionStatusCardProps {
-  reservationId: string
-  reservationStatus: string
-  departureInspection?: InspectionData | null
-  returnInspection?: InspectionData | null
-  inspectionEnabled: boolean
-  inspectionMode: 'optional' | 'recommended' | 'required'
-  className?: string
+  reservationId: string;
+  reservationStatus: string;
+  departureInspection?: InspectionData | null;
+  returnInspection?: InspectionData | null;
+  inspectionEnabled: boolean;
+  inspectionMode: "optional" | "recommended" | "required";
+  className?: string;
 }
 
 function getStatusConfig(status: InspectionStatus | null, hasDamage?: boolean) {
   if (!status) {
     return {
       icon: ClockSolidIcon,
-      color: 'text-muted-foreground',
-      bgColor: 'bg-muted',
-      badgeVariant: 'expired' as const,
-    }
+      color: "text-muted-foreground",
+      bgColor: "bg-muted",
+      badgeVariant: "expired" as const,
+    };
   }
 
   switch (status) {
-    case 'draft':
+    case "draft":
       return {
         icon: ClockSolidIcon,
-        color: 'text-amber-600 dark:text-amber-400',
-        bgColor: 'bg-amber-50 dark:bg-amber-950/30',
-        badgeVariant: 'pending' as const,
-      }
-    case 'completed':
+        color: "text-amber-600 dark:text-amber-400",
+        bgColor: "bg-amber-50 dark:bg-amber-950/30",
+        badgeVariant: "pending" as const,
+      };
+    case "completed":
       if (hasDamage) {
         return {
           icon: FailedSolidIcon,
-          color: 'text-red-600 dark:text-red-400',
-          bgColor: 'bg-red-50 dark:bg-red-950/30',
-          badgeVariant: 'failed' as const,
-        }
+          color: "text-red-600 dark:text-red-400",
+          bgColor: "bg-red-50 dark:bg-red-950/30",
+          badgeVariant: "failed" as const,
+        };
       }
       return {
         icon: SuccessSolidIcon,
-        color: 'text-emerald-600 dark:text-emerald-400',
-        bgColor: 'bg-emerald-50 dark:bg-emerald-950/30',
-        badgeVariant: 'success' as const,
-      }
-    case 'signed':
+        color: "text-emerald-600 dark:text-emerald-400",
+        bgColor: "bg-emerald-50 dark:bg-emerald-950/30",
+        badgeVariant: "success" as const,
+      };
+    case "signed":
       if (hasDamage) {
         return {
           icon: FailedSolidIcon,
-          color: 'text-red-600 dark:text-red-400',
-          bgColor: 'bg-red-50 dark:bg-red-950/30',
-          badgeVariant: 'failed' as const,
-        }
+          color: "text-red-600 dark:text-red-400",
+          bgColor: "bg-red-50 dark:bg-red-950/30",
+          badgeVariant: "failed" as const,
+        };
       }
       return {
         icon: SubmittedSolidIcon,
-        color: 'text-emerald-600 dark:text-emerald-400',
-        bgColor: 'bg-emerald-50 dark:bg-emerald-950/30',
-        badgeVariant: 'success' as const,
-      }
+        color: "text-emerald-600 dark:text-emerald-400",
+        bgColor: "bg-emerald-50 dark:bg-emerald-950/30",
+        badgeVariant: "success" as const,
+      };
     default:
       return {
         icon: FailedSolidIcon,
-        color: 'text-muted-foreground',
-        bgColor: 'bg-muted',
-        badgeVariant: 'expired' as const,
-      }
+        color: "text-muted-foreground",
+        bgColor: "bg-muted",
+        badgeVariant: "expired" as const,
+      };
   }
 }
 
@@ -107,46 +107,41 @@ function InspectionSlot({
   reservationStatus,
   canStart,
 }: {
-  type: InspectionType
-  inspection?: InspectionData | null
-  reservationId: string
-  reservationStatus: string
-  canStart: boolean
+  type: InspectionType;
+  inspection?: InspectionData | null;
+  reservationId: string;
+  reservationStatus: string;
+  canStart: boolean;
 }) {
-  const t = useTranslations('dashboard.settings.inspection')
+  const t = useTranslations("dashboard.settings.inspection");
 
-  const status = inspection?.status || null
-  const config = getStatusConfig(status, inspection?.hasDamage)
-  const Icon = config.icon
+  const status = inspection?.status || null;
+  const config = getStatusConfig(status, inspection?.hasDamage);
+  const Icon = config.icon;
 
   const showStartButton =
     canStart &&
     !inspection &&
-    ((type === 'departure' && reservationStatus === 'confirmed') ||
-      (type === 'return' && reservationStatus === 'ongoing'))
+    ((type === "departure" && reservationStatus === "confirmed") ||
+      (type === "return" && reservationStatus === "ongoing"));
 
-  const showViewButton = !!inspection
+  const showViewButton = !!inspection;
 
   return (
     <div
       className={cn(
-        'flex items-center justify-between rounded-xl border p-4',
-        inspection && config.bgColor
+        "flex items-center justify-between rounded-xl border p-4",
+        inspection && config.bgColor,
       )}
     >
       <div className="flex items-center gap-3">
         <div
           className={cn(
-            'flex h-10 w-10 items-center justify-center rounded-full',
-            inspection ? config.bgColor : 'bg-muted'
+            "flex h-10 w-10 items-center justify-center rounded-full",
+            inspection ? config.bgColor : "bg-muted",
           )}
         >
-          <Icon
-            className={cn(
-              'h-5 w-5',
-              inspection ? config.color : 'text-muted-foreground'
-            )}
-          />
+          <Icon className={cn("h-5 w-5", inspection ? config.color : "text-muted-foreground")} />
         </div>
         <div>
           <p className="font-medium">{t(`types.${type}`)}</p>
@@ -164,34 +159,49 @@ function InspectionSlot({
                 )}
               </>
             ) : (
-              <span>{t('status.notStarted')}</span>
+              <span>{t("status.notStarted")}</span>
             )}
           </div>
         </div>
       </div>
 
       {showStartButton && (
-        <Button render={<Link href={`/dashboard/reservations/${reservationId}/inspection/${type}`} />}>
-            {t('card.start')}
-            <ArrowRight className="ml-2 h-4 w-4" />
+        <Button
+          render={<Link href={`/dashboard/reservations/${reservationId}/inspection/${type}`} />}
+        >
+          {t("card.start")}
+          <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       )}
 
       {showViewButton && (
         <div className="flex items-center gap-1">
-          <Button variant="outline" render={<Link href={`/dashboard/reservations/${reservationId}/inspection/${type}`} />}>
-              {t('card.view')}
+          <Button
+            variant="outline"
+            render={<Link href={`/dashboard/reservations/${reservationId}/inspection/${type}`} />}
+          >
+            {t("card.view")}
           </Button>
-          {(inspection?.status === 'completed' || inspection?.status === 'signed') && (
+          {(inspection?.status === "completed" || inspection?.status === "signed") && (
             <DropdownMenu>
-              <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8" />}>
-                  <MoreVertical className="h-4 w-4" />
-                  <span className="sr-only">{t('card.moreActions')}</span>
+              <DropdownMenuTrigger
+                render={<Button variant="ghost" size="icon" className="h-8 w-8" />}
+              >
+                <MoreVertical className="h-4 w-4" />
+                <span className="sr-only">{t("card.moreActions")}</span>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem render={<a href={`/api/inspections/${inspection.id}/report`} download className="flex items-center" />}>
-                    <Download className="mr-2 h-4 w-4" />
-                    {t('card.downloadPdf')}
+                <DropdownMenuItem
+                  render={
+                    <a
+                      href={`/api/inspections/${inspection.id}/report`}
+                      download
+                      className="flex items-center"
+                    />
+                  }
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  {t("card.downloadPdf")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -199,7 +209,7 @@ function InspectionSlot({
         </div>
       )}
     </div>
-  )
+  );
 }
 
 export function InspectionStatusCard({
@@ -211,29 +221,29 @@ export function InspectionStatusCard({
   inspectionMode,
   className,
 }: InspectionStatusCardProps) {
-  const t = useTranslations('dashboard.settings.inspection')
+  const t = useTranslations("dashboard.settings.inspection");
 
   // Don't show if inspections are disabled
   if (!inspectionEnabled) {
-    return null
+    return null;
   }
 
   // Determine if we should show the card based on status
   const showCard =
-    ['confirmed', 'ongoing', 'completed'].includes(reservationStatus) ||
+    ["confirmed", "ongoing", "completed"].includes(reservationStatus) ||
     departureInspection ||
-    returnInspection
+    returnInspection;
 
   if (!showCard) {
-    return null
+    return null;
   }
 
-  const hasAnyInspection = departureInspection || returnInspection
-  const hasBothInspections = departureInspection && returnInspection
+  const hasAnyInspection = departureInspection || returnInspection;
+  const hasBothInspections = departureInspection && returnInspection;
   const showCompareButton =
     hasBothInspections &&
-    departureInspection.status !== 'draft' &&
-    returnInspection.status !== 'draft'
+    departureInspection.status !== "draft" &&
+    returnInspection.status !== "draft";
 
   return (
     <Card className={className}>
@@ -241,9 +251,9 @@ export function InspectionStatusCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ClipboardCheck className="h-5 w-5 text-primary" />
-            <CardTitle className="text-lg">{t('card.title')}</CardTitle>
+            <CardTitle className="text-lg">{t("card.title")}</CardTitle>
           </div>
-          {inspectionMode !== 'optional' && (
+          {inspectionMode !== "optional" && (
             <Badge variant="expired" className="text-xs">
               {t(`mode${inspectionMode.charAt(0).toUpperCase() + inspectionMode.slice(1)}`)}
             </Badge>
@@ -251,9 +261,7 @@ export function InspectionStatusCard({
         </div>
         {!hasAnyInspection && (
           <CardDescription>
-            {reservationStatus === 'confirmed'
-              ? t('card.availableAtDeparture')
-              : t('description')}
+            {reservationStatus === "confirmed" ? t("card.availableAtDeparture") : t("description")}
           </CardDescription>
         )}
       </CardHeader>
@@ -276,11 +284,15 @@ export function InspectionStatusCard({
         />
 
         {showCompareButton && (
-          <Button variant="outline" className="w-full" render={<Link href={`/dashboard/reservations/${reservationId}/inspection/compare`} />}>
-              {t('card.compare')}
+          <Button
+            variant="outline"
+            className="w-full"
+            render={<Link href={`/dashboard/reservations/${reservationId}/inspection/compare`} />}
+          >
+            {t("card.compare")}
           </Button>
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

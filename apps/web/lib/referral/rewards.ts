@@ -1,72 +1,67 @@
-import { and, eq, sql } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
-import type Stripe from 'stripe';
+import { and, eq, sql } from "drizzle-orm";
+import { nanoid } from "nanoid";
+import type Stripe from "stripe";
 
-import { db } from '@louez/db';
-import { referralRewards, subscriptions } from '@louez/db';
+import { db } from "@louez/db";
+import { referralRewards, subscriptions } from "@louez/db";
 
-import { priceForLocationIndex } from '@/lib/pay-as-you-go/config';
+import { priceForLocationIndex } from "@/lib/pay-as-you-go/config";
 import {
   getDefaultFreeReservations,
   getDefaultPayAsYouGoConfigSnapshot,
-} from '@/lib/pay-as-you-go/defaults';
-import { billingMonthOf, getStoreBilling } from '@/lib/pay-as-you-go/metering';
-import { captureReferralServerEvent } from '@/lib/referral/analytics';
-import { referralAnalyticsEvents } from '@/lib/referral/analytics-events';
-import { stripe } from '@/lib/stripe/client';
-import { getOrCreateStripeCustomer } from '@/lib/stripe/subscriptions';
+} from "@/lib/pay-as-you-go/defaults";
+import { billingMonthOf, getStoreBilling } from "@/lib/pay-as-you-go/metering";
+import { captureReferralServerEvent } from "@/lib/referral/analytics";
+import { referralAnalyticsEvents } from "@/lib/referral/analytics-events";
+import { stripe } from "@/lib/stripe/client";
+import { getOrCreateStripeCustomer } from "@/lib/stripe/subscriptions";
 
-import { isWithinMonthlyCap } from './cap';
-import {
-  computeFreeReservationClawback,
-  isWithinClawbackWindow,
-} from './clawback';
-import { getReferralProgramConfig } from './defaults';
-import { notifyReferrerRewardGranted } from './notify';
-import { qualifiesForReferralReward } from './qualification';
-import { computeReferrerReward } from './reward';
+import { isWithinMonthlyCap } from "./cap";
+import { computeFreeReservationClawback, isWithinClawbackWindow } from "./clawback";
+import { getReferralProgramConfig } from "./defaults";
+import { notifyReferrerRewardGranted } from "./notify";
+import { qualifiesForReferralReward } from "./qualification";
+import { computeReferrerReward } from "./reward";
 
 /** mysql2 surfaces a unique-violation as a "Duplicate entry" error — swallowed for idempotency. */
 function isDuplicateError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
-  return message.includes('Duplicate') || message.includes('unique');
+  return message.includes("Duplicate") || message.includes("unique");
 }
 
-function stripeResourceId(
-  resource: string | { id?: string } | null | undefined,
-): string | null {
+function stripeResourceId(resource: string | { id?: string } | null | undefined): string | null {
   if (!resource) return null;
-  if (typeof resource === 'string') return resource;
-  return typeof resource.id === 'string' ? resource.id : null;
+  if (typeof resource === "string") return resource;
+  return typeof resource.id === "string" ? resource.id : null;
 }
 
 function isDeletedInvoiceItem(
   item: Stripe.InvoiceItem | Stripe.DeletedInvoiceItem,
 ): item is Stripe.DeletedInvoiceItem {
-  return 'deleted' in item && item.deleted === true;
+  return "deleted" in item && item.deleted === true;
 }
 
 async function getInvoiceCreditClawbackTarget(invoiceItemId: string): Promise<
   | {
-      state: 'deleted' | 'deletable';
+      state: "deleted" | "deletable";
       customerId: string | null;
       invoiceId: string | null;
       invoiceStatus: string | null;
     }
   | {
-      state: 'finalized_invoice';
+      state: "finalized_invoice";
       customerId: string | null;
       invoiceId: string;
       invoiceStatus: string | null;
     }
 > {
   const item = await stripe.invoiceItems.retrieve(invoiceItemId, {
-    expand: ['invoice'],
+    expand: ["invoice"],
   });
 
   if (isDeletedInvoiceItem(item)) {
     return {
-      state: 'deleted',
+      state: "deleted",
       customerId: null,
       invoiceId: null,
       invoiceStatus: null,
@@ -77,7 +72,7 @@ async function getInvoiceCreditClawbackTarget(invoiceItemId: string): Promise<
   const invoiceId = stripeResourceId(item.invoice);
   if (!invoiceId) {
     return {
-      state: 'deletable',
+      state: "deletable",
       customerId,
       invoiceId: null,
       invoiceStatus: null,
@@ -85,13 +80,11 @@ async function getInvoiceCreditClawbackTarget(invoiceItemId: string): Promise<
   }
 
   const invoice =
-    typeof item.invoice === 'string'
-      ? await stripe.invoices.retrieve(item.invoice)
-      : item.invoice;
+    typeof item.invoice === "string" ? await stripe.invoices.retrieve(item.invoice) : item.invoice;
   const invoiceStatus = invoice?.status ?? null;
-  if (invoiceStatus === 'draft') {
+  if (invoiceStatus === "draft") {
     return {
-      state: 'deletable',
+      state: "deletable",
       customerId,
       invoiceId,
       invoiceStatus,
@@ -99,7 +92,7 @@ async function getInvoiceCreditClawbackTarget(invoiceItemId: string): Promise<
   }
 
   return {
-    state: 'finalized_invoice',
+    state: "finalized_invoice",
     customerId,
     invoiceId,
     invoiceStatus,
@@ -153,7 +146,7 @@ async function trackQualifyingPaymentEvaluated({
     distinctId: referralRewardDistinctId(input),
     event: referralAnalyticsEvents.qualifyingPaymentEvaluated,
     properties: {
-      placement: 'stripe_connect_webhook',
+      placement: "stripe_connect_webhook",
       granted,
       reason,
       referrer_store_id: input.referredStore.referredByStoreId,
@@ -190,7 +183,7 @@ async function trackReferrerRewardGranted({
     distinctId: referralRewardDistinctId(input),
     event: referralAnalyticsEvents.rewardGranted,
     properties: {
-      placement: 'stripe_connect_webhook',
+      placement: "stripe_connect_webhook",
       referrer_store_id: input.referredStore.referredByStoreId,
       referred_store_id: input.referredStore.id,
       qualifying_amount_cents: input.qualifyingAmountCents,
@@ -223,7 +216,7 @@ async function trackClawbackEvaluated({
     distinctId: reward.referredUserId ?? reward.referrerStoreId,
     event: referralAnalyticsEvents.clawbackEvaluated,
     properties: {
-      placement: 'stripe_connect_webhook',
+      placement: "stripe_connect_webhook",
       clawed_back: clawedBack,
       reason,
       referrer_store_id: reward.referrerStoreId,
@@ -251,7 +244,7 @@ async function trackReferrerRewardClawedBack({
     distinctId: reward.referredUserId ?? reward.referrerStoreId,
     event: referralAnalyticsEvents.rewardClawedBack,
     properties: {
-      placement: 'stripe_connect_webhook',
+      placement: "stripe_connect_webhook",
       referrer_store_id: reward.referrerStoreId,
       referred_store_id: reward.referredStoreId,
       reward_kind: reward.kind,
@@ -279,9 +272,9 @@ export async function maybeGrantReferrerReward(
     await trackQualifyingPaymentEvaluated({
       input,
       granted: false,
-      reason: 'no_referrer',
+      reason: "no_referrer",
     });
-    return { granted: false, reason: 'no_referrer' };
+    return { granted: false, reason: "no_referrer" };
   }
 
   const config = getReferralProgramConfig();
@@ -289,16 +282,16 @@ export async function maybeGrantReferrerReward(
   if (
     !qualifiesForReferralReward({
       amountCents: input.qualifyingAmountCents,
-      channel: 'online',
+      channel: "online",
       minQualifyingAmountCents: config.minQualifyingAmountCents,
     })
   ) {
     await trackQualifyingPaymentEvaluated({
       input,
       granted: false,
-      reason: 'below_minimum',
+      reason: "below_minimum",
     });
-    return { granted: false, reason: 'below_minimum' };
+    return { granted: false, reason: "below_minimum" };
   }
 
   // Idempotency short-circuit (the unique constraint is the real guard against races).
@@ -310,9 +303,9 @@ export async function maybeGrantReferrerReward(
     await trackQualifyingPaymentEvaluated({
       input,
       granted: false,
-      reason: 'already_rewarded',
+      reason: "already_rewarded",
     });
-    return { granted: false, reason: 'already_rewarded' };
+    return { granted: false, reason: "already_rewarded" };
   }
 
   // Size the reward from the Referrer's own billing: free reservations valued at their
@@ -320,17 +313,14 @@ export async function maybeGrantReferrerReward(
   const referrerBilling = await getStoreBilling(referrerStoreId);
   const unitValueCents = priceForLocationIndex(referrerBilling.config, 1);
   const reward = computeReferrerReward({
-    billingMode:
-      referrerBilling.billingMode === 'subscription'
-        ? 'subscription'
-        : 'pay_as_you_go',
+    billingMode: referrerBilling.billingMode === "subscription" ? "subscription" : "pay_as_you_go",
     freeReservations: config.referrerRewardFreeReservations,
     unitValueCents,
   });
 
   const at = input.at ?? new Date();
   const grantedMonth = billingMonthOf(at);
-  const currency = (referrerBilling.config.currency || input.currency || 'eur')
+  const currency = (referrerBilling.config.currency || input.currency || "eur")
     .toLowerCase()
     .slice(0, 3);
 
@@ -343,7 +333,7 @@ export async function maybeGrantReferrerReward(
         and(
           eq(referralRewards.referrerStoreId, referrerStoreId),
           eq(referralRewards.grantedMonth, grantedMonth),
-          eq(referralRewards.status, 'granted'),
+          eq(referralRewards.status, "granted"),
         ),
       );
     if (
@@ -355,9 +345,9 @@ export async function maybeGrantReferrerReward(
       await trackQualifyingPaymentEvaluated({
         input,
         granted: false,
-        reason: 'monthly_cap',
+        reason: "monthly_cap",
       });
-      return { granted: false, reason: 'monthly_cap' };
+      return { granted: false, reason: "monthly_cap" };
     }
   }
 
@@ -376,15 +366,13 @@ export async function maybeGrantReferrerReward(
 
   let capExceeded = false;
   try {
-    if (reward.kind === 'invoice_credit') {
+    if (reward.kind === "invoice_credit") {
       // Subscribed Referrers receive a Stripe credit. When a monthly cap is enabled,
       // hold the Referrer's subscription row lock through credit creation + ledger insert
       // so two different Referred Stores cannot both pass the cap check concurrently.
       let invoiceItemId: string | null = null;
       const customerId =
-        reward.creditCents > 0
-          ? await getOrCreateStripeCustomer(referrerStoreId)
-          : null;
+        reward.creditCents > 0 ? await getOrCreateStripeCustomer(referrerStoreId) : null;
       try {
         await db.transaction(async (tx) => {
           if (config.monthlyCapPerReferrer > 0) {
@@ -398,7 +386,7 @@ export async function maybeGrantReferrerReward(
                 and(
                   eq(referralRewards.referrerStoreId, referrerStoreId),
                   eq(referralRewards.grantedMonth, grantedMonth),
-                  eq(referralRewards.status, 'granted'),
+                  eq(referralRewards.status, "granted"),
                 ),
               );
             if (
@@ -420,7 +408,7 @@ export async function maybeGrantReferrerReward(
                 currency,
                 description: `Récompense de parrainage Louez (${config.referrerRewardFreeReservations} réservations offertes)`,
                 metadata: {
-                  type: 'referral_reward',
+                  type: "referral_reward",
                   referredStoreId: input.referredStore.id,
                   referrerStoreId,
                 },
@@ -436,10 +424,10 @@ export async function maybeGrantReferrerReward(
             id: nanoid(),
             ...ledgerBase,
             stripeInvoiceItemId: invoiceItemId,
-            kind: 'invoice_credit',
+            kind: "invoice_credit",
             freeReservations: 0,
             creditCents: reward.creditCents,
-            status: 'granted',
+            status: "granted",
           });
         });
       } catch (error) {
@@ -475,7 +463,7 @@ export async function maybeGrantReferrerReward(
               and(
                 eq(referralRewards.referrerStoreId, referrerStoreId),
                 eq(referralRewards.grantedMonth, grantedMonth),
-                eq(referralRewards.status, 'granted'),
+                eq(referralRewards.status, "granted"),
               ),
             );
           if (
@@ -501,48 +489,47 @@ export async function maybeGrantReferrerReward(
           await tx.insert(subscriptions).values({
             id: nanoid(),
             storeId: referrerStoreId,
-            planSlug: 'pay_as_you_go',
-            billingMode: 'pay_as_you_go',
+            planSlug: "pay_as_you_go",
+            billingMode: "pay_as_you_go",
             payAsYouGoConfig: getDefaultPayAsYouGoConfigSnapshot(currency),
-            freeReservationsGranted:
-              getDefaultFreeReservations() + reward.freeReservations,
+            freeReservationsGranted: getDefaultFreeReservations() + reward.freeReservations,
           });
         }
         await tx.insert(referralRewards).values({
           id: nanoid(),
           ...ledgerBase,
           stripeInvoiceItemId: null,
-          kind: 'free_reservations',
+          kind: "free_reservations",
           freeReservations: reward.freeReservations,
           creditCents: 0,
-          status: 'granted',
+          status: "granted",
         });
       });
       if (capExceeded) {
         await trackQualifyingPaymentEvaluated({
           input,
           granted: false,
-          reason: 'monthly_cap',
+          reason: "monthly_cap",
         });
-        return { granted: false, reason: 'monthly_cap' };
+        return { granted: false, reason: "monthly_cap" };
       }
     }
     if (capExceeded) {
       await trackQualifyingPaymentEvaluated({
         input,
         granted: false,
-        reason: 'monthly_cap',
+        reason: "monthly_cap",
       });
-      return { granted: false, reason: 'monthly_cap' };
+      return { granted: false, reason: "monthly_cap" };
     }
   } catch (error) {
     if (isDuplicateError(error)) {
       await trackQualifyingPaymentEvaluated({
         input,
         granted: false,
-        reason: 'already_rewarded',
+        reason: "already_rewarded",
       });
-      return { granted: false, reason: 'already_rewarded' };
+      return { granted: false, reason: "already_rewarded" };
     }
     throw error;
   }
@@ -550,7 +537,7 @@ export async function maybeGrantReferrerReward(
   await trackQualifyingPaymentEvaluated({
     input,
     granted: true,
-    reason: 'granted',
+    reason: "granted",
     rewardKind: reward.kind,
     freeReservations: reward.freeReservations,
     creditCents: reward.creditCents,
@@ -593,17 +580,17 @@ export async function clawbackReferrerRewardForQualifyingPayment(input: {
     : input.stripePaymentIntentId
       ? eq(referralRewards.stripePaymentIntentId, input.stripePaymentIntentId)
       : null;
-  if (!where) return { clawedBack: false, reason: 'no_reference' };
+  if (!where) return { clawedBack: false, reason: "no_reference" };
 
   const reward = await db.query.referralRewards.findFirst({ where });
-  if (!reward) return { clawedBack: false, reason: 'no_reward' };
-  if (reward.status !== 'granted') {
+  if (!reward) return { clawedBack: false, reason: "no_reward" };
+  if (reward.status !== "granted") {
     await trackClawbackEvaluated({
       reward,
       clawedBack: false,
-      reason: 'already_clawed_back',
+      reason: "already_clawed_back",
     });
-    return { clawedBack: false, reason: 'already_clawed_back' };
+    return { clawedBack: false, reason: "already_clawed_back" };
   }
 
   const config = getReferralProgramConfig();
@@ -618,15 +605,15 @@ export async function clawbackReferrerRewardForQualifyingPayment(input: {
     await trackClawbackEvaluated({
       reward,
       clawedBack: false,
-      reason: 'outside_window',
+      reason: "outside_window",
     });
-    return { clawedBack: false, reason: 'outside_window' };
+    return { clawedBack: false, reason: "outside_window" };
   }
 
   let revokedFreeReservations: number | undefined;
   let clawbackClaimed = true;
 
-  if (reward.kind === 'free_reservations') {
+  if (reward.kind === "free_reservations") {
     await db.transaction(async (tx) => {
       await tx.execute(
         sql`SELECT id FROM subscriptions WHERE store_id = ${reward.referrerStoreId} FOR UPDATE`,
@@ -637,23 +624,15 @@ export async function clawbackReferrerRewardForQualifyingPayment(input: {
       // never double-revokes the referrer's free-reservation balance.
       const claim = await tx
         .update(referralRewards)
-        .set({ status: 'clawed_back', clawedBackAt: at, updatedAt: new Date() })
-        .where(
-          and(
-            eq(referralRewards.id, reward.id),
-            eq(referralRewards.status, 'granted'),
-          ),
-        );
+        .set({ status: "clawed_back", clawedBackAt: at, updatedAt: new Date() })
+        .where(and(eq(referralRewards.id, reward.id), eq(referralRewards.status, "granted")));
       if ((claim[0]?.affectedRows ?? 0) === 0) {
         clawbackClaimed = false;
         return;
       }
 
       const billing = await getStoreBilling(reward.referrerStoreId);
-      const used = Math.max(
-        0,
-        billing.freeReservationsGranted - billing.freeReservationsRemaining,
-      );
+      const used = Math.max(0, billing.freeReservationsGranted - billing.freeReservationsRemaining);
       const { revoke } = computeFreeReservationClawback({
         rewardFreeReservations: reward.freeReservations,
         grantedTotal: billing.freeReservationsGranted,
@@ -676,18 +655,12 @@ export async function clawbackReferrerRewardForQualifyingPayment(input: {
     // the invoice item is immutable, so we create an opposite positive invoice item for the
     // next bill instead of pretending the credit was removed.
     if (reward.stripeInvoiceItemId) {
-      const target = await getInvoiceCreditClawbackTarget(
-        reward.stripeInvoiceItemId,
-      );
-      if (target.state === 'deletable') {
+      const target = await getInvoiceCreditClawbackTarget(reward.stripeInvoiceItemId);
+      if (target.state === "deletable") {
         await stripe.invoiceItems.del(reward.stripeInvoiceItemId);
-      } else if (
-        target.state === 'finalized_invoice' &&
-        reward.creditCents > 0
-      ) {
+      } else if (target.state === "finalized_invoice" && reward.creditCents > 0) {
         const customerId =
-          target.customerId ??
-          (await getOrCreateStripeCustomer(reward.referrerStoreId));
+          target.customerId ?? (await getOrCreateStripeCustomer(reward.referrerStoreId));
         await stripe.invoiceItems.create(
           {
             customer: customerId,
@@ -695,13 +668,13 @@ export async function clawbackReferrerRewardForQualifyingPayment(input: {
             currency: reward.currency,
             description: `Annulation de la récompense de parrainage Louez (${config.referrerRewardFreeReservations} réservations)`,
             metadata: {
-              type: 'referral_reward_clawback',
+              type: "referral_reward_clawback",
               referralRewardId: reward.id,
               referredStoreId: reward.referredStoreId,
               referrerStoreId: reward.referrerStoreId,
               originalInvoiceItemId: reward.stripeInvoiceItemId,
               originalInvoiceId: target.invoiceId,
-              originalInvoiceStatus: target.invoiceStatus ?? '',
+              originalInvoiceStatus: target.invoiceStatus ?? "",
             },
           },
           {
@@ -713,20 +686,15 @@ export async function clawbackReferrerRewardForQualifyingPayment(input: {
 
     const claim = await db
       .update(referralRewards)
-      .set({ status: 'clawed_back', clawedBackAt: at, updatedAt: new Date() })
-      .where(
-        and(
-          eq(referralRewards.id, reward.id),
-          eq(referralRewards.status, 'granted'),
-        ),
-      );
+      .set({ status: "clawed_back", clawedBackAt: at, updatedAt: new Date() })
+      .where(and(eq(referralRewards.id, reward.id), eq(referralRewards.status, "granted")));
     if ((claim[0]?.affectedRows ?? 0) === 0) {
       await trackClawbackEvaluated({
         reward,
         clawedBack: false,
-        reason: 'already_clawed_back',
+        reason: "already_clawed_back",
       });
-      return { clawedBack: false, reason: 'already_clawed_back' };
+      return { clawedBack: false, reason: "already_clawed_back" };
     }
   }
 
@@ -734,15 +702,15 @@ export async function clawbackReferrerRewardForQualifyingPayment(input: {
     await trackClawbackEvaluated({
       reward,
       clawedBack: false,
-      reason: 'already_clawed_back',
+      reason: "already_clawed_back",
     });
-    return { clawedBack: false, reason: 'already_clawed_back' };
+    return { clawedBack: false, reason: "already_clawed_back" };
   }
 
   await trackClawbackEvaluated({
     reward,
     clawedBack: true,
-    reason: 'clawed_back',
+    reason: "clawed_back",
     revokedFreeReservations,
   });
   await trackReferrerRewardClawedBack({ reward, revokedFreeReservations });

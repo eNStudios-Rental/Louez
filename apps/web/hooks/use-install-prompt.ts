@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import * as React from 'react';
+import * as React from "react";
 
-import { detectPlatform, type PlatformInfo } from '@/lib/pwa/detect';
+import { detectPlatform, type PlatformInfo } from "@/lib/pwa/detect";
 
 /**
  * Chromium fires `beforeinstallprompt` once, early in the page lifecycle —
@@ -22,14 +22,14 @@ function notify() {
   for (const cb of subscribers) cb();
 }
 
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeinstallprompt', (event) => {
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeinstallprompt", (event) => {
     // Suppress Chromium's default mini-infobar so we can present our own UI.
     event.preventDefault();
     deferredPrompt = event;
     notify();
   });
-  window.addEventListener('appinstalled', () => {
+  window.addEventListener("appinstalled", () => {
     appInstalled = true;
     deferredPrompt = null;
     notify();
@@ -43,18 +43,18 @@ function subscribe(cb: () => void) {
   };
 }
 
-const DISMISS_KEY = 'louez:pwa-install-dismissed-at';
+const DISMISS_KEY = "louez:pwa-install-dismissed-at";
 const DISMISS_TTL_MS = 30 * 24 * 60 * 60 * 1000; // ~30 days
 
 function isStandaloneDisplay(): boolean {
-  if (typeof window === 'undefined') return false;
-  const mql = window.matchMedia?.('(display-mode: standalone)');
+  if (typeof window === "undefined") return false;
+  const mql = window.matchMedia?.("(display-mode: standalone)");
   const iosStandalone = window.navigator.standalone;
   return Boolean(mql?.matches) || iosStandalone === true;
 }
 
 function wasRecentlyDismissed(): boolean {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === "undefined") return false;
   try {
     const raw = window.localStorage.getItem(DISMISS_KEY);
     if (!raw) return false;
@@ -78,18 +78,18 @@ function wasRecentlyDismissed(): boolean {
  *    resolved (server / first paint).
  */
 export type InstallStatus =
-  | 'hidden'
-  | 'android'
-  | 'desktop'
-  | 'ios-safari'
-  | 'ios-other'
-  | 'in-app';
+  | "hidden"
+  | "android"
+  | "desktop"
+  | "ios-safari"
+  | "ios-other"
+  | "in-app";
 
 export interface UseInstallPrompt {
   status: InstallStatus;
   platform: PlatformInfo | null;
   /** Triggers the native install dialog (Chromium only). Returns the outcome. */
-  promptInstall: () => Promise<'accepted' | 'dismissed' | null>;
+  promptInstall: () => Promise<"accepted" | "dismissed" | null>;
   /** Snoozes the prompt for ~30 days. */
   dismiss: () => void;
 }
@@ -106,13 +106,13 @@ export function useInstallPrompt(): UseInstallPrompt {
     setDismissed(wasRecentlyDismissed());
 
     const unsubscribe = subscribe(forceUpdate);
-    const mql = window.matchMedia('(display-mode: standalone)');
+    const mql = window.matchMedia("(display-mode: standalone)");
     const onDisplayChange = () => setStandalone(isStandaloneDisplay());
-    mql.addEventListener?.('change', onDisplayChange);
+    mql.addEventListener?.("change", onDisplayChange);
 
     return () => {
       unsubscribe();
-      mql.removeEventListener?.('change', onDisplayChange);
+      mql.removeEventListener?.("change", onDisplayChange);
     };
   }, []);
 
@@ -136,7 +136,7 @@ export function useInstallPrompt(): UseInstallPrompt {
       await promptEvent.prompt();
       const choice = await promptEvent.userChoice;
       // If the user declined the native dialog, snooze our prompt too.
-      if (choice.outcome === 'dismissed') dismiss();
+      if (choice.outcome === "dismissed") dismiss();
       return choice.outcome;
     } catch {
       return null;
@@ -145,16 +145,16 @@ export function useInstallPrompt(): UseInstallPrompt {
 
   // Not memoized: it depends on module-level state (deferredPrompt/appInstalled)
   // that `forceUpdate` re-reads on every relevant change.
-  let status: InstallStatus = 'hidden';
+  let status: InstallStatus = "hidden";
   if (platform !== null && standalone !== null && dismissed !== null) {
     if (appInstalled || standalone || dismissed) {
-      status = 'hidden';
+      status = "hidden";
     } else if (platform.isInAppBrowser) {
-      status = 'in-app';
-    } else if (platform.os === 'ios') {
-      status = platform.browser === 'safari' ? 'ios-safari' : 'ios-other';
+      status = "in-app";
+    } else if (platform.os === "ios") {
+      status = platform.browser === "safari" ? "ios-safari" : "ios-other";
     } else if (deferredPrompt) {
-      status = platform.os === 'android' ? 'android' : 'desktop';
+      status = platform.os === "android" ? "android" : "desktop";
     }
   }
 

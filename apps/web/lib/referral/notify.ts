@@ -1,16 +1,16 @@
-import { eq } from 'drizzle-orm';
+import { eq } from "drizzle-orm";
 
-import { db } from '@louez/db';
-import { stores, users } from '@louez/db';
-import { getLogoForLightBackground } from '@louez/utils';
+import { db } from "@louez/db";
+import { stores, users } from "@louez/db";
+import { getLogoForLightBackground } from "@louez/utils";
 
-import { env } from '@/env';
-import { getLocaleFromCountry } from '@/lib/email/i18n';
-import { sendRewardUnlockedEmail } from '@/lib/email/send';
-import { formatCurrency } from '@/lib/utils';
-import { getConfiguredFormatLocale } from '@/lib/i18n/configured-format-locale';
+import { env } from "@/env";
+import { getLocaleFromCountry } from "@/lib/email/i18n";
+import { sendRewardUnlockedEmail } from "@/lib/email/send";
+import { formatCurrency } from "@/lib/utils";
+import { getConfiguredFormatLocale } from "@/lib/i18n/configured-format-locale";
 
-import type { ReferralRewardKind } from './reward';
+import type { ReferralRewardKind } from "./reward";
 
 interface NotifyReferrerRewardInput {
   referrerStoreId: string;
@@ -26,9 +26,7 @@ interface NotifyReferrerRewardInput {
  * Notify a Referrer by email that a referral reached its Qualifying Event and a reward
  * was granted. Best-effort — never throws to the caller (the reward is already recorded).
  */
-export async function notifyReferrerRewardGranted(
-  input: NotifyReferrerRewardInput,
-): Promise<void> {
+export async function notifyReferrerRewardGranted(input: NotifyReferrerRewardInput): Promise<void> {
   try {
     const store = await db.query.stores.findFirst({
       where: eq(stores.id, input.referrerStoreId),
@@ -50,7 +48,7 @@ export async function notifyReferrerRewardGranted(
     const to = owner?.email ?? store.email;
     if (!to) return;
 
-    const currency = (store.settings?.currency || 'EUR').toUpperCase();
+    const currency = (store.settings?.currency || "EUR").toUpperCase();
     const rewardValue = formatCurrency(
       input.displayValueCents / 100,
       currency,
@@ -73,7 +71,7 @@ export async function notifyReferrerRewardGranted(
       locale: getLocaleFromCountry(store.settings?.country),
     });
   } catch (error) {
-    console.warn('[referral] failed to notify referrer of reward', {
+    console.warn("[referral] failed to notify referrer of reward", {
       referrerStoreId: input.referrerStoreId,
       error: error instanceof Error ? error.message : String(error),
     });

@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq } from "drizzle-orm";
 
 import {
   buildUnitRentableDuringPredicate,
@@ -10,14 +10,14 @@ import {
   type BlockingReservationStatus,
   type Database,
   type Transaction,
-} from '@louez/db';
-import type { BookingAttributeAxis, UnitAttributes } from '@louez/types';
+} from "@louez/db";
+import type { BookingAttributeAxis, UnitAttributes } from "@louez/types";
 import {
   DEFAULT_COMBINATION_KEY,
   canonicalizeAttributes,
   isPooledCombinationKey,
   matchesSelectedAttributes,
-} from '@louez/utils';
+} from "@louez/utils";
 
 export type { BlockingReservationStatus };
 export { getBlockingReservationStatuses };
@@ -117,9 +117,7 @@ export async function getAvailableUnitsForProduct(
       .from(productUnits)
       .where(and(...unitConditions))
   )
-    .filter((unit) =>
-      matchesSelectedAttributes(options.selectedAttributes, unit.attributes),
-    )
+    .filter((unit) => matchesSelectedAttributes(options.selectedAttributes, unit.attributes))
     .map(({ id, identifier, notes }) => ({ id, identifier, notes }));
 
   if (allUnits.length === 0) {

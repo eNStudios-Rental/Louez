@@ -1,33 +1,33 @@
-import { config } from 'dotenv'
+import { config } from "dotenv";
 
-config({ path: '.env.local', quiet: true })
-config({ path: '.env', quiet: true })
+config({ path: ".env.local", quiet: true });
+config({ path: ".env", quiet: true });
 
-import mysql, { type RowDataPacket } from 'mysql2/promise'
+import mysql, { type RowDataPacket } from "mysql2/promise";
 
-type PricingMode = 'hour' | 'day' | 'week'
+type PricingMode = "hour" | "day" | "week";
 
 type CliOptions = {
-  apply: boolean
-  storeId?: string
-  productId?: string
-  limit?: number
-}
+  apply: boolean;
+  storeId?: string;
+  productId?: string;
+  limit?: number;
+};
 
 type ProductModeRow = RowDataPacket & {
-  productId: string
-  storeId: string
-  currentPricingMode: string | null
-  storePricingMode: string | null
-}
+  productId: string;
+  storeId: string;
+  currentPricingMode: string | null;
+  storePricingMode: string | null;
+};
 
 type FixReport = {
-  productsScanned: number
-  productsAlreadyValid: number
-  productsFixableFromStore: number
-  productsFixableFromDefault: number
-  productsUpdated: number
-}
+  productsScanned: number;
+  productsAlreadyValid: number;
+  productsFixableFromStore: number;
+  productsFixableFromDefault: number;
+  productsUpdated: number;
+};
 
 function printUsage(): void {
   console.log(`Usage:
@@ -36,84 +36,84 @@ function printUsage(): void {
   pnpm pricing:fix-pricing-mode -- --dry-run --store-id <storeId>
   pnpm pricing:fix-pricing-mode -- --apply --product-id <productId>
   pnpm pricing:fix-pricing-mode -- --apply --limit <count>
-`)
+`);
 }
 
 function parseArgs(argv: string[]): CliOptions {
-  const options: CliOptions = { apply: false }
+  const options: CliOptions = { apply: false };
 
   for (let i = 0; i < argv.length; i += 1) {
-    const arg = argv[i]
+    const arg = argv[i];
 
-    if (arg === '--help' || arg === '-h') {
-      printUsage()
-      process.exit(0)
+    if (arg === "--help" || arg === "-h") {
+      printUsage();
+      process.exit(0);
     }
 
-    if (arg === '--') {
-      continue
+    if (arg === "--") {
+      continue;
     }
 
-    if (arg === '--apply') {
-      options.apply = true
-      continue
+    if (arg === "--apply") {
+      options.apply = true;
+      continue;
     }
 
-    if (arg === '--dry-run') {
-      options.apply = false
-      continue
+    if (arg === "--dry-run") {
+      options.apply = false;
+      continue;
     }
 
-    if (arg === '--store-id') {
-      options.storeId = argv[i + 1]
-      i += 1
-      continue
+    if (arg === "--store-id") {
+      options.storeId = argv[i + 1];
+      i += 1;
+      continue;
     }
 
-    if (arg === '--product-id') {
-      options.productId = argv[i + 1]
-      i += 1
-      continue
+    if (arg === "--product-id") {
+      options.productId = argv[i + 1];
+      i += 1;
+      continue;
     }
 
-    if (arg === '--limit') {
-      const value = Number.parseInt(argv[i + 1] ?? '', 10)
+    if (arg === "--limit") {
+      const value = Number.parseInt(argv[i + 1] ?? "", 10);
       if (Number.isFinite(value) && value > 0) {
-        options.limit = value
+        options.limit = value;
       }
-      i += 1
-      continue
+      i += 1;
+      continue;
     }
 
-    console.warn(`Unknown argument ignored: ${arg}`)
+    console.warn(`Unknown argument ignored: ${arg}`);
   }
 
-  return options
+  return options;
 }
 
 function toPricingMode(value: string | null | undefined): PricingMode | null {
-  if (value === 'hour' || value === 'day' || value === 'week') {
-    return value
+  if (value === "hour" || value === "day" || value === "week") {
+    return value;
   }
-  return null
+  return null;
 }
 
 async function main(): Promise<void> {
-  const options = parseArgs(process.argv.slice(2))
-  const { env } = (await import('../env')) as typeof import('../env')
-  const connection = await mysql.createConnection(env.DATABASE_URL)
+  const options = parseArgs(process.argv.slice(2));
+  const { env } = (await import("../env")) as typeof import("../env");
+  const connection = await mysql.createConnection(env.DATABASE_URL);
 
   try {
-    const whereParts: string[] = []
-    const params: Array<string | number> = []
+    const whereParts: string[] = [];
+    const params: Array<string | number> = [];
 
     if (options.storeId) {
-      whereParts.push('p.store_id = ?')
-      params.push(options.storeId)
+      whereParts.push("p.store_id = ?");
+      params.push(options.storeId);
     }
     if (options.productId) {
-      whereParts.push('p.id = ?')
-      params.push(options.productId)
+      whereParts.push("p.id = ?");
+      params.push(options.productId);
     }
 
     let query = `
@@ -124,19 +124,19 @@ async function main(): Promise<void> {
         JSON_UNQUOTE(JSON_EXTRACT(s.settings, '$.pricingMode')) AS storePricingMode
       FROM products p
       LEFT JOIN stores s ON s.id = p.store_id
-    `
+    `;
 
     if (whereParts.length > 0) {
-      query += ` WHERE ${whereParts.join(' AND ')}`
+      query += ` WHERE ${whereParts.join(" AND ")}`;
     }
 
-    query += ' ORDER BY p.id'
+    query += " ORDER BY p.id";
     if (options.limit) {
-      query += ' LIMIT ?'
-      params.push(options.limit)
+      query += " LIMIT ?";
+      params.push(options.limit);
     }
 
-    const [rows] = await connection.query<ProductModeRow[]>(query, params)
+    const [rows] = await connection.query<ProductModeRow[]>(query, params);
 
     const report: FixReport = {
       productsScanned: 0,
@@ -144,31 +144,31 @@ async function main(): Promise<void> {
       productsFixableFromStore: 0,
       productsFixableFromDefault: 0,
       productsUpdated: 0,
-    }
+    };
 
     const updateCandidates: Array<{
-      productId: string
-      currentPricingMode: string | null
-      resolvedPricingMode: PricingMode
-      source: 'store' | 'default'
-    }> = []
+      productId: string;
+      currentPricingMode: string | null;
+      resolvedPricingMode: PricingMode;
+      source: "store" | "default";
+    }> = [];
 
     for (const row of rows) {
-      report.productsScanned += 1
-      const currentMode = toPricingMode(row.currentPricingMode)
+      report.productsScanned += 1;
+      const currentMode = toPricingMode(row.currentPricingMode);
       if (currentMode) {
-        report.productsAlreadyValid += 1
-        continue
+        report.productsAlreadyValid += 1;
+        continue;
       }
 
-      const storeMode = toPricingMode(row.storePricingMode)
-      const resolvedMode: PricingMode = storeMode ?? 'day'
-      const source: 'store' | 'default' = storeMode ? 'store' : 'default'
+      const storeMode = toPricingMode(row.storePricingMode);
+      const resolvedMode: PricingMode = storeMode ?? "day";
+      const source: "store" | "default" = storeMode ? "store" : "default";
 
-      if (source === 'store') {
-        report.productsFixableFromStore += 1
+      if (source === "store") {
+        report.productsFixableFromStore += 1;
       } else {
-        report.productsFixableFromDefault += 1
+        report.productsFixableFromDefault += 1;
       }
 
       updateCandidates.push({
@@ -176,19 +176,19 @@ async function main(): Promise<void> {
         currentPricingMode: row.currentPricingMode,
         resolvedPricingMode: resolvedMode,
         source,
-      })
+      });
     }
 
     console.log(
-      `[pricing-fix-pricing-mode] mode=${options.apply ? 'apply' : 'dry-run'} products=${rows.length}`,
-    )
-    console.table(report)
+      `[pricing-fix-pricing-mode] mode=${options.apply ? "apply" : "dry-run"} products=${rows.length}`,
+    );
+    console.table(report);
 
     if (updateCandidates.length > 0) {
-      console.log('[pricing-fix-pricing-mode] update sample (first 30)')
-      console.table(updateCandidates.slice(0, 30))
+      console.log("[pricing-fix-pricing-mode] update sample (first 30)");
+      console.table(updateCandidates.slice(0, 30));
     } else {
-      console.log('[pricing-fix-pricing-mode] no updates needed')
+      console.log("[pricing-fix-pricing-mode] no updates needed");
     }
 
     if (options.apply) {
@@ -196,21 +196,21 @@ async function main(): Promise<void> {
         await connection.query(
           `UPDATE products SET pricing_mode = ?, updated_at = NOW() WHERE id = ?`,
           [candidate.resolvedPricingMode, candidate.productId],
-        )
-        report.productsUpdated += 1
+        );
+        report.productsUpdated += 1;
       }
-      console.log('[pricing-fix-pricing-mode] updates applied')
-      console.table(report)
+      console.log("[pricing-fix-pricing-mode] updates applied");
+      console.table(report);
     }
 
-    process.exit(0)
+    process.exit(0);
   } finally {
-    await connection.end()
+    await connection.end();
   }
 }
 
 main().catch((error) => {
-  console.error('[pricing-fix-pricing-mode] failed')
-  console.error(error)
-  process.exit(1)
-})
+  console.error("[pricing-fix-pricing-mode] failed");
+  console.error(error);
+  process.exit(1);
+});

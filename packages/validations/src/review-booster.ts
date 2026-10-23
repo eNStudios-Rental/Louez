@@ -1,5 +1,5 @@
-import { z } from 'zod'
-import type { ReviewBoosterSettings } from '@louez/types'
+import { z } from "zod";
+import type { ReviewBoosterSettings } from "@louez/types";
 
 export const reviewBoosterSettingsSchema = z.object({
   enabled: z.boolean(),
@@ -17,15 +17,15 @@ export const reviewBoosterSettingsSchema = z.object({
   autoSendThankYouSms: z.boolean(),
   emailDelayHours: z.number().int().min(1).max(168), // 1 hour to 7 days
   smsDelayHours: z.number().int().min(1).max(168),
-})
+});
 
-export type ReviewBoosterSettingsInput = z.infer<typeof reviewBoosterSettingsSchema>
+export type ReviewBoosterSettingsInput = z.infer<typeof reviewBoosterSettingsSchema>;
 
 export const googlePlaceSearchSchema = z.object({
   query: z.string().min(2).max(200),
-})
+});
 
-export type GooglePlaceSearchInput = z.infer<typeof googlePlaceSearchSchema>
+export type GooglePlaceSearchInput = z.infer<typeof googlePlaceSearchSchema>;
 
 // Default settings when enabling Review Booster
 export const defaultReviewBoosterSettings: ReviewBoosterSettings = {
@@ -41,4 +41,4 @@ export const defaultReviewBoosterSettings: ReviewBoosterSettings = {
   autoSendThankYouSms: false,
   emailDelayHours: 24,
   smsDelayHours: 24,
-}
+};

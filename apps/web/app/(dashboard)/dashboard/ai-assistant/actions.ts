@@ -1,37 +1,34 @@
-'use server'
+"use server";
 
-import { revalidatePath } from 'next/cache'
-import { eq } from 'drizzle-orm'
+import { revalidatePath } from "next/cache";
+import { eq } from "drizzle-orm";
 
-import { db } from '@louez/db'
-import { stores } from '@louez/db'
-import { getCurrentStore, hasPermission } from '@/lib/store-context'
-import { getStorePlan } from '@/lib/plan-limits'
-import {
-  aiAdvisorSettingsSchema,
-  type AiAdvisorSettingsInput,
-} from '@louez/validations'
-import type { AiAdvisorSettings } from '@louez/types'
+import { db } from "@louez/db";
+import { stores } from "@louez/db";
+import { getCurrentStore, hasPermission } from "@/lib/store-context";
+import { getStorePlan } from "@/lib/plan-limits";
+import { aiAdvisorSettingsSchema, type AiAdvisorSettingsInput } from "@louez/validations";
+import type { AiAdvisorSettings } from "@louez/types";
 
 export async function updateAiAdvisorSettings(data: AiAdvisorSettingsInput) {
-  const store = await getCurrentStore()
+  const store = await getCurrentStore();
   if (!store) {
-    return { error: 'errors.unauthorized' }
+    return { error: "errors.unauthorized" };
   }
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    return { error: 'errors.permissionDenied' }
+  if (!hasPermission(store.role, "manage_settings")) {
+    return { error: "errors.permissionDenied" };
   }
 
   // Check plan access
-  const plan = await getStorePlan(store.id)
+  const plan = await getStorePlan(store.id);
   if (!plan.features.aiAdvisor) {
-    return { error: 'errors.featureNotAvailable' }
+    return { error: "errors.featureNotAvailable" };
   }
 
-  const validated = aiAdvisorSettingsSchema.safeParse(data)
+  const validated = aiAdvisorSettingsSchema.safeParse(data);
   if (!validated.success) {
-    return { error: 'errors.invalidData' }
+    return { error: "errors.invalidData" };
   }
 
   const aiAdvisorSettings: AiAdvisorSettings = {
@@ -40,7 +37,7 @@ export async function updateAiAdvisorSettings(data: AiAdvisorSettingsInput) {
     storeContext: validated.data.storeContext,
     welcomeMessage: validated.data.welcomeMessage || undefined,
     displayName: validated.data.displayName || undefined,
-  }
+  };
 
   await db
     .update(stores)
@@ -48,9 +45,9 @@ export async function updateAiAdvisorSettings(data: AiAdvisorSettingsInput) {
       aiAdvisorSettings,
       updatedAt: new Date(),
     })
-    .where(eq(stores.id, store.id))
+    .where(eq(stores.id, store.id));
 
-  revalidatePath('/dashboard/ai-assistant/advisor')
-  revalidatePath(`/${store.slug}`) // Revalidate storefront
-  return { success: true }
+  revalidatePath("/dashboard/ai-assistant/advisor");
+  revalidatePath(`/${store.slug}`); // Revalidate storefront
+  return { success: true };
 }

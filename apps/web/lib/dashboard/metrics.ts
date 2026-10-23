@@ -1,7 +1,7 @@
-import { endOfMonth, startOfMonth, subMonths } from 'date-fns';
-import { and, count, eq, gte, lte, sql } from 'drizzle-orm';
+import { endOfMonth, startOfMonth, subMonths } from "date-fns";
+import { and, count, eq, gte, lte, sql } from "drizzle-orm";
 
-import { customers, db, isPaymentReceiptSql, payments, products, reservations } from '@louez/db';
+import { customers, db, isPaymentReceiptSql, payments, products, reservations } from "@louez/db";
 
 /**
  * Store metrics for adaptive dashboard
@@ -37,11 +37,11 @@ export interface StoreMetrics {
  * Store state based on metrics
  */
 export type StoreState =
-  | 'virgin' // No products
-  | 'building' // Has products, no customers
-  | 'starting' // Has customers, few reservations
-  | 'active' // Regular activity
-  | 'established'; // High volume
+  | "virgin" // No products
+  | "building" // Has products, no customers
+  | "starting" // Has customers, few reservations
+  | "active" // Regular activity
+  | "established"; // High volume
 
 interface RentalPaymentStats {
   revenue: number;
@@ -74,13 +74,9 @@ async function getRentalPaymentStats(params: {
   const { storeId, startDate, endDate } = params;
   const dateConditions = [
     ...(startDate
-      ? [
-          sql`COALESCE(${payments.paidAt}, ${payments.createdAt}) >= ${startDate}`,
-        ]
+      ? [sql`COALESCE(${payments.paidAt}, ${payments.createdAt}) >= ${startDate}`]
       : []),
-    ...(endDate
-      ? [sql`COALESCE(${payments.paidAt}, ${payments.createdAt}) <= ${endDate}`]
-      : []),
+    ...(endDate ? [sql`COALESCE(${payments.paidAt}, ${payments.createdAt}) <= ${endDate}`] : []),
   ];
 
   const result = await db
@@ -94,15 +90,15 @@ async function getRentalPaymentStats(params: {
     .where(
       and(
         eq(reservations.storeId, storeId),
-        eq(payments.status, 'completed'),
-        eq(payments.type, 'rental'),
+        eq(payments.status, "completed"),
+        eq(payments.type, "rental"),
         isPaymentReceiptSql(),
         ...dateConditions,
       ),
     );
 
   return {
-    revenue: parseFloat(result[0]?.revenue || '0'),
+    revenue: parseFloat(result[0]?.revenue || "0"),
     paymentCount: result[0]?.paymentCount || 0,
     reservationCount: result[0]?.reservationCount || 0,
   };
@@ -131,8 +127,7 @@ export async function getRentalPaymentRevenueStats(params: {
     getRentalPaymentStats({ storeId }),
   ]);
 
-  const avgOrderValue =
-    allTime.paymentCount > 0 ? allTime.revenue / allTime.paymentCount : 0;
+  const avgOrderValue = allTime.paymentCount > 0 ? allTime.revenue / allTime.paymentCount : 0;
 
   const revenueGrowth =
     lastMonth.revenue > 0
@@ -159,22 +154,22 @@ export function determineStoreState(metrics: StoreMetrics): StoreState {
   const { activeProductCount, customerCount, completedReservations } = metrics;
 
   if (activeProductCount === 0) {
-    return 'virgin';
+    return "virgin";
   }
 
   if (customerCount === 0) {
-    return 'building';
+    return "building";
   }
 
   if (completedReservations < 5) {
-    return 'starting';
+    return "starting";
   }
 
   if (completedReservations < 50) {
-    return 'active';
+    return "active";
   }
 
-  return 'established';
+  return "established";
 }
 
 /**
@@ -189,72 +184,67 @@ export async function getStoreMetrics(storeId: string): Promise<StoreMetrics> {
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
   // Execute all queries in parallel for performance
-  const [
-    productStats,
-    customerStats,
-    reservationStats,
-    todaysOperations,
-    revenueStats,
-  ] = await Promise.all([
-    // Product counts
-    db
-      .select({
-        total: count(),
-        active: sql<number>`SUM(CASE WHEN ${products.status} = 'active' THEN 1 ELSE 0 END)`,
-        draft: sql<number>`SUM(CASE WHEN ${products.status} = 'draft' THEN 1 ELSE 0 END)`,
-      })
-      .from(products)
-      .where(eq(products.storeId, storeId)),
-
-    // Customer counts
-    db
-      .select({
-        total: count(),
-        newThisMonth: sql<number>`SUM(CASE WHEN ${customers.createdAt} >= ${firstDayOfMonth} THEN 1 ELSE 0 END)`,
-      })
-      .from(customers)
-      .where(eq(customers.storeId, storeId)),
-
-    // Reservation counts by status
-    db
-      .select({
-        total: count(),
-        completed: sql<number>`SUM(CASE WHEN ${reservations.status} = 'completed' THEN 1 ELSE 0 END)`,
-        pending: sql<number>`SUM(CASE WHEN ${reservations.status} = 'pending' THEN 1 ELSE 0 END)`,
-        confirmed: sql<number>`SUM(CASE WHEN ${reservations.status} = 'confirmed' THEN 1 ELSE 0 END)`,
-        ongoing: sql<number>`SUM(CASE WHEN ${reservations.status} = 'ongoing' THEN 1 ELSE 0 END)`,
-      })
-      .from(reservations)
-      .where(eq(reservations.storeId, storeId)),
-
-    // Today's operations
-    Promise.all([
+  const [productStats, customerStats, reservationStats, todaysOperations, revenueStats] =
+    await Promise.all([
+      // Product counts
       db
-        .select({ count: count() })
-        .from(reservations)
-        .where(
-          and(
-            eq(reservations.storeId, storeId),
-            eq(reservations.status, 'confirmed'),
-            gte(reservations.startDate, today),
-            lte(reservations.startDate, tomorrow),
-          ),
-        ),
-      db
-        .select({ count: count() })
-        .from(reservations)
-        .where(
-          and(
-            eq(reservations.storeId, storeId),
-            eq(reservations.status, 'ongoing'),
-            gte(reservations.endDate, today),
-            lte(reservations.endDate, tomorrow),
-          ),
-        ),
-    ]),
+        .select({
+          total: count(),
+          active: sql<number>`SUM(CASE WHEN ${products.status} = 'active' THEN 1 ELSE 0 END)`,
+          draft: sql<number>`SUM(CASE WHEN ${products.status} = 'draft' THEN 1 ELSE 0 END)`,
+        })
+        .from(products)
+        .where(eq(products.storeId, storeId)),
 
-    getRentalPaymentRevenueStats({ storeId }),
-  ]);
+      // Customer counts
+      db
+        .select({
+          total: count(),
+          newThisMonth: sql<number>`SUM(CASE WHEN ${customers.createdAt} >= ${firstDayOfMonth} THEN 1 ELSE 0 END)`,
+        })
+        .from(customers)
+        .where(eq(customers.storeId, storeId)),
+
+      // Reservation counts by status
+      db
+        .select({
+          total: count(),
+          completed: sql<number>`SUM(CASE WHEN ${reservations.status} = 'completed' THEN 1 ELSE 0 END)`,
+          pending: sql<number>`SUM(CASE WHEN ${reservations.status} = 'pending' THEN 1 ELSE 0 END)`,
+          confirmed: sql<number>`SUM(CASE WHEN ${reservations.status} = 'confirmed' THEN 1 ELSE 0 END)`,
+          ongoing: sql<number>`SUM(CASE WHEN ${reservations.status} = 'ongoing' THEN 1 ELSE 0 END)`,
+        })
+        .from(reservations)
+        .where(eq(reservations.storeId, storeId)),
+
+      // Today's operations
+      Promise.all([
+        db
+          .select({ count: count() })
+          .from(reservations)
+          .where(
+            and(
+              eq(reservations.storeId, storeId),
+              eq(reservations.status, "confirmed"),
+              gte(reservations.startDate, today),
+              lte(reservations.startDate, tomorrow),
+            ),
+          ),
+        db
+          .select({ count: count() })
+          .from(reservations)
+          .where(
+            and(
+              eq(reservations.storeId, storeId),
+              eq(reservations.status, "ongoing"),
+              gte(reservations.endDate, today),
+              lte(reservations.endDate, tomorrow),
+            ),
+          ),
+      ]),
+
+      getRentalPaymentRevenueStats({ storeId }),
+    ]);
 
   return {
     // Catalog
@@ -287,16 +277,16 @@ export async function getStoreMetrics(storeId: string): Promise<StoreMetrics> {
 /**
  * Get the time of day for contextual greetings
  */
-export function getTimeOfDay(): 'morning' | 'afternoon' | 'evening' {
+export function getTimeOfDay(): "morning" | "afternoon" | "evening" {
   const hour = new Date().getHours();
 
   if (hour >= 6 && hour < 12) {
-    return 'morning';
+    return "morning";
   }
 
   if (hour >= 12 && hour < 18) {
-    return 'afternoon';
+    return "afternoon";
   }
 
-  return 'evening';
+  return "evening";
 }

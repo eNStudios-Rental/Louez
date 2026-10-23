@@ -1,28 +1,28 @@
-import { ApiServiceError, getAddressDetails } from '@louez/api/services'
-import { addressDetailsInputSchema } from '@louez/validations'
-import { NextRequest, NextResponse } from 'next/server'
+import { ApiServiceError, getAddressDetails } from "@louez/api/services";
+import { addressDetailsInputSchema } from "@louez/validations";
+import { NextRequest, NextResponse } from "next/server";
 
-function statusFromServiceCode(code: ApiServiceError['code']) {
+function statusFromServiceCode(code: ApiServiceError["code"]) {
   switch (code) {
-    case 'BAD_REQUEST':
-      return 400
-    case 'UNAUTHORIZED':
-      return 401
-    case 'FORBIDDEN':
-      return 403
-    case 'NOT_FOUND':
-      return 404
+    case "BAD_REQUEST":
+      return 400;
+    case "UNAUTHORIZED":
+      return 401;
+    case "FORBIDDEN":
+      return 403;
+    case "NOT_FOUND":
+      return 404;
     default:
-      return 500
+      return 500;
   }
 }
 
 export async function GET(request: NextRequest) {
-  const placeId = request.nextUrl.searchParams.get('placeId')
+  const placeId = request.nextUrl.searchParams.get("placeId");
 
-  const parsed = addressDetailsInputSchema.safeParse({ placeId })
+  const parsed = addressDetailsInputSchema.safeParse({ placeId });
   if (!parsed.success) {
-    return NextResponse.json({ error: 'errors.invalidData' }, { status: 400 })
+    return NextResponse.json({ error: "errors.invalidData" }, { status: 400 });
   }
 
   try {
@@ -30,16 +30,13 @@ export async function GET(request: NextRequest) {
       await getAddressDetails({
         placeId: parsed.data.placeId,
       }),
-    )
+    );
   } catch (error) {
     if (error instanceof ApiServiceError) {
-      return NextResponse.json(
-        { error: error.key },
-        { status: statusFromServiceCode(error.code) },
-      )
+      return NextResponse.json({ error: error.key }, { status: statusFromServiceCode(error.code) });
     }
 
-    console.error('Address details error:', error)
-    return NextResponse.json({ error: 'errors.addressLookupFailed' }, { status: 500 })
+    console.error("Address details error:", error);
+    return NextResponse.json({ error: "errors.addressLookupFailed" }, { status: 500 });
   }
 }

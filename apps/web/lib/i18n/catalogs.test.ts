@@ -127,7 +127,6 @@ test("the marketing poster generator covers the same languages", () => {
   assert.deepEqual(JSON.parse(list[1]), locales);
 });
 
-
 test("every demo scene and contract page ships an asset for every supported locale", () => {
   const root = new URL("../../public/", import.meta.url);
   const posters = JSON.parse(readFileSync(new URL("demo-posters/manifest.json", root), "utf8"));
@@ -142,11 +141,12 @@ test("every demo scene and contract page ships an asset for every supported loca
     const pages = documents.contract[locale];
     assert.ok(Number.isInteger(pages) && pages > 0, `${locale}: contract pages`);
     for (let page = 1; page <= pages; page++) {
-      assert.ok(statSync(new URL(`demo-documents/contract.${locale}.p${page}.webp`, root)).size > 0);
+      assert.ok(
+        statSync(new URL(`demo-documents/contract.${locale}.p${page}.webp`, root)).size > 0,
+      );
     }
   }
 });
-
 
 test("translated contract links preserve the storefront terms route", () => {
   for (const locale of locales) {

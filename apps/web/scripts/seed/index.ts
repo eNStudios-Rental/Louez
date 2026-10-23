@@ -9,14 +9,14 @@
  *   pnpm db:seed --email=dev@example.com
  *   pnpm db:seed -e dev@example.com -m 6 -y
  */
-import 'dotenv/config';
-import { eq } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/mysql2';
-import { createPool } from 'mysql2/promise';
-import { nanoid } from 'nanoid';
+import "dotenv/config";
+import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/mysql2";
+import { createPool } from "mysql2/promise";
+import { nanoid } from "nanoid";
 
 // Import schema
-import * as schema from '@louez/db';
+import * as schema from "@louez/db";
 import type {
   BusinessHours,
   CustomerNotificationSettings,
@@ -24,9 +24,9 @@ import type {
   NotificationSettings,
   StoreSettings,
   StoreTheme,
-} from '@louez/types';
+} from "@louez/types";
 
-import { createUnits } from '../../lib/utils/unit-mutations';
+import { createUnits } from "../../lib/utils/unit-mutations";
 import {
   STORE_CONFIGS,
   type StoreConfig,
@@ -34,13 +34,13 @@ import {
   getDateRanges,
   parseCliArgs,
   validateEnvironment,
-} from './config';
-import { generateAnalytics } from './generators/analytics';
-import { generateCustomers } from './generators/customers';
-import { generatePayments } from './generators/payments';
-import { generateProducts } from './generators/products';
-import { generateReservations } from './generators/reservations';
-import { generateTeam } from './generators/team';
+} from "./config";
+import { generateAnalytics } from "./generators/analytics";
+import { generateCustomers } from "./generators/customers";
+import { generatePayments } from "./generators/payments";
+import { generateProducts } from "./generators/products";
+import { generateReservations } from "./generators/reservations";
+import { generateTeam } from "./generators/team";
 import {
   colors,
   generateIcsToken,
@@ -51,7 +51,7 @@ import {
   logInfo,
   logSection,
   logSuccess,
-} from './utils';
+} from "./utils";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DrizzleDB = ReturnType<typeof drizzle<any>>;
@@ -59,11 +59,7 @@ type DrizzleDB = ReturnType<typeof drizzle<any>>;
 /**
  * Create or get the owner user
  */
-async function getOrCreateUser(
-  db: DrizzleDB,
-  email: string,
-  now: Date,
-): Promise<string> {
+async function getOrCreateUser(db: DrizzleDB, email: string, now: Date): Promise<string> {
   // Check if user exists
   const existingUser = await db
     .select({ id: schema.users.id })
@@ -81,7 +77,7 @@ async function getOrCreateUser(
   await db.insert(schema.users).values({
     id: userId,
     email,
-    name: 'Développeur Louez',
+    name: "Développeur Louez",
     image: `https://ui-avatars.com/api/?name=Dev&background=0D8ABC&color=fff&size=128`,
     emailVerified: true,
     createdAt: now,
@@ -99,19 +95,15 @@ function generateStoreSettings(config: StoreConfig): StoreSettings {
   const settings: StoreSettings = {
     reservationMode: config.reservationMode,
     minRentalMinutes:
-      config.pricingMode === 'hour'
-        ? 120
-        : config.pricingMode === 'week'
-          ? 10080
-          : 1440,
+      config.pricingMode === "hour" ? 120 : config.pricingMode === "week" ? 10080 : 1440,
     maxRentalMinutes: null,
-    advanceNoticeMinutes: config.pricingMode === 'hour' ? 240 : 1440,
-    requireCustomerAddress: config.reservationMode === 'payment',
-    pendingBlocksAvailability: config.reservationMode === 'request',
+    advanceNoticeMinutes: config.pricingMode === "hour" ? 240 : 1440,
+    requireCustomerAddress: config.reservationMode === "payment",
+    pendingBlocksAvailability: config.reservationMode === "request",
     onlinePaymentDepositPercentage: config.onlinePaymentDepositPercentage,
-    country: 'FR',
-    timezone: 'Europe/Paris',
-    currency: 'EUR',
+    country: "FR",
+    timezone: "Europe/Paris",
+    currency: "EUR",
   };
 
   // Add tax settings
@@ -120,23 +112,23 @@ function generateStoreSettings(config: StoreConfig): StoreSettings {
       enabled: true,
       defaultRate: config.taxRate,
       displayMode: config.taxMode,
-      taxLabel: 'TVA',
+      taxLabel: "TVA",
       taxNumber: `FR${Math.floor(Math.random() * 1000000000000)
         .toString()
-        .padStart(11, '0')}`,
+        .padStart(11, "0")}`,
     };
   }
 
   // Add business hours
   if (config.businessHoursEnabled) {
-    const schedule: BusinessHours['schedule'] = {
-      0: { isOpen: false, ranges: [{ openTime: '09:00', closeTime: '18:00' }] }, // Sunday closed
-      1: { isOpen: true, ranges: [{ openTime: '09:00', closeTime: '18:00' }] },
-      2: { isOpen: true, ranges: [{ openTime: '09:00', closeTime: '18:00' }] },
-      3: { isOpen: true, ranges: [{ openTime: '09:00', closeTime: '18:00' }] },
-      4: { isOpen: true, ranges: [{ openTime: '09:00', closeTime: '18:00' }] },
-      5: { isOpen: true, ranges: [{ openTime: '09:00', closeTime: '18:00' }] },
-      6: { isOpen: true, ranges: [{ openTime: '10:00', closeTime: '17:00' }] }, // Saturday shorter
+    const schedule: BusinessHours["schedule"] = {
+      0: { isOpen: false, ranges: [{ openTime: "09:00", closeTime: "18:00" }] }, // Sunday closed
+      1: { isOpen: true, ranges: [{ openTime: "09:00", closeTime: "18:00" }] },
+      2: { isOpen: true, ranges: [{ openTime: "09:00", closeTime: "18:00" }] },
+      3: { isOpen: true, ranges: [{ openTime: "09:00", closeTime: "18:00" }] },
+      4: { isOpen: true, ranges: [{ openTime: "09:00", closeTime: "18:00" }] },
+      5: { isOpen: true, ranges: [{ openTime: "09:00", closeTime: "18:00" }] },
+      6: { isOpen: true, ranges: [{ openTime: "10:00", closeTime: "17:00" }] }, // Saturday shorter
     };
 
     settings.businessHours = {
@@ -145,10 +137,10 @@ function generateStoreSettings(config: StoreConfig): StoreSettings {
       closurePeriods: [
         {
           id: nanoid(),
-          name: 'Vacances de Noël',
-          startDate: '2025-12-24',
-          endDate: '2026-01-02',
-          reason: 'Fermeture annuelle',
+          name: "Vacances de Noël",
+          startDate: "2025-12-24",
+          endDate: "2026-01-02",
+          reason: "Fermeture annuelle",
         },
       ],
     };
@@ -162,15 +154,15 @@ function generateStoreSettings(config: StoreConfig): StoreSettings {
  */
 function generateStoreTheme(config: StoreConfig): StoreTheme {
   const colors: Record<string, string> = {
-    'city-bikes': '#2563EB', // Blue
-    'e-bikes': '#059669', // Green
-    mtb: '#DC2626', // Red
-    family: '#7C3AED', // Purple
+    "city-bikes": "#2563EB", // Blue
+    "e-bikes": "#059669", // Green
+    mtb: "#DC2626", // Red
+    family: "#7C3AED", // Purple
   };
 
   return {
-    mode: config.specialty === 'e-bikes' ? 'dark' : 'light',
-    primaryColor: colors[config.specialty] || '#0066FF',
+    mode: config.specialty === "e-bikes" ? "dark" : "light",
+    primaryColor: colors[config.specialty] || "#0066FF",
     heroImages: [
       `https://picsum.photos/seed/${config.slug}-1/1920/600`,
       `https://picsum.photos/seed/${config.slug}-2/1920/600`,
@@ -244,7 +236,7 @@ function generateNotificationSettings(): NotificationSettings {
     reminderSettings: {
       pickupReminderHours: 24,
       returnReminderHours: 24,
-      mode: 'per_reservation',
+      mode: "per_reservation",
       digestHour: 8,
     },
   };
@@ -302,14 +294,14 @@ async function seedStore(
     email: `contact@${config.slug}.fr`,
     phone: `01 ${Math.floor(Math.random() * 90 + 10)} ${Math.floor(Math.random() * 90 + 10)} ${Math.floor(Math.random() * 90 + 10)} ${Math.floor(Math.random() * 90 + 10)}`,
     address: `${Math.floor(Math.random() * 200) + 1} Rue de la République`,
-    latitude: '48.8566',
-    longitude: '2.3522',
+    latitude: "48.8566",
+    longitude: "2.3522",
     logoUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(config.name)}&background=random&size=200`,
     settings: generateStoreSettings(config),
     theme: generateStoreTheme(config),
-    cgv: 'Conditions générales de vente...',
-    legalNotice: 'Mentions légales...',
-    stripeAccountId: config.stripeEnabled ? generateStripeId('acct') : null,
+    cgv: "Conditions générales de vente...",
+    legalNotice: "Mentions légales...",
+    stripeAccountId: config.stripeEnabled ? generateStripeId("acct") : null,
     stripeOnboardingComplete: config.stripeEnabled,
     stripeChargesEnabled: config.stripeEnabled,
     emailSettings: generateEmailSettings(),
@@ -326,16 +318,15 @@ async function seedStore(
 
   // Create subscription. Pay-as-you-go configs use PAYG billing; the paid tiers
   // (pro/ultra) use subscription billing.
-  const isPayAsYouGo = config.planSlug === 'pay_as_you_go';
+  const isPayAsYouGo = config.planSlug === "pay_as_you_go";
   await db.insert(schema.subscriptions).values({
     id: generateId(),
     storeId,
     planSlug: config.planSlug,
-    billingMode: isPayAsYouGo ? 'pay_as_you_go' : 'subscription',
-    status: 'active',
-    stripeSubscriptionId:
-      config.stripeEnabled && !isPayAsYouGo ? generateStripeId('sub') : null,
-    stripeCustomerId: config.stripeEnabled ? generateStripeId('cus') : null,
+    billingMode: isPayAsYouGo ? "pay_as_you_go" : "subscription",
+    status: "active",
+    stripeSubscriptionId: config.stripeEnabled && !isPayAsYouGo ? generateStripeId("sub") : null,
+    stripeCustomerId: config.stripeEnabled ? generateStripeId("cus") : null,
     currentPeriodEnd: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
     cancelAtPeriodEnd: false,
     createdAt: now,
@@ -348,15 +339,15 @@ async function seedStore(
   await db.insert(schema.smsCredits).values({
     id: generateId(),
     storeId,
-    balance: config.planSlug === 'ultra' ? 450 : 40,
-    totalPurchased: config.planSlug === 'ultra' ? 100 : 0,
-    totalUsed: config.planSlug === 'ultra' ? 150 : 10,
+    balance: config.planSlug === "ultra" ? 450 : 40,
+    totalPurchased: config.planSlug === "ultra" ? 100 : 0,
+    totalUsed: config.planSlug === "ultra" ? 150 : 10,
     createdAt: now,
     updatedAt: now,
   });
 
   // Generate team
-  logInfo('Generating team...');
+  logInfo("Generating team...");
   const teamData = generateTeam(storeId, ownerId, config, now);
 
   if (teamData.users.length > 0) {
@@ -372,7 +363,7 @@ async function seedStore(
   );
 
   // Generate products
-  logInfo('Generating products...');
+  logInfo("Generating products...");
   const productsData = generateProducts(storeId, config, now);
 
   if (productsData.categories.length > 0) {
@@ -382,21 +373,17 @@ async function seedStore(
     await db.insert(schema.products).values(productsData.products);
   }
   if (productsData.productCategories.length > 0) {
-    await db
-      .insert(schema.productCategories)
-      .values(productsData.productCategories);
+    await db.insert(schema.productCategories).values(productsData.productCategories);
   }
   if (productsData.pricingTiers.length > 0) {
-    await db
-      .insert(schema.productPricingTiers)
-      .values(productsData.pricingTiers);
+    await db.insert(schema.productPricingTiers).values(productsData.pricingTiers);
   }
   if (productsData.accessories.length > 0) {
     await db.insert(schema.productAccessories).values(productsData.accessories);
   }
   const createdUnitEventsByUnitId = new Map(
     productsData.productUnitEvents
-      .filter((event) => event.type === 'created')
+      .filter((event) => event.type === "created")
       .map((event) => [event.productUnitId, event]),
   );
   if (productsData.productUnits.length > 0) {
@@ -421,12 +408,10 @@ async function seedStore(
     });
   }
   if (productsData.productUnitDowntimes.length > 0) {
-    await db
-      .insert(schema.productUnitDowntimes)
-      .values(productsData.productUnitDowntimes);
+    await db.insert(schema.productUnitDowntimes).values(productsData.productUnitDowntimes);
   }
   const productUnitEventsToInsert = productsData.productUnitEvents.filter(
-    (event) => event.type !== 'created',
+    (event) => event.type !== "created",
   );
   if (productUnitEventsToInsert.length > 0) {
     await db.insert(schema.productUnitEvents).values(productUnitEventsToInsert);
@@ -441,16 +426,14 @@ async function seedStore(
   );
 
   // Generate customers
-  logInfo('Generating customers...');
+  logInfo("Generating customers...");
   const customersData = generateCustomers(storeId, config, now, startDate);
 
   if (customersData.customers.length > 0) {
     await db.insert(schema.customers).values(customersData.customers);
   }
   if (customersData.customerSessions.length > 0) {
-    await db
-      .insert(schema.customerSessions)
-      .values(customersData.customerSessions);
+    await db.insert(schema.customerSessions).values(customersData.customerSessions);
   }
 
   logSuccess(
@@ -459,7 +442,7 @@ async function seedStore(
   );
 
   // Generate reservations
-  logInfo('Generating reservations...');
+  logInfo("Generating reservations...");
   const teamUserIds = teamData.storeMembers.map((m) => m.userId);
   const reservationsData = generateReservations(
     storeId,
@@ -477,19 +460,13 @@ async function seedStore(
     await db.insert(schema.reservations).values(reservationsData.reservations);
   }
   if (reservationsData.reservationItems.length > 0) {
-    await db
-      .insert(schema.reservationItems)
-      .values(reservationsData.reservationItems);
+    await db.insert(schema.reservationItems).values(reservationsData.reservationItems);
   }
   if (reservationsData.reservationItemUnits.length > 0) {
-    await db
-      .insert(schema.reservationItemUnits)
-      .values(reservationsData.reservationItemUnits);
+    await db.insert(schema.reservationItemUnits).values(reservationsData.reservationItemUnits);
   }
   if (reservationsData.reservationActivity.length > 0) {
-    await db
-      .insert(schema.reservationActivity)
-      .values(reservationsData.reservationActivity);
+    await db.insert(schema.reservationActivity).values(reservationsData.reservationActivity);
   }
 
   logSuccess(
@@ -499,12 +476,8 @@ async function seedStore(
   );
 
   // Generate payments
-  logInfo('Generating payments...');
-  const paymentsData = generatePayments(
-    reservationsData.reservations,
-    config,
-    now,
-  );
+  logInfo("Generating payments...");
+  const paymentsData = generatePayments(reservationsData.reservations, config, now);
 
   if (paymentsData.length > 0) {
     await db.insert(schema.payments).values(paymentsData);
@@ -514,7 +487,7 @@ async function seedStore(
 
   // Generate analytics (all plans include analytics).
   {
-    logInfo('Generating analytics...');
+    logInfo("Generating analytics...");
     const analyticsData = generateAnalytics(
       storeId,
       config,
@@ -536,11 +509,7 @@ async function seedStore(
     }
     if (analyticsData.storefrontEvents.length > 0) {
       const batchSize = 1000;
-      for (
-        let i = 0;
-        i < analyticsData.storefrontEvents.length;
-        i += batchSize
-      ) {
+      for (let i = 0; i < analyticsData.storefrontEvents.length; i += batchSize) {
         const batch = analyticsData.storefrontEvents.slice(i, i + batchSize);
         await db.insert(schema.storefrontEvents).values(batch);
       }
@@ -559,14 +528,14 @@ async function seedStore(
     );
   }
 
-  console.log('');
+  console.log("");
 }
 
 /**
  * Main entry point
  */
 async function main(): Promise<void> {
-  console.log('');
+  console.log("");
   console.log(
     `${colors.cyan}${colors.bold}╔════════════════════════════════════════════════════════════╗${colors.reset}`,
   );
@@ -579,7 +548,7 @@ async function main(): Promise<void> {
   console.log(
     `${colors.cyan}${colors.bold}╚════════════════════════════════════════════════════════════╝${colors.reset}`,
   );
-  console.log('');
+  console.log("");
 
   // Validate environment
   validateEnvironment();
@@ -590,27 +559,25 @@ async function main(): Promise<void> {
   // Ask for confirmation
   const confirmed = await askConfirmation(config);
   if (!confirmed) {
-    console.log('');
-    logInfo('Seed cancelled by user.');
+    console.log("");
+    logInfo("Seed cancelled by user.");
     process.exit(0);
   }
 
   // Calculate date ranges
   const { startDate, endDate, now } = getDateRanges(config.months);
 
-  console.log('');
-  logInfo(
-    `Date range: ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`,
-  );
+  console.log("");
+  logInfo(`Date range: ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`);
 
   // Connect to database
-  logInfo('Connecting to database...');
+  logInfo("Connecting to database...");
 
   const pool = createPool(process.env.DATABASE_URL!);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = drizzle(pool as any, { schema, mode: 'default' }) as DrizzleDB;
+  const db = drizzle(pool as any, { schema, mode: "default" }) as DrizzleDB;
 
-  logSuccess('Database connected');
+  logSuccess("Database connected");
 
   try {
     // Get or create owner user
@@ -621,7 +588,7 @@ async function main(): Promise<void> {
       await seedStore(db, storeConfig, ownerId, startDate, endDate, now);
     }
 
-    console.log('');
+    console.log("");
     console.log(
       `${colors.green}${colors.bold}╔════════════════════════════════════════════════════════════╗${colors.reset}`,
     );
@@ -631,20 +598,18 @@ async function main(): Promise<void> {
     console.log(
       `${colors.green}${colors.bold}╚════════════════════════════════════════════════════════════╝${colors.reset}`,
     );
-    console.log('');
+    console.log("");
     console.log(`${colors.bold}Created stores:${colors.reset}`);
     for (const storeConfig of STORE_CONFIGS) {
       console.log(`  - ${storeConfig.name} (${storeConfig.slug})`);
     }
-    console.log('');
+    console.log("");
     console.log(`${colors.dim}Login with: ${config.userEmail}${colors.reset}`);
-    console.log(
-      `${colors.dim}Use Drizzle Studio to explore: pnpm db:studio${colors.reset}`,
-    );
-    console.log('');
+    console.log(`${colors.dim}Use Drizzle Studio to explore: pnpm db:studio${colors.reset}`);
+    console.log("");
   } catch (error) {
-    console.log('');
-    logError('Seed failed!');
+    console.log("");
+    logError("Seed failed!");
     console.error(error);
     process.exit(1);
   } finally {

@@ -1,4 +1,4 @@
-export { stripe, getStripePublishableKey } from './client'
+export { stripe, getStripePublishableKey } from "./client";
 export {
   createSubscriptionCheckoutSession,
   createCustomerPortalSession,
@@ -9,4 +9,4 @@ export {
   syncSubscriptionFromStripe,
   getPlans,
   getPlan,
-} from './subscriptions'
+} from "./subscriptions";

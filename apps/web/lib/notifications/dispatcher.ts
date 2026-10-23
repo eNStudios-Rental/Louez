@@ -68,9 +68,9 @@ export interface NotificationContext {
     totalAmount: number;
   };
   customer?: {
-    firstName: string;
-    lastName: string;
-    email: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    email?: string | null;
     phone?: string | null;
   };
   payment?: {
@@ -607,7 +607,9 @@ function buildAdminSmsMessage(
   const vars: AdminSmsTemplateVars = {
     storeName: ctx.store.name,
     number: ctx.reservation?.number || "",
-    customerName: ctx.customer ? `${ctx.customer.firstName} ${ctx.customer.lastName}` : "",
+    customerName: ctx.customer
+      ? [ctx.customer.firstName, ctx.customer.lastName].filter(Boolean).join(" ")
+      : "",
     amount: ctx.payment
       ? formatCurrencyForSms(ctx.payment.amount, ctx.store.settings?.currency)
       : ctx.reservation
@@ -914,9 +916,9 @@ export interface AdminReminderContext {
     totalAmount: number;
   };
   customer: {
-    firstName: string;
-    lastName: string;
-    email: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    email?: string | null;
     phone?: string | null;
   };
   dashboardUrl: string;

@@ -41,23 +41,20 @@ export const FormCountrySelect = ({
   const errors = field.state.meta.errors;
   const error = errors[0];
   const errorId = `${field.name}-error`;
-  const sortedCountries = useMemo(
-    () => {
-      if (countries) {
-        return [...countries].sort((firstCountry, secondCountry) =>
-          getCountryName(firstCountry.code, locale).localeCompare(
-            getCountryName(secondCountry.code, locale),
-            locale,
-          ),
-        );
-      }
-      if (allCountries) {
-        return getAllCountriesSortedByName(locale);
-      }
-      return getCountriesSortedByName(locale);
-    },
-    [countries, allCountries, locale],
-  );
+  const sortedCountries = useMemo(() => {
+    if (countries) {
+      return [...countries].sort((firstCountry, secondCountry) =>
+        getCountryName(firstCountry.code, locale).localeCompare(
+          getCountryName(secondCountry.code, locale),
+          locale,
+        ),
+      );
+    }
+    if (allCountries) {
+      return getAllCountriesSortedByName(locale);
+    }
+    return getCountriesSortedByName(locale);
+  }, [countries, allCountries, locale]);
   const selectedCountryName = field.state.value
     ? getCountryName(field.state.value, locale)
     : undefined;

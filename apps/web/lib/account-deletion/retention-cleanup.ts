@@ -1,7 +1,7 @@
-import 'server-only';
+import "server-only";
 
-import { db, legalRetentionRecords } from '@louez/db';
-import { lt } from 'drizzle-orm';
+import { db, legalRetentionRecords } from "@louez/db";
+import { lt } from "drizzle-orm";
 
 export const purgeExpiredLegalRetentionRecords = async (now = new Date()): Promise<number> => {
   const cutoff = now.toISOString().slice(0, 10);

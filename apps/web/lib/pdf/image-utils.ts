@@ -1,4 +1,4 @@
-import { isSvgUrl, convertSvgToPng } from '@/lib/image-utils'
+import { isSvgUrl, convertSvgToPng } from "@/lib/image-utils";
 
 /**
  * Converts an image URL to a format compatible with @react-pdf/renderer.
@@ -10,17 +10,17 @@ import { isSvgUrl, convertSvgToPng } from '@/lib/image-utils'
  */
 export async function convertImageForPdf(
   imageUrl: string | null | undefined,
-  maxSize: number = 400
+  maxSize: number = 400,
 ): Promise<string | null> {
   if (!imageUrl) {
-    return null
+    return null;
   }
 
   // If it's not an SVG, return the original URL
   // react-pdf supports PNG, JPG, and other raster formats natively
   if (!isSvgUrl(imageUrl)) {
-    return imageUrl
+    return imageUrl;
   }
 
-  return convertSvgToPng(imageUrl, maxSize)
+  return convertSvgToPng(imageUrl, maxSize);
 }
