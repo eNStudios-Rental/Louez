@@ -17,8 +17,9 @@ import {
 
 const updateAccountInfoSchema = z.object({
   name: z.string().trim().min(2).max(255),
-  // undefined = keep the current image, null = remove it, string = uploaded URL.
-  imageUrl: z.string().url().nullable().optional(),
+  // Uploaded images can be absolute bucket URLs or same-origin `/files/...` paths.
+  // isOwnedImageUrl below validates the storage URL and its user-owned prefix.
+  imageUrl: z.string().nullable().optional(),
 });
 
 type UpdateAccountInfoInput = z.infer<typeof updateAccountInfoSchema>;
