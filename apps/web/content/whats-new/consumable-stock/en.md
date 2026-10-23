@@ -1,4 +1,4 @@
-Louez counted stock one way only: an item goes out, it comes back, it becomes available again. Wax, gas cartridges, straps and bags never fitted that model. They fit now, under a stock type of their own.
+The app counted stock one way only: an item goes out, it comes back, it becomes available again. Wax, gas cartridges, straps and bags never fitted that model. They fit now, under a stock type of their own.
 
 ## Two stock types
 

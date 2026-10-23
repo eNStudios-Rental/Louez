@@ -4,7 +4,7 @@ Créer une réservation au comptoir demandait quatre à cinq étapes — Client,
 
 Tout est là, du haut vers le bas : le client, la période, les produits, la livraison si vous la proposez, et vos notes internes. Vous remplissez dans l'ordre qui vous arrange et vous revenez en arrière d'un coup d'œil, au lieu d'un aller-retour entre étapes.
 
-Plus besoin non plus de valider une étape pour découvrir ce qui bloque : à la validation, Louez fait défiler la page jusqu'à la section incomplète et vous indique le champ concerné.
+Plus besoin non plus de valider une étape pour découvrir ce qui bloque : à la validation, la plateforme fait défiler la page jusqu'à la section incomplète et vous indique le champ concerné.
 
 ## Le récapitulatif n'est plus une étape
 
@@ -20,7 +20,7 @@ L'ancienne étape « Confirmation » disparaît. Le récapitulatif reste affich�
 
 Un client de passage se crée depuis la recherche : il est enregistré et sélectionné dans la foulée, et vous le retrouverez la prochaine fois.
 
-Côté matériel, seuls les produits libres sur la période sont proposés. Si vous décidez de passer outre, Louez vous prévient du surbooking avant de valider plutôt que de vous laisser le découvrir le jour du départ.
+Côté matériel, seuls les produits libres sur la période sont proposés. Si vous décidez de passer outre, la plateforme vous prévient du surbooking avant de valider plutôt que de vous laisser le découvrir le jour du départ.
 
 ---
 

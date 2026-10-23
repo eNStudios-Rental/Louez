@@ -1,4 +1,4 @@
-Some of you live in Louez from morning to night, and every trip back to the mouse costs seconds. This one is for you. If that is not your case, feel free to skip it: nothing below is required.
+Some of you live in the app from morning to night, and every trip back to the mouse costs seconds. This one is for you. If that is not your case, feel free to skip it: nothing below is required.
 
 ## The eight shortcuts that ship
 
@@ -21,10 +21,10 @@ The last three are **sequences**: two keys pressed one after the other, with no 
 
 None of these eight is fixed. In [**My account**](/dashboard/account), click the one you want to change and **simply press the keys** you prefer — no dropdown, no syntax to learn. For a sequence, enter the keys in order then press Enter.
 
-If the combination is already taken, Louez refuses it and tells you **which action owns it**, rather than quietly breaking another one. And each shortcut resets to its original value on its own, without wiping the rest.
+If the combination is already taken, the app refuses it and tells you **which action owns it**, rather than quietly breaking another one. And each shortcut resets to its original value on its own, without wiping the rest.
 
 Your choices are saved on your account: you find them again on any machine, and they do not affect your colleagues.
 
 ## `⌘S` deserves a word
 
-It saves the form you are filling in, wherever you are in Louez — a product page, a settings page, a reservation. It is the one on the list that genuinely changes a habit: you stop hunting for the button at the bottom of the page.
+It saves the form you are filling in, wherever you are in the app — a product page, a settings page, a reservation. It is the one on the list that genuinely changes a habit: you stop hunting for the button at the bottom of the page.

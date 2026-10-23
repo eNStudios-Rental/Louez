@@ -112,7 +112,7 @@ export const GoogleCalendarConfigurationPanel = () => {
         <CardHeader>
           <CardTitle>Connecter Google Calendar</CardTitle>
           <CardDescription>
-            Louez creera un agenda dedie et y synchronisera les reservations.
+            Un agenda dédié sera créé pour synchroniser les réservations.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -165,7 +165,7 @@ export const GoogleCalendarConfigurationPanel = () => {
                 Agenda
               </p>
               <p className="font-medium">
-                {calendarState.calendarName || 'Agenda Louez'}
+                {calendarState.calendarName || 'Agenda de réservations'}
               </p>
             </div>
             <div>

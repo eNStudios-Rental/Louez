@@ -2,7 +2,7 @@ Une photo prise sur la table de la cuisine, une autre dans le garage, une troisi
 
 ## Que faire de cette photo ?
 
-À chaque upload, Louez vous pose la question : **Améliorer avec l'IA**, **Supprimer l'arrière-plan**, recadrer vous-même, ou utiliser la photo telle quelle. Le coût en crédits est affiché sur chaque option, et rien ne se déclenche sans vous.
+À chaque upload, la plateforme vous pose la question : **Améliorer avec l'IA**, **Supprimer l'arrière-plan**, recadrer vous-même, ou utiliser la photo telle quelle. Le coût en crédits est affiché sur chaque option, et rien ne se déclenche sans vous.
 
 ## L'amélioration IA
 

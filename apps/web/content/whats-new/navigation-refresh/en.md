@@ -1,4 +1,4 @@
-The dashboard has grown, and with it the number of pages to remember. Rather than adding menus, we added a shortcut: type what you are after, and Louez takes you there.
+The dashboard has grown, and with it the number of pages to remember. Rather than adding menus, we added a shortcut: type what you are after, and the app takes you there.
 
 ## ⌘K, from anywhere
 

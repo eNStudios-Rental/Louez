@@ -1,4 +1,4 @@
-Until now, you signed in to Louez with a code sent by email or with Google. You can now add a password to your account. It is optional: the email code always stays available.
+Until now, you signed in to the app with a code sent by email or with Google. You can now add a password to your account. It is optional: the email code always stays available.
 
 ## Set a password
 
@@ -8,7 +8,7 @@ From the same card, you can change it or remove it at any time.
 
 ## Sign in with it
 
-On the sign-in screen, click **Sign in with a password instead**. Louez remembers the method you used: next time, the right screen opens straight away.
+On the sign-in screen, click **Sign in with a password instead**. The app remembers the method you used: next time, the right screen opens straight away.
 
 ## Forgot your password
 

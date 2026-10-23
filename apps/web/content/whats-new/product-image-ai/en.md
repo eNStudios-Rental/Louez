@@ -2,7 +2,7 @@ One photo taken on the kitchen table, another in the garage, a third pulled from
 
 ## What should we do with this photo?
 
-On every upload, Louez asks: **Enhance with AI**, **Remove the background**, crop it yourself, or use it as is. The credit cost is shown on each option, and nothing runs without you.
+On every upload, the app asks: **Enhance with AI**, **Remove the background**, crop it yourself, or use it as is. The credit cost is shown on each option, and nothing runs without you.
 
 ## AI enhancement
 

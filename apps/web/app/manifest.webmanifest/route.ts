@@ -23,8 +23,8 @@ export async function GET() {
   });
 
   const manifest = {
-    name: 'Louez',
-    short_name: 'Louez',
+    name: 'Rental management',
+    short_name: 'Rentals',
     description: t('subtitle'),
     id: '/',
     start_url: '/',

@@ -19,7 +19,7 @@ type DemoPageProps = {
 // The title never shows: the landing names each iframe itself. It stays language-neutral
 // because reading `searchParams` here, outside <Suspense>, would block the route.
 export const metadata: Metadata = {
-  title: "Louez",
+  title: "Rental management demo",
   robots: { index: false, follow: false },
 };
 
