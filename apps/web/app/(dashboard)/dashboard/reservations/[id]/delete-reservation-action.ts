@@ -1,12 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, or } from "drizzle-orm";
 import { z } from "zod";
 
 import { isEmailConfigured } from "@louez/email";
 import {
   aiAdvisorConversations,
+  aiAdvisorMessages,
   customers,
   db,
   discordLogs,
@@ -16,6 +17,7 @@ import {
   inspectionItems,
   inspectionPhotos,
   inspections,
+  invoicePayments,
   invoices,
   marketplaceBookingAttempts,
   payments,
@@ -43,6 +45,7 @@ import { getCurrentStore } from "@/lib/store-context";
 const deleteReservationInputSchema = z.object({
   reservationId: z.string().length(21),
   notifyCustomer: z.boolean(),
+  confirmFinishedReservation: z.boolean(),
 });
 
 const deletionEmailReason = {
@@ -72,6 +75,7 @@ export type DeleteReservationResult =
         | "email-required"
         | "email-unavailable"
         | "active-rental"
+        | "confirmation-required"
         | "financial-records"
         | "external-sync"
         | "failed";
@@ -88,7 +92,7 @@ export async function deleteReservation(
     return { success: false, reason: "unauthorized" };
   }
 
-  const { reservationId, notifyCustomer } = parsed.data;
+  const { reservationId, notifyCustomer, confirmFinishedReservation } = parsed.data;
 
   try {
     let inspectionPhotoKeys: string[] = [];
@@ -109,8 +113,13 @@ export async function deleteReservation(
         .for("update");
 
       if (!reservation) return { success: false as const, reason: "not-found" as const };
-      if (reservation.status === "ongoing" || reservation.status === "completed") {
+      if (reservation.status === "ongoing") {
         return { success: false as const, reason: "active-rental" as const };
+      }
+      const isConfirmedFinishedDeletion =
+        reservation.status === "completed" && confirmFinishedReservation;
+      if (reservation.status === "completed" && !confirmFinishedReservation) {
+        return { success: false as const, reason: "confirmation-required" as const };
       }
 
       const [customer] = await tx
@@ -127,23 +136,27 @@ export async function deleteReservation(
         return { success: false as const, reason: "email-unavailable" as const };
       }
 
-      const [payment] = await tx
+      const reservationPaymentRows = await tx
         .select({ id: payments.id })
         .from(payments)
-        .where(eq(payments.reservationId, reservationId))
-        .limit(1);
-      const [invoice] = await tx
-        .select({ id: invoices.id })
+        .where(eq(payments.reservationId, reservationId));
+      const paymentIds = reservationPaymentRows.map(({ id }) => id);
+      const reservationInvoiceRows = await tx
+        .select({ id: invoices.id, documentId: invoices.documentId })
         .from(invoices)
-        .where(and(eq(invoices.reservationId, reservationId), eq(invoices.storeId, store.id)))
-        .limit(1);
+        .where(and(eq(invoices.reservationId, reservationId), eq(invoices.storeId, store.id)));
+      const invoiceIds = reservationInvoiceRows.map(({ id }) => id);
       const [fee] = await tx
         .select({ id: platformFees.id })
         .from(platformFees)
         .where(and(eq(platformFees.reservationId, reservationId), eq(platformFees.storeId, store.id)))
         .limit(1);
 
-      if (payment || invoice || fee || reservation.depositPaymentIntentId || reservation.tulipContractId) {
+      if (
+        reservation.tulipContractId ||
+        (!isConfirmedFinishedDeletion &&
+          (paymentIds.length > 0 || invoiceIds.length > 0 || fee || reservation.depositPaymentIntentId))
+      ) {
         return { success: false as const, reason: "financial-records" as const };
       }
 
@@ -195,6 +208,44 @@ export async function deleteReservation(
         await tx.delete(inspections).where(inArray(inspections.id, inspectionIds));
       }
 
+      if (isConfirmedFinishedDeletion) {
+        if (invoiceIds.length > 0) {
+          await tx.delete(invoicePayments).where(inArray(invoicePayments.invoiceId, invoiceIds));
+        }
+        if (paymentIds.length > 0) {
+          await tx.delete(invoicePayments).where(inArray(invoicePayments.paymentId, paymentIds));
+        }
+        await tx.delete(platformFees).where(
+          and(eq(platformFees.reservationId, reservationId), eq(platformFees.storeId, store.id)),
+        );
+        if (invoiceIds.length > 0) {
+          await tx.delete(invoices).where(inArray(invoices.id, invoiceIds));
+        }
+        if (paymentIds.length > 0) {
+          await tx.delete(payments).where(inArray(payments.id, paymentIds));
+        }
+
+        const invoiceDocumentIds = reservationInvoiceRows.map(({ documentId }) => documentId);
+        if (invoiceDocumentIds.length > 0) {
+          await tx.delete(documents).where(
+            or(
+              eq(documents.reservationId, reservationId),
+              inArray(documents.id, invoiceDocumentIds),
+            ),
+          );
+        } else {
+          await tx.delete(documents).where(eq(documents.reservationId, reservationId));
+        }
+        await tx.delete(referralRewards).where(
+          or(
+            eq(referralRewards.qualifyingReservationId, reservationId),
+            ...(paymentIds.length > 0
+              ? [inArray(referralRewards.qualifyingPaymentId, paymentIds)]
+              : []),
+          ),
+        );
+      }
+
       if (reservation.status === "confirmed") {
         await restoreReservationStock(tx, reservationId, store.id);
       }
@@ -211,27 +262,61 @@ export async function deleteReservation(
         and(eq(reminderLogs.reservationId, reservationId), eq(reminderLogs.storeId, store.id)),
       );
 
-      // Preserve customer communications and signed contract files without leaving
-      // them attached to a reservation that no longer exists.
-      await tx.update(documents).set({ reservationId: null }).where(eq(documents.reservationId, reservationId));
-      await tx.update(emailLogs).set({ reservationId: null }).where(
-        and(eq(emailLogs.reservationId, reservationId), eq(emailLogs.storeId, store.id)),
-      );
-      await tx.update(smsLogs).set({ reservationId: null }).where(
-        and(eq(smsLogs.reservationId, reservationId), eq(smsLogs.storeId, store.id)),
-      );
-      await tx.update(discordLogs).set({ reservationId: null }).where(
-        and(eq(discordLogs.reservationId, reservationId), eq(discordLogs.storeId, store.id)),
-      );
-      await tx.update(verificationCodes).set({ reservationId: null }).where(
-        and(eq(verificationCodes.reservationId, reservationId), eq(verificationCodes.storeId, store.id)),
-      );
-      await tx.update(aiAdvisorConversations).set({ reservationId: null }).where(
-        and(eq(aiAdvisorConversations.reservationId, reservationId), eq(aiAdvisorConversations.storeId, store.id)),
-      );
-      await tx.update(referralRewards).set({ qualifyingReservationId: null }).where(
-        eq(referralRewards.qualifyingReservationId, reservationId),
-      );
+      if (isConfirmedFinishedDeletion) {
+        await tx.delete(emailLogs).where(
+          and(eq(emailLogs.reservationId, reservationId), eq(emailLogs.storeId, store.id)),
+        );
+        await tx.delete(smsLogs).where(
+          and(eq(smsLogs.reservationId, reservationId), eq(smsLogs.storeId, store.id)),
+        );
+        await tx.delete(discordLogs).where(
+          and(eq(discordLogs.reservationId, reservationId), eq(discordLogs.storeId, store.id)),
+        );
+        await tx.delete(verificationCodes).where(
+          and(eq(verificationCodes.reservationId, reservationId), eq(verificationCodes.storeId, store.id)),
+        );
+
+        const advisorConversationRows = await tx
+          .select({ id: aiAdvisorConversations.id })
+          .from(aiAdvisorConversations)
+          .where(
+            and(
+              eq(aiAdvisorConversations.reservationId, reservationId),
+              eq(aiAdvisorConversations.storeId, store.id),
+            ),
+          );
+        const advisorConversationIds = advisorConversationRows.map(({ id }) => id);
+        if (advisorConversationIds.length > 0) {
+          await tx.delete(aiAdvisorMessages).where(
+            inArray(aiAdvisorMessages.conversationId, advisorConversationIds),
+          );
+          await tx.delete(aiAdvisorConversations).where(
+            inArray(aiAdvisorConversations.id, advisorConversationIds),
+          );
+        }
+      } else {
+        // Preserve customer communications and signed contract files, detached
+        // from reservations deleted before they were finished.
+        await tx.update(documents).set({ reservationId: null }).where(eq(documents.reservationId, reservationId));
+        await tx.update(emailLogs).set({ reservationId: null }).where(
+          and(eq(emailLogs.reservationId, reservationId), eq(emailLogs.storeId, store.id)),
+        );
+        await tx.update(smsLogs).set({ reservationId: null }).where(
+          and(eq(smsLogs.reservationId, reservationId), eq(smsLogs.storeId, store.id)),
+        );
+        await tx.update(discordLogs).set({ reservationId: null }).where(
+          and(eq(discordLogs.reservationId, reservationId), eq(discordLogs.storeId, store.id)),
+        );
+        await tx.update(verificationCodes).set({ reservationId: null }).where(
+          and(eq(verificationCodes.reservationId, reservationId), eq(verificationCodes.storeId, store.id)),
+        );
+        await tx.update(aiAdvisorConversations).set({ reservationId: null }).where(
+          and(eq(aiAdvisorConversations.reservationId, reservationId), eq(aiAdvisorConversations.storeId, store.id)),
+        );
+        await tx.update(referralRewards).set({ qualifyingReservationId: null }).where(
+          eq(referralRewards.qualifyingReservationId, reservationId),
+        );
+      }
 
       await tx.delete(reservations).where(
         and(eq(reservations.id, reservationId), eq(reservations.storeId, store.id)),

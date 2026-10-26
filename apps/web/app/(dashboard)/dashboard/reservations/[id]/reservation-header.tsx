@@ -126,6 +126,7 @@ export function ReservationHeader({
   const [copiedLink, setCopiedLink] = useState(false);
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [finishedDeleteDialogOpen, setFinishedDeleteDialogOpen] = useState(false);
   const [notifyCustomer, setNotifyCustomer] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -237,10 +238,14 @@ export function ReservationHeader({
     captureReservationActionSucceeded({ reservationId, reservationStatus: status, action });
   };
 
-  const handleDeleteReservation = async () => {
+  const handleDeleteReservation = async (confirmFinishedReservation = false) => {
     setIsDeleting(true);
     try {
-      const result = await deleteReservation({ reservationId, notifyCustomer });
+      const result = await deleteReservation({
+        reservationId,
+        notifyCustomer,
+        confirmFinishedReservation,
+      });
       if (!result.success) {
         const message = {
           unauthorized: t("deleteDialog.errors.unauthorized"),
@@ -249,6 +254,7 @@ export function ReservationHeader({
           "email-required": t("deleteDialog.errors.emailRequired"),
           "email-unavailable": t("deleteDialog.errors.emailUnavailable"),
           "active-rental": t("deleteDialog.errors.activeRental"),
+          "confirmation-required": t("deleteDialog.errors.confirmationRequired"),
           "financial-records": t("deleteDialog.errors.financialRecords"),
           "external-sync": t("deleteDialog.errors.externalSync"),
           failed: t("deleteDialog.errors.failed"),
@@ -258,6 +264,7 @@ export function ReservationHeader({
       }
 
       setDeleteDialogOpen(false);
+      setFinishedDeleteDialogOpen(false);
       toastManager.add({
         title: result.emailSent
           ? t("deleteDialog.deletedWithEmail")
@@ -449,10 +456,50 @@ export function ReservationHeader({
             </Button>
             <Button
               variant="destructive"
-              onClick={handleDeleteReservation}
+              onClick={() => {
+                if (status === "completed") {
+                  setDeleteDialogOpen(false);
+                  setFinishedDeleteDialogOpen(true);
+                  return;
+                }
+                void handleDeleteReservation();
+              }}
               disabled={isDeleting}
             >
               {isDeleting ? t("deleteDialog.deleting") : t("deleteDialog.confirm")}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={finishedDeleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!isDeleting) setFinishedDeleteDialogOpen(open);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("deleteDialog.finishedWarningTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("deleteDialog.finishedWarningDescription", { number: reservationNumber })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setFinishedDeleteDialogOpen(false)}
+              disabled={isDeleting}
+            >
+              {t("deleteDialog.changedMind")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => handleDeleteReservation(true)}
+              disabled={isDeleting}
+            >
+              {isDeleting ? t("deleteDialog.deleting") : t("deleteDialog.knowWhatDoing")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
