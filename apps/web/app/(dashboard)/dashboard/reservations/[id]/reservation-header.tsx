@@ -457,12 +457,8 @@ export function ReservationHeader({
             <Button
               variant="destructive"
               onClick={() => {
-                if (status === "completed") {
-                  setDeleteDialogOpen(false);
-                  setFinishedDeleteDialogOpen(true);
-                  return;
-                }
-                void handleDeleteReservation();
+                setDeleteDialogOpen(false);
+                setFinishedDeleteDialogOpen(true);
               }}
               disabled={isDeleting}
             >
@@ -480,9 +476,26 @@ export function ReservationHeader({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("deleteDialog.finishedWarningTitle")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {status === "completed"
+                ? t("deleteDialog.finishedWarningTitle")
+                : t("deleteDialog.cancellableWarningTitle")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("deleteDialog.finishedWarningDescription", { number: reservationNumber })}
+              {status === "completed" ? (
+                <>
+                  {t("deleteDialog.finishedWarningIntro")}
+                  <ul className="my-2 list-disc space-y-1 pl-5">
+                    <li>{t("deleteDialog.finishedWarningPayments")}</li>
+                    <li>{t("deleteDialog.finishedWarningProtocols")}</li>
+                    <li>{t("deleteDialog.finishedWarningHistory")}</li>
+                    <li>{t("deleteDialog.finishedWarningRelated")}</li>
+                  </ul>
+                  {t("deleteDialog.finishedWarningConclusion")}
+                </>
+              ) : (
+                t("deleteDialog.cancellableWarningDescription")
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
 

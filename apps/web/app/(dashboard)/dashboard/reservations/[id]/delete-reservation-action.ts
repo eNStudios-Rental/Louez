@@ -113,12 +113,9 @@ export async function deleteReservation(
         .for("update");
 
       if (!reservation) return { success: false as const, reason: "not-found" as const };
-      if (reservation.status === "ongoing") {
-        return { success: false as const, reason: "active-rental" as const };
-      }
       const isConfirmedFinishedDeletion =
         reservation.status === "completed" && confirmFinishedReservation;
-      if (reservation.status === "completed" && !confirmFinishedReservation) {
+      if (!confirmFinishedReservation) {
         return { success: false as const, reason: "confirmation-required" as const };
       }
 
