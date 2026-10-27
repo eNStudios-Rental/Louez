@@ -79,9 +79,10 @@ When in doubt, default to **Next.js**.
 
 ### Domain References
 
-| File                                     | Topic                                       |
-| ---------------------------------------- | ------------------------------------------- |
-| [domain/glossary.md](domain/glossary.md) | Canonical Louez product and domain language |
+| File                                     | Topic                                        |
+| ---------------------------------------- | -------------------------------------------- |
+| [domain/glossary.md](domain/glossary.md) | Canonical Louez product and domain language  |
+| [workflow.md](workflow.md)               | End-to-end git, CI/CD, PR & deployment guide |
 
 ### From Scratch — Starting a new project
 

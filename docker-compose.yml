@@ -38,7 +38,7 @@ services:
     #   dockerfile: docker/Dockerfile.web
     #   target: app
     ports:
-      - "${LOUEZ_PORT:-3000}:3000"
+      - "127.0.0.1:${LOUEZ_PORT:-3000}:3000"
     environment:
       LOUEZ_MODE: ${LOUEZ_MODE:-standalone}
       DATABASE_URL: mysql://louez:${DB_PASSWORD:-louez}@db:3306/louez
