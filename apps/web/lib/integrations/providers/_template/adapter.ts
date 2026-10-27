@@ -1,5 +1,5 @@
-import { setIntegrationEnabledState } from '@/lib/integrations/registry/state'
-import type { IntegrationAdapter } from '@/lib/integrations/registry/types'
+import { setIntegrationEnabledState } from "@/lib/integrations/registry/state";
+import type { IntegrationAdapter } from "@/lib/integrations/registry/types";
 
 export const exampleIntegrationAdapter: IntegrationAdapter = {
   getStatus: () => ({
@@ -8,6 +8,5 @@ export const exampleIntegrationAdapter: IntegrationAdapter = {
     configured: false,
     connectionIssue: null,
   }),
-  setEnabled: (settings, enabled) =>
-    setIntegrationEnabledState(settings, 'example', enabled),
-}
+  setEnabled: (settings, enabled) => setIntegrationEnabledState(settings, "example", enabled),
+};

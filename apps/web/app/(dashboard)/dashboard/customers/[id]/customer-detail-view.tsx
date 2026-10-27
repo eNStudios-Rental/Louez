@@ -107,9 +107,7 @@ export const CustomerDetailView = ({
             ) : (
               <>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold tracking-tight">
-                    {customerBreadcrumbLabel}
-                  </h1>
+                  <h1 className="text-2xl font-bold tracking-tight">{customerBreadcrumbLabel}</h1>
                   <Badge variant="expired" className="font-normal">
                     {t("customerType.individual")}
                   </Badge>
@@ -329,7 +327,11 @@ export const CustomerDetailView = ({
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatCurrency(parseFloat(reservation.totalAmount), currency, formatLocale)}
+                        {formatCurrency(
+                          parseFloat(reservation.totalAmount),
+                          currency,
+                          formatLocale,
+                        )}
                       </TableCell>
                     </TableRow>
                   );

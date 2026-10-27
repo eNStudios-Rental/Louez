@@ -6,33 +6,33 @@ import {
   getCountryCallingCode,
   parseIncompletePhoneNumber,
   parsePhoneNumberFromString,
-} from 'libphonenumber-js/core';
-import metadata from 'libphonenumber-js/metadata.min.json';
+} from "libphonenumber-js/core";
+import metadata from "libphonenumber-js/metadata.min.json";
 
 const phoneMetadata: MetadataJson = metadata;
-const DEFAULT_PHONE_COUNTRY: CountryCode = 'PL';
+const DEFAULT_PHONE_COUNTRY: CountryCode = "PL";
 const PRIORITY_COUNTRIES: CountryCode[] = [
-  'FR',
-  'BE',
-  'CH',
-  'LU',
-  'DE',
-  'ES',
-  'IT',
-  'PT',
-  'NL',
-  'NO',
-  'IS',
-  'GB',
-  'US',
-  'CA',
-  'PL',
-  'AT',
-  'IE',
-  'MC',
+  "FR",
+  "BE",
+  "CH",
+  "LU",
+  "DE",
+  "ES",
+  "IT",
+  "PT",
+  "NL",
+  "NO",
+  "IS",
+  "GB",
+  "US",
+  "CA",
+  "PL",
+  "AT",
+  "IE",
+  "MC",
 ];
-const COUNTRY_DISPLAY_NAMES = new Intl.DisplayNames(['en'], {
-  type: 'region',
+const COUNTRY_DISPLAY_NAMES = new Intl.DisplayNames(["en"], {
+  type: "region",
 });
 const COUNTRY_FLAG_OFFSET = 127397;
 const PHONE_COUNTRIES = getCountries(phoneMetadata);
@@ -66,10 +66,8 @@ export interface ParsedPhoneInput {
 
 function getCountryFlag(country: CountryCode): string {
   return Array.from(country)
-    .map((letter) =>
-      String.fromCodePoint(letter.charCodeAt(0) + COUNTRY_FLAG_OFFSET),
-    )
-    .join('');
+    .map((letter) => String.fromCodePoint(letter.charCodeAt(0) + COUNTRY_FLAG_OFFSET))
+    .join("");
 }
 
 function getCountryName(country: CountryCode): string {
@@ -92,9 +90,7 @@ function buildCountryCodes(): Partial<Record<CountryCode, CountryPhoneData>> {
 
 export const COUNTRY_CODES = buildCountryCodes();
 
-export function getSupportedPhoneCountry(
-  country: string | null | undefined,
-): CountryCode | null {
+export function getSupportedPhoneCountry(country: string | null | undefined): CountryCode | null {
   const normalizedCountry = country?.trim().toUpperCase();
   if (!normalizedCountry) return null;
 
@@ -111,9 +107,7 @@ export function getDefaultPhoneCountry(
   return getSupportedPhoneCountry(country) ?? DEFAULT_PHONE_COUNTRY;
 }
 
-export function getCountryPhoneData(
-  country: string | null | undefined,
-): CountryPhoneData {
+export function getCountryPhoneData(country: string | null | undefined): CountryPhoneData {
   const supportedCountry = getDefaultPhoneCountry(country);
 
   return {
@@ -148,11 +142,7 @@ function parsePhoneNumberValue(
 
   const defaultCountry = getDefaultPhoneCountry(defaultCountryCode);
 
-  return parsePhoneNumberFromString(
-    trimmedPhone,
-    defaultCountry,
-    phoneMetadata,
-  );
+  return parsePhoneNumberFromString(trimmedPhone, defaultCountry, phoneMetadata);
 }
 
 export function normalizePhoneNumber(
@@ -180,9 +170,7 @@ export function parsePhoneInput(
   if (phoneNumber) {
     return {
       country: phoneNumber.country ?? formatter.getCountry() ?? defaultCountry,
-      displayValue: phoneNumber.isPossible()
-        ? phoneNumber.formatInternational()
-        : displayValue,
+      displayValue: phoneNumber.isPossible() ? phoneNumber.formatInternational() : displayValue,
       nationalNumber: phoneNumber.nationalNumber,
       normalized: phoneNumber.isPossible() ? phoneNumber.number : null,
     };
@@ -191,9 +179,7 @@ export function parsePhoneInput(
   return {
     country: formatter.getCountry() ?? defaultCountry,
     displayValue,
-    nationalNumber:
-      formatter.getNumber()?.nationalNumber ??
-      parseIncompletePhoneNumber(phone),
+    nationalNumber: formatter.getNumber()?.nationalNumber ?? parseIncompletePhoneNumber(phone),
     normalized: null,
   };
 }
@@ -202,10 +188,7 @@ export function formatPhoneInput(
   phone: string,
   defaultCountryCode: string | null | undefined = DEFAULT_PHONE_COUNTRY,
 ): string {
-  const formatter = new AsYouType(
-    getDefaultPhoneCountry(defaultCountryCode),
-    phoneMetadata,
-  );
+  const formatter = new AsYouType(getDefaultPhoneCountry(defaultCountryCode), phoneMetadata);
 
   return formatter.input(phone);
 }
@@ -225,11 +208,11 @@ export function validateAndNormalizePhone(
   phone: string,
   defaultCountryCode: string | null | undefined = DEFAULT_PHONE_COUNTRY,
 ): PhoneValidationResult {
-  if (!phone || typeof phone !== 'string') {
+  if (!phone || typeof phone !== "string") {
     return {
       valid: false,
       normalized: null,
-      error: 'Phone number is required',
+      error: "Phone number is required",
     };
   }
 
@@ -239,7 +222,7 @@ export function validateAndNormalizePhone(
     return {
       valid: false,
       normalized: null,
-      error: 'Invalid phone number format',
+      error: "Invalid phone number format",
     };
   }
 
@@ -247,7 +230,7 @@ export function validateAndNormalizePhone(
     return {
       valid: false,
       normalized: null,
-      error: 'Invalid phone number length',
+      error: "Invalid phone number length",
       detectedCountry: phoneNumber.country,
       possibleCountries: phoneNumber.getPossibleCountries(),
     };

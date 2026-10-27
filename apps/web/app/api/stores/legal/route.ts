@@ -1,24 +1,24 @@
-import { updateStoreLegal } from '@louez/api/services'
-import { updateStoreLegalInputSchema } from '@louez/validations'
-import { NextResponse } from 'next/server'
-import { getCurrentStore, hasPermission } from '@/lib/store-context'
+import { updateStoreLegal } from "@louez/api/services";
+import { updateStoreLegalInputSchema } from "@louez/validations";
+import { NextResponse } from "next/server";
+import { getCurrentStore, hasPermission } from "@/lib/store-context";
 
 export async function PATCH(request: Request) {
   try {
-    const store = await getCurrentStore()
+    const store = await getCurrentStore();
     if (!store) {
-      return NextResponse.json({ error: 'errors.unauthenticated' }, { status: 401 })
+      return NextResponse.json({ error: "errors.unauthenticated" }, { status: 401 });
     }
 
-    if (!hasPermission(store.role, 'manage_settings')) {
-      return NextResponse.json({ error: 'errors.permissionDenied' }, { status: 403 })
+    if (!hasPermission(store.role, "manage_settings")) {
+      return NextResponse.json({ error: "errors.permissionDenied" }, { status: 403 });
     }
 
-    const body = await request.json()
-    const parsed = updateStoreLegalInputSchema.safeParse(body)
+    const body = await request.json();
+    const parsed = updateStoreLegalInputSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json({ error: 'errors.invalidData' }, { status: 400 })
+      return NextResponse.json({ error: "errors.invalidData" }, { status: 400 });
     }
 
     return NextResponse.json(
@@ -26,9 +26,9 @@ export async function PATCH(request: Request) {
         storeId: store.id,
         input: parsed.data,
       }),
-    )
+    );
   } catch (error) {
-    console.error('Update legal pages error:', error)
-    return NextResponse.json({ error: 'errors.internalServerError' }, { status: 500 })
+    console.error("Update legal pages error:", error);
+    return NextResponse.json({ error: "errors.internalServerError" }, { status: 500 });
   }
 }

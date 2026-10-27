@@ -1,12 +1,12 @@
-import 'server-only';
+import "server-only";
 
-import { getPostHogServer, shutdownPostHogServer } from '@/lib/posthog';
+import { getPostHogServer, shutdownPostHogServer } from "@/lib/posthog";
 import {
   type ProductAnalyticsEvent,
   productAnalyticsBaseProperties,
   productAnalyticsEvents,
   type ReservationAnalyticsAction,
-} from '@/lib/product-analytics/analytics-events';
+} from "@/lib/product-analytics/analytics-events";
 
 export async function captureProductServerEvent({
   distinctId,
@@ -52,9 +52,9 @@ export async function captureReservationActionSucceeded({
     distinctId,
     event: productAnalyticsEvents.reservationActionSucceeded,
     properties: {
-      feature: 'reservation_management',
-      surface: 'dashboard',
-      source: 'server_mutation',
+      feature: "reservation_management",
+      surface: "dashboard",
+      source: "server_mutation",
       store_id: storeId,
       reservation_id: reservationId,
       action,
@@ -63,12 +63,10 @@ export async function captureReservationActionSucceeded({
   });
 }
 
-export function toAnalyticsAmountCents(
-  value: number | string | null | undefined,
-): number | null {
+export function toAnalyticsAmountCents(value: number | string | null | undefined): number | null {
   if (value === null || value === undefined) return null;
 
-  const amount = typeof value === 'number' ? value : Number.parseFloat(value);
+  const amount = typeof value === "number" ? value : Number.parseFloat(value);
   if (!Number.isFinite(amount)) return null;
 
   return Math.round(amount * 100);

@@ -495,7 +495,13 @@ export const NotificationsForm = ({
                     <Button
                       variant="ghost"
                       className="h-7 text-xs"
-                      render={<Link href="/dashboard/sms" prefetch={readOnly ? false : undefined} onClick={readOnly ? (event) => event.preventDefault() : undefined} />}
+                      render={
+                        <Link
+                          href="/dashboard/sms"
+                          prefetch={readOnly ? false : undefined}
+                          onClick={readOnly ? (event) => event.preventDefault() : undefined}
+                        />
+                      }
                     >
                       {t("sms.manage")}
                       <ExternalLinkIcon className="ml-1 h-3 w-3" />
@@ -510,7 +516,13 @@ export const NotificationsForm = ({
                         <Button
                           variant="destructive"
                           className="w-full"
-                          render={<Link href="/dashboard/sms" prefetch={readOnly ? false : undefined} onClick={readOnly ? (event) => event.preventDefault() : undefined} />}
+                          render={
+                            <Link
+                              href="/dashboard/sms"
+                              prefetch={readOnly ? false : undefined}
+                              onClick={readOnly ? (event) => event.preventDefault() : undefined}
+                            />
+                          }
                         >
                           {t("sms.buyCredits")}
                         </Button>
@@ -1099,7 +1111,16 @@ export const NotificationsForm = ({
                       limit: smsQuota.limit ?? 0,
                     })}
               </span>
-              <Button variant="outline" render={<Link href="/dashboard/sms" prefetch={readOnly ? false : undefined} onClick={readOnly ? (event) => event.preventDefault() : undefined} />}>
+              <Button
+                variant="outline"
+                render={
+                  <Link
+                    href="/dashboard/sms"
+                    prefetch={readOnly ? false : undefined}
+                    onClick={readOnly ? (event) => event.preventDefault() : undefined}
+                  />
+                }
+              >
                 {t("sms.buyMore")}
               </Button>
             </AlertDescription>

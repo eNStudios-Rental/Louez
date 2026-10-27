@@ -25,7 +25,10 @@ type CompanySearchFieldProps = {
  * SIREN / SIRET / company-name lookup against the French public registry.
  * Selecting a result prefills the legal identity; every field stays editable.
  */
-export const CompanySearchField = ({ disabled: disabledProp = false, onSelect }: CompanySearchFieldProps) => {
+export const CompanySearchField = ({
+  disabled: disabledProp = false,
+  onSelect,
+}: CompanySearchFieldProps) => {
   const controlsDisabled = useControlsDisabled();
   const disabled = disabledProp || controlsDisabled;
   const t = useTranslations("dashboard.settings.invoicing.identity.search");
@@ -93,7 +96,8 @@ export const CompanySearchField = ({ disabled: disabledProp = false, onSelect }:
         <ul className="divide-border divide-y rounded-lg border">
           {results.map((company) => (
             <li key={company.siren}>
-              <button disabled={disabled}
+              <button
+                disabled={disabled}
                 type="button"
                 onClick={() => handleSelect(company)}
                 className="hover:bg-muted/50 w-full px-4 py-3 text-left transition-colors"

@@ -1,12 +1,12 @@
-import type { PayAsYouGoConfig } from '@louez/types';
+import type { PayAsYouGoConfig } from "@louez/types";
 
-import { env } from '@/env';
+import { env } from "@/env";
 
 import {
   DEFAULT_PAY_AS_YOU_GO_CURRENCY,
   DEFAULT_PAY_AS_YOU_GO_TIERS,
   parsePayAsYouGoConfig,
-} from './config';
+} from "./config";
 
 /**
  * The pay-as-you-go pricing offer to SNAPSHOT onto a store at account creation.
@@ -25,12 +25,8 @@ import {
  *
  * Server-only (reads server env). Do not import from client components.
  */
-export function getDefaultPayAsYouGoConfigSnapshot(
-  currency?: string,
-): PayAsYouGoConfig {
-  const resolvedCurrency = (currency || DEFAULT_PAY_AS_YOU_GO_CURRENCY)
-    .toLowerCase()
-    .slice(0, 3);
+export function getDefaultPayAsYouGoConfigSnapshot(currency?: string): PayAsYouGoConfig {
+  const resolvedCurrency = (currency || DEFAULT_PAY_AS_YOU_GO_CURRENCY).toLowerCase().slice(0, 3);
   // PAYG_DEFAULT_PRICING may arrive as a parsed object (validation on) or a raw JSON
   // string (SKIP_ENV_VALIDATION makes @t3-oss skip the transform). parsePayAsYouGoConfig
   // handles both and rejects malformed input, so the offer applies identically in every

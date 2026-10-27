@@ -1,28 +1,28 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
-import { Check, Copy, Crown, Gift } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { usePostHog } from 'posthog-js/react';
+import { Check, Copy, Crown, Gift } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { usePostHog } from "posthog-js/react";
 
-import { Button } from '@louez/ui';
-import { Input } from '@louez/ui';
-import { toastManager } from '@louez/ui';
+import { Button } from "@louez/ui";
+import { Input } from "@louez/ui";
+import { toastManager } from "@louez/ui";
 
 import {
   referralAnalyticsBaseProperties,
   referralAnalyticsEvents,
-} from '@/lib/referral/analytics-events';
-import { formatCurrency } from '@/lib/utils';
-import { useFormatLocale } from '@/hooks/use-format-locale';
+} from "@/lib/referral/analytics-events";
+import { formatCurrency } from "@/lib/utils";
+import { useFormatLocale } from "@/hooks/use-format-locale";
 
 interface ReferralLinkProps {
   storeId: string;
   referralUrl: string;
   referrerReward: number;
   referredReward: number;
-  rewardKind: 'free_reservations' | 'invoice_credit';
+  rewardKind: "free_reservations" | "invoice_credit";
   rewardValueCents: number;
   currency: string;
 }
@@ -36,16 +36,12 @@ export const ReferralLink = ({
   rewardValueCents,
   currency,
 }: ReferralLinkProps) => {
-  const t = useTranslations('dashboard.referrals.link');
+  const t = useTranslations("dashboard.referrals.link");
   const { intl: formatLocale } = useFormatLocale();
   const posthog = usePostHog();
   const [copied, setCopied] = useState(false);
 
-  const rewardValue = formatCurrency(
-    rewardValueCents / 100,
-    currency.toUpperCase(),
-    formatLocale,
-  );
+  const rewardValue = formatCurrency(rewardValueCents / 100, currency.toUpperCase(), formatLocale);
 
   const writeClipboard = async (value: string) => {
     if (navigator.clipboard?.writeText) {
@@ -53,18 +49,18 @@ export const ReferralLink = ({
       return;
     }
 
-    const textarea = document.createElement('textarea');
+    const textarea = document.createElement("textarea");
     textarea.value = value;
-    textarea.setAttribute('readonly', '');
-    textarea.className = 'sr-only';
+    textarea.setAttribute("readonly", "");
+    textarea.className = "sr-only";
     document.body.appendChild(textarea);
     textarea.select();
 
-    const copied = document.execCommand('copy');
+    const copied = document.execCommand("copy");
     document.body.removeChild(textarea);
 
     if (!copied) {
-      throw new Error('Clipboard copy failed');
+      throw new Error("Clipboard copy failed");
     }
   };
 
@@ -73,7 +69,7 @@ export const ReferralLink = ({
       await writeClipboard(referralUrl);
       posthog.capture(referralAnalyticsEvents.linkCopied, {
         ...referralAnalyticsBaseProperties,
-        placement: 'dashboard_referrals',
+        placement: "dashboard_referrals",
         referrer_store_id: storeId,
         reward_kind: rewardKind,
         referrer_reward_free_reservations: referrerReward,
@@ -82,12 +78,12 @@ export const ReferralLink = ({
         currency,
       });
       setCopied(true);
-      toastManager.add({ title: t('linkCopied'), type: 'success' });
+      toastManager.add({ title: t("linkCopied"), type: "success" });
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
       posthog.capture(referralAnalyticsEvents.linkCopyFailed, {
         ...referralAnalyticsBaseProperties,
-        placement: 'dashboard_referrals',
+        placement: "dashboard_referrals",
         referrer_store_id: storeId,
         reward_kind: rewardKind,
         referrer_reward_free_reservations: referrerReward,
@@ -95,7 +91,7 @@ export const ReferralLink = ({
         reward_value_cents: rewardValueCents,
         currency,
       });
-      toastManager.add({ title: t('linkCopyFailed'), type: 'error' });
+      toastManager.add({ title: t("linkCopyFailed"), type: "error" });
     }
   };
 
@@ -107,22 +103,20 @@ export const ReferralLink = ({
             <Gift className="text-primary-foreground h-7 w-7" />
           </div>
           <div className="space-y-1">
-            <h2 className="text-xl font-semibold tracking-tight">
-              {t('title')}
-            </h2>
-            <p className="text-muted-foreground text-sm">{t('description')}</p>
+            <h2 className="text-xl font-semibold tracking-tight">{t("title")}</h2>
+            <p className="text-muted-foreground text-sm">{t("description")}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3 rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3">
           <Crown className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
           <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
-            {rewardKind === 'invoice_credit'
-              ? t('rewardInvoiceCredit', {
+            {rewardKind === "invoice_credit"
+              ? t("rewardInvoiceCredit", {
                   referred: referredReward,
                   rewardValue,
                 })
-              : t('reward', {
+              : t("reward", {
                   referrer: referrerReward,
                   referred: referredReward,
                   rewardValue,
@@ -134,19 +128,15 @@ export const ReferralLink = ({
           <Input
             value={referralUrl}
             readOnly
-            aria-label={t('inputLabel')}
+            aria-label={t("inputLabel")}
             className="border-primary/20 bg-background min-w-0 text-sm"
           />
           <Button
             onClick={copyToClipboard}
             className="shadow-primary/20 w-full shrink-0 gap-2 shadow-sm sm:w-auto"
           >
-            {copied ? (
-              <Check className="h-4 w-4" />
-            ) : (
-              <Copy className="h-4 w-4" />
-            )}
-            {t('copyLink')}
+            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            {t("copyLink")}
           </Button>
         </div>
       </div>

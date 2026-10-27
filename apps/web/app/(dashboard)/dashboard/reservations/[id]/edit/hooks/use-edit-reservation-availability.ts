@@ -1,21 +1,16 @@
-import { useMemo } from 'react'
-import { calculatePeakReservedQuantities } from '@louez/utils'
-import type { StockQuantityLimit } from '@louez/utils'
+import { useMemo } from "react";
+import { calculatePeakReservedQuantities } from "@louez/utils";
+import type { StockQuantityLimit } from "@louez/utils";
 
-import type {
-  AvailabilityWarning,
-  EditableItem,
-  ExistingReservation,
-  Product,
-} from '../types'
+import type { AvailabilityWarning, EditableItem, ExistingReservation, Product } from "../types";
 
 interface UseEditReservationAvailabilityParams {
-  startDate: Date | undefined
-  endDate: Date | undefined
-  items: EditableItem[]
-  products: Product[]
-  existingReservations: ExistingReservation[]
-  turnoverBufferMinutes: number
+  startDate: Date | undefined;
+  endDate: Date | undefined;
+  items: EditableItem[];
+  products: Product[];
+  existingReservations: ExistingReservation[];
+  turnoverBufferMinutes: number;
 }
 
 export function useEditReservationAvailability({
@@ -28,34 +23,32 @@ export function useEditReservationAvailability({
 }: UseEditReservationAvailabilityParams) {
   const availabilityWarnings = useMemo<AvailabilityWarning[]>(() => {
     if (!startDate || !endDate || items.length === 0) {
-      return []
+      return [];
     }
 
-    const warnings: AvailabilityWarning[] = []
+    const warnings: AvailabilityWarning[] = [];
     const { reservedByProduct } = calculatePeakReservedQuantities({
       reservations: existingReservations,
       startDate,
       endDate,
       turnoverBufferMinutes,
-    })
+    });
 
     for (const item of items) {
       if (!item.productId || !item.product) {
-        continue
+        continue;
       }
-      if (item.product.stockKind === 'untracked') {
-        continue
+      if (item.product.stockKind === "untracked") {
+        continue;
       }
 
-      const reserved = reservedByProduct.get(item.productId) || 0
+      const reserved = reservedByProduct.get(item.productId) || 0;
       const available = Math.max(
         0,
         item.product.quantity -
           reserved +
-          (item.product.stockKind === 'consumable'
-            ? item.consumedQuantity
-            : 0),
-      )
+          (item.product.stockKind === "consumable" ? item.consumedQuantity : 0),
+      );
 
       if (item.quantity > available) {
         warnings.push({
@@ -64,20 +57,18 @@ export function useEditReservationAvailability({
           requestedQuantity: item.quantity,
           availableQuantity: available,
           turnoverBufferMinutes,
-        })
+        });
       }
     }
 
-    return warnings
-  }, [endDate, existingReservations, items, startDate, turnoverBufferMinutes])
+    return warnings;
+  }, [endDate, existingReservations, items, startDate, turnoverBufferMinutes]);
 
   // Remaining stock per product on the period, minus what the current edit already uses
-  const availableQuantityByProduct = useMemo<
-    Map<string, StockQuantityLimit>
-  >(() => {
-    const map = new Map<string, StockQuantityLimit>()
+  const availableQuantityByProduct = useMemo<Map<string, StockQuantityLimit>>(() => {
+    const map = new Map<string, StockQuantityLimit>();
     if (!startDate || !endDate) {
-      return map
+      return map;
     }
 
     const { reservedByProduct } = calculatePeakReservedQuantities({
@@ -85,47 +76,38 @@ export function useEditReservationAvailability({
       startDate,
       endDate,
       turnoverBufferMinutes,
-    })
+    });
 
     for (const product of products) {
-      if (product.stockKind === 'untracked') {
-        map.set(product.id, null)
-        continue
+      if (product.stockKind === "untracked") {
+        map.set(product.id, null);
+        continue;
       }
 
-      const reserved = reservedByProduct.get(product.id) || 0
+      const reserved = reservedByProduct.get(product.id) || 0;
       const inCurrentItems = items
         .filter((item) => item.productId === product.id)
-        .reduce((sum, item) => sum + item.quantity, 0)
+        .reduce((sum, item) => sum + item.quantity, 0);
       const currentConsumedQuantity = items
         .filter((item) => item.productId === product.id)
-        .reduce((sum, item) => sum + item.consumedQuantity, 0)
+        .reduce((sum, item) => sum + item.consumedQuantity, 0);
       map.set(
         product.id,
         Math.max(
           0,
           product.quantity -
             reserved +
-            (product.stockKind === 'consumable'
-              ? currentConsumedQuantity
-              : 0) -
+            (product.stockKind === "consumable" ? currentConsumedQuantity : 0) -
             inCurrentItems,
         ),
-      )
+      );
     }
 
-    return map
-  }, [
-    endDate,
-    existingReservations,
-    items,
-    products,
-    startDate,
-    turnoverBufferMinutes,
-  ])
+    return map;
+  }, [endDate, existingReservations, items, products, startDate, turnoverBufferMinutes]);
 
   return {
     availabilityWarnings,
     availableQuantityByProduct,
-  }
+  };
 }

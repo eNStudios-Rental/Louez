@@ -270,13 +270,15 @@ export async function acceptQuote(storeSlug: string, reservationId: string) {
   }));
 
   try {
-    const contractUrl = await createReservationInstantAccessUrl({
-      storeId: store.id,
-      storeSlug,
-      customerEmail: reservation.customer.email,
-      reservationId,
-      redirectPath: `/account/reservations/${reservationId}/contract`,
-    });
+    const contractUrl = reservation.customer.email
+      ? await createReservationInstantAccessUrl({
+          storeId: store.id,
+          storeSlug,
+          customerEmail: reservation.customer.email,
+          reservationId,
+          redirectPath: `/account/reservations/${reservationId}/contract`,
+        })
+      : reservationUrl;
     const termsUrl = store.cgv?.trim() ? getStorefrontUrl(storeSlug, "/terms") : null;
 
     dispatchCustomerNotification("customer_quote_accepted", {

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useAdvisor, useAdvisorRuntime } from '@/contexts/advisor-context';
+import { useAdvisor, useAdvisorRuntime } from "@/contexts/advisor-context";
 
-import { AdvisorLauncher } from './advisor-launcher';
-import { AdvisorPanel } from './advisor-panel';
+import { AdvisorLauncher } from "./advisor-launcher";
+import { AdvisorPanel } from "./advisor-panel";
 
 /**
  * Floating advisor surface (launcher + panel). The chat runtime lives in
@@ -12,18 +12,9 @@ import { AdvisorPanel } from './advisor-panel';
  * one chat surface is ever visible.
  */
 export const AdvisorWidget = () => {
-  const { isOpen, open, close, intent, clearIntent, inlineActive } =
-    useAdvisor();
-  const {
-    messages,
-    isLoading,
-    hasError,
-    errorCode,
-    send,
-    restart,
-    displayName,
-    welcomeMessage,
-  } = useAdvisorRuntime();
+  const { isOpen, open, close, intent, clearIntent, inlineActive } = useAdvisor();
+  const { messages, isLoading, hasError, errorCode, send, restart, displayName, welcomeMessage } =
+    useAdvisorRuntime();
 
   if (inlineActive) return null;
 

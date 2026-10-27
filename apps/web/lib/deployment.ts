@@ -1,4 +1,4 @@
-import { isEmailConfigured } from '@louez/email'
+import { isEmailConfigured } from "@louez/email";
 
 /**
  * Deployment mode of this Louez instance.
@@ -17,12 +17,12 @@ import { isEmailConfigured } from '@louez/email'
  * proxy middleware can read it without pulling in server-only modules.
  */
 export function isStandaloneMode(): boolean {
-  return process.env.LOUEZ_MODE !== 'platform'
+  return process.env.LOUEZ_MODE !== "platform";
 }
 
 /** Whether Google OAuth sign-in is available on this instance. */
 export function isGoogleAuthConfigured(): boolean {
-  return Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET)
+  return Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
 }
 
 /**
@@ -34,5 +34,5 @@ export function getInstanceConfig() {
     standalone: isStandaloneMode(),
     emailConfigured: isEmailConfigured(),
     googleAuthConfigured: isGoogleAuthConfigured(),
-  }
+  };
 }

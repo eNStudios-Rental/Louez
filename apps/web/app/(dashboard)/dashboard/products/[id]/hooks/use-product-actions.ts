@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
-import { useRouter } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
-import { useTranslations } from 'next-intl';
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 
-import { toastManager } from '@louez/ui';
+import { toastManager } from "@louez/ui";
 
 import {
   deleteProduct,
   duplicateProduct,
   updateProductStatus,
-} from '@/app/(dashboard)/dashboard/products/actions';
-import { invalidateProductsList } from '@/lib/orpc/invalidation';
+} from "@/app/(dashboard)/dashboard/products/actions";
+import { invalidateProductsList } from "@/lib/orpc/invalidation";
 
-type ProductStatus = 'draft' | 'active' | 'archived' | null;
+type ProductStatus = "draft" | "active" | "archived" | null;
 
 export interface ActionableProduct {
   id: string;
@@ -36,8 +36,8 @@ type ProductActionResult = {
 export function useProductActions({ readOnly = false }: { readOnly?: boolean } = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const t = useTranslations('dashboard.products');
-  const tErrors = useTranslations('errors');
+  const t = useTranslations("dashboard.products");
+  const tErrors = useTranslations("errors");
 
   /**
    * The list is served by React Query, the surrounding page (limits, banners)
@@ -50,46 +50,42 @@ export function useProductActions({ readOnly = false }: { readOnly?: boolean } =
 
   const [isLoading, setIsLoading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [productToDelete, setProductToDelete] =
-    useState<ActionableProduct | null>(null);
+  const [productToDelete, setProductToDelete] = useState<ActionableProduct | null>(null);
 
   const getActionErrorMessage = (result: ProductActionResult) => {
-    const errorKey = result.error?.startsWith('errors.')
-      ? result.error.replace('errors.', '')
+    const errorKey = result.error?.startsWith("errors.")
+      ? result.error.replace("errors.", "")
       : null;
     const message = errorKey && result.error ? tErrors(errorKey) : result.error;
     const identifiers = result.failedUnitIdentifiers?.filter(Boolean);
 
     if (identifiers && identifiers.length > 0) {
-      return `${message || tErrors('generic')} (${identifiers.join(', ')})`;
+      return `${message || tErrors("generic")} (${identifiers.join(", ")})`;
     }
 
-    return message || tErrors('generic');
+    return message || tErrors("generic");
   };
 
   const handleStatusToggle = async (product: ActionableProduct) => {
     if (readOnly) return;
-    const newStatus = product.status === 'active' ? 'draft' : 'active';
+    const newStatus = product.status === "active" ? "draft" : "active";
     setIsLoading(true);
     try {
       const result = await updateProductStatus(product.id, newStatus);
       if (result.error) {
         toastManager.add({
           title: getActionErrorMessage(result),
-          type: 'error',
+          type: "error",
         });
       } else {
         toastManager.add({
-          title:
-            newStatus === 'active'
-              ? t('productPublished')
-              : t('productUnpublished'),
-          type: 'success',
+          title: newStatus === "active" ? t("productPublished") : t("productUnpublished"),
+          type: "success",
         });
         await refreshProducts();
       }
     } catch {
-      toastManager.add({ title: tErrors('generic'), type: 'error' });
+      toastManager.add({ title: tErrors("generic"), type: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -99,18 +95,18 @@ export function useProductActions({ readOnly = false }: { readOnly?: boolean } =
     if (readOnly) return;
     setIsLoading(true);
     try {
-      const result = await updateProductStatus(product.id, 'archived');
+      const result = await updateProductStatus(product.id, "archived");
       if (result.error) {
         toastManager.add({
           title: getActionErrorMessage(result),
-          type: 'error',
+          type: "error",
         });
       } else {
-        toastManager.add({ title: t('productArchived'), type: 'success' });
+        toastManager.add({ title: t("productArchived"), type: "success" });
         await refreshProducts();
       }
     } catch {
-      toastManager.add({ title: tErrors('generic'), type: 'error' });
+      toastManager.add({ title: tErrors("generic"), type: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -124,14 +120,14 @@ export function useProductActions({ readOnly = false }: { readOnly?: boolean } =
       if (result.error) {
         toastManager.add({
           title: getActionErrorMessage(result),
-          type: 'error',
+          type: "error",
         });
       } else {
-        toastManager.add({ title: t('productDuplicated'), type: 'success' });
+        toastManager.add({ title: t("productDuplicated"), type: "success" });
         await refreshProducts();
       }
     } catch {
-      toastManager.add({ title: tErrors('generic'), type: 'error' });
+      toastManager.add({ title: tErrors("generic"), type: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -158,10 +154,10 @@ export function useProductActions({ readOnly = false }: { readOnly?: boolean } =
       if (result.error) {
         toastManager.add({
           title: getActionErrorMessage(result),
-          type: 'error',
+          type: "error",
         });
       } else {
-        toastManager.add({ title: t('productDeleted'), type: 'success' });
+        toastManager.add({ title: t("productDeleted"), type: "success" });
         if (options?.redirectTo) {
           await invalidateProductsList(queryClient);
           router.push(options.redirectTo);
@@ -170,7 +166,7 @@ export function useProductActions({ readOnly = false }: { readOnly?: boolean } =
         }
       }
     } catch {
-      toastManager.add({ title: tErrors('generic'), type: 'error' });
+      toastManager.add({ title: tErrors("generic"), type: "error" });
     } finally {
       setIsLoading(false);
       setDeleteDialogOpen(false);

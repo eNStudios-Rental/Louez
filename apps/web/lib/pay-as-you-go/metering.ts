@@ -1,34 +1,31 @@
-import { and, desc, eq, inArray, ne, or, sql } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
+import { and, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
-import { db } from '@louez/db';
+import { db } from "@louez/db";
 import {
   payAsYouGoInvoices,
   platformFees,
   storeMarketplaceChannels,
   stores,
   subscriptions,
-} from '@louez/db';
-import type { BillingMode } from '@louez/types';
+} from "@louez/db";
+import type { BillingMode } from "@louez/types";
 
 import {
   type ResolvedPayAsYouGoConfig,
   priceForLocationIndex,
   resolvePayAsYouGoConfig,
   summarizePayAsYouGoBands,
-} from './config';
-import {
-  getDefaultFreeReservations,
-  getDefaultPayAsYouGoConfigSnapshot,
-} from './defaults';
+} from "./config";
+import { getDefaultFreeReservations, getDefaultPayAsYouGoConfigSnapshot } from "./defaults";
 import {
   MARKETPLACE_FEE_CENTS,
   decideMarketplaceFeeRecord,
   type MarketplaceFeeCollectionSource,
-} from './marketplace-fee-core';
+} from "./marketplace-fee-core";
 
 /** Fee statuses that count toward a store's owed/collected totals (not voided/reversed). */
-export const ACTIVE_FEE_STATUSES = ['pending', 'collected', 'billed'] as const;
+export const ACTIVE_FEE_STATUSES = ["pending", "collected", "billed"] as const;
 
 /** Idempotency key for the ledger (unique `dedup_key`): one row per reservation. */
 const reservationFeeKey = (reservationId: string) => `res:${reservationId}`;
@@ -52,8 +49,8 @@ async function countFreeReservationsUsed(storeId: string): Promise<number> {
     .where(
       and(
         eq(platformFees.storeId, storeId),
-        eq(platformFees.source, 'free'),
-        ne(platformFees.status, 'voided'),
+        eq(platformFees.source, "free"),
+        ne(platformFees.status, "voided"),
       ),
     );
   return Number(value) || 0;
@@ -73,7 +70,7 @@ export async function getStoreBillingPreferences(
     columns: { settings: true },
   });
   return {
-    currency: (store?.settings?.currency || 'eur').toLowerCase().slice(0, 3),
+    currency: (store?.settings?.currency || "eur").toLowerCase().slice(0, 3),
     country: store?.settings?.country ?? null,
   };
 }
@@ -126,7 +123,7 @@ export async function getStoreBilling(storeId: string): Promise<StoreBilling> {
     subscription?.freeReservationsGranted ?? getDefaultFreeReservations();
 
   return {
-    billingMode: subscription?.billingMode ?? 'pay_as_you_go',
+    billingMode: subscription?.billingMode ?? "pay_as_you_go",
     config,
     freeReservationsGranted,
     freeReservationsRemaining: Math.max(0, freeReservationsGranted - freeUsed),
@@ -135,19 +132,19 @@ export async function getStoreBilling(storeId: string): Promise<StoreBilling> {
 
 export async function isPayAsYouGo(storeId: string): Promise<boolean> {
   const { billingMode } = await getStoreBilling(storeId);
-  return billingMode === 'pay_as_you_go';
+  return billingMode === "pay_as_you_go";
 }
 
 /** Billing month bucket as `YYYY-MM` (UTC). */
 export function billingMonthOf(date: Date): string {
   const year = date.getUTCFullYear();
-  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, "0");
   return `${year}-${month}`;
 }
 
 function isDuplicateError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
-  return message.includes('Duplicate') || message.includes('unique');
+  return message.includes("Duplicate") || message.includes("unique");
 }
 
 // ============================================================================
@@ -157,7 +154,7 @@ function isDuplicateError(error: unknown): boolean {
 interface RecordReservationFeeInput {
   storeId: string;
   reservationId: string;
-  source: 'online' | 'manual';
+  source: "online" | "manual";
   /** Actual reservation fee collected at source (online). Required for `online`. */
   collectedAmountCents?: number;
   paymentId?: string | null;
@@ -181,8 +178,8 @@ export async function recordReservationFee(
   input: RecordReservationFeeInput,
 ): Promise<{ recorded: boolean; reason?: string }> {
   const billing = input.billing ?? (await getStoreBilling(input.storeId));
-  if (billing.billingMode !== 'pay_as_you_go') {
-    return { recorded: false, reason: 'not_pay_as_you_go' };
+  if (billing.billingMode !== "pay_as_you_go") {
+    return { recorded: false, reason: "not_pay_as_you_go" };
   }
 
   const dedupKey = reservationFeeKey(input.reservationId);
@@ -192,16 +189,16 @@ export async function recordReservationFee(
   });
   if (existing) {
     if (
-      input.source === 'online' &&
+      input.source === "online" &&
       (input.collectedAmountCents ?? 0) > 0 &&
-      existing.status === 'pending' &&
-      existing.source === 'manual'
+      existing.status === "pending" &&
+      existing.source === "manual"
     ) {
       await db
         .update(platformFees)
         .set({
-          source: 'online',
-          status: 'collected',
+          source: "online",
+          status: "collected",
           amountCents: Math.max(0, Math.round(input.collectedAmountCents ?? 0)),
           paymentId: input.paymentId ?? null,
           stripePaymentIntentId: input.stripePaymentIntentId ?? null,
@@ -209,16 +206,14 @@ export async function recordReservationFee(
           updatedAt: new Date(),
         })
         .where(eq(platformFees.id, existing.id));
-      return { recorded: true, reason: 'upgraded_to_collected' };
+      return { recorded: true, reason: "upgraded_to_collected" };
     }
-    return { recorded: false, reason: 'already_recorded' };
+    return { recorded: false, reason: "already_recorded" };
   }
 
   const at = input.at ?? new Date();
   const billingMonth = billingMonthOf(at);
-  const currency = (input.currency || billing.config.currency || 'eur')
-    .toLowerCase()
-    .slice(0, 3);
+  const currency = (input.currency || billing.config.currency || "eur").toLowerCase().slice(0, 3);
 
   try {
     let recordedFree = false;
@@ -237,8 +232,8 @@ export async function recordReservationFee(
         .where(
           and(
             eq(platformFees.storeId, input.storeId),
-            eq(platformFees.source, 'free'),
-            ne(platformFees.status, 'voided'),
+            eq(platformFees.source, "free"),
+            ne(platformFees.status, "voided"),
           ),
         );
       const isFree = Number(freeUsed) < billing.freeReservationsGranted;
@@ -252,8 +247,8 @@ export async function recordReservationFee(
           dedupKey,
           amountCents: 0,
           currency,
-          source: 'free',
-          status: 'collected', // settled: nothing owed, nothing collected
+          source: "free",
+          status: "collected", // settled: nothing owed, nothing collected
           billingMonth,
           monthlyIndex: null,
           stripePaymentIntentId: input.stripePaymentIntentId ?? null,
@@ -271,7 +266,7 @@ export async function recordReservationFee(
         .where(
           and(
             eq(platformFees.storeId, input.storeId),
-            inArray(platformFees.source, ['online', 'manual']),
+            inArray(platformFees.source, ["online", "manual"]),
             eq(platformFees.billingMonth, billingMonth),
             eq(platformFees.currency, currency),
             inArray(platformFees.status, [...ACTIVE_FEE_STATUSES]),
@@ -280,7 +275,7 @@ export async function recordReservationFee(
       const monthlyIndex = Number(priorPaid) + 1;
 
       const amountCents =
-        input.source === 'online'
+        input.source === "online"
           ? Math.max(0, Math.round(input.collectedAmountCents ?? 0))
           : priceForLocationIndex(billing.config, monthlyIndex);
 
@@ -293,17 +288,17 @@ export async function recordReservationFee(
         amountCents,
         currency,
         source: input.source,
-        status: input.source === 'online' ? 'collected' : 'pending',
+        status: input.source === "online" ? "collected" : "pending",
         billingMonth,
         monthlyIndex,
         stripePaymentIntentId: input.stripePaymentIntentId ?? null,
         stripeApplicationFeeId: input.stripeApplicationFeeId ?? null,
       });
     });
-    if (recordedFree) return { recorded: true, reason: 'free' };
+    if (recordedFree) return { recorded: true, reason: "free" };
   } catch (error) {
     if (isDuplicateError(error)) {
-      return { recorded: false, reason: 'already_recorded' };
+      return { recorded: false, reason: "already_recorded" };
     }
     throw error;
   }
@@ -317,23 +312,21 @@ export async function recordReservationFee(
  * free-reservation credit. Online fees already collected at source are reversed via the
  * refund webhook (the money is real), so they are surfaced rather than voided.
  */
-export async function voidReservationFee(
-  reservationId: string,
-): Promise<{ voided: boolean }> {
+export async function voidReservationFee(reservationId: string): Promise<{ voided: boolean }> {
   const result = await db
     .update(platformFees)
-    .set({ status: 'voided', updatedAt: new Date() })
+    .set({ status: "voided", updatedAt: new Date() })
     .where(
       and(
         or(
           eq(platformFees.dedupKey, reservationFeeKey(reservationId)),
           eq(platformFees.dedupKey, marketplaceFeeKey(reservationId)),
         ),
-        ne(platformFees.status, 'voided'),
+        ne(platformFees.status, "voided"),
         or(
-          eq(platformFees.status, 'pending'),
-          eq(platformFees.source, 'free'),
-          eq(platformFees.source, 'marketplace_waived'),
+          eq(platformFees.status, "pending"),
+          eq(platformFees.source, "free"),
+          eq(platformFees.source, "marketplace_waived"),
         ),
       ),
     );
@@ -349,11 +342,11 @@ export async function voidReservationFee(
       columns: { status: true, source: true },
     });
     if (
-      existing?.source !== 'free' &&
-      (existing?.status === 'collected' || existing?.status === 'billed')
+      existing?.source !== "free" &&
+      (existing?.status === "collected" || existing?.status === "billed")
     ) {
       console.warn(
-        '[payg] reservation fee not voided — already collected/billed; reverse via a refund if the customer is refunded',
+        "[payg] reservation fee not voided — already collected/billed; reverse via a refund if the customer is refunded",
         { reservationId, status: existing?.status },
       );
     }
@@ -363,13 +356,11 @@ export async function voidReservationFee(
 }
 
 /** Whether a (non-voided) reservation fee already exists for this reservation. */
-export async function hasReservationFee(
-  reservationId: string,
-): Promise<boolean> {
+export async function hasReservationFee(reservationId: string): Promise<boolean> {
   const existing = await db.query.platformFees.findFirst({
     where: and(
       eq(platformFees.dedupKey, reservationFeeKey(reservationId)),
-      ne(platformFees.status, 'voided'),
+      ne(platformFees.status, "voided"),
     ),
     columns: { id: true },
   });
@@ -385,26 +376,19 @@ export interface StripeFeePlan {
   marketplaceFeeCents: number;
 }
 
-export async function hasMarketplaceLifetimeFeeWaiver(
-  storeId: string,
-): Promise<boolean> {
+export async function hasMarketplaceLifetimeFeeWaiver(storeId: string): Promise<boolean> {
   const channel = await db.query.storeMarketplaceChannels.findFirst({
     where: eq(storeMarketplaceChannels.storeId, storeId),
     columns: { lifetimeFeeWaiverAt: true },
   });
-  return (
-    channel?.lifetimeFeeWaiverAt !== null &&
-    channel?.lifetimeFeeWaiverAt !== undefined
-  );
+  return channel?.lifetimeFeeWaiverAt !== null && channel?.lifetimeFeeWaiverAt !== undefined;
 }
 
-export async function hasMarketplaceFee(
-  reservationId: string,
-): Promise<boolean> {
+export async function hasMarketplaceFee(reservationId: string): Promise<boolean> {
   const existing = await db.query.platformFees.findFirst({
     where: and(
       eq(platformFees.dedupKey, marketplaceFeeKey(reservationId)),
-      ne(platformFees.status, 'voided'),
+      ne(platformFees.status, "voided"),
     ),
     columns: { id: true },
   });
@@ -427,10 +411,7 @@ export async function recordMarketplaceFee(input: {
     where: eq(platformFees.dedupKey, dedupKey),
     columns: { id: true, source: true, status: true },
   });
-  const collectedAmountCents = Math.max(
-    0,
-    Math.round(input.collectedAmountCents ?? 0),
-  );
+  const collectedAmountCents = Math.max(0, Math.round(input.collectedAmountCents ?? 0));
   const initialDecision = decideMarketplaceFeeRecord({
     existing: existing ?? null,
     hasLifetimeWaiver: false,
@@ -438,15 +419,15 @@ export async function recordMarketplaceFee(input: {
     collectedAmountCents,
   });
 
-  if (initialDecision.action === 'skip') {
+  if (initialDecision.action === "skip") {
     return { recorded: false, reason: initialDecision.reason };
   }
-  if (initialDecision.action === 'upgrade' && existing) {
+  if (initialDecision.action === "upgrade" && existing) {
     await db
       .update(platformFees)
       .set({
-        source: 'marketplace_online',
-        status: 'collected',
+        source: "marketplace_online",
+        status: "collected",
         amountCents: MARKETPLACE_FEE_CENTS,
         paymentId: input.paymentId ?? null,
         stripePaymentIntentId: input.stripePaymentIntentId ?? null,
@@ -454,15 +435,11 @@ export async function recordMarketplaceFee(input: {
         updatedAt: new Date(),
       })
       .where(eq(platformFees.id, existing.id));
-    return { recorded: true, reason: 'upgraded_to_collected' };
+    return { recorded: true, reason: "upgraded_to_collected" };
   }
 
   const at = input.at ?? new Date();
-  const currency = (
-    input.currency ||
-    (await getStoreCurrency(input.storeId)) ||
-    'eur'
-  )
+  const currency = (input.currency || (await getStoreCurrency(input.storeId)) || "eur")
     .toLowerCase()
     .slice(0, 3);
 
@@ -479,7 +456,7 @@ export async function recordMarketplaceFee(input: {
         source: input.source,
         collectedAmountCents,
       });
-      if (decision.action !== 'insert') return;
+      if (decision.action !== "insert") return;
       reason = decision.reason;
       await tx.insert(platformFees).values({
         id: nanoid(),
@@ -500,7 +477,7 @@ export async function recordMarketplaceFee(input: {
     return { recorded: true, reason };
   } catch (error) {
     if (isDuplicateError(error)) {
-      return { recorded: false, reason: 'already_recorded' };
+      return { recorded: false, reason: "already_recorded" };
     }
     throw error;
   }
@@ -537,10 +514,7 @@ export async function planStripeFees(opts: {
   }
 
   let reservationFeeCents = 0;
-  if (
-    billing.billingMode === 'pay_as_you_go' &&
-    billing.freeReservationsRemaining <= 0
-  ) {
+  if (billing.billingMode === "pay_as_you_go" && billing.freeReservationsRemaining <= 0) {
     const alreadyRecorded = await hasReservationFee(opts.reservationId);
     if (!alreadyRecorded) {
       reservationFeeCents = await projectedNextReservationFeeCents(
@@ -569,13 +543,13 @@ export async function planStripeFees(opts: {
  */
 export const FEE_METADATA_KEYS = {
   /** Present (='2') exactly when this PaymentIntent carries our fee breakdown. */
-  version: 'platformFeeVersion',
-  reservationFee: 'platformReservationFeeCents',
-  marketplaceFee: 'platformMarketplaceFeeCents',
+  version: "platformFeeVersion",
+  reservationFee: "platformReservationFeeCents",
+  marketplaceFee: "platformMarketplaceFeeCents",
 } as const;
 
 /** Current fee-breakdown metadata version (lets the webhook detect legacy/absent ones). */
-export const FEE_METADATA_VERSION = '3';
+export const FEE_METADATA_VERSION = "3";
 
 /**
  * Serialize a fee plan into PaymentIntent metadata. The version marker is set whenever an
@@ -588,14 +562,10 @@ export function buildFeeMetadata(plan: StripeFeePlan): Record<string, string> {
     metadata[FEE_METADATA_KEYS.version] = FEE_METADATA_VERSION;
   }
   if (plan.reservationFeeCents > 0) {
-    metadata[FEE_METADATA_KEYS.reservationFee] = String(
-      plan.reservationFeeCents,
-    );
+    metadata[FEE_METADATA_KEYS.reservationFee] = String(plan.reservationFeeCents);
   }
   if (plan.marketplaceFeeCents > 0) {
-    metadata[FEE_METADATA_KEYS.marketplaceFee] = String(
-      plan.marketplaceFeeCents,
-    );
+    metadata[FEE_METADATA_KEYS.marketplaceFee] = String(plan.marketplaceFeeCents);
   }
   return metadata;
 }
@@ -605,9 +575,7 @@ export function buildFeeMetadata(plan: StripeFeePlan): Record<string, string> {
  * true only when the version marker is present — a PaymentIntent created before this
  * format (or with stripped metadata) returns false so the webhook can fall back safely.
  */
-export function parseFeeMetadata(
-  metadata: Record<string, string> | null | undefined,
-): {
+export function parseFeeMetadata(metadata: Record<string, string> | null | undefined): {
   reservationFeeCents: number;
   marketplaceFeeCents: number;
   hasBreakdown: boolean;
@@ -615,14 +583,10 @@ export function parseFeeMetadata(
   const value = Number(metadata?.[FEE_METADATA_KEYS.reservationFee]);
   const marketplaceValue = Number(metadata?.[FEE_METADATA_KEYS.marketplaceFee]);
   return {
-    reservationFeeCents:
-      Number.isFinite(value) && value > 0 ? Math.round(value) : 0,
+    reservationFeeCents: Number.isFinite(value) && value > 0 ? Math.round(value) : 0,
     marketplaceFeeCents:
-      Number.isFinite(marketplaceValue) && marketplaceValue > 0
-        ? Math.round(marketplaceValue)
-        : 0,
-    hasBreakdown:
-      metadata?.[FEE_METADATA_KEYS.version] === FEE_METADATA_VERSION,
+      Number.isFinite(marketplaceValue) && marketplaceValue > 0 ? Math.round(marketplaceValue) : 0,
+    hasBreakdown: metadata?.[FEE_METADATA_KEYS.version] === FEE_METADATA_VERSION,
   };
 }
 
@@ -656,7 +620,7 @@ export async function getReversibleFees(paymentIntentId: string): Promise<{
     .where(
       and(
         eq(platformFees.stripePaymentIntentId, paymentIntentId),
-        inArray(platformFees.status, ['collected', 'billed']),
+        inArray(platformFees.status, ["collected", "billed"]),
       ),
     );
 
@@ -717,15 +681,10 @@ export async function recordFeeReversals(
       .update(platformFees)
       .set({
         amountReversedCents: u.amountReversedCents,
-        ...(u.fullyReversed ? { status: 'reversed' as const } : {}),
+        ...(u.fullyReversed ? { status: "reversed" as const } : {}),
         updatedAt: new Date(),
       })
-      .where(
-        and(
-          eq(platformFees.id, u.id),
-          inArray(platformFees.status, ['collected', 'billed']),
-        ),
-      );
+      .where(and(eq(platformFees.id, u.id), inArray(platformFees.status, ["collected", "billed"])));
   }
 }
 
@@ -774,18 +733,16 @@ export async function getCurrentMonthUsage(
   // recorded at, so totals are SUMMED, never recomputed from the current config (a
   // mid-month rate change must not retroactively reprice past rentals). Free rentals have
   // amount 0, so they count as locations but add nothing to gross/due.
-  const active = rows.filter((r) =>
-    (ACTIVE_FEE_STATUSES as readonly string[]).includes(r.status),
-  );
+  const active = rows.filter((r) => (ACTIVE_FEE_STATUSES as readonly string[]).includes(r.status));
   const locationCount = active.length;
   const grossCents = active.reduce((sum, r) => sum + r.amountCents, 0);
   const collectedAtSourceCents = rows
-    .filter((r) => r.status === 'collected')
+    .filter((r) => r.status === "collected")
     .reduce((sum, r) => sum + r.amountCents, 0);
   // What would be invoiced if the month closed now: the manual (pending) fees only;
   // collected fees are already paid at source.
   const dueCents = rows
-    .filter((r) => r.status === 'pending')
+    .filter((r) => r.status === "pending")
     .reduce((sum, r) => sum + r.amountCents, 0);
 
   return {
@@ -807,7 +764,7 @@ export interface PayAsYouGoInvoiceSummary {
   collectedAtSourceCents: number;
   invoicedAmountCents: number;
   currency: string;
-  status: 'open' | 'paid' | 'failed' | 'void';
+  status: "open" | "paid" | "failed" | "void";
   paidAt: Date | null;
 }
 
@@ -828,16 +785,11 @@ export async function getRecentPayAsYouGoInvoices(
       paidAt: payAsYouGoInvoices.paidAt,
     })
     .from(payAsYouGoInvoices)
-    .where(
-      and(
-        eq(payAsYouGoInvoices.storeId, storeId),
-        ne(payAsYouGoInvoices.status, 'draft'),
-      ),
-    )
+    .where(and(eq(payAsYouGoInvoices.storeId, storeId), ne(payAsYouGoInvoices.status, "draft")))
     .orderBy(desc(payAsYouGoInvoices.billingMonth))
     .limit(limit);
 
-  return rows.filter((r): r is PayAsYouGoInvoiceSummary => r.status !== 'draft');
+  return rows.filter((r): r is PayAsYouGoInvoiceSummary => r.status !== "draft");
 }
 
 /**
@@ -858,7 +810,7 @@ export async function projectedNextReservationFeeCents(
     .where(
       and(
         eq(platformFees.storeId, storeId),
-        ne(platformFees.source, 'free'),
+        ne(platformFees.source, "free"),
         eq(platformFees.billingMonth, billingMonth),
         eq(platformFees.currency, resolved.config.currency),
         inArray(platformFees.status, [...ACTIVE_FEE_STATUSES]),

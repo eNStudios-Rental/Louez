@@ -14,4 +14,4 @@
  * import { generateContractPdf } from '@/lib/pdf'
  */
 
-export {}
+export {};

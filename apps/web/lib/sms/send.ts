@@ -535,8 +535,8 @@ interface Store {
 }
 
 interface Customer {
-  firstName: string;
-  lastName: string;
+  firstName?: string | null;
+  lastName?: string | null;
   phone?: string | null;
 }
 

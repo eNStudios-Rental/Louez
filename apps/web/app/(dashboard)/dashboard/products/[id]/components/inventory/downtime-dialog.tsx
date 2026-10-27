@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 
 import {
   Button,
@@ -25,20 +25,20 @@ import {
   Switch,
   Textarea,
   toastManager,
-} from '@louez/ui';
+} from "@louez/ui";
 
-import { ReservationDatePickerControl } from '@/components/form/form-reservation-date-picker';
+import { ReservationDatePickerControl } from "@/components/form/form-reservation-date-picker";
 
-import { declareDowntime, updateDowntime } from '../../actions';
-import type { ProductInventoryUnit } from '../../queries';
-import { ConflictsPanel } from './conflicts-panel';
+import { declareDowntime, updateDowntime } from "../../actions";
+import type { ProductInventoryUnit } from "../../queries";
+import { ConflictsPanel } from "./conflicts-panel";
 import {
   DOWNTIME_REASON_OPTIONS,
   type DowntimeReasonOption,
   isDowntimeReasonOption,
-} from './inventory.constants';
-import type { InventoryConflict } from './unit-types';
-import { getTranslatedActionError } from './util.inventory-format';
+} from "./inventory.constants";
+import type { InventoryConflict } from "./unit-types";
+import { getTranslatedActionError } from "./util.inventory-format";
 
 interface DowntimeDialogProps {
   open: boolean;
@@ -46,20 +46,16 @@ interface DowntimeDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export const DowntimeDialog = ({
-  open,
-  unit,
-  onOpenChange,
-}: DowntimeDialogProps) => {
-  const t = useTranslations('dashboard.inventory.downtimeDialog');
-  const tReasons = useTranslations('dashboard.inventory.downtimeReasons');
-  const tErrors = useTranslations('errors');
+export const DowntimeDialog = ({ open, unit, onOpenChange }: DowntimeDialogProps) => {
+  const t = useTranslations("dashboard.inventory.downtimeDialog");
+  const tReasons = useTranslations("dashboard.inventory.downtimeReasons");
+  const tErrors = useTranslations("errors");
   const router = useRouter();
-  const [reason, setReason] = useState<DowntimeReasonOption>('maintenance');
+  const [reason, setReason] = useState<DowntimeReasonOption>("maintenance");
   const [startsAt, setStartsAt] = useState<Date | undefined>(() => new Date());
   const [endsAt, setEndsAt] = useState<Date | undefined>();
   const [openEnded, setOpenEnded] = useState(true);
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [conflicts, setConflicts] = useState<InventoryConflict[]>([]);
   const currentDowntime = unit?.currentDowntime ?? null;
@@ -70,11 +66,11 @@ export const DowntimeDialog = ({
       return;
     }
 
-    setReason(currentDowntime?.reason ?? 'maintenance');
+    setReason(currentDowntime?.reason ?? "maintenance");
     setStartsAt(currentDowntime?.startsAt ?? new Date());
     setEndsAt(currentDowntime?.endsAt ?? undefined);
     setOpenEnded(currentDowntime?.endsAt == null);
-    setNote(currentDowntime?.note ?? '');
+    setNote(currentDowntime?.note ?? "");
     setIsSubmitting(false);
     setConflicts([]);
   }, [currentDowntime, open, unit?.id]);
@@ -89,7 +85,7 @@ export const DowntimeDialog = ({
       Number.isNaN(startsAt.getTime()) ||
       (!openEnded && endsAt && Number.isNaN(endsAt.getTime()))
     ) {
-      toastManager.add({ title: tErrors('invalidData'), type: 'error' });
+      toastManager.add({ title: tErrors("invalidData"), type: "error" });
       return;
     }
 
@@ -117,15 +113,15 @@ export const DowntimeDialog = ({
         toastManager.add({
           title: result.error
             ? getTranslatedActionError(result.error, tErrors)
-            : tErrors('generic'),
-          type: 'error',
+            : tErrors("generic"),
+          type: "error",
         });
         return;
       }
 
       toastManager.add({
-        title: t(isEditing ? 'editSuccessToast' : 'successToast'),
-        type: 'success',
+        title: t(isEditing ? "editSuccessToast" : "successToast"),
+        type: "success",
       });
       router.refresh();
 
@@ -136,7 +132,7 @@ export const DowntimeDialog = ({
 
       onOpenChange(false);
     } catch {
-      toastManager.add({ title: tErrors('generic'), type: 'error' });
+      toastManager.add({ title: tErrors("generic"), type: "error" });
     } finally {
       setIsSubmitting(false);
     }
@@ -146,15 +142,15 @@ export const DowntimeDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPopup className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{t(isEditing ? 'editTitle' : 'title')}</DialogTitle>
+          <DialogTitle>{t(isEditing ? "editTitle" : "title")}</DialogTitle>
           <DialogDescription>
-            {unit ? t('description', { identifier: unit.identifier }) : ''}
+            {unit ? t("description", { identifier: unit.identifier }) : ""}
           </DialogDescription>
         </DialogHeader>
         <DialogPanel>
           <div className="space-y-4">
             <div className="grid gap-2">
-              <Label>{t('reason')}</Label>
+              <Label>{t("reason")}</Label>
               <Select
                 value={reason}
                 onValueChange={(value) => {
@@ -168,11 +164,7 @@ export const DowntimeDialog = ({
                 </SelectTrigger>
                 <SelectContent>
                   {DOWNTIME_REASON_OPTIONS.map((option) => (
-                    <SelectItem
-                      key={option}
-                      value={option}
-                      label={tReasons(option)}
-                    >
+                    <SelectItem key={option} value={option} label={tReasons(option)}>
                       {tReasons(option)}
                     </SelectItem>
                   ))}
@@ -183,14 +175,14 @@ export const DowntimeDialog = ({
             <div className="grid gap-3 sm:grid-cols-2">
               <ReservationDatePickerControl
                 id="downtime-starts-at"
-                label={t('startsAt')}
+                label={t("startsAt")}
                 value={startsAt}
                 onChange={setStartsAt}
                 timeStep={30}
               />
               <ReservationDatePickerControl
                 id="downtime-ends-at"
-                label={t('endsAt')}
+                label={t("endsAt")}
                 value={endsAt}
                 onChange={setEndsAt}
                 timeStep={30}
@@ -200,21 +192,17 @@ export const DowntimeDialog = ({
             </div>
 
             <div className="flex items-center justify-between rounded-lg border p-3">
-              <Label htmlFor="downtime-open-ended">{t('openEnded')}</Label>
-              <Switch
-                id="downtime-open-ended"
-                checked={openEnded}
-                onCheckedChange={setOpenEnded}
-              />
+              <Label htmlFor="downtime-open-ended">{t("openEnded")}</Label>
+              <Switch id="downtime-open-ended" checked={openEnded} onCheckedChange={setOpenEnded} />
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="downtime-note">{t('note')}</Label>
+              <Label htmlFor="downtime-note">{t("note")}</Label>
               <Textarea
                 id="downtime-note"
                 value={note}
                 onChange={(event) => setNote(event.target.value)}
-                placeholder={t('notePlaceholder')}
+                placeholder={t("notePlaceholder")}
               />
             </div>
 
@@ -224,11 +212,9 @@ export const DowntimeDialog = ({
           </div>
         </DialogPanel>
         <DialogFooter>
-          <DialogClose render={<Button variant="outline" />}>
-            {t('close')}
-          </DialogClose>
+          <DialogClose render={<Button variant="outline" />}>{t("close")}</DialogClose>
           <Button onClick={handleSubmit} isPending={isSubmitting} disabled={!unit}>
-            {t(isEditing ? 'editSubmit' : 'submit')}
+            {t(isEditing ? "editSubmit" : "submit")}
           </Button>
         </DialogFooter>
       </DialogPopup>

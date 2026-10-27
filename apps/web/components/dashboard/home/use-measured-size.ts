@@ -30,24 +30,20 @@ export const useMeasuredSize = ({ observeHeight }: UseMeasuredSizeOptions) => {
   const [size, setSize] = useState(EMPTY_SIZE);
   const committedSizeRef = useRef(EMPTY_SIZE);
 
-  const commitMeasuredSize = useCallback(
-    (measuredSize: MeasuredSize, includeHeight: boolean) => {
-      const currentSize = committedSizeRef.current;
-      const nextSize = {
-        width: measuredSize.width,
-        height:
-          includeHeight || currentSize.height === 0 ? measuredSize.height : currentSize.height,
-      };
+  const commitMeasuredSize = useCallback((measuredSize: MeasuredSize, includeHeight: boolean) => {
+    const currentSize = committedSizeRef.current;
+    const nextSize = {
+      width: measuredSize.width,
+      height: includeHeight || currentSize.height === 0 ? measuredSize.height : currentSize.height,
+    };
 
-      if (currentSize.width === nextSize.width && currentSize.height === nextSize.height) {
-        return;
-      }
+    if (currentSize.width === nextSize.width && currentSize.height === nextSize.height) {
+      return;
+    }
 
-      committedSizeRef.current = nextSize;
-      setSize(nextSize);
-    },
-    [],
-  );
+    committedSizeRef.current = nextSize;
+    setSize(nextSize);
+  }, []);
 
   const measureNow = useCallback(() => {
     if (!element) return;

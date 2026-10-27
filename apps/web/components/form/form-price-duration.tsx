@@ -1,13 +1,10 @@
-'use client'
+"use client";
 
-import { Label } from '@louez/ui'
+import { Label } from "@louez/ui";
 
-import { getFieldError, useFieldContext } from '@/hooks/form/form-context'
+import { getFieldError, useFieldContext } from "@/hooks/form/form-context";
 
-import {
-  PriceDurationInput,
-  type PriceDurationValue,
-} from '@/components/ui/price-duration-input'
+import { PriceDurationInput, type PriceDurationValue } from "@/components/ui/price-duration-input";
 
 export function FormPriceDuration({
   label,
@@ -15,14 +12,14 @@ export function FormPriceDuration({
   currency,
   className,
 }: {
-  label?: string
-  description?: string
-  currency?: string
-  className?: string
+  label?: string;
+  description?: string;
+  currency?: string;
+  className?: string;
 }) {
-  const field = useFieldContext<PriceDurationValue>()
-  const errors = field.state.meta.errors
-  const error = errors[0]
+  const field = useFieldContext<PriceDurationValue>();
+  const errors = field.state.meta.errors;
+  const error = errors[0];
 
   return (
     <div className="space-y-2">
@@ -37,12 +34,8 @@ export function FormPriceDuration({
         currency={currency}
         className={className}
       />
-      {description && (
-        <p className="text-muted-foreground text-sm">{description}</p>
-      )}
-      {error && (
-        <p className="text-destructive text-sm">{getFieldError(error)}</p>
-      )}
+      {description && <p className="text-muted-foreground text-sm">{description}</p>}
+      {error && <p className="text-destructive text-sm">{getFieldError(error)}</p>}
     </div>
-  )
+  );
 }

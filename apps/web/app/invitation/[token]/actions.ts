@@ -1,32 +1,29 @@
-'use server';
+"use server";
 
-import { and, eq } from 'drizzle-orm';
+import { and, eq } from "drizzle-orm";
 
-import { db } from '@louez/db';
-import { storeInvitations, storeMembers, users } from '@louez/db';
+import { db } from "@louez/db";
+import { storeInvitations, storeMembers, users } from "@louez/db";
 
-import { auth } from '@/lib/auth';
-import { setActiveStoreId } from '@/lib/store-context';
+import { auth } from "@/lib/auth";
+import { setActiveStoreId } from "@/lib/store-context";
 
 export async function acceptInvitation(token: string, name?: string) {
   const session = await auth();
   if (!session?.user?.id) {
-    return { error: 'errors.unauthorized' };
+    return { error: "errors.unauthorized" };
   }
 
   const invitation = await db.query.storeInvitations.findFirst({
-    where: and(
-      eq(storeInvitations.token, token),
-      eq(storeInvitations.status, 'pending'),
-    ),
+    where: and(eq(storeInvitations.token, token), eq(storeInvitations.status, "pending")),
   });
 
   if (!invitation) {
-    return { error: 'errors.invalid' };
+    return { error: "errors.invalid" };
   }
 
   if (new Date() > new Date(invitation.expiresAt)) {
-    return { error: 'errors.expired' };
+    return { error: "errors.expired" };
   }
 
   const user = await db.query.users.findFirst({
@@ -34,11 +31,11 @@ export async function acceptInvitation(token: string, name?: string) {
   });
 
   if (!user) {
-    return { error: 'errors.unauthorized' };
+    return { error: "errors.unauthorized" };
   }
 
   if (user.email.toLowerCase() !== invitation.email.toLowerCase()) {
-    return { error: 'errors.emailMismatch' };
+    return { error: "errors.emailMismatch" };
   }
 
   const existingMember = await db.query.storeMembers.findFirst({
@@ -49,7 +46,7 @@ export async function acceptInvitation(token: string, name?: string) {
   });
 
   if (existingMember) {
-    return { error: 'errors.alreadyMember' };
+    return { error: "errors.alreadyMember" };
   }
 
   // Update user name if provided and not already set, and record that this
@@ -57,13 +54,10 @@ export async function acceptInvitation(token: string, name?: string) {
   const trimmedName = name?.trim();
   const userUpdates = {
     ...(trimmedName && !user.name ? { name: trimmedName } : {}),
-    ...(user.acquisitionChannel ? {} : { acquisitionChannel: 'invitation' }),
+    ...(user.acquisitionChannel ? {} : { acquisitionChannel: "invitation" }),
   };
   if (Object.keys(userUpdates).length > 0) {
-    await db
-      .update(users)
-      .set(userUpdates)
-      .where(eq(users.id, session.user.id));
+    await db.update(users).set(userUpdates).where(eq(users.id, session.user.id));
   }
 
   await db.insert(storeMembers).values({
@@ -76,7 +70,7 @@ export async function acceptInvitation(token: string, name?: string) {
   await db
     .update(storeInvitations)
     .set({
-      status: 'accepted',
+      status: "accepted",
       acceptedAt: new Date(),
     })
     .where(eq(storeInvitations.id, invitation.id));
@@ -84,7 +78,7 @@ export async function acceptInvitation(token: string, name?: string) {
   const setStoreResult = await setActiveStoreId(invitation.storeId);
   if (!setStoreResult.success) {
     console.error(
-      '[SECURITY] Failed to set active store after accepting invitation:',
+      "[SECURITY] Failed to set active store after accepting invitation:",
       setStoreResult.error,
     );
   }

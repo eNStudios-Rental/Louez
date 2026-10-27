@@ -1,9 +1,9 @@
-import { eq } from 'drizzle-orm'
+import { eq } from "drizzle-orm";
 
-import { db, storePhoneNumbers } from '@louez/db'
+import { db, storePhoneNumbers } from "@louez/db";
 
-import { log } from '@/lib/evlog'
-import { getVoiceProvider } from '@/lib/voice/client'
+import { log } from "@/lib/evlog";
+import { getVoiceProvider } from "@/lib/voice/client";
 
 /**
  * Release a store's number binding: hand a provisioned number back to the
@@ -20,9 +20,9 @@ import { getVoiceProvider } from '@/lib/voice/client'
  * row while skipping the provider hand-back, orphaning a paid number.
  */
 export async function releaseNumberBinding(binding: {
-  id: string
-  providerNumberId: string | null
-}): Promise<{ ok: true } | { ok: false; error: 'releaseFailed' }> {
+  id: string;
+  providerNumberId: string | null;
+}): Promise<{ ok: true } | { ok: false; error: "releaseFailed" }> {
   const [fresh] = await db.transaction((tx) =>
     tx
       .select({
@@ -31,28 +31,24 @@ export async function releaseNumberBinding(binding: {
       })
       .from(storePhoneNumbers)
       .where(eq(storePhoneNumbers.id, binding.id))
-      .for('update'),
-  )
+      .for("update"),
+  );
   // Already gone (concurrent release): nothing left to do.
-  if (!fresh) return { ok: true }
+  if (!fresh) return { ok: true };
 
   if (fresh.providerNumberId) {
     try {
-      await getVoiceProvider().releaseNumber(fresh.providerNumberId)
+      await getVoiceProvider().releaseNumber(fresh.providerNumberId);
     } catch (error) {
       log.error(
-        'phone',
-        `release failed: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      )
-      return { ok: false, error: 'releaseFailed' }
+        "phone",
+        `release failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return { ok: false, error: "releaseFailed" };
     }
   }
 
-  await db
-    .delete(storePhoneNumbers)
-    .where(eq(storePhoneNumbers.id, binding.id))
+  await db.delete(storePhoneNumbers).where(eq(storePhoneNumbers.id, binding.id));
 
-  return { ok: true }
+  return { ok: true };
 }

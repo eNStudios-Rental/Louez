@@ -1,18 +1,11 @@
-import { and, eq } from 'drizzle-orm'
+import { and, eq } from "drizzle-orm";
 
-import { aiAdvisorConversations, db } from '@louez/db'
+import { aiAdvisorConversations, db } from "@louez/db";
 
-import {
-  isVoiceAgentActiveForStore,
-  isVoiceAgentConfigured,
-} from '@/lib/ai/phone/eligibility'
-import { phoneStrings } from '@/lib/ai/phone/messages'
-import {
-  loadCallStore,
-  readVoiceWebhook,
-  voiceResponse,
-} from '@/lib/ai/phone/webhook'
-import { getVoiceProvider } from '@/lib/voice/client'
+import { isVoiceAgentActiveForStore, isVoiceAgentConfigured } from "@/lib/ai/phone/eligibility";
+import { phoneStrings } from "@/lib/ai/phone/messages";
+import { loadCallStore, readVoiceWebhook, voiceResponse } from "@/lib/ai/phone/webhook";
+import { getVoiceProvider } from "@/lib/voice/client";
 
 // INTENTIONALLY PUBLIC route [SE-01]: Twilio POSTs here when a ConversationRelay
 // session ends (the worker sent {type:end, handoffData}). Signature-authenticated
@@ -21,13 +14,13 @@ import { getVoiceProvider } from '@/lib/voice/client'
 
 export async function POST(req: Request) {
   if (!isVoiceAgentConfigured()) {
-    return new Response('Not found', { status: 404 })
+    return new Response("Not found", { status: 404 });
   }
 
-  const read = await readVoiceWebhook(req)
-  if (!read.ok) return new Response('Bad request', { status: read.status })
+  const read = await readVoiceWebhook(req);
+  if (!read.ok) return new Response("Bad request", { status: read.status });
 
-  const provider = getVoiceProvider()
+  const provider = getVoiceProvider();
   if (
     !provider.verifyWebhook({
       url: read.publicUrl,
@@ -35,21 +28,21 @@ export async function POST(req: Request) {
       signature: read.signature,
     })
   ) {
-    return new Response('Invalid signature', { status: 403 })
+    return new Response("Invalid signature", { status: 403 });
   }
 
-  const conversationId = new URL(req.url).searchParams.get('c') ?? ''
+  const conversationId = new URL(req.url).searchParams.get("c") ?? "";
   if (!/^[A-Za-z0-9_-]{21}$/.test(conversationId)) {
-    return new Response('Invalid request', { status: 400 })
+    return new Response("Invalid request", { status: 400 });
   }
 
   // The worker sets handoffData to signal a transfer; anything else hangs up.
-  let wantsTransfer = false
+  let wantsTransfer = false;
   try {
-    const raw = read.rawParams.HandoffData
+    const raw = read.rawParams.HandoffData;
     if (raw) {
-      const parsed = JSON.parse(raw) as { action?: unknown }
-      wantsTransfer = parsed?.action === 'transfer'
+      const parsed = JSON.parse(raw) as { action?: unknown };
+      wantsTransfer = parsed?.action === "transfer";
     }
   } catch {
     // Malformed handoff data → treat as a plain hang up.
@@ -59,24 +52,17 @@ export async function POST(req: Request) {
     const conversation = await db.query.aiAdvisorConversations.findFirst({
       where: and(
         eq(aiAdvisorConversations.id, conversationId),
-        eq(aiAdvisorConversations.channel, 'phone'),
+        eq(aiAdvisorConversations.channel, "phone"),
       ),
       columns: { storeId: true },
-    })
-    const store = conversation
-      ? await loadCallStore(conversation.storeId)
-      : null
-    const settings = store?.aiPhoneSettings
-    const transferNumber = settings?.transferNumber?.trim()
-    if (
-      store &&
-      settings &&
-      transferNumber &&
-      (await isVoiceAgentActiveForStore(store))
-    ) {
-      const strings = phoneStrings(settings.language)
+    });
+    const store = conversation ? await loadCallStore(conversation.storeId) : null;
+    const settings = store?.aiPhoneSettings;
+    const transferNumber = settings?.transferNumber?.trim();
+    if (store && settings && transferNumber && (await isVoiceAgentActiveForStore(store))) {
+      const strings = phoneStrings(settings.language);
       return voiceResponse({
-        type: 'dial',
+        type: "dial",
         number: transferNumber,
         callerId: read.rawParams.To || undefined,
         speakBefore: {
@@ -84,9 +70,9 @@ export async function POST(req: Request) {
           language: settings.language,
           voice: settings.voice,
         },
-      })
+      });
     }
   }
 
-  return voiceResponse({ type: 'hangup' })
+  return voiceResponse({ type: "hangup" });
 }

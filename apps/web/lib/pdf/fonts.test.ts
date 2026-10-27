@@ -30,7 +30,6 @@ for (const locale of ["zh", "ja", "ru", "ko", "pl"] as const) {
   });
 }
 
-
 import * as nodeModule from "node:module";
 
 // The document fixtures need no credentials; the app env module recognizes "true".
@@ -69,7 +68,11 @@ test("every PDF embeds a local font with Latin or CJK coverage instead of Helvet
       });
       assert.equal(rendered.kind, "pdf");
       const source = Buffer.from(rendered.body).toString("latin1");
-      assert.match(source, /\/BaseFont \/[A-Z]{6}\+(Inter|NotoSansCJK)/, `${document.id} (${locale})`);
+      assert.match(
+        source,
+        /\/BaseFont \/[A-Z]{6}\+(Inter|NotoSansCJK)/,
+        `${document.id} (${locale})`,
+      );
       assert.doesNotMatch(source, /\/BaseFont \/Helvetica/, `${document.id} (${locale})`);
     }
   }

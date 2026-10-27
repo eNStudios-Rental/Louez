@@ -1,23 +1,23 @@
-import { createFormHook } from '@tanstack/react-form'
-import { fieldContext, formContext } from './form-context'
-import { FormInput } from '@/components/form/form-input'
-import { FormTextarea } from '@/components/form/form-textarea'
-import { FormSwitch } from '@/components/form/form-switch'
-import { FormSelect } from '@/components/form/form-select'
-import { FormCheckbox } from '@/components/form/form-checkbox'
-import { FormCombobox } from '@/components/form/form-combobox'
-import { FormDuration } from '@/components/form/form-duration'
-import { FormPriceDuration } from '@/components/form/form-price-duration'
-import { FormReservationDatePicker } from '@/components/form/form-reservation-date-picker'
-import { FormOtp } from '@/components/form/form-otp'
-import { FormPassword } from '@/components/form/form-password'
-import { FormImageUpload } from '@/components/form/form-image-upload'
-import { FormPhoneInput } from '@/components/form/form-phone-input'
-import { FormCountrySelect } from '@/components/form/form-country-select'
-import { FormCurrencySelect } from '@/components/form/form-currency-select'
-import { SubscribeButton } from '@/components/form/subscribe-button'
-import { FormForm } from '@/components/form/form-form'
-import { FormRadioGroup } from '@/components/form/form-radio-group'
+import { createFormHook } from "@tanstack/react-form";
+import { fieldContext, formContext } from "./form-context";
+import { FormInput } from "@/components/form/form-input";
+import { FormTextarea } from "@/components/form/form-textarea";
+import { FormSwitch } from "@/components/form/form-switch";
+import { FormSelect } from "@/components/form/form-select";
+import { FormCheckbox } from "@/components/form/form-checkbox";
+import { FormCombobox } from "@/components/form/form-combobox";
+import { FormDuration } from "@/components/form/form-duration";
+import { FormPriceDuration } from "@/components/form/form-price-duration";
+import { FormReservationDatePicker } from "@/components/form/form-reservation-date-picker";
+import { FormOtp } from "@/components/form/form-otp";
+import { FormPassword } from "@/components/form/form-password";
+import { FormImageUpload } from "@/components/form/form-image-upload";
+import { FormPhoneInput } from "@/components/form/form-phone-input";
+import { FormCountrySelect } from "@/components/form/form-country-select";
+import { FormCurrencySelect } from "@/components/form/form-currency-select";
+import { SubscribeButton } from "@/components/form/subscribe-button";
+import { FormForm } from "@/components/form/form-form";
+import { FormRadioGroup } from "@/components/form/form-radio-group";
 
 export const { useAppForm, withForm } = createFormHook({
   fieldComponents: {
@@ -44,6 +44,6 @@ export const { useAppForm, withForm } = createFormHook({
   },
   fieldContext,
   formContext,
-})
+});
 
-export type AppForm = ReturnType<typeof useAppForm>
+export type AppForm = ReturnType<typeof useAppForm>;

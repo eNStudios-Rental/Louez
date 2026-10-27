@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from "react";
 
-import Link from 'next/link';
+import Link from "next/link";
 
-import { AlertTriangle, Wrench } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { AlertTriangle, Wrench } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   Button,
@@ -18,10 +18,10 @@ import {
   DialogPopup,
   DialogTitle,
   toastManager,
-} from '@louez/ui';
+} from "@louez/ui";
 
-import { declareDowntime } from '@/app/(dashboard)/dashboard/products/[id]/actions';
-import { getTranslatedActionError } from '@/app/(dashboard)/dashboard/products/[id]/components/inventory/util.inventory-format';
+import { declareDowntime } from "@/app/(dashboard)/dashboard/products/[id]/actions";
+import { getTranslatedActionError } from "@/app/(dashboard)/dashboard/products/[id]/components/inventory/util.inventory-format";
 
 interface RepairDowntimeSuggestionUnit {
   id: string;
@@ -50,18 +50,14 @@ export const RepairDowntimeSuggestionDialog = ({
   reservationItemIds,
   onDone,
 }: RepairDowntimeSuggestionDialogProps) => {
-  const t = useTranslations(
-    'dashboard.settings.inspection.wizard.repairDowntime',
-  );
-  const tErrors = useTranslations('errors');
+  const t = useTranslations("dashboard.settings.inspection.wizard.repairDowntime");
+  const tErrors = useTranslations("errors");
   const [selectedUnitIds, setSelectedUnitIds] = useState<Set<string>>(
     () => new Set(units.map((unit) => unit.id)),
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [conflictsDetected, setConflictsDetected] = useState(false);
-  const [conflictedProducts, setConflictedProducts] = useState<
-    ConflictedProduct[]
-  >([]);
+  const [conflictedProducts, setConflictedProducts] = useState<ConflictedProduct[]>([]);
 
   useEffect(() => {
     if (!open) {
@@ -93,12 +89,12 @@ export const RepairDowntimeSuggestionDialog = ({
 
   const handleSubmit = async () => {
     if (selectedUnits.length === 0) {
-      toastManager.add({ title: t('noneSelected'), type: 'warning' });
+      toastManager.add({ title: t("noneSelected"), type: "warning" });
       return;
     }
 
     const startsAt = new Date();
-    const note = t('note', { reservationNumber });
+    const note = t("note", { reservationNumber });
     const remainingUnitIds = new Set(selectedUnitIds);
     const conflictedUnits: RepairDowntimeSuggestionUnit[] = [];
 
@@ -108,7 +104,7 @@ export const RepairDowntimeSuggestionDialog = ({
       for (const unit of selectedUnits) {
         const result = await declareDowntime({
           unitId: unit.id,
-          reason: 'repair',
+          reason: "repair",
           startsAt,
           endsAt: null,
           note,
@@ -119,8 +115,8 @@ export const RepairDowntimeSuggestionDialog = ({
           toastManager.add({
             title: result.error
               ? getTranslatedActionError(result.error, tErrors)
-              : tErrors('generic'),
-            type: 'error',
+              : tErrors("generic"),
+            type: "error",
           });
           setSelectedUnitIds(remainingUnitIds);
           return;
@@ -133,8 +129,8 @@ export const RepairDowntimeSuggestionDialog = ({
       }
 
       toastManager.add({
-        title: t('createdToast', { count: selectedUnits.length }),
-        type: 'success',
+        title: t("createdToast", { count: selectedUnits.length }),
+        type: "success",
       });
 
       if (conflictedUnits.length > 0) {
@@ -150,13 +146,13 @@ export const RepairDowntimeSuggestionDialog = ({
         setConflictsDetected(true);
         setConflictedProducts(distinctProducts);
         setSelectedUnitIds(new Set());
-        toastManager.add({ title: t('conflictsToast'), type: 'warning' });
+        toastManager.add({ title: t("conflictsToast"), type: "warning" });
         return;
       }
 
       onDone();
     } catch {
-      toastManager.add({ title: tErrors('generic'), type: 'error' });
+      toastManager.add({ title: tErrors("generic"), type: "error" });
     } finally {
       setIsSubmitting(false);
     }
@@ -166,7 +162,7 @@ export const RepairDowntimeSuggestionDialog = ({
     return null;
   }
 
-  const firstUnitIdentifier = units[0]?.identifier ?? '';
+  const firstUnitIdentifier = units[0]?.identifier ?? "";
 
   return (
     <Dialog
@@ -179,8 +175,8 @@ export const RepairDowntimeSuggestionDialog = ({
     >
       <DialogPopup className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{t('title')}</DialogTitle>
-          <DialogDescription>{t('description')}</DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <DialogPanel>
           <div className="space-y-4">
@@ -188,8 +184,8 @@ export const RepairDowntimeSuggestionDialog = ({
               <Wrench className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" />
               <p className="text-sm font-medium">
                 {units.length === 1
-                  ? t('singleQuestion', { identifier: firstUnitIdentifier })
-                  : t('multipleQuestion', { count: units.length })}
+                  ? t("singleQuestion", { identifier: firstUnitIdentifier })
+                  : t("multipleQuestion", { count: units.length })}
               </p>
             </div>
 
@@ -202,17 +198,11 @@ export const RepairDowntimeSuggestionDialog = ({
                   <Checkbox
                     checked={selectedUnitIds.has(unit.id)}
                     disabled={isSubmitting || conflictsDetected}
-                    onCheckedChange={(checked) =>
-                      handleCheckedChange(unit.id, checked === true)
-                    }
+                    onCheckedChange={(checked) => handleCheckedChange(unit.id, checked === true)}
                   />
                   <span className="min-w-0 space-y-1">
-                    <span className="block text-sm font-medium">
-                      {unit.identifier}
-                    </span>
-                    <span className="text-muted-foreground block text-xs">
-                      {unit.productName}
-                    </span>
+                    <span className="block text-sm font-medium">{unit.identifier}</span>
+                    <span className="text-muted-foreground block text-xs">{unit.productName}</span>
                   </span>
                 </label>
               ))}
@@ -222,7 +212,7 @@ export const RepairDowntimeSuggestionDialog = ({
               <div className="flex gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                 <div className="space-y-1 text-sm">
-                  <p>{t('conflictsDescription')}</p>
+                  <p>{t("conflictsDescription")}</p>
                   <div className="flex flex-col items-start gap-0.5">
                     {conflictedProducts.map((product) => (
                       <Link
@@ -241,13 +231,13 @@ export const RepairDowntimeSuggestionDialog = ({
         </DialogPanel>
         <DialogFooter>
           <Button variant="outline" onClick={onDone} disabled={isSubmitting}>
-            {t('skip')}
+            {t("skip")}
           </Button>
           {conflictsDetected ? (
-            <Button onClick={onDone}>{t('done')}</Button>
+            <Button onClick={onDone}>{t("done")}</Button>
           ) : (
             <Button onClick={handleSubmit} isPending={isSubmitting}>
-              {t('submit')}
+              {t("submit")}
             </Button>
           )}
         </DialogFooter>

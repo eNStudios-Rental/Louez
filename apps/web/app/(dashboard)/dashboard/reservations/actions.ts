@@ -2290,7 +2290,9 @@ export async function createManualReservation(data: CreateReservationData) {
 
   // Platform admin notification
   const customerName = customer
-    ? `${customer.firstName} ${customer.lastName}`
+    ? [customer.firstName, customer.lastName].filter(Boolean).join(" ") ||
+      customer.companyName ||
+      "—"
     : data.newCustomer
       ? `${data.newCustomer.firstName} ${data.newCustomer.lastName}`
       : "Unknown";
@@ -5318,7 +5320,7 @@ export async function sendAccessLink(reservationId: string, data?: { customMessa
     // Store token in verificationCodes table
     await db.insert(verificationCodes).values({
       id: nanoid(),
-      email: reservation.customer.email,
+      email: reservation.customer.email ?? "",
       storeId: store.id,
       code: "", // Not used for instant_access
       type: "instant_access",

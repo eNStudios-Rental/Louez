@@ -440,7 +440,7 @@ export interface BaseContext {
               returnReminderContent?: EmailContentOverride;
             } | null;
           };
-          customer: { firstName: string; lastName: string; email: string };
+          customer: { firstName?: string | null; lastName?: string | null; email?: string | null };
           reservation: {
             id: string;
             number: string;

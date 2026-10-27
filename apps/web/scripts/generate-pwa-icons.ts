@@ -23,28 +23,28 @@
  * launcher applies. The other grounded sizes give it 72%, and the bare favicons
  * let it run to 92% so it still reads at 16px.
  */
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-import sharp from 'sharp';
+import sharp from "sharp";
 
 /** Ground for the icons that cannot be transparent (iOS, Android maskable). */
-const GROUND = '#FFFFFF';
+const GROUND = "#FFFFFF";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const webDir = path.resolve(scriptDir, '..');
-const publicDir = path.join(webDir, 'public');
-const appDir = path.join(webDir, 'app');
-const iconsDir = path.join(publicDir, 'icons');
-const githubAssetsDir = path.resolve(webDir, '..', '..', '.github', 'assets');
+const webDir = path.resolve(scriptDir, "..");
+const publicDir = path.join(webDir, "public");
+const appDir = path.join(webDir, "app");
+const iconsDir = path.join(publicDir, "icons");
+const githubAssetsDir = path.resolve(webDir, "..", "..", ".github", "assets");
 
 /** The mark, straight out of favicon.svg: its view-box and everything inside it. */
 async function readMark(): Promise<{ viewBox: string; body: string }> {
-  const svg = await readFile(path.join(publicDir, 'favicon.svg'), 'utf8');
+  const svg = await readFile(path.join(publicDir, "favicon.svg"), "utf8");
   const viewBox = /viewBox="([^"]+)"/.exec(svg)?.[1];
   const body = /<svg[^>]*>([\s\S]*)<\/svg>/.exec(svg)?.[1];
-  if (!viewBox || !body) throw new Error('public/favicon.svg: no viewBox or no body to read.');
+  if (!viewBox || !body) throw new Error("public/favicon.svg: no viewBox or no body to read.");
   return { viewBox, body: body.trim() };
 }
 
@@ -56,13 +56,13 @@ function compose(mark: { viewBox: string; body: string }, size: number, variant:
   const offset = (size - inner) / 2;
   const ground = variant.ground
     ? `<rect width="${size}" height="${size}" fill="${variant.ground}"/>`
-    : '';
+    : "";
   return [
     `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"`,
     ` xmlns="http://www.w3.org/2000/svg">${ground}`,
     `<svg x="${offset}" y="${offset}" width="${inner}" height="${inner}"`,
     ` viewBox="${mark.viewBox}">${mark.body}</svg></svg>`,
-  ].join('');
+  ].join("");
 }
 
 async function renderPng(svg: string, size: number): Promise<Buffer> {
@@ -114,20 +114,23 @@ async function main() {
   const apple = await png(180, GROUNDED);
 
   const outputs: Array<[string, Buffer]> = [
-    [path.join(appDir, 'icon.png'), favicon32],
-    [path.join(appDir, 'favicon.ico'), packIco([
-      { size: 16, png: favicon16 },
-      { size: 32, png: favicon32 },
-    ])],
-    [path.join(appDir, 'apple-icon.png'), apple],
-    [path.join(publicDir, 'favicon-16x16.png'), favicon16],
-    [path.join(publicDir, 'favicon-32x32.png'), favicon32],
-    [path.join(publicDir, 'apple-touch-icon.png'), apple],
-    [path.join(iconsDir, 'icon-192.png'), await png(192, GROUNDED)],
-    [path.join(iconsDir, 'icon-512.png'), await png(512, GROUNDED)],
-    [path.join(iconsDir, 'maskable-192.png'), await png(192, MASKABLE)],
-    [path.join(iconsDir, 'maskable-512.png'), await png(512, MASKABLE)],
-    [path.join(githubAssetsDir, 'logo.png'), await png(160, BARE)],
+    [path.join(appDir, "icon.png"), favicon32],
+    [
+      path.join(appDir, "favicon.ico"),
+      packIco([
+        { size: 16, png: favicon16 },
+        { size: 32, png: favicon32 },
+      ]),
+    ],
+    [path.join(appDir, "apple-icon.png"), apple],
+    [path.join(publicDir, "favicon-16x16.png"), favicon16],
+    [path.join(publicDir, "favicon-32x32.png"), favicon32],
+    [path.join(publicDir, "apple-touch-icon.png"), apple],
+    [path.join(iconsDir, "icon-192.png"), await png(192, GROUNDED)],
+    [path.join(iconsDir, "icon-512.png"), await png(512, GROUNDED)],
+    [path.join(iconsDir, "maskable-192.png"), await png(192, MASKABLE)],
+    [path.join(iconsDir, "maskable-512.png"), await png(512, MASKABLE)],
+    [path.join(githubAssetsDir, "logo.png"), await png(160, BARE)],
   ];
 
   for (const [file, buffer] of outputs) {

@@ -7,20 +7,20 @@
  * been run, they fall back to the closest reused photo so the seed still
  * produces a complete, browsable catalog.
  */
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-import { IMG, type DemoProduct, type SourcedImageKey } from './catalog';
+import { IMG, type DemoProduct, type SourcedImageKey } from "./catalog";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const MANIFEST = join(HERE, 'demo-images.json');
+const MANIFEST = join(HERE, "demo-images.json");
 
 let sourced: Partial<Record<SourcedImageKey, string>> = {};
 
 if (existsSync(MANIFEST)) {
   try {
-    const parsed = JSON.parse(readFileSync(MANIFEST, 'utf8')) as {
+    const parsed = JSON.parse(readFileSync(MANIFEST, "utf8")) as {
       images?: Record<string, string>;
     };
     sourced = (parsed.images ?? {}) as Partial<Record<SourcedImageKey, string>>;

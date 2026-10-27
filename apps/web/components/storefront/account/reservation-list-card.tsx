@@ -53,10 +53,14 @@ export const ReservationListCard = ({
       href={`/account/reservations/${reservation.id}`}
       prefetch={prefetch}
       data-demo-reservation={reservation.id}
-      onClick={onOpenReservation ? (event) => {
-        event.preventDefault();
-        onOpenReservation(reservation.id);
-      } : undefined}
+      onClick={
+        onOpenReservation
+          ? (event) => {
+              event.preventDefault();
+              onOpenReservation(reservation.id);
+            }
+          : undefined
+      }
       className={cn(
         "group relative flex flex-col rounded-2xl bg-card p-1 shadow-card outline-none",
         "transition-shadow duration-150 hover:ring-1 hover:ring-foreground/12",

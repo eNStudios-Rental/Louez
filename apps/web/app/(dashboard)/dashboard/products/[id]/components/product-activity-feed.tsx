@@ -59,7 +59,7 @@ export const ProductActivityFeed = ({
   );
 
   const activity = useMemo(
-    () => readOnly ? initialPage.items : query.data.pages.flatMap((page) => page.items),
+    () => (readOnly ? initialPage.items : query.data.pages.flatMap((page) => page.items)),
     [readOnly, initialPage.items, query.data.pages],
   );
   const groupedActivity = useMemo(() => groupReservationActivity(activity), [activity]);

@@ -1,17 +1,14 @@
-import { db } from '@louez/db';
+import { db } from "@louez/db";
 import {
   advisorConversationMessagesInputSchema,
   advisorConversationMessagesOutputSchema,
   advisorConversationStatusInputSchema,
   advisorConversationStatusOutputSchema,
-} from '@louez/validations';
+} from "@louez/validations";
 
-import { storefrontProcedure } from '../../procedures';
-import {
-  getAdvisorConversationMessages,
-  getAdvisorConversationStatus,
-} from '../../services';
-import { toORPCError } from '../../utils/orpc-error';
+import { storefrontProcedure } from "../../procedures";
+import { getAdvisorConversationMessages, getAdvisorConversationStatus } from "../../services";
+import { toORPCError } from "../../utils/orpc-error";
 
 /**
  * Validation state of an advisor conversation, consumed by the checkout gate

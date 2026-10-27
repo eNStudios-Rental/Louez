@@ -47,16 +47,26 @@ const text: Record<Locale, ProductPageText> = {
       "Wygodny rower do zwiedzania Nantes i brzegów Loary. Regulowane siodełko, oświetlenie i bagażnik na miejskie przejażdżki. Nasz zespół dopasuje rower przed wyjazdem.",
     helmet: "Kask rowerowy",
   },
-  zh: {description: supplementalMessages.zh.demo_product_page_description,
-helmet: supplementalMessages.zh.demo_product_page_helmet,},
-  ja: {description: supplementalMessages.ja.demo_product_page_description,
-helmet: supplementalMessages.ja.demo_product_page_helmet,},
-  ru: {description: supplementalMessages.ru.demo_product_page_description,
-helmet: supplementalMessages.ru.demo_product_page_helmet,},
-  id: {description: supplementalMessages.id.demo_product_page_description,
-helmet: supplementalMessages.id.demo_product_page_helmet,},
-  ko: {description: supplementalMessages.ko.demo_product_page_description,
-helmet: supplementalMessages.ko.demo_product_page_helmet,},
+  zh: {
+    description: supplementalMessages.zh.demo_product_page_description,
+    helmet: supplementalMessages.zh.demo_product_page_helmet,
+  },
+  ja: {
+    description: supplementalMessages.ja.demo_product_page_description,
+    helmet: supplementalMessages.ja.demo_product_page_helmet,
+  },
+  ru: {
+    description: supplementalMessages.ru.demo_product_page_description,
+    helmet: supplementalMessages.ru.demo_product_page_helmet,
+  },
+  id: {
+    description: supplementalMessages.id.demo_product_page_description,
+    helmet: supplementalMessages.id.demo_product_page_helmet,
+  },
+  ko: {
+    description: supplementalMessages.ko.demo_product_page_description,
+    helmet: supplementalMessages.ko.demo_product_page_helmet,
+  },
 };
 
 export const getDemoProductPageText = (locale: Locale = "fr"): ProductPageText => text[locale];

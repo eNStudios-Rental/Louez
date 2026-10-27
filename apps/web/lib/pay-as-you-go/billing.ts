@@ -1,34 +1,21 @@
-import { and, eq, inArray } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
-import type Stripe from 'stripe';
+import { and, eq, inArray } from "drizzle-orm";
+import { nanoid } from "nanoid";
+import type Stripe from "stripe";
 
-import { db } from '@louez/db';
-import { payAsYouGoInvoices, platformFees, subscriptions } from '@louez/db';
+import { db } from "@louez/db";
+import { payAsYouGoInvoices, platformFees, subscriptions } from "@louez/db";
 
-import {
-  getEmailTranslator,
-  getLocaleFromCountry,
-  type EmailLocale,
-} from '@/lib/email/i18n';
-import { getOrCreateStripeCustomer } from '@/lib/stripe/subscriptions';
-import { stripe } from '@/lib/stripe/client';
+import { getEmailTranslator, getLocaleFromCountry, type EmailLocale } from "@/lib/email/i18n";
+import { getOrCreateStripeCustomer } from "@/lib/stripe/subscriptions";
+import { stripe } from "@/lib/stripe/client";
 
-import { resolvePayAsYouGoConfig } from './config';
-import {
-  selectMonthlyBillingStoreIds,
-  summarizeMonthlyPlatformFees,
-} from './billing-core';
-import {
-  ACTIVE_FEE_STATUSES,
-  billingMonthOf,
-  getStoreBillingPreferences,
-} from './metering';
+import { resolvePayAsYouGoConfig } from "./config";
+import { selectMonthlyBillingStoreIds, summarizeMonthlyPlatformFees } from "./billing-core";
+import { ACTIVE_FEE_STATUSES, billingMonthOf, getStoreBillingPreferences } from "./metering";
 
 /** First day (UTC) of the month preceding `reference`. */
 function previousMonthStart(reference: Date): Date {
-  const d = new Date(
-    Date.UTC(reference.getUTCFullYear(), reference.getUTCMonth(), 1),
-  );
+  const d = new Date(Date.UTC(reference.getUTCFullYear(), reference.getUTCMonth(), 1));
   d.setUTCMonth(d.getUTCMonth() - 1);
   return d;
 }
@@ -74,17 +61,12 @@ export async function runMonthlyPayAsYouGoBilling(
   const paygStores = await db
     .selectDistinct({ storeId: subscriptions.storeId })
     .from(subscriptions)
-    .where(eq(subscriptions.billingMode, 'pay_as_you_go'));
+    .where(eq(subscriptions.billingMode, "pay_as_you_go"));
 
   const storesWithUsage = await db
     .selectDistinct({ storeId: platformFees.storeId })
     .from(platformFees)
-    .where(
-      and(
-        eq(platformFees.billingMonth, billingMonth),
-        eq(platformFees.status, 'pending'),
-      ),
-    );
+    .where(and(eq(platformFees.billingMonth, billingMonth), eq(platformFees.status, "pending")));
 
   const storeIds = selectMonthlyBillingStoreIds(
     paygStores.map((store) => store.storeId),
@@ -96,8 +78,8 @@ export async function runMonthlyPayAsYouGoBilling(
     try {
       const outcome = await billStoreForMonth(storeId, billingMonth);
       if (outcome.invoiceCreated) result.invoicesCreated += 1;
-      if (outcome.status === 'paid') result.invoicesPaid += 1;
-      if (outcome.status === 'failed') result.invoicesFailed += 1;
+      if (outcome.status === "paid") result.invoicesPaid += 1;
+      if (outcome.status === "failed") result.invoicesFailed += 1;
       result.totalInvoicedCents += outcome.invoicedCents;
     } catch (error) {
       result.errors.push({
@@ -111,7 +93,7 @@ export async function runMonthlyPayAsYouGoBilling(
 }
 
 interface BillStoreOutcome {
-  status: 'paid' | 'open' | 'failed' | 'void' | 'skipped';
+  status: "paid" | "open" | "failed" | "void" | "skipped";
   invoicedCents: number;
   invoiceCreated: boolean;
 }
@@ -161,10 +143,7 @@ export async function billStoreForMonth(
   // manual (pending) fees; collected fees were already charged at source. Because
   // gross = collected + pending, collected can never exceed gross — there is no
   // month-end over-collection to refund.
-  const summary = summarizeMonthlyPlatformFees(
-    rows,
-    subscription?.billingMode !== 'subscription',
-  );
+  const summary = summarizeMonthlyPlatformFees(rows, subscription?.billingMode !== "subscription");
   const currency = config.currency;
 
   // ---- Claim the (store, month) slot BEFORE any Stripe call (idempotency). ----
@@ -199,16 +178,11 @@ export async function billStoreForMonth(
   if (billInvoicedCents <= 0) {
     await db
       .update(payAsYouGoInvoices)
-      .set({ status: 'void', updatedAt: new Date() })
+      .set({ status: "void", updatedAt: new Date() })
       .where(eq(payAsYouGoInvoices.id, invoiceRowId));
     // Close out any pending rows (nothing left to charge) so the month is settled.
-    await markUsageBilled(
-      storeId,
-      billingMonth,
-      invoiceRowId,
-      billUsageFeeCents > 0,
-    );
-    return { status: 'void', invoicedCents: 0, invoiceCreated };
+    await markUsageBilled(storeId, billingMonth, invoiceRowId, billUsageFeeCents > 0);
+    return { status: "void", invoicedCents: 0, invoiceCreated };
   }
 
   // ---- Create & collect the Stripe invoice on the PLATFORM account. ----
@@ -222,8 +196,9 @@ export async function billStoreForMonth(
   const hasDefaultPaymentMethod = Boolean(
     customer.invoice_settings?.default_payment_method || customer.default_source,
   );
-  const collectionMethod: Stripe.Invoice.CollectionMethod =
-    hasDefaultPaymentMethod ? 'charge_automatically' : 'send_invoice';
+  const collectionMethod: Stripe.Invoice.CollectionMethod = hasDefaultPaymentMethod
+    ? "charge_automatically"
+    : "send_invoice";
 
   let invoice: Stripe.Invoice;
   if (existingStripeInvoiceId) {
@@ -248,16 +223,16 @@ export async function billStoreForMonth(
       {
         customer: stripeCustomerId,
         collection_method: collectionMethod,
-        ...(collectionMethod === 'send_invoice' ? { days_until_due: 14 } : {}),
+        ...(collectionMethod === "send_invoice" ? { days_until_due: 14 } : {}),
         // Enable Stripe dunning/auto-collection so failed charge_automatically
         // invoices are retried and reconciled via the platform invoice webhook.
         // We still finalize explicitly below (immediately, before Stripe's ~1h
         // auto-finalize), so the line item is always attached first.
         auto_advance: true,
-        pending_invoice_items_behavior: 'exclude',
-        metadata: { type: 'pay_as_you_go', storeId, billingMonth },
+        pending_invoice_items_behavior: "exclude",
+        metadata: { type: "pay_as_you_go", storeId, billingMonth },
       },
-      { idempotencyKey: idemKey('invoice', storeId, billingMonth) },
+      { idempotencyKey: idemKey("invoice", storeId, billingMonth) },
     );
     await db
       .update(payAsYouGoInvoices)
@@ -299,7 +274,7 @@ export async function billStoreForMonth(
       status,
       stripeInvoiceId: invoice.id ?? existingStripeInvoiceId,
       stripeCustomerId,
-      paidAt: status === 'paid' ? new Date() : null,
+      paidAt: status === "paid" ? new Date() : null,
       updatedAt: new Date(),
     })
     .where(eq(payAsYouGoInvoices.id, invoiceRowId));
@@ -308,13 +283,8 @@ export async function billStoreForMonth(
   // collected. A hosted (send_invoice) invoice stays 'open' until paid, and its
   // rentals are settled by the invoice.paid platform webhook (reconcilePayAsYouGoInvoice),
   // so an unpaid hosted invoice never silently loses the commission.
-  if (status === 'paid') {
-    await markUsageBilled(
-      storeId,
-      billingMonth,
-      invoiceRowId,
-      billUsageFeeCents > 0,
-    );
+  if (status === "paid") {
+    await markUsageBilled(storeId, billingMonth, invoiceRowId, billUsageFeeCents > 0);
   }
 
   return {
@@ -339,7 +309,7 @@ interface ClaimInput {
 }
 
 type ClaimResult =
-  | { terminal: true; status: 'paid' | 'open' | 'void'; invoicedAmountCents: number }
+  | { terminal: true; status: "paid" | "open" | "void"; invoicedAmountCents: number }
   | {
       terminal: false;
       id: string;
@@ -375,11 +345,7 @@ async function claimInvoiceRow(input: ClaimInput): Promise<ClaimResult> {
   });
 
   if (existing) {
-    if (
-      existing.status === 'paid' ||
-      existing.status === 'open' ||
-      existing.status === 'void'
-    ) {
+    if (existing.status === "paid" || existing.status === "open" || existing.status === "void") {
       return {
         terminal: true,
         status: existing.status,
@@ -420,7 +386,7 @@ async function claimInvoiceRow(input: ClaimInput): Promise<ClaimResult> {
       marketplaceReservationCount: input.marketplaceReservationCount,
       marketplaceFeeAmountCents: input.marketplaceFeeAmountCents,
       currency: input.currency,
-      status: 'draft',
+      status: "draft",
     });
     return {
       terminal: false,
@@ -438,7 +404,7 @@ async function claimInvoiceRow(input: ClaimInput): Promise<ClaimResult> {
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    if (!message.includes('Duplicate') && !message.includes('unique')) {
+    if (!message.includes("Duplicate") && !message.includes("unique")) {
       throw error;
     }
     const winner = await db.query.payAsYouGoInvoices.findFirst({
@@ -448,11 +414,7 @@ async function claimInvoiceRow(input: ClaimInput): Promise<ClaimResult> {
       ),
     });
     if (!winner) throw error;
-    if (
-      winner.status === 'paid' ||
-      winner.status === 'open' ||
-      winner.status === 'void'
-    ) {
+    if (winner.status === "paid" || winner.status === "open" || winner.status === "void") {
       return {
         terminal: true,
         status: winner.status,
@@ -496,7 +458,7 @@ async function ensureInvoiceCollected(
   const invoiceId = invoice.id;
   if (!invoiceId) return invoice;
 
-  if (invoice.status === 'draft') {
+  if (invoice.status === "draft") {
     const translate = getEmailTranslator(locale);
     if (usageFeeAmountCents > 0) {
       await stripe.invoiceItems.create(
@@ -505,13 +467,13 @@ async function ensureInvoiceCollected(
           invoice: invoiceId,
           amount: usageFeeAmountCents,
           currency,
-          description: translate('payAsYouGoInvoice.usageLine', {
+          description: translate("payAsYouGoInvoice.usageLine", {
             billingMonth,
             count: usageLocationCount,
           }),
-          metadata: { type: 'pay_as_you_go', storeId, billingMonth },
+          metadata: { type: "pay_as_you_go", storeId, billingMonth },
         },
-        { idempotencyKey: idemKey('item', storeId, billingMonth) },
+        { idempotencyKey: idemKey("item", storeId, billingMonth) },
       );
     }
     if (marketplaceFeeAmountCents > 0) {
@@ -521,28 +483,25 @@ async function ensureInvoiceCollected(
           invoice: invoiceId,
           amount: marketplaceFeeAmountCents,
           currency,
-          description: translate('payAsYouGoInvoice.marketplaceLine', {
+          description: translate("payAsYouGoInvoice.marketplaceLine", {
             billingMonth,
             count: marketplaceReservationCount,
           }),
-          metadata: { type: 'marketplace', storeId, billingMonth },
+          metadata: { type: "marketplace", storeId, billingMonth },
         },
-        { idempotencyKey: idemKey('marketplace_item', storeId, billingMonth) },
+        { idempotencyKey: idemKey("marketplace_item", storeId, billingMonth) },
       );
     }
     invoice = await stripe.invoices.finalizeInvoice(invoiceId, undefined, {
-      idempotencyKey: idemKey('finalize', storeId, billingMonth),
+      idempotencyKey: idemKey("finalize", storeId, billingMonth),
     });
   }
 
   // Attempt collection for charge_automatically invoices still awaiting payment.
-  if (
-    invoice.status === 'open' &&
-    invoice.collection_method === 'charge_automatically'
-  ) {
+  if (invoice.status === "open" && invoice.collection_method === "charge_automatically") {
     try {
       invoice = await stripe.invoices.pay(invoiceId, undefined, {
-        idempotencyKey: idemKey('pay', storeId, billingMonth),
+        idempotencyKey: idemKey("pay", storeId, billingMonth),
       });
     } catch {
       // Card declined / no usable method — invoice stays 'open'; recorded as failed.
@@ -560,17 +519,15 @@ async function markUsageBilled(
 ): Promise<void> {
   await db
     .update(platformFees)
-    .set({ status: 'billed', invoiceId: invoiceRowId, billedAt: new Date() })
+    .set({ status: "billed", invoiceId: invoiceRowId, billedAt: new Date() })
     .where(
       and(
         eq(platformFees.storeId, storeId),
         eq(platformFees.billingMonth, billingMonth),
-        eq(platformFees.status, 'pending'),
+        eq(platformFees.status, "pending"),
         inArray(
           platformFees.source,
-          includePayAsYouGoUsage
-            ? ['manual', 'marketplace_manual']
-            : ['marketplace_manual'],
+          includePayAsYouGoUsage ? ["manual", "marketplace_manual"] : ["marketplace_manual"],
         ),
       ),
     );
@@ -579,17 +536,17 @@ async function markUsageBilled(
 function mapStripeInvoiceStatus(
   invoice: Stripe.Invoice,
   collectionMethod: Stripe.Invoice.CollectionMethod,
-): 'paid' | 'open' | 'failed' | 'void' {
-  if (invoice.status === 'paid') return 'paid';
-  if (invoice.status === 'void') return 'void';
-  if (invoice.status === 'uncollectible') return 'failed';
+): "paid" | "open" | "failed" | "void" {
+  if (invoice.status === "paid") return "paid";
+  if (invoice.status === "void") return "void";
+  if (invoice.status === "uncollectible") return "failed";
   // 'open' on a charge_automatically invoice means the immediate charge did not
   // succeed → treat as failed so usage stays pending and the run reports it.
-  if (invoice.status === 'open' && collectionMethod === 'charge_automatically') {
-    return 'failed';
+  if (invoice.status === "open" && collectionMethod === "charge_automatically") {
+    return "failed";
   }
   // 'open' (hosted/send_invoice) or 'draft' → awaiting payment.
-  return 'open';
+  return "open";
 }
 
 /**
@@ -598,32 +555,27 @@ function mapStripeInvoiceStatus(
  */
 export async function reconcilePayAsYouGoInvoice(
   stripeInvoiceId: string,
-  outcome: 'paid' | 'failed',
+  outcome: "paid" | "failed",
 ): Promise<boolean> {
   const row = await db.query.payAsYouGoInvoices.findFirst({
     where: eq(payAsYouGoInvoices.stripeInvoiceId, stripeInvoiceId),
   });
   if (!row) return false;
 
-  if (outcome === 'paid') {
+  if (outcome === "paid") {
     await db
       .update(payAsYouGoInvoices)
-      .set({ status: 'paid', paidAt: new Date(), updatedAt: new Date() })
+      .set({ status: "paid", paidAt: new Date(), updatedAt: new Date() })
       .where(eq(payAsYouGoInvoices.id, row.id));
     // Settle any still-pending rentals for this month.
-    await markUsageBilled(
-      row.storeId,
-      row.billingMonth,
-      row.id,
-      row.usageFeeAmountCents > 0,
-    );
+    await markUsageBilled(row.storeId, row.billingMonth, row.id, row.usageFeeAmountCents > 0);
     return true;
   }
 
   // payment_failed / uncollectible
   await db
     .update(payAsYouGoInvoices)
-    .set({ status: 'failed', updatedAt: new Date() })
+    .set({ status: "failed", updatedAt: new Date() })
     .where(eq(payAsYouGoInvoices.id, row.id));
   return true;
 }

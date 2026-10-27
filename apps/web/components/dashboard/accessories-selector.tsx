@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
+import { useMemo } from "react";
 
-import { GripVertical, X } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { GripVertical, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
-import { Button } from '@louez/ui';
-import { InputQuantity, Label, Switch } from '@louez/ui';
-import { formatCurrency } from '@louez/utils';
-import { cn } from '@louez/utils';
+import { Button } from "@louez/ui";
+import { InputQuantity, Label, Switch } from "@louez/ui";
+import { formatCurrency } from "@louez/utils";
+import { cn } from "@louez/utils";
 
-import { AccessoriesPickerDialog } from '@/components/dashboard/accessories-picker-dialog';
-import { ProductImage } from '@/components/product/product-image';
+import { AccessoriesPickerDialog } from "@/components/dashboard/accessories-picker-dialog";
+import { ProductImage } from "@/components/product/product-image";
 
-import type { ProductAccessoryLinkInput } from '@louez/validations';
+import type { ProductAccessoryLinkInput } from "@louez/validations";
 
 interface Product {
   id: string;
@@ -34,10 +34,10 @@ export function AccessoriesSelector({
   availableProducts,
   value,
   onChange,
-  currency = 'EUR',
+  currency = "EUR",
   disabled = false,
 }: AccessoriesSelectorProps) {
-  const t = useTranslations('dashboard.products.form');
+  const t = useTranslations("dashboard.products.form");
 
   // Pair each link with its catalog entry; links pointing at a product that is
   // no longer selectable (archived, deleted) are dropped from the display.
@@ -48,10 +48,7 @@ export function AccessoriesSelector({
     });
   }, [value, availableProducts]);
 
-  const selectedIds = useMemo(
-    () => value.map((link) => link.accessoryId),
-    [value],
-  );
+  const selectedIds = useMemo(() => value.map((link) => link.accessoryId), [value]);
 
   const handleRemove = (productId: string) => {
     onChange(value.filter((link) => link.accessoryId !== productId));
@@ -70,13 +67,9 @@ export function AccessoriesSelector({
 
   const handleLinkChange = (
     productId: string,
-    patch: Partial<Omit<ProductAccessoryLinkInput, 'accessoryId'>>,
+    patch: Partial<Omit<ProductAccessoryLinkInput, "accessoryId">>,
   ) => {
-    onChange(
-      value.map((link) =>
-        link.accessoryId === productId ? { ...link, ...patch } : link,
-      ),
-    );
+    onChange(value.map((link) => (link.accessoryId === productId ? { ...link, ...patch } : link)));
   };
 
   const handleReorder = (fromIndex: number, toIndex: number) => {
@@ -94,10 +87,7 @@ export function AccessoriesSelector({
           {selectedLinks.map(({ link, product }, index) => (
             <div
               key={product.id}
-              className={cn(
-                'bg-card rounded-lg border transition-colors',
-                'hover:bg-muted/50',
-              )}
+              className={cn("bg-card rounded-lg border transition-colors", "hover:bg-muted/50")}
             >
               <div className="flex items-center gap-3 p-3">
                 <button
@@ -122,12 +112,12 @@ export function AccessoriesSelector({
                     };
 
                     const handleMouseUp = () => {
-                      document.removeEventListener('mousemove', handleMouseMove);
-                      document.removeEventListener('mouseup', handleMouseUp);
+                      document.removeEventListener("mousemove", handleMouseMove);
+                      document.removeEventListener("mouseup", handleMouseUp);
                     };
 
-                    document.addEventListener('mousemove', handleMouseMove);
-                    document.addEventListener('mouseup', handleMouseUp);
+                    document.addEventListener("mousemove", handleMouseMove);
+                    document.addEventListener("mouseup", handleMouseUp);
                   }}
                 >
                   <GripVertical className="h-4 w-4" />
@@ -171,11 +161,8 @@ export function AccessoriesSelector({
                     }
                     disabled={disabled}
                   />
-                  <Label
-                    htmlFor={`accessory-required-${product.id}`}
-                    className="font-normal"
-                  >
-                    {t('accessoryRequired')}
+                  <Label htmlFor={`accessory-required-${product.id}`} className="font-normal">
+                    {t("accessoryRequired")}
                   </Label>
                 </div>
 
@@ -183,20 +170,18 @@ export function AccessoriesSelector({
                   <div className="ml-auto flex items-center gap-2">
                     <InputQuantity
                       value={link.quantity}
-                      onChange={(next) =>
-                        handleLinkChange(product.id, { quantity: next })
-                      }
+                      onChange={(next) => handleLinkChange(product.id, { quantity: next })}
                       min={1}
                       disabled={disabled}
-                      ariaLabel={t('accessoryQuantity')}
+                      ariaLabel={t("accessoryQuantity")}
                     />
                     <span className="text-muted-foreground text-xs">
-                      {t('accessoryQuantityPerUnit')}
+                      {t("accessoryQuantityPerUnit")}
                     </span>
                   </div>
                 ) : (
                   <span className="text-muted-foreground ml-auto text-xs">
-                    {t('accessoryOptionalHint')}
+                    {t("accessoryOptionalHint")}
                   </span>
                 )}
               </div>
@@ -215,7 +200,7 @@ export function AccessoriesSelector({
 
       {/* Helper text */}
       {selectedLinks.length === 0 && (
-        <p className="text-muted-foreground text-xs">{t('accessoriesHelp')}</p>
+        <p className="text-muted-foreground text-xs">{t("accessoriesHelp")}</p>
       )}
     </div>
   );

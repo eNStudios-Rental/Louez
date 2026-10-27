@@ -1,4 +1,7 @@
-import { ProductStatsSectionView, type ProductStatsSectionProps } from './product-stats-section-view';
+import {
+  ProductStatsSectionView,
+  type ProductStatsSectionProps,
+} from "./product-stats-section-view";
 
 export const ProductStatsSection = ({
   revenueStats,

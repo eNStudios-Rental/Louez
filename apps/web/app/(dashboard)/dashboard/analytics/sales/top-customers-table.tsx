@@ -36,7 +36,11 @@ const getDisplayName = (customer: TopCustomer) =>
     ? customer.companyName
     : [customer.firstName, customer.lastName].filter(Boolean).join(" ") || customer.companyName || "—";
 
-export const TopCustomersTable = ({ customers, readOnly = false, currency = "PLN" }: TopCustomersTableProps) => {
+export const TopCustomersTable = ({
+  customers,
+  readOnly = false,
+  currency = "PLN",
+}: TopCustomersTableProps) => {
   const t = useTranslations("dashboard.statistics");
 
   if (customers.length === 0) {

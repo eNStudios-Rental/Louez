@@ -1,7 +1,4 @@
-import {
-  getSettledPaymentAmount,
-  isStripeRefundRow,
-} from "@/lib/reservations/util.payment-status";
+import { getSettledPaymentAmount, isStripeRefundRow } from "@/lib/reservations/util.payment-status";
 
 export type ManualPaymentMethod = "cash" | "card" | "transfer" | "check" | "other";
 
@@ -24,12 +21,7 @@ export interface PaymentRefundState {
   stripeCheckoutSessionId?: string | null;
 }
 
-const REFUNDABLE_PAYMENT_TYPES = new Set([
-  "rental",
-  "damage",
-  "adjustment",
-  "deposit_capture",
-]);
+const REFUNDABLE_PAYMENT_TYPES = new Set(["rental", "damage", "adjustment", "deposit_capture"]);
 
 /**
  * What is left to give back on a payment. A Stripe refund linked to its charge
@@ -51,10 +43,8 @@ export const getRemainingRefundableAmount = (
   return Math.max(0, Math.round((Number(payment.amount) - alreadyRefunded) * 100) / 100);
 };
 
-export const getNetCompletedPaymentAmount = (
-  payments: PaymentRefundState[],
-  paymentType: string,
-) => getSettledPaymentAmount(payments, paymentType);
+export const getNetCompletedPaymentAmount = (payments: PaymentRefundState[], paymentType: string) =>
+  getSettledPaymentAmount(payments, paymentType);
 
 export const isManualPaymentRefundEligible = (
   payment: PaymentRefundState,

@@ -1,9 +1,9 @@
-import { stripe } from './client'
+import { stripe } from "./client";
 
 interface CreateStoreCouponOptions {
-  storeId: string
-  percentOff: number
-  durationMonths: number // 0 = forever/permanent
+  storeId: string;
+  percentOff: number;
+  durationMonths: number; // 0 = forever/permanent
 }
 
 /**
@@ -21,17 +21,17 @@ export async function createStoreCoupon({
 }: CreateStoreCouponOptions): Promise<string> {
   const coupon = await stripe.coupons.create({
     percent_off: percentOff,
-    duration: durationMonths === 0 ? 'forever' : 'repeating',
+    duration: durationMonths === 0 ? "forever" : "repeating",
     ...(durationMonths > 0 && { duration_in_months: durationMonths }),
     metadata: {
       storeId,
-      type: 'platform_admin_discount',
+      type: "platform_admin_discount",
     },
     // Generate a unique ID for tracking and avoiding duplicates
     id: `store_${storeId}_${Date.now()}`,
-  })
+  });
 
-  return coupon.id
+  return coupon.id;
 }
 
 /**
@@ -42,8 +42,8 @@ export async function createStoreCoupon({
  */
 export async function getCouponDetails(couponId: string) {
   try {
-    return await stripe.coupons.retrieve(couponId)
+    return await stripe.coupons.retrieve(couponId);
   } catch {
-    return null
+    return null;
   }
 }

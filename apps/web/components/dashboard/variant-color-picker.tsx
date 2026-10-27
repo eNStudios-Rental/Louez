@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useId, useState } from 'react';
+import { useId, useState } from "react";
 
-import { Check } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   Button,
@@ -13,24 +13,24 @@ import {
   PopoverDescription,
   PopoverTitle,
   PopoverTrigger,
-} from '@louez/ui';
-import { cn } from '@louez/utils';
+} from "@louez/ui";
+import { cn } from "@louez/utils";
 
 const HEX_COLOR_PATTERN = /^#[0-9A-F]{6}$/;
-const DEFAULT_COLOR = '#3B82F6';
+const DEFAULT_COLOR = "#3B82F6";
 const COLOR_SUGGESTIONS = [
-  '#171717',
-  '#FAFAFA',
-  '#6B7280',
-  '#EF4444',
-  '#F97316',
-  '#EAB308',
-  '#22C55E',
-  '#3B82F6',
-  '#8B5CF6',
-  '#EC4899',
-  '#92400E',
-  '#D6C7A1',
+  "#171717",
+  "#FAFAFA",
+  "#6B7280",
+  "#EF4444",
+  "#F97316",
+  "#EAB308",
+  "#22C55E",
+  "#3B82F6",
+  "#8B5CF6",
+  "#EC4899",
+  "#92400E",
+  "#D6C7A1",
 ] as const;
 
 interface HsvColor {
@@ -40,12 +40,11 @@ interface HsvColor {
 }
 
 const normalizeHexColor = (value: string) => {
-  const normalized = value.startsWith('#') ? value : `#${value}`;
+  const normalized = value.startsWith("#") ? value : `#${value}`;
   return normalized.toUpperCase();
 };
 
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(Math.max(value, min), max);
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
 const hexToHsv = (hex: string): HsvColor => {
   const normalized = HEX_COLOR_PATTERN.test(normalizeHexColor(hex))
@@ -95,9 +94,9 @@ const hsvToHex = ({ hue, saturation, brightness }: HsvColor) => {
     .map((channel) =>
       Math.round((channel + offset) * 255)
         .toString(16)
-        .padStart(2, '0'),
+        .padStart(2, "0"),
     )
-    .join('')
+    .join("")
     .toUpperCase()}`;
 };
 
@@ -112,19 +111,16 @@ export const VariantColorPicker = ({
   disabled?: boolean;
   className?: string;
 }) => {
-  const t = useTranslations('dashboard.products.form.unitTracking');
+  const t = useTranslations("dashboard.products.form.unitTracking");
   const inputId = useId();
   const normalizedValue = normalizeHexColor(value);
   const [draft, setDraft] = useState<{
     sourceValue: string;
     value: string;
   } | null>(null);
-  const draftValue =
-    draft?.sourceValue === normalizedValue ? draft.value : normalizedValue;
+  const draftValue = draft?.sourceValue === normalizedValue ? draft.value : normalizedValue;
   const draftIsValid = HEX_COLOR_PATTERN.test(normalizeHexColor(draftValue));
-  const displayedColor = draftIsValid
-    ? normalizeHexColor(draftValue)
-    : normalizedValue;
+  const displayedColor = draftIsValid ? normalizeHexColor(draftValue) : normalizedValue;
   const hsvColor = hexToHsv(displayedColor);
   const hueColor = hsvToHex({
     hue: hsvColor.hue,
@@ -142,16 +138,11 @@ export const VariantColorPicker = ({
     selectColor(hsvToHex({ ...hsvColor, ...nextColor }));
   };
 
-  const updateColorArea = (
-    element: HTMLButtonElement,
-    clientX: number,
-    clientY: number,
-  ) => {
+  const updateColorArea = (element: HTMLButtonElement, clientX: number, clientY: number) => {
     const bounds = element.getBoundingClientRect();
     updateHsvColor({
       saturation: clamp((clientX - bounds.left) / bounds.width, 0, 1) * 100,
-      brightness:
-        (1 - clamp((clientY - bounds.top) / bounds.height, 0, 1)) * 100,
+      brightness: (1 - clamp((clientY - bounds.top) / bounds.height, 0, 1)) * 100,
     });
   };
 
@@ -163,9 +154,9 @@ export const VariantColorPicker = ({
             type="button"
             variant="outline"
             size="icon"
-            className={cn('shrink-0', className)}
+            className={cn("shrink-0", className)}
             disabled={disabled}
-            aria-label={t('chooseColor')}
+            aria-label={t("chooseColor")}
           />
         }
       >
@@ -183,11 +174,9 @@ export const VariantColorPicker = ({
         <div className="space-y-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-1">
-              <PopoverTitle className="text-sm">
-                {t('presets.color.label')}
-              </PopoverTitle>
+              <PopoverTitle className="text-sm">{t("presets.color.label")}</PopoverTitle>
               <PopoverDescription className="text-xs">
-                {t('colorPickerDescription')}
+                {t("colorPickerDescription")}
               </PopoverDescription>
             </div>
             <span
@@ -200,43 +189,34 @@ export const VariantColorPicker = ({
             type="button"
             className="ring-ring relative h-40 w-full touch-none cursor-crosshair overflow-hidden rounded-lg border border-black/10 shadow-inner outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:border-white/15"
             style={{ backgroundColor: hueColor }}
-            aria-label={t('chooseColor')}
+            aria-label={t("chooseColor")}
             disabled={disabled}
             onPointerDown={(event) => {
               event.currentTarget.setPointerCapture(event.pointerId);
-              updateColorArea(
-                event.currentTarget,
-                event.clientX,
-                event.clientY,
-              );
+              updateColorArea(event.currentTarget, event.clientX, event.clientY);
             }}
             onPointerMove={(event) => {
-              if (!event.currentTarget.hasPointerCapture(event.pointerId))
-                return;
-              updateColorArea(
-                event.currentTarget,
-                event.clientX,
-                event.clientY,
-              );
+              if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+              updateColorArea(event.currentTarget, event.clientX, event.clientY);
             }}
             onKeyDown={(event) => {
               const step = event.shiftKey ? 10 : 2;
-              if (event.key === 'ArrowLeft') {
+              if (event.key === "ArrowLeft") {
                 event.preventDefault();
                 updateHsvColor({
                   saturation: hsvColor.saturation - step,
                 });
-              } else if (event.key === 'ArrowRight') {
+              } else if (event.key === "ArrowRight") {
                 event.preventDefault();
                 updateHsvColor({
                   saturation: hsvColor.saturation + step,
                 });
-              } else if (event.key === 'ArrowUp') {
+              } else if (event.key === "ArrowUp") {
                 event.preventDefault();
                 updateHsvColor({
                   brightness: hsvColor.brightness + step,
                 });
-              } else if (event.key === 'ArrowDown') {
+              } else if (event.key === "ArrowDown") {
                 event.preventDefault();
                 updateHsvColor({
                   brightness: hsvColor.brightness - step,
@@ -258,7 +238,7 @@ export const VariantColorPicker = ({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between gap-3">
               <label htmlFor={`${inputId}-hue`} className="text-xs font-medium">
-                {t('colorHue')}
+                {t("colorHue")}
               </label>
               <span className="text-muted-foreground font-mono text-xs">
                 {Math.round(hsvColor.hue)}°
@@ -270,18 +250,14 @@ export const VariantColorPicker = ({
               min="0"
               max="360"
               value={Math.round(hsvColor.hue)}
-              onChange={(event) =>
-                updateHsvColor({ hue: Number(event.target.value) })
-              }
+              onChange={(event) => updateHsvColor({ hue: Number(event.target.value) })}
               disabled={disabled}
               className="ring-ring h-3 w-full cursor-pointer appearance-none rounded-full bg-[linear-gradient(to_right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)] outline-none focus-visible:ring-2 focus-visible:ring-offset-2 [&::-moz-range-thumb]:size-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-transparent [&::-moz-range-thumb]:shadow-md [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-transparent [&::-webkit-slider-thumb]:shadow-md"
             />
           </div>
 
           <div className="space-y-2">
-            <p className="text-muted-foreground text-xs font-medium">
-              {t('presetSuggestions')}
-            </p>
+            <p className="text-muted-foreground text-xs font-medium">{t("presetSuggestions")}</p>
             <div className="grid grid-cols-6 gap-1.5">
               {COLOR_SUGGESTIONS.map((color) => {
                 const selected = color === displayedColor;
@@ -299,10 +275,8 @@ export const VariantColorPicker = ({
                     {selected && (
                       <Check
                         className={cn(
-                          'absolute inset-0 m-auto size-3.5',
-                          color === '#FAFAFA' || color === '#D6C7A1'
-                            ? 'text-black'
-                            : 'text-white',
+                          "absolute inset-0 m-auto size-3.5",
+                          color === "#FAFAFA" || color === "#D6C7A1" ? "text-black" : "text-white",
                         )}
                       />
                     )}
@@ -314,7 +288,7 @@ export const VariantColorPicker = ({
 
           <div className="space-y-1.5">
             <label htmlFor={inputId} className="text-xs font-medium">
-              {t('hexColor')}
+              {t("hexColor")}
             </label>
             <Input
               id={inputId}

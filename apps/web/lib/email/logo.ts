@@ -1,10 +1,10 @@
-import 'server-only'
+import "server-only";
 
-import { toAbsoluteUrl } from '@louez/utils'
+import { toAbsoluteUrl } from "@louez/utils";
 
-import { env } from '@/env'
-import { isSvgUrl, convertSvgToPngBuffer } from '@/lib/image-utils'
-import type { EmailAttachment } from './client'
+import { env } from "@/env";
+import { isSvgUrl, convertSvgToPngBuffer } from "@/lib/image-utils";
+import type { EmailAttachment } from "./client";
 
 /**
  * Resolves a logo URL for email compatibility.
@@ -23,20 +23,20 @@ export async function resolveEmailLogo(
   // original URL and skips the rasterisation entirely.
   { preview = false }: { preview?: boolean } = {},
 ): Promise<{ url: string | null; attachments: EmailAttachment[] }> {
-  if (!logoUrl) return { url: null, attachments: [] }
+  if (!logoUrl) return { url: null, attachments: [] };
 
   // Standalone deployments store site-relative asset paths; email clients
   // need absolute URLs (no-op for already-absolute cloud URLs).
-  const absoluteLogoUrl = toAbsoluteUrl(logoUrl, env.NEXT_PUBLIC_APP_URL)
+  const absoluteLogoUrl = toAbsoluteUrl(logoUrl, env.NEXT_PUBLIC_APP_URL);
   if (preview || !isSvgUrl(absoluteLogoUrl)) {
-    return { url: absoluteLogoUrl, attachments: [] }
+    return { url: absoluteLogoUrl, attachments: [] };
   }
 
-  const pngBuffer = await convertSvgToPngBuffer(absoluteLogoUrl, 200)
-  if (!pngBuffer) return { url: null, attachments: [] }
+  const pngBuffer = await convertSvgToPngBuffer(absoluteLogoUrl, 200);
+  if (!pngBuffer) return { url: null, attachments: [] };
 
   return {
-    url: 'cid:store-logo',
-    attachments: [{ filename: 'logo.png', content: pngBuffer, cid: 'store-logo' }],
-  }
+    url: "cid:store-logo",
+    attachments: [{ filename: "logo.png", content: pngBuffer, cid: "store-logo" }],
+  };
 }

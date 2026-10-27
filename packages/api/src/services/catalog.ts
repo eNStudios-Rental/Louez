@@ -455,7 +455,9 @@ export async function listStoreSnapshots(params: CatalogListParams): Promise<{
       latitude: toNullableNumber(row.latitude),
       longitude: toNullableNumber(row.longitude),
       logoUrl: row.logoUrl === null ? null : toAbsoluteUrl(row.logoUrl, params.mediaBaseUrl),
-      heroImages: (row.theme?.heroImages ?? []).map((url) => toAbsoluteUrl(url, params.mediaBaseUrl)),
+      heroImages: (row.theme?.heroImages ?? []).map((url) =>
+        toAbsoluteUrl(url, params.mediaBaseUrl),
+      ),
       currency: row.settings?.currency ?? "PLN",
       timezone: row.settings?.timezone ?? "Europe/Paris",
       channel: {

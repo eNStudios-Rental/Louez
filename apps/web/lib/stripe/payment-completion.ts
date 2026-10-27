@@ -1,17 +1,17 @@
-import { and, eq } from 'drizzle-orm'
-import { nanoid } from 'nanoid'
+import { and, eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
-import { db, payments, reservations } from '@louez/db'
+import { db, payments, reservations } from "@louez/db";
 
 interface ClaimCompletedCheckoutPaymentParams {
-  reservationId: string
-  amount: number
-  currency: string
-  stripeCheckoutSessionId: string
-  stripePaymentIntentId: string | null
-  stripeChargeId: string | null
-  stripePaymentMethodId: string | null
-  paidAt: Date
+  reservationId: string;
+  amount: number;
+  currency: string;
+  stripeCheckoutSessionId: string;
+  stripePaymentIntentId: string | null;
+  stripeChargeId: string | null;
+  stripePaymentMethodId: string | null;
+  paidAt: Date;
 }
 
 export async function claimCompletedCheckoutPayment(
@@ -24,10 +24,10 @@ export async function claimCompletedCheckoutPayment(
       .select({ id: reservations.id })
       .from(reservations)
       .where(eq(reservations.id, params.reservationId))
-      .for('update')
+      .for("update");
 
     if (!lockedReservation) {
-      throw new Error('Reservation not found while completing checkout payment')
+      throw new Error("Reservation not found while completing checkout payment");
     }
 
     const [existingPayment] = await tx
@@ -40,39 +40,39 @@ export async function claimCompletedCheckoutPayment(
         ),
       )
       .limit(1)
-      .for('update')
+      .for("update");
 
     if (existingPayment) {
-      if (existingPayment.status === 'completed') {
-        return { paymentId: existingPayment.id, claimed: false }
+      if (existingPayment.status === "completed") {
+        return { paymentId: existingPayment.id, claimed: false };
       }
 
       await tx
         .update(payments)
         .set({
-          status: 'completed',
+          status: "completed",
           stripePaymentIntentId: params.stripePaymentIntentId,
           stripeChargeId: params.stripeChargeId,
           stripePaymentMethodId: params.stripePaymentMethodId,
           paidAt: params.paidAt,
           updatedAt: new Date(),
         })
-        .where(eq(payments.id, existingPayment.id))
+        .where(eq(payments.id, existingPayment.id));
 
       return {
         paymentId: existingPayment.id,
         claimed: true,
-      }
+      };
     }
 
-    const paymentId = nanoid()
+    const paymentId = nanoid();
     await tx.insert(payments).values({
       id: paymentId,
       reservationId: params.reservationId,
       amount: params.amount.toFixed(2),
-      type: 'rental',
-      method: 'stripe',
-      status: 'completed',
+      type: "rental",
+      method: "stripe",
+      status: "completed",
       stripePaymentIntentId: params.stripePaymentIntentId,
       stripeChargeId: params.stripeChargeId,
       stripeCheckoutSessionId: params.stripeCheckoutSessionId,
@@ -81,8 +81,8 @@ export async function claimCompletedCheckoutPayment(
       paidAt: params.paidAt,
       createdAt: params.paidAt,
       updatedAt: new Date(),
-    })
+    });
 
-    return { paymentId, claimed: true }
-  })
+    return { paymentId, claimed: true };
+  });
 }

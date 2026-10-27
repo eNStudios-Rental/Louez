@@ -40,7 +40,8 @@ const describeTextMismatch = async (page) => {
   // Case aside: CSS may upper-case what the HTML writes in lower case.
   const server = serverText.join("\n").toLowerCase();
   const client = clientText.join("\n").toLowerCase();
-  const list = (lines) => [...new Set(lines)].slice(0, 20).map((line) => `  ${JSON.stringify(line)}`);
+  const list = (lines) =>
+    [...new Set(lines)].slice(0, 20).map((line) => `  ${JSON.stringify(line)}`);
   return [
     "Browser text missing from the server HTML:",
     ...list(clientText.filter((line) => !server.includes(line.toLowerCase()))),
@@ -191,7 +192,9 @@ try {
     : Math.min(availableParallelism(), 8);
   if (!Number.isInteger(concurrency) || concurrency < 1)
     throw new Error("Pass --concurrency as a positive integer.");
-  const captures = selectedLocales.flatMap((locale) => selected.map((scene) => ({ scene, locale })));
+  const captures = selectedLocales.flatMap((locale) =>
+    selected.map((scene) => ({ scene, locale })),
+  );
   // Every capture runs, then all failures are reported together: one build shows them all.
   const failures = [];
   const capture = async ({ scene, locale }) => {
@@ -247,7 +250,9 @@ try {
       return failedImages;
     });
     if (failedImages.length) {
-      console.warn(`${scene} (${locale}): could not decode demo image(s): ${failedImages.join(", ")}`);
+      console.warn(
+        `${scene} (${locale}): could not decode demo image(s): ${failedImages.join(", ")}`,
+      );
     }
     if (errors.length) {
       const hydration = errors.some((error) => /react\.dev\/errors\/(418|425)\b/.test(error));

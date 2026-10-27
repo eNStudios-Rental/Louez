@@ -1,45 +1,33 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 const idSchema = z.string().length(21);
 const idListSchema = z.array(idSchema).max(100).optional();
 const dateInputSchema = z.coerce.date();
 const optionalDateInputSchema = z
-  .preprocess(
-    (value) => (value === '' ? null : value),
-    z.coerce.date().nullable(),
-  )
+  .preprocess((value) => (value === "" ? null : value), z.coerce.date().nullable())
   .optional();
 const moneyInputSchema = z
   .preprocess(
-    (value) => (value === '' ? null : value),
+    (value) => (value === "" ? null : value),
     z
       .string()
       .trim()
-      .regex(/^\d+([.,]\d{1,2})?$/, 'validation.positive')
+      .regex(/^\d+([.,]\d{1,2})?$/, "validation.positive")
       .nullable(),
   )
   .optional();
 
-export const unitDowntimeReasonSchema = z.enum([
-  'maintenance',
-  'repair',
-  'other',
-]);
+export const unitDowntimeReasonSchema = z.enum(["maintenance", "repair", "other"]);
 
-export const unitRetirementReasonSchema = z.enum([
-  'sold',
-  'lost',
-  'broken',
-  'other',
-]);
+export const unitRetirementReasonSchema = z.enum(["sold", "lost", "broken", "other"]);
 
 export const inventoryStateSchema = z.enum([
-  'available',
-  'reserved',
-  'rented_out',
-  'overdue',
-  'in_downtime',
-  'retired',
+  "available",
+  "reserved",
+  "rented_out",
+  "overdue",
+  "in_downtime",
+  "retired",
 ]);
 
 export const declareDowntimeSchema = z
@@ -52,13 +40,10 @@ export const declareDowntimeSchema = z
     excludeReservationItemIds: idListSchema,
   })
   .refine(
-    (data) =>
-      data.endsAt === undefined ||
-      data.endsAt === null ||
-      data.startsAt < data.endsAt,
+    (data) => data.endsAt === undefined || data.endsAt === null || data.startsAt < data.endsAt,
     {
-      path: ['endsAt'],
-      message: 'validation.invalidDateRange',
+      path: ["endsAt"],
+      message: "validation.invalidDateRange",
     },
   );
 
@@ -106,7 +91,7 @@ export const reassignReservationItemUnitSchema = z.object({
 
 export const getInventorySchema = z.object({
   productId: idSchema.optional(),
-  lifecycle: z.enum(['active', 'retired']).optional(),
+  lifecycle: z.enum(["active", "retired"]).optional(),
   state: inventoryStateSchema.optional(),
   search: z.string().max(100).optional(),
   page: z.number().int().min(1).optional(),
@@ -128,9 +113,7 @@ export type DeleteDowntimeInput = z.infer<typeof deleteDowntimeSchema>;
 export type RetireUnitInput = z.infer<typeof retireUnitSchema>;
 export type ReinstateUnitInput = z.infer<typeof reinstateUnitSchema>;
 export type UpdateUnitDetailsInput = z.infer<typeof updateUnitDetailsSchema>;
-export type ReassignReservationItemUnitInput = z.infer<
-  typeof reassignReservationItemUnitSchema
->;
+export type ReassignReservationItemUnitInput = z.infer<typeof reassignReservationItemUnitSchema>;
 export type GetInventoryInput = z.infer<typeof getInventorySchema>;
 export type GetUnitTimelineInput = z.infer<typeof getUnitTimelineSchema>;
 export type GetUnitDowntimesInput = z.infer<typeof getUnitDowntimesSchema>;

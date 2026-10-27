@@ -1,4 +1,4 @@
-import type { UnitAttributes } from './store';
+import type { UnitAttributes } from "./store";
 
 export interface CombinationAvailability {
   combinationKey: string;
@@ -6,7 +6,7 @@ export interface CombinationAvailability {
   totalQuantity: number;
   reservedQuantity: number;
   availableQuantity: number;
-  status: 'available' | 'limited' | 'unavailable';
+  status: "available" | "limited" | "unavailable";
 }
 
 export interface ProductAvailability {
@@ -14,8 +14,8 @@ export interface ProductAvailability {
   totalQuantity: number | null;
   reservedQuantity: number;
   availableQuantity: number | null;
-  status: 'available' | 'limited' | 'unavailable';
-  reason?: 'out_of_stock' | 'required_accessory_out_of_stock';
+  status: "available" | "limited" | "unavailable";
+  reason?: "out_of_stock" | "required_accessory_out_of_stock";
   combinations?: CombinationAvailability[];
   combinationsByKey?: Record<string, CombinationAvailability>;
 }

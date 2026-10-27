@@ -1,9 +1,9 @@
 import type {
   IntegrationAdapter,
   IntegrationRuntimeStatus,
-} from '@/lib/integrations/registry/types';
+} from "@/lib/integrations/registry/types";
 
-import { TulipConfigurationPanel } from './tulip-configuration-panel';
+import { TulipConfigurationPanel } from "./tulip-configuration-panel";
 
 function getTulipRuntimeStatus(): IntegrationRuntimeStatus {
   return {
@@ -18,7 +18,7 @@ export const tulipIntegrationAdapter: IntegrationAdapter = {
   getStatus: getTulipRuntimeStatus,
   setEnabled: (settings) =>
     settings || {
-      reservationMode: 'payment',
+      reservationMode: "payment",
       advanceNoticeMinutes: 1440,
     },
   getConfigurationPanel: () => TulipConfigurationPanel,

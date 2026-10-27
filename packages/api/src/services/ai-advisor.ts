@@ -1,43 +1,40 @@
-import { and, count, desc, eq, isNotNull, isNull, sql } from 'drizzle-orm'
+import { and, count, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 
-import type { Database } from '@louez/db'
+import type { Database } from "@louez/db";
 import {
   aiAdvisorConversations,
   aiAdvisorMessages,
   customers,
   reservations,
-} from '@louez/db/schema'
-import {
-  VERIFICATION_KICKOFF_PROMPT,
-  type AdvisorConversationFilter,
-} from '@louez/validations'
+} from "@louez/db/schema";
+import { VERIFICATION_KICKOFF_PROMPT, type AdvisorConversationFilter } from "@louez/validations";
 
-import { ApiServiceError } from './errors'
+import { ApiServiceError } from "./errors";
 
-const DEFAULT_PAGE_SIZE = 20
+const DEFAULT_PAGE_SIZE = 20;
 
 /**
  * Paginated conversation summaries for the dashboard settings page.
  * "Converted" means the conversation is linked to a reservation.
  */
 export async function listAdvisorConversations(params: {
-  db: Database
-  storeId: string
-  filter?: AdvisorConversationFilter
-  page?: number
-  pageSize?: number
+  db: Database;
+  storeId: string;
+  filter?: AdvisorConversationFilter;
+  page?: number;
+  pageSize?: number;
 }) {
-  const { db, storeId } = params
-  const page = params.page ?? 1
-  const pageSize = params.pageSize ?? DEFAULT_PAGE_SIZE
+  const { db, storeId } = params;
+  const page = params.page ?? 1;
+  const pageSize = params.pageSize ?? DEFAULT_PAGE_SIZE;
 
-  const conditions = [eq(aiAdvisorConversations.storeId, storeId)]
-  if (params.filter === 'converted') {
-    conditions.push(isNotNull(aiAdvisorConversations.reservationId))
-  } else if (params.filter === 'not_converted') {
-    conditions.push(isNull(aiAdvisorConversations.reservationId))
+  const conditions = [eq(aiAdvisorConversations.storeId, storeId)];
+  if (params.filter === "converted") {
+    conditions.push(isNotNull(aiAdvisorConversations.reservationId));
+  } else if (params.filter === "not_converted") {
+    conditions.push(isNull(aiAdvisorConversations.reservationId));
   }
-  const whereClause = and(...conditions)
+  const whereClause = and(...conditions);
 
   const [rows, totalResult] = await Promise.all([
     db
@@ -73,19 +70,13 @@ export async function listAdvisorConversations(params: {
       })
       .from(aiAdvisorConversations)
       .leftJoin(customers, eq(aiAdvisorConversations.customerId, customers.id))
-      .leftJoin(
-        reservations,
-        eq(aiAdvisorConversations.reservationId, reservations.id),
-      )
+      .leftJoin(reservations, eq(aiAdvisorConversations.reservationId, reservations.id))
       .where(whereClause)
       .orderBy(desc(aiAdvisorConversations.createdAt))
       .limit(pageSize)
       .offset((page - 1) * pageSize),
-    db
-      .select({ count: count() })
-      .from(aiAdvisorConversations)
-      .where(whereClause),
-  ])
+    db.select({ count: count() }).from(aiAdvisorConversations).where(whereClause),
+  ]);
 
   return {
     conversations: rows.map((row) => ({
@@ -111,13 +102,11 @@ export async function listAdvisorConversations(params: {
     totalCount: totalResult[0]?.count ?? 0,
     page,
     pageSize,
-  }
+  };
 }
 
 function toTranscript(
-  conversation: NonNullable<
-    Awaited<ReturnType<typeof findConversationWithMessages>>
-  >,
+  conversation: NonNullable<Awaited<ReturnType<typeof findConversationWithMessages>>>,
 ) {
   return {
     id: conversation.id,
@@ -142,27 +131,24 @@ function toTranscript(
         (
           message,
         ): message is (typeof conversation.messages)[number] & {
-          role: 'user' | 'assistant'
+          role: "user" | "assistant";
         } =>
           // Tool-only turns have no text — skip them in transcripts. The hidden
           // verification kickoff is a control signal, never shown to the owner.
-          (message.role === 'user' || message.role === 'assistant') &&
+          (message.role === "user" || message.role === "assistant") &&
           Boolean(message.content) &&
           message.content !== VERIFICATION_KICKOFF_PROMPT,
       )
       .map((message) => ({
         id: message.id,
         role: message.role,
-        content: message.content ?? '',
+        content: message.content ?? "",
         createdAt: message.createdAt,
       })),
-  }
+  };
 }
 
-function findConversationWithMessages(
-  db: Database,
-  where: ReturnType<typeof and>,
-) {
+function findConversationWithMessages(db: Database, where: ReturnType<typeof and>) {
   return db.query.aiAdvisorConversations.findFirst({
     where,
     columns: {
@@ -188,14 +174,14 @@ function findConversationWithMessages(
         orderBy: (messages, { asc }) => [asc(messages.createdAt)],
       },
     },
-  })
+  });
 }
 
 /** Full transcript of one conversation, for the dashboard. */
 export async function getAdvisorConversation(params: {
-  db: Database
-  storeId: string
-  conversationId: string
+  db: Database;
+  storeId: string;
+  conversationId: string;
 }) {
   const conversation = await findConversationWithMessages(
     params.db,
@@ -203,20 +189,20 @@ export async function getAdvisorConversation(params: {
       eq(aiAdvisorConversations.id, params.conversationId),
       eq(aiAdvisorConversations.storeId, params.storeId),
     ),
-  )
+  );
 
   if (!conversation) {
-    throw new ApiServiceError('NOT_FOUND', 'errors.conversationNotFound')
+    throw new ApiServiceError("NOT_FOUND", "errors.conversationNotFound");
   }
 
-  return toTranscript(conversation)
+  return toTranscript(conversation);
 }
 
 /** Transcript of the conversation linked to a reservation, or null. */
 export async function getAdvisorConversationByReservation(params: {
-  db: Database
-  storeId: string
-  reservationId: string
+  db: Database;
+  storeId: string;
+  reservationId: string;
 }) {
   const conversation = await findConversationWithMessages(
     params.db,
@@ -224,9 +210,9 @@ export async function getAdvisorConversationByReservation(params: {
       eq(aiAdvisorConversations.reservationId, params.reservationId),
       eq(aiAdvisorConversations.storeId, params.storeId),
     ),
-  )
+  );
 
-  return conversation ? toTranscript(conversation) : null
+  return conversation ? toTranscript(conversation) : null;
 }
 
 /**
@@ -235,29 +221,26 @@ export async function getAdvisorConversationByReservation(params: {
  * (same as the cart); only validation state is disclosed, never content.
  */
 export async function getAdvisorConversationStatus(params: {
-  db: Database
-  storeId: string
-  conversationId: string
+  db: Database;
+  storeId: string;
+  conversationId: string;
 }) {
-  const conversation =
-    await params.db.query.aiAdvisorConversations.findFirst({
-      where: and(
-        eq(aiAdvisorConversations.id, params.conversationId),
-        eq(aiAdvisorConversations.storeId, params.storeId),
-      ),
-      columns: { validatedAt: true, validatedCart: true },
-    })
+  const conversation = await params.db.query.aiAdvisorConversations.findFirst({
+    where: and(
+      eq(aiAdvisorConversations.id, params.conversationId),
+      eq(aiAdvisorConversations.storeId, params.storeId),
+    ),
+    columns: { validatedAt: true, validatedCart: true },
+  });
 
   if (!conversation) {
-    throw new ApiServiceError('NOT_FOUND', 'errors.conversationNotFound')
+    throw new ApiServiceError("NOT_FOUND", "errors.conversationNotFound");
   }
 
   return {
     validated: conversation.validatedAt !== null,
-    validatedCart: conversation.validatedAt !== null
-      ? (conversation.validatedCart ?? null)
-      : null,
-  }
+    validatedCart: conversation.validatedAt !== null ? (conversation.validatedCart ?? null) : null,
+  };
 }
 
 /**
@@ -265,27 +248,26 @@ export async function getAdvisorConversationStatus(params: {
  * Same anonymous access model as above: possession of the id grants access.
  */
 export async function getAdvisorConversationMessages(params: {
-  db: Database
-  storeId: string
-  conversationId: string
+  db: Database;
+  storeId: string;
+  conversationId: string;
 }) {
-  const conversation =
-    await params.db.query.aiAdvisorConversations.findFirst({
-      where: and(
-        eq(aiAdvisorConversations.id, params.conversationId),
-        eq(aiAdvisorConversations.storeId, params.storeId),
-      ),
-      columns: { id: true },
-      with: {
-        messages: {
-          columns: { id: true, role: true, content: true },
-          orderBy: (messages, { asc }) => [asc(messages.createdAt)],
-        },
+  const conversation = await params.db.query.aiAdvisorConversations.findFirst({
+    where: and(
+      eq(aiAdvisorConversations.id, params.conversationId),
+      eq(aiAdvisorConversations.storeId, params.storeId),
+    ),
+    columns: { id: true },
+    with: {
+      messages: {
+        columns: { id: true, role: true, content: true },
+        orderBy: (messages, { asc }) => [asc(messages.createdAt)],
       },
-    })
+    },
+  });
 
   if (!conversation) {
-    throw new ApiServiceError('NOT_FOUND', 'errors.conversationNotFound')
+    throw new ApiServiceError("NOT_FOUND", "errors.conversationNotFound");
   }
 
   return {
@@ -294,15 +276,13 @@ export async function getAdvisorConversationMessages(params: {
         (
           message,
         ): message is (typeof conversation.messages)[number] & {
-          role: 'user' | 'assistant'
-        } =>
-          (message.role === 'user' || message.role === 'assistant') &&
-          Boolean(message.content),
+          role: "user" | "assistant";
+        } => (message.role === "user" || message.role === "assistant") && Boolean(message.content),
       )
       .map((message) => ({
         id: message.id,
         role: message.role,
-        content: message.content ?? '',
+        content: message.content ?? "",
       })),
-  }
+  };
 }

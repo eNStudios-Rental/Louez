@@ -1,18 +1,18 @@
-import { formatCurrency } from '@louez/utils';
+import { formatCurrency } from "@louez/utils";
 
-import { formatDate } from '@/lib/utils';
+import { formatDate } from "@/lib/utils";
 
-import type { ProductInventoryUnit } from '../../queries';
+import type { ProductInventoryUnit } from "../../queries";
 
 export const getTranslatedActionError = (
   error: string,
   translateError: (key: string) => string,
 ) => {
-  if (!error.startsWith('errors.')) {
+  if (!error.startsWith("errors.")) {
     return error;
   }
 
-  return translateError(error.slice('errors.'.length));
+  return translateError(error.slice("errors.".length));
 };
 
 export const formatPurchaseInfo = (
@@ -30,5 +30,5 @@ export const formatPurchaseInfo = (
     parts.push(formatDate(unit.purchasedAt, undefined, locale));
   }
 
-  return parts.join(' · ');
+  return parts.join(" · ");
 };

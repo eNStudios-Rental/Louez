@@ -2,11 +2,11 @@
  * Web Push sender (server-only). Wraps the Node-only `web-push` library so it
  * never leaks into a client bundle. Uses the app-wide VAPID keypair from env.
  */
-import 'server-only';
+import "server-only";
 
-import webpush from 'web-push';
+import webpush from "web-push";
 
-import { env } from '@/env';
+import { env } from "@/env";
 
 export interface PushTarget {
   endpoint: string;
@@ -48,12 +48,9 @@ function ensureVapid(): boolean {
   return true;
 }
 
-export async function sendPush(
-  target: PushTarget,
-  payload: PushPayload,
-): Promise<SendPushResult> {
+export async function sendPush(target: PushTarget, payload: PushPayload): Promise<SendPushResult> {
   if (!ensureVapid()) {
-    return { success: false, error: 'VAPID keys not configured' };
+    return { success: false, error: "VAPID keys not configured" };
   }
   try {
     await webpush.sendNotification(
@@ -67,7 +64,7 @@ export async function sendPush(
     return {
       success: false,
       statusCode,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }

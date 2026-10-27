@@ -197,9 +197,7 @@ export function NewReservationStepProducts({
 
       map.set(
         product.id,
-        productCapacity === null
-          ? null
-          : Math.max(0, productCapacity - selectedQuantity),
+        productCapacity === null ? null : Math.max(0, productCapacity - selectedQuantity),
       );
     }
 
@@ -403,9 +401,7 @@ export function NewReservationStepProducts({
                     Math.max(0, product.quantity - productReservedQuantity));
               const isOutOfStock = productCapacity === 0;
               const remainingStock =
-                productCapacity === null
-                  ? null
-                  : Math.max(0, productCapacity - selectedQuantity);
+                productCapacity === null ? null : Math.max(0, productCapacity - selectedQuantity);
               const selectableQuantity = getSelectableQuantity(product);
               const remainingSelectableQuantity =
                 selectableQuantity === null
@@ -597,10 +593,7 @@ export function NewReservationStepProducts({
                           type="button"
                           variant={isOutOfStock ? "ghost" : "outline"}
                           onClick={() => addProduct(product.id)}
-                          disabled={
-                            selectableQuantity !== null &&
-                            selectableQuantity <= 0
-                          }
+                          disabled={selectableQuantity !== null && selectableQuantity <= 0}
                           className="w-full sm:w-auto"
                         >
                           <Plus className="mr-1 h-4 w-4" />
@@ -612,8 +605,7 @@ export function NewReservationStepProducts({
                           variant="outline"
                           onClick={() => addProduct(product.id)}
                           disabled={
-                            remainingSelectableQuantity !== null &&
-                            remainingSelectableQuantity <= 0
+                            remainingSelectableQuantity !== null && remainingSelectableQuantity <= 0
                           }
                           className="w-full sm:w-auto"
                         >
@@ -629,8 +621,7 @@ export function NewReservationStepProducts({
                       {lineStates.map(({ line, selectedUnit, pricing, constraints }, index) => {
                         const lineMaxQuantity = constraints.lineMaxQuantity;
                         const canIncreaseLine =
-                          lineMaxQuantity === null ||
-                          line.quantity < lineMaxQuantity;
+                          lineMaxQuantity === null || line.quantity < lineMaxQuantity;
                         const lineReachedMax =
                           lineMaxQuantity !== null &&
                           lineMaxQuantity > 0 &&

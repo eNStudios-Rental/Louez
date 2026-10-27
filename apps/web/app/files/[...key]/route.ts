@@ -48,9 +48,7 @@ export async function GET(_request: Request, context: RouteContext) {
       return new NextResponse(null, { status: 404 });
     }
 
-    const stream = Readable.toWeb(
-      object.Body as Readable,
-    ) as ReadableStream<Uint8Array>;
+    const stream = Readable.toWeb(object.Body as Readable) as ReadableStream<Uint8Array>;
 
     return new NextResponse(stream, {
       headers: {

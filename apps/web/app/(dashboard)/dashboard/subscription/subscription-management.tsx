@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { CheckSolidIcon, SparklesSolidIcon } from '@louez/ui/icons'
+import { CheckSolidIcon, SparklesSolidIcon } from "@louez/ui/icons";
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-import { format } from 'date-fns';
+import { format } from "date-fns";
 
 import {
   AlertCircle,
@@ -27,23 +27,16 @@ import {
   Users,
   X,
   Zap,
-} from 'lucide-react';
-import { useLocale, useTranslations } from 'next-intl';
+} from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
-import { Button } from '@louez/ui';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@louez/ui';
-import { Badge } from '@louez/ui';
-import { Alert, AlertDescription, AlertTitle } from '@louez/ui';
-import { Switch } from '@louez/ui';
-import { Label } from '@louez/ui';
-import { Separator } from '@louez/ui';
+import { Button } from "@louez/ui";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@louez/ui";
+import { Badge } from "@louez/ui";
+import { Alert, AlertDescription, AlertTitle } from "@louez/ui";
+import { Switch } from "@louez/ui";
+import { Label } from "@louez/ui";
+import { Separator } from "@louez/ui";
 import {
   Dialog,
   DialogDescription,
@@ -52,8 +45,8 @@ import {
   DialogPanel,
   DialogPopup,
   DialogTitle,
-} from '@louez/ui';
-import { cn } from '@louez/utils';
+} from "@louez/ui";
+import { cn } from "@louez/utils";
 
 import {
   CURRENCY_SYMBOLS,
@@ -62,26 +55,26 @@ import {
   isPlanAvailable,
   type Currency,
   type Plan,
-} from '@/lib/plans.shared';
+} from "@/lib/plans.shared";
 
 import {
   cancelSubscription,
   createCheckoutSession,
   openCustomerPortal,
   reactivateSubscription,
-} from './actions';
-import { useFormatLocale } from '@/hooks/use-format-locale';
+} from "./actions";
+import { useFormatLocale } from "@/hooks/use-format-locale";
 
 interface Subscription {
   id: string;
   planSlug: string;
-  status: 'active' | 'cancelled' | 'past_due' | 'trialing';
+  status: "active" | "cancelled" | "past_due" | "trialing";
   currentPeriodEnd: Date | null;
   cancelAtPeriodEnd: boolean | null;
   stripeSubscriptionId?: string | null;
   stripeCustomerId?: string | null;
   plan: Plan | undefined;
-  billingInterval: 'monthly' | 'yearly' | null;
+  billingInterval: "monthly" | "yearly" | null;
   billingCurrency: Currency | null;
 }
 
@@ -113,7 +106,7 @@ interface SubscriptionManagementProps {
 // Helper function to format price with currency
 function formatPrice(amount: number, currency: Currency): string {
   const symbol = CURRENCY_SYMBOLS[currency];
-  if (currency === 'eur') {
+  if (currency === "eur") {
     return `${amount}${symbol}`;
   }
   return `${symbol}${amount}`;
@@ -141,22 +134,20 @@ export function SubscriptionManagement({
   const [error, setError] = useState<string | null>(null);
   const [isYearly, setIsYearly] = useState(false);
   // Default currency based on locale: EUR for French, USD for all others
-  const [currency, setCurrency] = useState<Currency>(
-    locale === 'fr' ? 'eur' : 'usd',
-  );
+  const [currency, setCurrency] = useState<Currency>(locale === "fr" ? "eur" : "usd");
   const [showCancelModal, setShowCancelModal] = useState(false);
   const router = useRouter();
-  const t = useTranslations('dashboard.settings.subscription');
+  const t = useTranslations("dashboard.settings.subscription");
   const { dateFns: dateLocale } = useFormatLocale();
-  const tCommon = useTranslations('common');
-  const tErrors = useTranslations('errors');
+  const tCommon = useTranslations("common");
+  const tErrors = useTranslations("errors");
 
   const hasDiscount = discountPercent > 0;
 
   useEffect(() => {
     if (showSuccess || showCanceled) {
       const timeout = setTimeout(() => {
-        router.replace('/dashboard/settings/subscription');
+        router.replace("/dashboard/settings/subscription");
       }, 5000);
       return () => clearTimeout(timeout);
     }
@@ -168,24 +159,24 @@ export function SubscriptionManagement({
     try {
       const result = await createCheckoutSession({
         planSlug,
-        interval: isYearly ? 'yearly' : 'monthly',
+        interval: isYearly ? "yearly" : "monthly",
         currency,
       });
 
       if (result.url) {
         window.location.href = result.url;
-      } else if ('error' in result) {
+      } else if ("error" in result) {
         setError(result.error);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+      setError(err instanceof Error ? err.message : "Une erreur est survenue");
     } finally {
       setLoading(null);
     }
   };
 
   const handleOpenPortal = async () => {
-    setLoading('portal');
+    setLoading("portal");
     setError(null);
     try {
       const result = await openCustomerPortal();
@@ -193,7 +184,7 @@ export function SubscriptionManagement({
         window.location.href = result.url;
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+      setError(err instanceof Error ? err.message : "Une erreur est survenue");
     } finally {
       setLoading(null);
     }
@@ -204,7 +195,7 @@ export function SubscriptionManagement({
   };
 
   const handleCancelConfirm = async () => {
-    setLoading('cancel');
+    setLoading("cancel");
     setError(null);
     try {
       await cancelSubscription();
@@ -212,20 +203,20 @@ export function SubscriptionManagement({
       router.refresh();
     } catch (err) {
       setShowCancelModal(false);
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+      setError(err instanceof Error ? err.message : "Une erreur est survenue");
     } finally {
       setLoading(null);
     }
   };
 
   const handleReactivate = async () => {
-    setLoading('reactivate');
+    setLoading("reactivate");
     setError(null);
     try {
       await reactivateSubscription();
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+      setError(err instanceof Error ? err.message : "Une erreur est survenue");
     } finally {
       setLoading(null);
     }
@@ -233,14 +224,14 @@ export function SubscriptionManagement({
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'active':
-        return <Badge variant="success">{t('status.active')}</Badge>
-      case 'trialing':
-        return <Badge variant="progress">{t('status.trialing')}</Badge>
-      case 'past_due':
-        return <Badge variant="failed">{t('status.pastDue')}</Badge>
-      case 'cancelled':
-        return <Badge variant="expired">{t('status.cancelled')}</Badge>
+      case "active":
+        return <Badge variant="success">{t("status.active")}</Badge>;
+      case "trialing":
+        return <Badge variant="progress">{t("status.trialing")}</Badge>;
+      case "past_due":
+        return <Badge variant="failed">{t("status.pastDue")}</Badge>;
+      case "cancelled":
+        return <Badge variant="expired">{t("status.cancelled")}</Badge>;
       default:
         return <Badge variant="expired">{status}</Badge>;
     }
@@ -261,7 +252,7 @@ export function SubscriptionManagement({
   const canChangePlan = (plan: Plan) => {
     if (plan.price === 0) return false;
     // Allow changing billing interval even on the same plan
-    return isPlanAvailable(plan, isYearly ? 'yearly' : 'monthly', currency);
+    return isPlanAvailable(plan, isYearly ? "yearly" : "monthly", currency);
   };
 
   // Get key limits to display prominently
@@ -270,42 +261,34 @@ export function SubscriptionManagement({
     const list: string[] = [];
 
     if (features.maxProducts === null) {
-      list.push(t('plans.features.unlimitedProducts'));
+      list.push(t("plans.features.unlimitedProducts"));
     } else {
-      list.push(
-        t('plans.features.maxProducts', { count: features.maxProducts }),
-      );
+      list.push(t("plans.features.maxProducts", { count: features.maxProducts }));
     }
 
     if (features.maxReservationsPerMonth === null) {
-      list.push(t('plans.features.unlimitedReservations'));
+      list.push(t("plans.features.unlimitedReservations"));
     } else {
       list.push(
-        t('plans.features.maxReservations', {
+        t("plans.features.maxReservations", {
           count: features.maxReservationsPerMonth,
         }),
       );
     }
 
     if (features.maxCustomers === null) {
-      list.push(t('plans.features.unlimitedCustomers'));
+      list.push(t("plans.features.unlimitedCustomers"));
     } else {
-      list.push(
-        t('plans.features.maxCustomers', { count: features.maxCustomers }),
-      );
+      list.push(t("plans.features.maxCustomers", { count: features.maxCustomers }));
     }
 
     if (features.maxCollaborators !== null && features.maxCollaborators > 0) {
-      list.push(
-        t('plans.features.collaborators', { count: features.maxCollaborators }),
-      );
+      list.push(t("plans.features.collaborators", { count: features.maxCollaborators }));
     }
 
     // Add SMS limit
     if (features.maxSmsPerMonth !== null && features.maxSmsPerMonth > 0) {
-      list.push(
-        t('plans.features.smsPerMonth', { count: features.maxSmsPerMonth }),
-      );
+      list.push(t("plans.features.smsPerMonth", { count: features.maxSmsPerMonth }));
     }
 
     return list;
@@ -315,14 +298,13 @@ export function SubscriptionManagement({
   const getIncludedExtras = (plan: Plan): string[] => {
     const features = plan.features;
     const list: string[] = [];
-    if (features.onlinePayment) list.push(t('plans.features.onlinePayment'));
-    if (features.analytics) list.push(t('plans.features.analytics'));
-    if (features.customerPortal) list.push(t('plans.features.customerPortal'));
-    if (features.reviewBooster) list.push(t('plans.features.reviewBooster'));
-    if (features.whiteLabel) list.push(t('plans.features.whiteLabel'));
-    if (features.customDomain) list.push(t('plans.features.customDomain'));
-    if (features.prioritySupport)
-      list.push(t('plans.features.prioritySupport'));
+    if (features.onlinePayment) list.push(t("plans.features.onlinePayment"));
+    if (features.analytics) list.push(t("plans.features.analytics"));
+    if (features.customerPortal) list.push(t("plans.features.customerPortal"));
+    if (features.reviewBooster) list.push(t("plans.features.reviewBooster"));
+    if (features.whiteLabel) list.push(t("plans.features.whiteLabel"));
+    if (features.customDomain) list.push(t("plans.features.customDomain"));
+    if (features.prioritySupport) list.push(t("plans.features.prioritySupport"));
     return list;
   };
 
@@ -330,25 +312,21 @@ export function SubscriptionManagement({
   const getNotIncludedFeatures = (plan: Plan): string[] => {
     const features = plan.features;
     const list: string[] = [];
-    if (!features.onlinePayment) list.push(t('plans.features.onlinePayment'));
-    if (!features.analytics) list.push(t('plans.features.analytics'));
-    if (!features.customerPortal) list.push(t('plans.features.customerPortal'));
-    if (!features.reviewBooster) list.push(t('plans.features.reviewBooster'));
-    if (!features.whiteLabel) list.push(t('plans.features.whiteLabel'));
-    if (!features.customDomain) list.push(t('plans.features.customDomain'));
-    if (!features.prioritySupport)
-      list.push(t('plans.features.prioritySupport'));
+    if (!features.onlinePayment) list.push(t("plans.features.onlinePayment"));
+    if (!features.analytics) list.push(t("plans.features.analytics"));
+    if (!features.customerPortal) list.push(t("plans.features.customerPortal"));
+    if (!features.reviewBooster) list.push(t("plans.features.reviewBooster"));
+    if (!features.whiteLabel) list.push(t("plans.features.whiteLabel"));
+    if (!features.customDomain) list.push(t("plans.features.customDomain"));
+    if (!features.prioritySupport) list.push(t("plans.features.prioritySupport"));
     return list;
   };
 
   // Get the current plan info
-  const currentPlanSlug = subscription?.planSlug || 'pay_as_you_go';
+  const currentPlanSlug = subscription?.planSlug || "pay_as_you_go";
   const currentPlan =
-    subscription?.plan ||
-    plans.find((p) => p.slug === currentPlanSlug) ||
-    plans[0];
-  const hasPaidSubscription =
-    subscription?.stripeSubscriptionId && currentPlan?.price !== 0;
+    subscription?.plan || plans.find((p) => p.slug === currentPlanSlug) || plans[0];
+  const hasPaidSubscription = subscription?.stripeSubscriptionId && currentPlan?.price !== 0;
 
   return (
     <div className="space-y-8">
@@ -359,7 +337,7 @@ export function SubscriptionManagement({
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <ChevronRight className="h-4 w-4 rotate-180" />
-          {t('payAsYouGo.backToUsage')}
+          {t("payAsYouGo.backToUsage")}
         </Link>
       )}
 
@@ -367,41 +345,43 @@ export function SubscriptionManagement({
       {error && (
         <Alert variant="error">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{tCommon('error')}</AlertTitle>
-          <AlertDescription>{tErrors.has(error.replace(/^errors\./, '')) ? tErrors(error.replace(/^errors\./, '')) : tErrors('generic')}</AlertDescription>
+          <AlertTitle>{tCommon("error")}</AlertTitle>
+          <AlertDescription>
+            {tErrors.has(error.replace(/^errors\./, ""))
+              ? tErrors(error.replace(/^errors\./, ""))
+              : tErrors("generic")}
+          </AlertDescription>
         </Alert>
       )}
 
       {showSuccess && (
         <Alert variant="success">
           <CheckCircle className="h-4 w-4" />
-          <AlertTitle>{t('alerts.successTitle')}</AlertTitle>
-          <AlertDescription>{t('alerts.successDescription')}</AlertDescription>
+          <AlertTitle>{t("alerts.successTitle")}</AlertTitle>
+          <AlertDescription>{t("alerts.successDescription")}</AlertDescription>
         </Alert>
       )}
 
       {showCanceled && (
         <Alert variant="error">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t('alerts.canceledTitle')}</AlertTitle>
-          <AlertDescription>{t('alerts.canceledDescription')}</AlertDescription>
+          <AlertTitle>{t("alerts.canceledTitle")}</AlertTitle>
+          <AlertDescription>{t("alerts.canceledDescription")}</AlertDescription>
         </Alert>
       )}
 
       {subscription?.cancelAtPeriodEnd && subscription.currentPeriodEnd && (
-        <Alert
-          variant={pendingBillingMode === 'pay_as_you_go' ? 'warning' : 'error'}
-        >
+        <Alert variant={pendingBillingMode === "pay_as_you_go" ? "warning" : "error"}>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            {pendingBillingMode === 'pay_as_you_go'
-              ? t('payAsYouGo.switchingAt', {
-                  date: format(subscription.currentPeriodEnd, 'dd MMMM yyyy', {
+            {pendingBillingMode === "pay_as_you_go"
+              ? t("payAsYouGo.switchingAt", {
+                  date: format(subscription.currentPeriodEnd, "dd MMMM yyyy", {
                     locale: dateLocale,
                   }),
                 })
-              : t('alerts.cancellingAt', {
-                  date: format(subscription.currentPeriodEnd, 'dd MMMM yyyy', {
+              : t("alerts.cancellingAt", {
+                  date: format(subscription.currentPeriodEnd, "dd MMMM yyyy", {
                     locale: dateLocale,
                   }),
                 })}
@@ -411,26 +391,26 @@ export function SubscriptionManagement({
               onClick={handleReactivate}
               disabled={loading !== null}
             >
-              {pendingBillingMode === 'pay_as_you_go'
-                ? t('payAsYouGo.cancelSwitch')
-                : t('reactivate')}
+              {pendingBillingMode === "pay_as_you_go"
+                ? t("payAsYouGo.cancelSwitch")
+                : t("reactivate")}
             </Button>
           </AlertDescription>
         </Alert>
       )}
 
-      {subscription?.status === 'past_due' && (
+      {subscription?.status === "past_due" && (
         <Alert variant="error">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            {t('alerts.pastDue')}
+            {t("alerts.pastDue")}
             <Button
               variant="link"
               className="ml-2 h-auto p-0"
               onClick={handleOpenPortal}
               disabled={loading !== null}
             >
-              {t('updatePayment')}
+              {t("updatePayment")}
             </Button>
           </AlertDescription>
         </Alert>
@@ -440,13 +420,10 @@ export function SubscriptionManagement({
       <Card className="overflow-hidden pt-0">
         <div
           className={cn(
-            'h-2',
-            currentPlanSlug === 'ultra' &&
-              'bg-gradient-to-r from-amber-400 to-orange-500',
-            currentPlanSlug === 'pro' &&
-              'from-primary bg-gradient-to-r to-blue-600',
-            currentPlanSlug === 'pay_as_you_go' &&
-              'bg-gradient-to-r from-emerald-400 to-teal-500',
+            "h-2",
+            currentPlanSlug === "ultra" && "bg-gradient-to-r from-amber-400 to-orange-500",
+            currentPlanSlug === "pro" && "from-primary bg-gradient-to-r to-blue-600",
+            currentPlanSlug === "pay_as_you_go" && "bg-gradient-to-r from-emerald-400 to-teal-500",
           )}
         />
         <CardHeader>
@@ -454,29 +431,26 @@ export function SubscriptionManagement({
             <div className="flex items-center gap-3">
               <div
                 className={cn(
-                  'rounded-lg p-2',
-                  currentPlanSlug === 'ultra' && 'bg-amber-500/10',
-                  currentPlanSlug === 'pro' && 'bg-primary/10',
-                  currentPlanSlug === 'pay_as_you_go' && 'bg-emerald-500/10',
+                  "rounded-lg p-2",
+                  currentPlanSlug === "ultra" && "bg-amber-500/10",
+                  currentPlanSlug === "pro" && "bg-primary/10",
+                  currentPlanSlug === "pay_as_you_go" && "bg-emerald-500/10",
                 )}
               >
-                {currentPlanSlug === 'ultra' ? (
+                {currentPlanSlug === "ultra" ? (
                   <Crown className="h-6 w-6 text-amber-500" />
-                ) : currentPlanSlug === 'pro' ? (
+                ) : currentPlanSlug === "pro" ? (
                   <Sparkles className="text-primary h-6 w-6" />
                 ) : (
                   <Zap className="h-6 w-6 text-emerald-500" />
                 )}
               </div>
               <div>
-                <CardTitle className="text-2xl">
-                  {currentPlan?.name || 'Pay as you go'}
-                </CardTitle>
+                <CardTitle className="text-2xl">{currentPlan?.name || "Pay as you go"}</CardTitle>
                 <CardDescription>{currentPlan?.description}</CardDescription>
               </div>
             </div>
-            {hasPaidSubscription &&
-              getStatusBadge(subscription?.status || 'active')}
+            {hasPaidSubscription && getStatusBadge(subscription?.status || "active")}
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -485,7 +459,7 @@ export function SubscriptionManagement({
             <span className="text-4xl font-bold">
               {formatPrice(
                 currentPlan?.price
-                  ? subscription?.billingInterval === 'yearly'
+                  ? subscription?.billingInterval === "yearly"
                     ? getYearlyPrice(currentPlan)
                     : currentPlan.price
                   : 0,
@@ -494,16 +468,11 @@ export function SubscriptionManagement({
             </span>
             {currentPlan?.price !== 0 && (
               <span className="text-muted-foreground">
-                /{' '}
-                {subscription?.billingInterval === 'yearly'
-                  ? t('year')
-                  : t('month')}
+                / {subscription?.billingInterval === "yearly" ? t("year") : t("month")}
               </span>
             )}
             {currentPlan?.price === 0 && (
-              <span className="text-muted-foreground ml-2">
-                {t('payAsYouGo.badge')}
-              </span>
+              <span className="text-muted-foreground ml-2">{t("payAsYouGo.badge")}</span>
             )}
           </div>
 
@@ -512,8 +481,8 @@ export function SubscriptionManagement({
             <div className="text-muted-foreground flex items-center gap-2 text-sm">
               <Calendar className="h-4 w-4" />
               <span>
-                {t('currentPlan.nextBilling', {
-                  date: format(subscription.currentPeriodEnd, 'dd MMMM yyyy', {
+                {t("currentPlan.nextBilling", {
+                  date: format(subscription.currentPeriodEnd, "dd MMMM yyyy", {
                     locale: dateLocale,
                   }),
                 })}
@@ -527,13 +496,11 @@ export function SubscriptionManagement({
             <div className="bg-muted/30 flex items-center gap-3 rounded-lg border px-3 py-2">
               <Package className="text-muted-foreground h-4 w-4 flex-shrink-0" />
               <div className="min-w-0">
-                <p className="text-muted-foreground truncate text-xs">
-                  {t('usage.products')}
-                </p>
+                <p className="text-muted-foreground truncate text-xs">{t("usage.products")}</p>
                 <p className="text-sm font-medium">
                   {usage.products}
                   <span className="text-muted-foreground font-normal">
-                    /{currentPlan?.features.maxProducts ?? '∞'}
+                    /{currentPlan?.features.maxProducts ?? "∞"}
                   </span>
                 </p>
               </div>
@@ -543,13 +510,11 @@ export function SubscriptionManagement({
             <div className="bg-muted/30 flex items-center gap-3 rounded-lg border px-3 py-2">
               <CalendarDays className="text-muted-foreground h-4 w-4 flex-shrink-0" />
               <div className="min-w-0">
-                <p className="text-muted-foreground truncate text-xs">
-                  {t('usage.reservations')}
-                </p>
+                <p className="text-muted-foreground truncate text-xs">{t("usage.reservations")}</p>
                 <p className="text-sm font-medium">
                   {usage.reservations}
                   <span className="text-muted-foreground font-normal">
-                    /{currentPlan?.features.maxReservationsPerMonth ?? '∞'}
+                    /{currentPlan?.features.maxReservationsPerMonth ?? "∞"}
                   </span>
                 </p>
               </div>
@@ -559,13 +524,11 @@ export function SubscriptionManagement({
             <div className="bg-muted/30 flex items-center gap-3 rounded-lg border px-3 py-2">
               <Users className="text-muted-foreground h-4 w-4 flex-shrink-0" />
               <div className="min-w-0">
-                <p className="text-muted-foreground truncate text-xs">
-                  {t('usage.collaborators')}
-                </p>
+                <p className="text-muted-foreground truncate text-xs">{t("usage.collaborators")}</p>
                 <p className="text-sm font-medium">
                   {usage.collaborators}
                   <span className="text-muted-foreground font-normal">
-                    /{usage.collaboratorsLimit ?? '∞'}
+                    /{usage.collaboratorsLimit ?? "∞"}
                   </span>
                 </p>
               </div>
@@ -578,13 +541,11 @@ export function SubscriptionManagement({
             >
               <MessageSquare className="text-muted-foreground h-4 w-4 flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-muted-foreground truncate text-xs">
-                  {t('usage.sms')}
-                </p>
+                <p className="text-muted-foreground truncate text-xs">{t("usage.sms")}</p>
                 <p className="text-sm font-medium">
                   {usage.sms}
                   <span className="text-muted-foreground font-normal">
-                    /{usage.smsLimit ?? '∞'}
+                    /{usage.smsLimit ?? "∞"}
                   </span>
                 </p>
               </div>
@@ -597,13 +558,9 @@ export function SubscriptionManagement({
           {/* Actions */}
           <div className="flex flex-wrap gap-3">
             {canAccessBillingPortal && (
-              <Button
-                variant="outline"
-                onClick={handleOpenPortal}
-                disabled={loading === 'portal'}
-              >
+              <Button variant="outline" onClick={handleOpenPortal} disabled={loading === "portal"}>
                 <FileText className="mr-2 h-4 w-4" />
-                {t('billingPortal.openPortal')}
+                {t("billingPortal.openPortal")}
                 <ExternalLink className="ml-2 h-3 w-3" />
               </Button>
             )}
@@ -613,27 +570,24 @@ export function SubscriptionManagement({
                 variant="ghost"
                 className="text-destructive hover:text-destructive hover:bg-destructive/10"
                 onClick={handleCancelClick}
-                disabled={loading === 'cancel'}
+                disabled={loading === "cancel"}
               >
-                {t('cancelSubscription')}
+                {t("cancelSubscription")}
               </Button>
             )}
 
             {/* Owner-autonomous switch to pay-as-you-go — links to the tariffs
                 preview first (hidden when already scheduled or when a PAYG store
                 is here only to pick a plan). */}
-            {!showBackToPayAsYouGo &&
-              pendingBillingMode !== 'pay_as_you_go' && (
-                <Button
-                  variant="outline"
-                  render={
-                    <Link href="/dashboard/settings/subscription?payg=1" />
-                  }
-                >
-                  <Zap className="mr-2 h-4 w-4" />
-                  {t('payAsYouGo.switchCta')}
-                </Button>
-              )}
+            {!showBackToPayAsYouGo && pendingBillingMode !== "pay_as_you_go" && (
+              <Button
+                variant="outline"
+                render={<Link href="/dashboard/settings/subscription?payg=1" />}
+              >
+                <Zap className="mr-2 h-4 w-4" />
+                {t("payAsYouGo.switchCta")}
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -644,14 +598,10 @@ export function SubscriptionManagement({
           <div>
             <h2 className="flex items-center gap-2 text-xl font-semibold">
               <Crown className="h-5 w-5" />
-              {hasPaidSubscription
-                ? t('changePlan')
-                : t('noSubscription.title')}
+              {hasPaidSubscription ? t("changePlan") : t("noSubscription.title")}
             </h2>
             <p className="text-muted-foreground mt-1 text-sm">
-              {hasPaidSubscription
-                ? t('changePlanDescription')
-                : t('noSubscription.description')}
+              {hasPaidSubscription ? t("changePlanDescription") : t("noSubscription.description")}
             </p>
           </div>
 
@@ -664,10 +614,10 @@ export function SubscriptionManagement({
                   key={curr}
                   onClick={() => setCurrency(curr)}
                   className={cn(
-                    'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
+                    "rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
                     currency === curr
-                      ? 'bg-background text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground',
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   {curr.toUpperCase()}
@@ -679,26 +629,19 @@ export function SubscriptionManagement({
             <div className="bg-muted/50 flex items-center gap-2 rounded-full px-3 py-1.5">
               <Label
                 htmlFor="billing-toggle"
-                className={cn(
-                  'cursor-pointer text-sm',
-                  !isYearly && 'font-semibold',
-                )}
+                className={cn("cursor-pointer text-sm", !isYearly && "font-semibold")}
               >
-                {t('monthly')}
+                {t("monthly")}
               </Label>
-              <Switch
-                id="billing-toggle"
-                checked={isYearly}
-                onCheckedChange={setIsYearly}
-              />
+              <Switch id="billing-toggle" checked={isYearly} onCheckedChange={setIsYearly} />
               <Label
                 htmlFor="billing-toggle"
                 className={cn(
-                  'flex cursor-pointer items-center gap-1.5 text-sm',
-                  isYearly && 'font-semibold',
+                  "flex cursor-pointer items-center gap-1.5 text-sm",
+                  isYearly && "font-semibold",
                 )}
               >
-                {t('yearly')}
+                {t("yearly")}
                 <Badge variant="success" className="text-xs">
                   -17%
                 </Badge>
@@ -714,8 +657,8 @@ export function SubscriptionManagement({
               <Gift className="h-4 w-4 flex-shrink-0 text-green-600" />
               <span className="text-green-700 dark:text-green-400">
                 {discountDurationMonths === 0
-                  ? t('discount.permanent', { percent: discountPercent })
-                  : t('discount.limited', {
+                  ? t("discount.permanent", { percent: discountPercent })
+                  : t("discount.limited", {
                       percent: discountPercent,
                       months: discountDurationMonths,
                     })}
@@ -737,39 +680,36 @@ export function SubscriptionManagement({
 
             // Check if user is on this exact plan + billing interval
             const currentBillingInterval = subscription?.billingInterval;
-            const selectedInterval = isYearly ? 'yearly' : 'monthly';
-            const isExactCurrentPlan =
-              isCurrent && currentBillingInterval === selectedInterval;
+            const selectedInterval = isYearly ? "yearly" : "monthly";
+            const isExactCurrentPlan = isCurrent && currentBillingInterval === selectedInterval;
 
             // Determine button label
             const getButtonLabel = () => {
-              if (loading === plan.slug) return t('processing');
-              if (isFree) return t('freePlan');
-              if (!isAvailable) return t('notAvailable');
-              if (isExactCurrentPlan) return t('currentPlanBadge');
+              if (loading === plan.slug) return t("processing");
+              if (isFree) return t("freePlan");
+              if (!isAvailable) return t("notAvailable");
+              if (isExactCurrentPlan) return t("currentPlanBadge");
               if (isCurrent) {
                 // Current plan but different billing cycle
-                return isYearly ? t('switchToYearly') : t('switchToMonthly');
+                return isYearly ? t("switchToYearly") : t("switchToMonthly");
               }
-              return t('selectPlan');
+              return t("selectPlan");
             };
 
             return (
               <Card
                 key={plan.slug}
                 className={cn(
-                  'relative flex flex-col transition-all duration-200',
-                  plan.isPopular &&
-                    !isCurrent &&
-                    'border-primary scale-[1.02] shadow-lg',
-                  isCurrent && 'ring-primary bg-primary/5 ring-2',
+                  "relative flex flex-col transition-all duration-200",
+                  plan.isPopular && !isCurrent && "border-primary scale-[1.02] shadow-lg",
+                  isCurrent && "ring-primary bg-primary/5 ring-2",
                 )}
               >
                 {plan.isPopular && !isCurrent && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <Badge className="flex items-center gap-1 px-3 py-1 shadow-md">
                       <SparklesSolidIcon className="h-3 w-3" />
-                      {t('popular')}
+                      {t("popular")}
                     </Badge>
                   </div>
                 )}
@@ -778,7 +718,7 @@ export function SubscriptionManagement({
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <Badge variant="expired" className="flex items-center gap-1 px-3 py-1">
                       <CheckSolidIcon className="h-3 w-3" />
-                      {t('currentPlanBadge')}
+                      {t("currentPlanBadge")}
                     </Badge>
                   </div>
                 )}
@@ -787,23 +727,17 @@ export function SubscriptionManagement({
                   {/* Plan icon */}
                   <div
                     className={cn(
-                      'mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full',
-                      plan.slug === 'pro' && 'bg-primary/10',
-                      plan.slug === 'ultra' &&
-                        'bg-gradient-to-br from-amber-400/20 to-orange-500/20',
+                      "mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full",
+                      plan.slug === "pro" && "bg-primary/10",
+                      plan.slug === "ultra" &&
+                        "bg-gradient-to-br from-amber-400/20 to-orange-500/20",
                     )}
                   >
-                    {plan.slug === 'pro' && (
-                      <Sparkles className="text-primary h-5 w-5" />
-                    )}
-                    {plan.slug === 'ultra' && (
-                      <Crown className="h-5 w-5 text-amber-500" />
-                    )}
+                    {plan.slug === "pro" && <Sparkles className="text-primary h-5 w-5" />}
+                    {plan.slug === "ultra" && <Crown className="h-5 w-5 text-amber-500" />}
                   </div>
                   <CardTitle className="text-lg">{plan.name}</CardTitle>
-                  <CardDescription className="text-xs">
-                    {plan.description}
-                  </CardDescription>
+                  <CardDescription className="text-xs">{plan.description}</CardDescription>
                 </CardHeader>
 
                 <CardContent className="flex-1 pt-3">
@@ -824,8 +758,7 @@ export function SubscriptionManagement({
                             {formatPrice(discountedPrice, currency)}
                           </span>
                           <span className="text-muted-foreground ml-1 text-sm">
-                            {t('excludingTax')} /{' '}
-                            {isYearly ? t('year') : t('month')}
+                            {t("excludingTax")} / {isYearly ? t("year") : t("month")}
                           </span>
                         </div>
                       </div>
@@ -836,8 +769,7 @@ export function SubscriptionManagement({
                         </span>
                         {!isFree && (
                           <span className="text-muted-foreground ml-1 text-sm">
-                            {t('excludingTax')} /{' '}
-                            {isYearly ? t('year') : t('month')}
+                            {t("excludingTax")} / {isYearly ? t("year") : t("month")}
                           </span>
                         )}
                       </div>
@@ -848,20 +780,14 @@ export function SubscriptionManagement({
                   <ul className="space-y-2">
                     {/* Key limits */}
                     {getKeyLimits(plan).map((feature, index) => (
-                      <li
-                        key={`limit-${index}`}
-                        className="flex items-start gap-2"
-                      >
+                      <li key={`limit-${index}`} className="flex items-start gap-2">
                         <Check className="text-primary mt-0.5 h-4 w-4 flex-shrink-0" />
                         <span className="text-sm">{feature}</span>
                       </li>
                     ))}
                     {/* Included extras */}
                     {getIncludedExtras(plan).map((feature, index) => (
-                      <li
-                        key={`extra-${index}`}
-                        className="flex items-start gap-2"
-                      >
+                      <li key={`extra-${index}`} className="flex items-start gap-2">
                         <Check className="text-primary mt-0.5 h-4 w-4 flex-shrink-0" />
                         <span className="text-sm">{feature}</span>
                       </li>
@@ -874,14 +800,9 @@ export function SubscriptionManagement({
                       <Separator className="my-3" />
                       <ul className="space-y-2">
                         {getNotIncludedFeatures(plan).map((feature, index) => (
-                          <li
-                            key={`not-${index}`}
-                            className="flex items-start gap-2"
-                          >
+                          <li key={`not-${index}`} className="flex items-start gap-2">
                             <X className="text-muted-foreground/40 mt-0.5 h-4 w-4 flex-shrink-0" />
-                            <span className="text-muted-foreground/60 text-sm">
-                              {feature}
-                            </span>
+                            <span className="text-muted-foreground/60 text-sm">{feature}</span>
                           </li>
                         ))}
                       </ul>
@@ -892,21 +813,10 @@ export function SubscriptionManagement({
                 <CardFooter className="pt-3">
                   <Button
                     className="w-full"
-                    variant={
-                      isCurrent
-                        ? 'outline'
-                        : plan.isPopular
-                          ? 'default'
-                          : 'outline'
-                    }
+                    variant={isCurrent ? "outline" : plan.isPopular ? "default" : "outline"}
                     size="lg"
                     onClick={() => handleSubscribe(plan.slug)}
-                    disabled={
-                      loading !== null ||
-                      isFree ||
-                      !isAvailable ||
-                      isExactCurrentPlan
-                    }
+                    disabled={loading !== null || isFree || !isAvailable || isExactCurrentPlan}
                   >
                     {getButtonLabel()}
                   </Button>
@@ -917,9 +827,7 @@ export function SubscriptionManagement({
         </div>
 
         {/* Prices excluding tax note */}
-        <p className="text-muted-foreground text-center text-xs">
-          {t('pricesExcludingTax')}
-        </p>
+        <p className="text-muted-foreground text-center text-xs">{t("pricesExcludingTax")}</p>
       </div>
 
       {/* Cancel Subscription Modal */}
@@ -929,11 +837,9 @@ export function SubscriptionManagement({
             <div className="bg-destructive/10 mx-auto flex h-12 w-12 items-center justify-center rounded-full">
               <AlertTriangle className="text-destructive h-6 w-6" />
             </div>
-            <DialogTitle className="text-center text-xl">
-              {t('cancelModal.title')}
-            </DialogTitle>
+            <DialogTitle className="text-center text-xl">{t("cancelModal.title")}</DialogTitle>
             <DialogDescription className="text-center">
-              {t('cancelModal.description')}
+              {t("cancelModal.description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -941,22 +847,22 @@ export function SubscriptionManagement({
             <div className="space-y-3 py-4">
               <div className="border-destructive/20 bg-destructive/5 flex items-center gap-3 rounded-lg border p-3">
                 <Package className="text-destructive/70 h-5 w-5" />
-                <span className="text-sm">{t('cancelModal.limit1')}</span>
+                <span className="text-sm">{t("cancelModal.limit1")}</span>
               </div>
               <div className="border-destructive/20 bg-destructive/5 flex items-center gap-3 rounded-lg border p-3">
                 <CalendarDays className="text-destructive/70 h-5 w-5" />
-                <span className="text-sm">{t('cancelModal.limit2')}</span>
+                <span className="text-sm">{t("cancelModal.limit2")}</span>
               </div>
               <div className="border-destructive/20 bg-destructive/5 flex items-center gap-3 rounded-lg border p-3">
                 <Users className="text-destructive/70 h-5 w-5" />
-                <span className="text-sm">{t('cancelModal.limit3')}</span>
+                <span className="text-sm">{t("cancelModal.limit3")}</span>
               </div>
             </div>
 
             {subscription?.currentPeriodEnd && (
               <div className="bg-muted text-muted-foreground rounded-lg p-3 text-center text-sm">
-                {t('cancelModal.keepAccess', {
-                  date: format(subscription.currentPeriodEnd, 'dd MMMM yyyy', {
+                {t("cancelModal.keepAccess", {
+                  date: format(subscription.currentPeriodEnd, "dd MMMM yyyy", {
                     locale: dateLocale,
                   }),
                 })}
@@ -968,20 +874,18 @@ export function SubscriptionManagement({
             <Button
               variant="destructive"
               onClick={handleCancelConfirm}
-              disabled={loading === 'cancel'}
+              disabled={loading === "cancel"}
               className="w-full"
             >
-              {loading === 'cancel'
-                ? t('processing')
-                : t('cancelModal.confirm')}
+              {loading === "cancel" ? t("processing") : t("cancelModal.confirm")}
             </Button>
             <Button
               variant="ghost"
               onClick={() => setShowCancelModal(false)}
-              disabled={loading === 'cancel'}
+              disabled={loading === "cancel"}
               className="w-full"
             >
-              {t('cancelModal.cancel')}
+              {t("cancelModal.cancel")}
             </Button>
           </DialogFooter>
         </DialogPopup>

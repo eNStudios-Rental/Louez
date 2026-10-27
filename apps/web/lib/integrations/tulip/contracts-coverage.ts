@@ -1,13 +1,13 @@
-import { inArray } from 'drizzle-orm';
+import { inArray } from "drizzle-orm";
 
-import { db, productsTulip } from '@louez/db';
+import { db, productsTulip } from "@louez/db";
 
 import type {
   ResolvedTulipItemInput,
   TulipCoverageResolution,
   TulipCoverageSummary,
   TulipItemInput,
-} from './contracts-types';
+} from "./contracts-types";
 
 async function getTulipMappingMap(
   productIds: string[],

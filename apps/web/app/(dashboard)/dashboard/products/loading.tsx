@@ -1,5 +1,5 @@
-import { Skeleton } from '@louez/ui'
-import { Card, CardContent, CardHeader } from '@louez/ui'
+import { Skeleton } from "@louez/ui";
+import { Card, CardContent, CardHeader } from "@louez/ui";
 
 export default function ProductsLoading() {
   return (
@@ -35,5 +35,5 @@ export default function ProductsLoading() {
         ))}
       </div>
     </div>
-  )
+  );
 }

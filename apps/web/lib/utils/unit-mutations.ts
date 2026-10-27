@@ -1,10 +1,10 @@
-import { eq, inArray } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
+import { eq, inArray } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
-import { db, productUnitEvents, productUnits } from '@louez/db';
+import { db, productUnitEvents, productUnits } from "@louez/db";
 
 type UnitMutationTx = Parameters<Parameters<typeof db.transaction>[0]>[0];
-type UnitEventType = (typeof productUnitEvents.$inferInsert)['type'];
+type UnitEventType = (typeof productUnitEvents.$inferInsert)["type"];
 type UnitEventPayload = Record<string, unknown> | null;
 
 type UnitEventInput = {
@@ -22,7 +22,7 @@ type UnitValues = typeof productUnits.$inferInsert & {
 
 type CreateUnitMutation = {
   unit: UnitValues;
-  event: Omit<UnitEventInput, 'type'> & {
+  event: Omit<UnitEventInput, "type"> & {
     type?: UnitEventType;
   };
 };
@@ -56,10 +56,7 @@ export function buildUnitEvent({
   };
 }
 
-export async function createUnits(
-  tx: UnitMutationTx,
-  mutations: CreateUnitMutation[],
-) {
+export async function createUnits(tx: UnitMutationTx, mutations: CreateUnitMutation[]) {
   if (mutations.length === 0) {
     return;
   }
@@ -71,17 +68,14 @@ export async function createUnits(
         productUnitId: unit.id,
         event: {
           ...event,
-          type: event.type ?? 'created',
+          type: event.type ?? "created",
         },
       }),
     ),
   );
 }
 
-export async function updateUnits(
-  tx: UnitMutationTx,
-  mutations: UpdateUnitMutation[],
-) {
+export async function updateUnits(tx: UnitMutationTx, mutations: UpdateUnitMutation[]) {
   for (const mutation of mutations) {
     await tx
       .update(productUnits)
@@ -100,10 +94,7 @@ export async function updateUnits(
   }
 }
 
-export async function deleteUnits(
-  tx: UnitMutationTx,
-  mutations: DeleteUnitMutation[],
-) {
+export async function deleteUnits(tx: UnitMutationTx, mutations: DeleteUnitMutation[]) {
   if (mutations.length === 0) {
     return;
   }

@@ -1,5 +1,5 @@
-import { createORPCReactQueryUtils } from '@orpc/react-query'
-import { orpcClient } from './client'
+import { createORPCReactQueryUtils } from "@orpc/react-query";
+import { orpcClient } from "./client";
 
 /**
  * TanStack Query utilities for oRPC
@@ -40,7 +40,7 @@ import { orpcClient } from './client'
  * }
  * ```
  */
-export const orpc = createORPCReactQueryUtils(orpcClient)
+export const orpc = createORPCReactQueryUtils(orpcClient);
 
 // Re-export client for direct usage when needed
-export { orpcClient } from './client'
+export { orpcClient } from "./client";

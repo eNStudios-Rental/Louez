@@ -719,9 +719,9 @@ const getEmailRenderContextOutputSchema = z.object({
       .nullish(),
   }),
   customer: z.object({
-    firstName: z.string(),
-    lastName: z.string(),
-    email: z.string(),
+    firstName: z.string().nullable().optional(),
+    lastName: z.string().nullable().optional(),
+    email: z.string().nullable().optional(),
   }),
   reservation: z.object({
     id: z.string(),

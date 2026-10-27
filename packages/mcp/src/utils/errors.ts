@@ -1,4 +1,4 @@
-import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js'
+import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
 
 /**
  * Create a standardized MCP error response for tool calls.
@@ -7,18 +7,17 @@ import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js'
  */
 export function toolError(message: string) {
   return {
-    content: [{ type: 'text' as const, text: message }],
+    content: [{ type: "text" as const, text: message }],
     isError: true,
-  }
+  };
 }
 
 export function toolResult(text: string) {
   return {
-    content: [{ type: 'text' as const, text }],
-  }
+    content: [{ type: "text" as const, text }],
+  };
 }
 
 export function systemError(message: string): never {
-  throw new McpError(ErrorCode.InternalError, message)
+  throw new McpError(ErrorCode.InternalError, message);
 }
-

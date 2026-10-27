@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { ZapSolidIcon } from '@louez/ui/icons'
-import { useState, useTransition } from 'react'
+import { ZapSolidIcon } from "@louez/ui/icons";
+import { useState, useTransition } from "react";
 
-import Link from 'next/link'
+import Link from "next/link";
 
 import {
   AlertCircle,
@@ -14,8 +14,8 @@ import {
   Package,
   Receipt,
   Zap,
-} from 'lucide-react'
-import { useLocale, useTranslations } from 'next-intl'
+} from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 import {
   Alert,
@@ -28,60 +28,60 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@louez/ui'
+} from "@louez/ui";
 
-import { PayAsYouGoPricing } from './pay-as-you-go-pricing'
+import { PayAsYouGoPricing } from "./pay-as-you-go-pricing";
 
-import { openBillingPortal } from './actions'
+import { openBillingPortal } from "./actions";
 
 interface BandSummary {
-  from: number
-  to: number | null
-  priceCents: number
+  from: number;
+  to: number | null;
+  priceCents: number;
 }
 
 interface InvoiceSummary {
-  billingMonth: string
-  locationCount: number
-  grossAmountCents: number
-  collectedAtSourceCents: number
-  invoicedAmountCents: number
-  currency: string
-  status: 'open' | 'paid' | 'failed' | 'void'
-  paidAt: Date | string | null
+  billingMonth: string;
+  locationCount: number;
+  grossAmountCents: number;
+  collectedAtSourceCents: number;
+  invoicedAmountCents: number;
+  currency: string;
+  status: "open" | "paid" | "failed" | "void";
+  paidAt: Date | string | null;
 }
 
 interface PayAsYouGoSummaryProps {
-  billingMonth: string
-  locationCount: number
-  grossCents: number
-  collectedAtSourceCents: number
-  dueCents: number
-  currency: string
-  flatRateCents: number | null
-  bands: BandSummary[]
-  hasPaymentMethod: boolean
-  invoices: InvoiceSummary[]
-  freeReservationsRemaining: number
-  freeReservationsGranted: number
+  billingMonth: string;
+  locationCount: number;
+  grossCents: number;
+  collectedAtSourceCents: number;
+  dueCents: number;
+  currency: string;
+  flatRateCents: number | null;
+  bands: BandSummary[];
+  hasPaymentMethod: boolean;
+  invoices: InvoiceSummary[];
+  freeReservationsRemaining: number;
+  freeReservationsGranted: number;
 }
 
 const INVOICE_BADGE_VARIANT: Record<
-  InvoiceSummary['status'],
-  'success' | 'pending' | 'failed' | 'expired'
+  InvoiceSummary["status"],
+  "success" | "pending" | "failed" | "expired"
 > = {
-  paid: 'success',
-  open: 'pending',
-  failed: 'failed',
-  void: 'expired',
-}
+  paid: "success",
+  open: "pending",
+  failed: "failed",
+  void: "expired",
+};
 
-const INVOICE_STATUS_KEY: Record<InvoiceSummary['status'], string> = {
-  paid: 'statusPaid',
-  open: 'statusOpen',
-  failed: 'statusFailed',
-  void: 'statusVoid',
-}
+const INVOICE_STATUS_KEY: Record<InvoiceSummary["status"], string> = {
+  paid: "statusPaid",
+  open: "statusOpen",
+  failed: "statusFailed",
+  void: "statusVoid",
+};
 
 export function PayAsYouGoSummary({
   billingMonth,
@@ -97,62 +97,62 @@ export function PayAsYouGoSummary({
   freeReservationsRemaining,
   freeReservationsGranted,
 }: PayAsYouGoSummaryProps) {
-  const t = useTranslations('dashboard.settings.subscription.payAsYouGo')
-  const locale = useLocale()
-  const [isPending, startTransition] = useTransition()
-  const [portalError, setPortalError] = useState(false)
+  const t = useTranslations("dashboard.settings.subscription.payAsYouGo");
+  const locale = useLocale();
+  const [isPending, startTransition] = useTransition();
+  const [portalError, setPortalError] = useState(false);
 
   const money = (cents: number, code = currency) =>
     new Intl.NumberFormat(locale, {
-      style: 'currency',
+      style: "currency",
       currency: code.toUpperCase(),
-    }).format(cents / 100)
+    }).format(cents / 100);
 
   // Month boundaries are anchored at 00:00 UTC, so format in UTC to avoid showing
   // the previous day/month to viewers in negative-offset timezones.
   const monthLabel = (yyyymm: string) =>
     new Intl.DateTimeFormat(locale, {
-      month: 'long',
-      year: 'numeric',
-      timeZone: 'UTC',
-    }).format(new Date(`${yyyymm}-01T00:00:00Z`))
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(new Date(`${yyyymm}-01T00:00:00Z`));
 
   const dateLabel = (value: Date | string) =>
     new Intl.DateTimeFormat(locale, {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      timeZone: 'UTC',
-    }).format(new Date(value))
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(new Date(value));
 
   // First day of the month following the current billing month (the charge date).
-  const [year, month] = billingMonth.split('-').map(Number)
-  const nextBillingDate = dateLabel(new Date(Date.UTC(year, month, 1)))
+  const [year, month] = billingMonth.split("-").map(Number);
+  const nextBillingDate = dateLabel(new Date(Date.UTC(year, month, 1)));
 
   const handleManageBilling = () => {
-    setPortalError(false)
+    setPortalError(false);
     startTransition(async () => {
       try {
-        const result = await openBillingPortal()
+        const result = await openBillingPortal();
         if (result.url) {
-          window.location.href = result.url
+          window.location.href = result.url;
         } else {
-          setPortalError(true)
+          setPortalError(true);
         }
       } catch {
-        setPortalError(true)
+        setPortalError(true);
       }
-    })
-  }
+    });
+  };
 
   return (
     <div className="space-y-6">
       {!hasPaymentMethod && (
         <Alert variant="warning" className="max-w-2xl">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t('noPaymentMethodTitle')}</AlertTitle>
+          <AlertTitle>{t("noPaymentMethodTitle")}</AlertTitle>
           <AlertDescription>
-            <p>{t('noPaymentMethodDescription')}</p>
+            <p>{t("noPaymentMethodDescription")}</p>
             <Button
               variant="outline"
               size="sm"
@@ -161,7 +161,7 @@ export function PayAsYouGoSummary({
               isPending={isPending}
             >
               <CreditCard data-slot="icon" />
-              {t('addPaymentMethod')}
+              {t("addPaymentMethod")}
             </Button>
           </AlertDescription>
         </Alert>
@@ -170,7 +170,7 @@ export function PayAsYouGoSummary({
       {portalError && (
         <Alert variant="error">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{t('portalError')}</AlertDescription>
+          <AlertDescription>{t("portalError")}</AlertDescription>
         </Alert>
       )}
 
@@ -179,10 +179,10 @@ export function PayAsYouGoSummary({
         <Alert variant="success" className="max-w-2xl">
           <Gift className="h-4 w-4" />
           <AlertTitle>
-            {t('freeReservationsTitle', { count: freeReservationsRemaining })}
+            {t("freeReservationsTitle", { count: freeReservationsRemaining })}
           </AlertTitle>
           <AlertDescription>
-            {t('freeReservationsDescription', {
+            {t("freeReservationsDescription", {
               remaining: freeReservationsRemaining,
               granted: freeReservationsGranted,
             })}
@@ -196,14 +196,14 @@ export function PayAsYouGoSummary({
             <div className="space-y-1">
               <CardTitle className="flex items-center gap-2">
                 <Gauge className="h-5 w-5" />
-                {t('title')}
+                {t("title")}
               </CardTitle>
-              <CardDescription>{t('description')}</CardDescription>
+              <CardDescription>{t("description")}</CardDescription>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Badge className="gap-1">
                 <ZapSolidIcon className="h-3.5 w-3.5" />
-                {t('badge')}
+                {t("badge")}
               </Badge>
               <Button
                 variant="outline"
@@ -211,7 +211,7 @@ export function PayAsYouGoSummary({
                 render={<Link href="/dashboard/settings/subscription?plans=1" />}
               >
                 <Package className="mr-2 h-4 w-4" />
-                {t('switchToPlan')}
+                {t("switchToPlan")}
               </Button>
               <Button
                 variant="outline"
@@ -220,21 +220,21 @@ export function PayAsYouGoSummary({
                 isPending={isPending}
               >
                 <CreditCard data-slot="icon" />
-                {t('managePayment')}
+                {t("managePayment")}
               </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           {locationCount === 0 && (
-            <p className="text-muted-foreground mb-4 text-sm">{t('emptyState')}</p>
+            <p className="text-muted-foreground mb-4 text-sm">{t("emptyState")}</p>
           )}
 
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="rounded-lg border p-4">
               <div className="text-muted-foreground flex items-center gap-2 text-sm">
                 <CalendarClock className="h-4 w-4" />
-                {t('locationsThisMonth')}
+                {t("locationsThisMonth")}
               </div>
               <p className="mt-1 text-2xl font-bold">{locationCount}</p>
               <p className="text-muted-foreground mt-1 text-xs capitalize">
@@ -244,25 +244,25 @@ export function PayAsYouGoSummary({
             <div className="rounded-lg border p-4">
               <div className="text-muted-foreground flex items-center gap-2 text-sm">
                 <Receipt className="h-4 w-4" />
-                {t('estimatedInvoice')}
+                {t("estimatedInvoice")}
               </div>
               <p className="mt-1 text-2xl font-bold">{money(dueCents)}</p>
               <p className="text-muted-foreground mt-1 text-xs">
-                {t('dueOn', { date: nextBillingDate })}
+                {t("dueOn", { date: nextBillingDate })}
               </p>
             </div>
             <div className="rounded-lg border p-4">
               <div className="text-muted-foreground flex items-center gap-2 text-sm">
                 <Zap className="h-4 w-4" />
-                {t('collectedAtSource')}
+                {t("collectedAtSource")}
               </div>
               <p className="mt-1 text-2xl font-bold">{money(collectedAtSourceCents)}</p>
-              <p className="text-muted-foreground mt-1 text-xs">{t('collectedAtSourceHint')}</p>
+              <p className="text-muted-foreground mt-1 text-xs">{t("collectedAtSourceHint")}</p>
             </div>
           </div>
 
           <p className="text-muted-foreground mt-4 text-sm">
-            {t('billingNote', { gross: money(grossCents) })}
+            {t("billingNote", { gross: money(grossCents) })}
           </p>
         </CardContent>
       </Card>
@@ -276,13 +276,13 @@ export function PayAsYouGoSummary({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Receipt className="h-5 w-5" />
-              {t('invoiceHistoryTitle')}
+              {t("invoiceHistoryTitle")}
             </CardTitle>
-            <CardDescription>{t('invoiceHistoryDescription')}</CardDescription>
+            <CardDescription>{t("invoiceHistoryDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             {invoices.length === 0 ? (
-              <p className="text-muted-foreground text-sm">{t('noInvoicesYet')}</p>
+              <p className="text-muted-foreground text-sm">{t("noInvoicesYet")}</p>
             ) : (
               <ul className="divide-y">
                 {invoices.map((invoice) => (
@@ -293,12 +293,12 @@ export function PayAsYouGoSummary({
                     <div className="min-w-0">
                       <p className="font-medium capitalize">{monthLabel(invoice.billingMonth)}</p>
                       <p className="text-muted-foreground text-xs">
-                        {t('invoiceLocations', {
+                        {t("invoiceLocations", {
                           count: invoice.locationCount,
                         })}
                         {invoice.paidAt
-                          ? ` · ${t('paidOn', { date: dateLabel(invoice.paidAt) })}`
-                          : ''}
+                          ? ` · ${t("paidOn", { date: dateLabel(invoice.paidAt) })}`
+                          : ""}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -317,5 +317,5 @@ export function PayAsYouGoSummary({
         </Card>
       </div>
     </div>
-  )
+  );
 }

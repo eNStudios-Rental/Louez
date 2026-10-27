@@ -290,9 +290,7 @@ export function ApiKeysPageContent({
               <CardDescription className="text-xs">{t("mcpDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <code className="bg-muted rounded px-2 py-1 text-xs">
-                {mcpUrl}
-              </code>
+              <code className="bg-muted rounded px-2 py-1 text-xs">{mcpUrl}</code>
             </CardContent>
           </Card>
 

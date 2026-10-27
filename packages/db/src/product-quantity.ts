@@ -1,12 +1,10 @@
-import { and, count, eq, inArray, sql } from 'drizzle-orm';
+import { and, count, eq, inArray, sql } from "drizzle-orm";
 
-import type { Database } from './index';
-import type { SQL, SQLWrapper } from 'drizzle-orm';
-import { productUnits, products } from './schema';
+import type { Database } from "./index";
+import type { SQL, SQLWrapper } from "drizzle-orm";
+import { productUnits, products } from "./schema";
 
-export function activeProductUnitCountSql(
-  productId: SQLWrapper = products.id,
-): SQL<number> {
+export function activeProductUnitCountSql(productId: SQLWrapper = products.id): SQL<number> {
   return sql<number>`(
     select count(*)
     from ${productUnits}
@@ -28,7 +26,7 @@ export function effectiveProductQuantitySql(params?: {
 }
 
 export async function getEffectiveProductQuantities(
-  database: Pick<Database, 'select'>,
+  database: Pick<Database, "select">,
   productIds: string[],
 ): Promise<Map<string, number>> {
   if (productIds.length === 0) {
@@ -42,10 +40,7 @@ export async function getEffectiveProductQuantities(
     })
     .from(productUnits)
     .where(
-      and(
-        inArray(productUnits.productId, productIds),
-        eq(productUnits.lifecycleStatus, 'active'),
-      ),
+      and(inArray(productUnits.productId, productIds), eq(productUnits.lifecycleStatus, "active")),
     )
     .groupBy(productUnits.productId);
 

@@ -4,9 +4,9 @@ import type {
   TulipContractType,
   TulipContractUpdatePayload,
   TulipCustomerInput,
-} from './contracts-types';
+} from "./contracts-types";
 
-const IS_TULIP_TEST_CONTRACT = process.env.NODE_ENV !== 'production';
+const IS_TULIP_TEST_CONTRACT = process.env.NODE_ENV !== "production";
 
 function addDays(baseDate: Date, days: number): Date {
   const date = new Date(baseDate);
@@ -29,14 +29,14 @@ export function resolveTulipContractTypeFromDates(
   endDate: Date,
 ): TulipContractType {
   if (endDate >= addMonths(startDate, 12)) {
-    return 'LLD';
+    return "LLD";
   }
 
   if (endDate >= addDays(startDate, 30)) {
-    return 'LMD';
+    return "LMD";
   }
 
-  return 'LCD';
+  return "LCD";
 }
 
 function requiresContractIdentityOption(params: {
@@ -44,11 +44,11 @@ function requiresContractIdentityOption(params: {
   startDate: Date;
   endDate: Date;
 }): boolean {
-  if (params.contractType === 'LLD') {
+  if (params.contractType === "LLD") {
     return true;
   }
 
-  if (params.contractType !== 'LMD') {
+  if (params.contractType !== "LMD") {
     return false;
   }
 
@@ -70,16 +70,16 @@ function assertRequiredIdentityFields(
   const address = customer.address.trim();
   const city = customer.city.trim();
   const postalCode = customer.postalCode.trim();
-  const country = (customer.country || 'FR').trim();
+  const country = (customer.country || "FR").trim();
   const hasAddress = Boolean(address) && Boolean(city) && Boolean(postalCode);
   const hasCountry = Boolean(country);
 
   if (!hasAddress || !hasCountry) {
-    throw new Error('errors.tulipCustomerDataIncomplete');
+    throw new Error("errors.tulipCustomerDataIncomplete");
   }
 
   const companyName = customer.companyName?.trim();
-  if (customer.customerType === 'business' && companyName) {
+  if (customer.customerType === "business" && companyName) {
     return;
   }
 
@@ -87,7 +87,7 @@ function assertRequiredIdentityFields(
   const lastName = customer.lastName?.trim() ?? "";
   const phone = customer.phone.trim();
   if (!firstName || !lastName || !phone) {
-    throw new Error('errors.tulipCustomerDataIncomplete');
+    throw new Error("errors.tulipCustomerDataIncomplete");
   }
 }
 
@@ -106,8 +106,8 @@ function buildCustomerPayload(
   const requireIdentityOption = requiresContractIdentityOption(params);
   assertRequiredIdentityFields(customer, params);
 
-  const options = ['break', 'theft'];
-  const companyName = customer.companyName?.trim() || '';
+  const options = ["break", "theft"];
+  const companyName = customer.companyName?.trim() || "";
   const firstName = customer.firstName?.trim() ?? "";
   const lastName = customer.lastName?.trim() ?? "";
   const email = customer.email?.trim() ?? "";
@@ -115,7 +115,7 @@ function buildCustomerPayload(
   const address = customer.address.trim();
   const city = customer.city.trim();
   const postalCode = customer.postalCode.trim();
-  const country = (customer.country || 'FR').trim();
+  const country = (customer.country || "FR").trim();
   const baseAddress = {
     ...(address ? { address } : {}),
     ...(city ? { city } : {}),
@@ -123,9 +123,9 @@ function buildCustomerPayload(
     ...(country ? { country } : {}),
   };
 
-  if (customer.customerType === 'business' && companyName) {
+  if (customer.customerType === "business" && companyName) {
     if (requireIdentityOption) {
-      options.push('company');
+      options.push("company");
     }
 
     return {
@@ -140,7 +140,7 @@ function buildCustomerPayload(
   }
 
   if (requireIdentityOption) {
-    options.push('individual');
+    options.push("individual");
   }
 
   return {
@@ -168,20 +168,16 @@ function buildProductPayload(
 
   for (const item of items) {
     const resolvedProductMarkedValues = Array.isArray(item.productMarkedValues)
-      ? item.productMarkedValues
-          .map((value) => value.trim())
-          .filter((value) => value.length > 0)
+      ? item.productMarkedValues.map((value) => value.trim()).filter((value) => value.length > 0)
       : [];
 
     let remainingQuantity = item.quantity;
     let nextMarkedIndex = 0;
     while (remainingQuantity > 0) {
-      const nextOccurrence =
-        (productOccurrenceById.get(item.productId) ?? 0) + 1;
+      const nextOccurrence = (productOccurrenceById.get(item.productId) ?? 0) + 1;
       productOccurrenceById.set(item.productId, nextOccurrence);
 
-      const assignedProductMarked =
-        resolvedProductMarkedValues[nextMarkedIndex] ?? null;
+      const assignedProductMarked = resolvedProductMarkedValues[nextMarkedIndex] ?? null;
       const placeholderProductMarked = preview
         ? `preview-${item.productId}-${nextOccurrence}`
         : `unassigned-${item.productId}-${nextOccurrence}`;
@@ -198,9 +194,7 @@ function buildProductPayload(
           // before Tulip pricing/contract calls, so we keep a synthetic product_marked fallback.
           product_marked: productMarked,
           louez_product_ID: item.productId,
-          ...(item.margin != null && item.margin > 0
-            ? { margin: item.margin }
-            : {}),
+          ...(item.margin != null && item.margin > 0 ? { margin: item.margin } : {}),
         },
       });
 
@@ -221,8 +215,7 @@ export function buildContractPayload(params: {
   insuredItems: ResolvedTulipItemInput[];
   preview?: boolean;
 }): TulipContractPayload {
-  const userName =
-    `${params.customer.firstName} ${params.customer.lastName}`.trim();
+  const userName = `${params.customer.firstName} ${params.customer.lastName}`.trim();
   const productsPayload = buildProductPayload(params.insuredItems, userName, {
     preview: params.preview,
   });
@@ -241,35 +234,33 @@ export function buildContractPayload(params: {
     options: customerPayload.options,
     products: productsPayload,
     ...(customerPayload.company ? { company: customerPayload.company } : {}),
-    ...(customerPayload.individual
-      ? { individual: customerPayload.individual }
-      : {}),
+    ...(customerPayload.individual ? { individual: customerPayload.individual } : {}),
   };
 }
 
 export function toTulipContractUpdatePayload(
   payload: TulipContractPayload,
   mode:
-    | 'full'
-    | 'without_start_date'
-    | 'without_start_date_and_identity'
-    | 'end_date_and_products_only'
-    | 'end_date_only' = 'full',
+    | "full"
+    | "without_start_date"
+    | "without_start_date_and_identity"
+    | "end_date_and_products_only"
+    | "end_date_only" = "full",
 ): TulipContractUpdatePayload {
-  if (mode === 'end_date_only') {
+  if (mode === "end_date_only") {
     return {
       end_date: payload.end_date,
     };
   }
 
-  if (mode === 'end_date_and_products_only') {
+  if (mode === "end_date_and_products_only") {
     return {
       end_date: payload.end_date,
       products: payload.products,
     };
   }
 
-  if (mode === 'without_start_date_and_identity') {
+  if (mode === "without_start_date_and_identity") {
     return {
       end_date: payload.end_date,
       contract_type: payload.contract_type,
@@ -278,7 +269,7 @@ export function toTulipContractUpdatePayload(
     };
   }
 
-  if (mode === 'without_start_date') {
+  if (mode === "without_start_date") {
     return {
       end_date: payload.end_date,
       contract_type: payload.contract_type,

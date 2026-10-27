@@ -574,7 +574,7 @@ const findMarketplaceReplay = async (
     reservationId: existing.id,
     reservationNumber: existing.number,
     customerId: existing.customerId,
-    customerEmail: existing.customer.email,
+    customerEmail: existing.customer.email ?? "",
   };
 };
 

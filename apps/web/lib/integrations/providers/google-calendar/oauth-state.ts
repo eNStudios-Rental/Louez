@@ -1,6 +1,6 @@
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac, timingSafeEqual } from "node:crypto";
 
-import { env } from '@/env';
+import { env } from "@/env";
 
 type GoogleCalendarOAuthState = {
   storeId: string;
@@ -11,18 +11,14 @@ type GoogleCalendarOAuthState = {
 
 function getStateSecret(): string {
   if (!env.INTEGRATION_ENCRYPTION_KEY) {
-    throw new Error(
-      'INTEGRATION_ENCRYPTION_KEY is required for integration OAuth',
-    );
+    throw new Error("INTEGRATION_ENCRYPTION_KEY is required for integration OAuth");
   }
 
   return env.INTEGRATION_ENCRYPTION_KEY;
 }
 
 function signPayload(payload: string): string {
-  return createHmac('sha256', getStateSecret())
-    .update(payload)
-    .digest('base64url');
+  return createHmac("sha256", getStateSecret()).update(payload).digest("base64url");
 }
 
 export function createGoogleCalendarOAuthState(input: {
@@ -35,17 +31,15 @@ export function createGoogleCalendarOAuthState(input: {
       ...input,
       exp: Date.now() + 10 * 60 * 1000,
     } satisfies GoogleCalendarOAuthState),
-    'utf8',
-  ).toString('base64url');
+    "utf8",
+  ).toString("base64url");
   const signature = signPayload(payload);
 
   return `${payload}.${signature}`;
 }
 
-export function parseGoogleCalendarOAuthState(
-  state: string,
-): GoogleCalendarOAuthState | null {
-  const [payload, signature] = state.split('.');
+export function parseGoogleCalendarOAuthState(state: string): GoogleCalendarOAuthState | null {
+  const [payload, signature] = state.split(".");
   if (!payload || !signature) return null;
 
   const expected = signPayload(payload);
@@ -61,7 +55,7 @@ export function parseGoogleCalendarOAuthState(
   let parsed: GoogleCalendarOAuthState;
   try {
     parsed = JSON.parse(
-      Buffer.from(payload, 'base64url').toString('utf8'),
+      Buffer.from(payload, "base64url").toString("utf8"),
     ) as GoogleCalendarOAuthState;
   } catch {
     return null;

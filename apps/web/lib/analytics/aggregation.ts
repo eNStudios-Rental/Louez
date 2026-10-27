@@ -1,4 +1,4 @@
-import { db } from '@louez/db'
+import { db } from "@louez/db";
 import {
   pageViews,
   storefrontEvents,
@@ -6,32 +6,32 @@ import {
   productStats,
   stores,
   reservations,
-} from '@louez/db'
-import { eq, and, gte, lt, sql, count } from 'drizzle-orm'
-import { startOfDay, subDays, format } from 'date-fns'
+} from "@louez/db";
+import { eq, and, gte, lt, sql, count } from "drizzle-orm";
+import { startOfDay, subDays, format } from "date-fns";
 
 /**
  * Aggregate yesterday's analytics data into dailyStats and productStats tables.
  * This should run once daily (e.g., at 2:00 AM).
  */
 export async function aggregateDailyAnalytics() {
-  const now = new Date()
-  const yesterday = startOfDay(subDays(now, 1))
-  const today = startOfDay(now)
+  const now = new Date();
+  const yesterday = startOfDay(subDays(now, 1));
+  const today = startOfDay(now);
 
-  console.log(`[Analytics] Aggregating data for ${format(yesterday, 'yyyy-MM-dd')}`)
+  console.log(`[Analytics] Aggregating data for ${format(yesterday, "yyyy-MM-dd")}`);
 
   // Get all stores
   const allStores = await db
     .select({ id: stores.id })
     .from(stores)
-    .where(eq(stores.onboardingCompleted, true))
+    .where(eq(stores.onboardingCompleted, true));
 
   const results = {
     storesProcessed: 0,
     dailyStatsCreated: 0,
     productStatsCreated: 0,
-  }
+  };
 
   for (const store of allStores) {
     try {
@@ -50,9 +50,9 @@ export async function aggregateDailyAnalytics() {
           and(
             eq(pageViews.storeId, store.id),
             gte(pageViews.createdAt, yesterday),
-            lt(pageViews.createdAt, today)
-          )
-        )
+            lt(pageViews.createdAt, today),
+          ),
+        );
 
       // Aggregate events
       const eventStats = await db
@@ -66,9 +66,9 @@ export async function aggregateDailyAnalytics() {
           and(
             eq(storefrontEvents.storeId, store.id),
             gte(storefrontEvents.createdAt, yesterday),
-            lt(storefrontEvents.createdAt, today)
-          )
-        )
+            lt(storefrontEvents.createdAt, today),
+          ),
+        );
 
       // Get reservations created yesterday
       const reservationStats = await db
@@ -82,17 +82,17 @@ export async function aggregateDailyAnalytics() {
           and(
             eq(reservations.storeId, store.id),
             gte(reservations.createdAt, yesterday),
-            lt(reservations.createdAt, today)
-          )
-        )
+            lt(reservations.createdAt, today),
+          ),
+        );
 
-      const pvStats = pageViewStats[0]
-      const evStats = eventStats[0]
-      const resStats = reservationStats[0]
+      const pvStats = pageViewStats[0];
+      const evStats = eventStats[0];
+      const resStats = reservationStats[0];
 
-      const checkoutCompletedCount = Number(evStats?.checkoutCompleted) || 0
-      const revenue = parseFloat(resStats?.revenue || '0')
-      const avgCartValue = checkoutCompletedCount > 0 ? revenue / checkoutCompletedCount : 0
+      const checkoutCompletedCount = Number(evStats?.checkoutCompleted) || 0;
+      const revenue = parseFloat(resStats?.revenue || "0");
+      const avgCartValue = checkoutCompletedCount > 0 ? revenue / checkoutCompletedCount : 0;
 
       // Upsert daily stats
       await db
@@ -131,9 +131,9 @@ export async function aggregateDailyAnalytics() {
             desktopVisitors: Number(pvStats?.desktopVisitors) || 0,
             updatedAt: new Date(),
           },
-        })
+        });
 
-      results.dailyStatsCreated++
+      results.dailyStatsCreated++;
 
       // Aggregate product stats
       const productViewStats = await db
@@ -147,13 +147,13 @@ export async function aggregateDailyAnalytics() {
             eq(pageViews.storeId, store.id),
             gte(pageViews.createdAt, yesterday),
             lt(pageViews.createdAt, today),
-            sql`${pageViews.productId} IS NOT NULL`
-          )
+            sql`${pageViews.productId} IS NOT NULL`,
+          ),
         )
-        .groupBy(pageViews.productId)
+        .groupBy(pageViews.productId);
 
       for (const product of productViewStats) {
-        if (!product.productId) continue
+        if (!product.productId) continue;
 
         // Get cart additions for this product
         const productCartStats = await db
@@ -164,12 +164,12 @@ export async function aggregateDailyAnalytics() {
           .where(
             and(
               eq(storefrontEvents.storeId, store.id),
-              eq(storefrontEvents.eventType, 'add_to_cart'),
+              eq(storefrontEvents.eventType, "add_to_cart"),
               gte(storefrontEvents.createdAt, yesterday),
               lt(storefrontEvents.createdAt, today),
-              sql`JSON_EXTRACT(${storefrontEvents.metadata}, '$.productId') = ${product.productId}`
-            )
-          )
+              sql`JSON_EXTRACT(${storefrontEvents.metadata}, '$.productId') = ${product.productId}`,
+            ),
+          );
 
         // Upsert product stats
         await db
@@ -181,7 +181,7 @@ export async function aggregateDailyAnalytics() {
             views: product.views,
             cartAdditions: productCartStats[0]?.cartAdditions || 0,
             reservations: 0, // This would require joining with reservation_items
-            revenue: '0',
+            revenue: "0",
           })
           .onDuplicateKeyUpdate({
             set: {
@@ -189,19 +189,19 @@ export async function aggregateDailyAnalytics() {
               cartAdditions: productCartStats[0]?.cartAdditions || 0,
               updatedAt: new Date(),
             },
-          })
+          });
 
-        results.productStatsCreated++
+        results.productStatsCreated++;
       }
 
-      results.storesProcessed++
+      results.storesProcessed++;
     } catch (error) {
-      console.error(`[Analytics] Error aggregating for store ${store.id}:`, error)
+      console.error(`[Analytics] Error aggregating for store ${store.id}:`, error);
     }
   }
 
-  console.log(`[Analytics] Aggregation complete:`, results)
-  return results
+  console.log(`[Analytics] Aggregation complete:`, results);
+  return results;
 }
 
 /**
@@ -209,24 +209,20 @@ export async function aggregateDailyAnalytics() {
  * This keeps the database lean while preserving aggregated stats.
  */
 export async function cleanupOldAnalyticsData() {
-  const cutoffDate = subDays(new Date(), 90)
+  const cutoffDate = subDays(new Date(), 90);
 
-  console.log(`[Analytics] Cleaning up data older than ${format(cutoffDate, 'yyyy-MM-dd')}`)
+  console.log(`[Analytics] Cleaning up data older than ${format(cutoffDate, "yyyy-MM-dd")}`);
 
   // Delete old page views
-  await db
-    .delete(pageViews)
-    .where(lt(pageViews.createdAt, cutoffDate))
+  await db.delete(pageViews).where(lt(pageViews.createdAt, cutoffDate));
 
   // Delete old storefront events
-  await db
-    .delete(storefrontEvents)
-    .where(lt(storefrontEvents.createdAt, cutoffDate))
+  await db.delete(storefrontEvents).where(lt(storefrontEvents.createdAt, cutoffDate));
 
-  console.log(`[Analytics] Cleanup complete`)
+  console.log(`[Analytics] Cleanup complete`);
 
   return {
     success: true,
-    cutoffDate: format(cutoffDate, 'yyyy-MM-dd'),
-  }
+    cutoffDate: format(cutoffDate, "yyyy-MM-dd"),
+  };
 }

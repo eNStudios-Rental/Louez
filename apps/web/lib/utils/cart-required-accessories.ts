@@ -1,9 +1,6 @@
-import type { ProductPromotion } from '@louez/types';
-import type { PricingKind, PricingMode, StockKind } from '@louez/types';
-import {
-  combineStockQuantityLimits,
-  type StockQuantityLimit,
-} from '@louez/utils';
+import type { ProductPromotion } from "@louez/types";
+import type { PricingKind, PricingMode, StockKind } from "@louez/types";
+import { combineStockQuantityLimits, type StockQuantityLimit } from "@louez/utils";
 
 /**
  * Minimal accessory-link shape shared by every storefront surface that can put
@@ -65,10 +62,10 @@ export interface RequiredAccessoryCartInput {
 }
 
 function toNumber(value: string | number | null | undefined): number | null {
-  if (typeof value === 'number') {
+  if (typeof value === "number") {
     return Number.isNaN(value) ? null : value;
   }
-  if (typeof value !== 'string') {
+  if (typeof value !== "string") {
     return null;
   }
   const parsed = parseFloat(value);
@@ -77,7 +74,7 @@ function toNumber(value: string | number | null | undefined): number | null {
 
 /** Units of an accessory needed for a single unit of its parent product. */
 export function getRequiredAccessoryUnitQuantity(
-  accessory: Pick<AccessoryLink, 'requiredQuantity'>,
+  accessory: Pick<AccessoryLink, "requiredQuantity">,
 ): number {
   return Math.max(1, accessory.requiredQuantity ?? 1);
 }
@@ -98,7 +95,7 @@ interface CartLineQuantity extends RequiredAccessoryCartLineQuantity {
 
 /** Minimum units the child line must carry for its current parent quantity. */
 export function getRequiredAccessoryLineMinimumQuantity(
-  line: Pick<RequiredAccessoryCartLineQuantity, 'requiredQuantity'>,
+  line: Pick<RequiredAccessoryCartLineQuantity, "requiredQuantity">,
   parentQuantity: number,
 ): number {
   return getRequiredAccessoryUnitQuantity(line) * Math.max(1, parentQuantity);
@@ -109,21 +106,12 @@ export function clampRequiredAccessoryLineQuantity(
   line: RequiredAccessoryCartLineQuantity,
   params: { parentQuantity: number; requestedQuantity: number },
 ): number {
-  const minimumQuantity = getRequiredAccessoryLineMinimumQuantity(
-    line,
-    params.parentQuantity,
-  );
-  const requestedQuantity = Math.max(
-    minimumQuantity,
-    params.requestedQuantity,
-  );
+  const minimumQuantity = getRequiredAccessoryLineMinimumQuantity(line, params.parentQuantity);
+  const requestedQuantity = Math.max(minimumQuantity, params.requestedQuantity);
 
   return line.maxQuantity === null
     ? requestedQuantity
-    : Math.min(
-        requestedQuantity,
-        Math.max(minimumQuantity, line.maxQuantity),
-      );
+    : Math.min(requestedQuantity, Math.max(minimumQuantity, line.maxQuantity));
 }
 
 /** Keeps the customer's selected total unless a changed requirement is higher. */
@@ -145,34 +133,26 @@ export function reconcileRequiredAccessoryLineQuantity(
 
 function getCartStockGroupKey(
   lines: CartLineQuantity[],
-  line: Pick<
-    CartLineQuantity,
-    'productId' | 'selectionSignature' | 'stockKind'
-  >,
+  line: Pick<CartLineQuantity, "productId" | "selectionSignature" | "stockKind">,
 ): string | null {
   const productStockKind = lines.some(
-    (candidate) =>
-      candidate.productId === line.productId &&
-      candidate.stockKind === 'consumable',
+    (candidate) => candidate.productId === line.productId && candidate.stockKind === "consumable",
   )
-    ? 'consumable'
+    ? "consumable"
     : (line.stockKind ??
       lines.find(
-        (candidate) =>
-          candidate.productId === line.productId && Boolean(candidate.stockKind),
+        (candidate) => candidate.productId === line.productId && Boolean(candidate.stockKind),
       )?.stockKind);
   if (!productStockKind) {
     return null;
   }
-  if (productStockKind === 'untracked') {
+  if (productStockKind === "untracked") {
     return null;
   }
 
   return JSON.stringify([
     line.productId,
-    productStockKind === 'consumable'
-      ? '*'
-      : (line.selectionSignature ?? '__default'),
+    productStockKind === "consumable" ? "*" : (line.selectionSignature ?? "__default"),
   ]);
 }
 
@@ -187,8 +167,7 @@ function getOtherSharedStockLinesQuantity(
 
   return lines.reduce(
     (total, candidate) =>
-      candidate.lineId !== line.lineId &&
-      getCartStockGroupKey(lines, candidate) === stockGroupKey
+      candidate.lineId !== line.lineId && getCartStockGroupKey(lines, candidate) === stockGroupKey
         ? total + candidate.quantity
         : total,
     0,
@@ -203,10 +182,7 @@ export function getCartLineAvailableMaximumQuantity(
   const ownMaximum =
     line.maxQuantity === null
       ? null
-      : Math.max(
-          0,
-          line.maxQuantity - getOtherSharedStockLinesQuantity(lines, line),
-        );
+      : Math.max(0, line.maxQuantity - getOtherSharedStockLinesQuantity(lines, line));
 
   if (line.parentLineId) {
     return ownMaximum;
@@ -223,10 +199,7 @@ export function getCartLineAvailableMaximumQuantity(
         0,
         child.maxQuantity - getOtherSharedStockLinesQuantity(lines, child),
       );
-      return Math.floor(
-        availableAccessoryQuantity /
-          getRequiredAccessoryUnitQuantity(child),
-      );
+      return Math.floor(availableAccessoryQuantity / getRequiredAccessoryUnitQuantity(child));
     });
 
   return combineStockQuantityLimits(ownMaximum, ...requiredAccessoryMaximums);
@@ -240,15 +213,11 @@ export function clampCartLineQuantityToAvailableMaximum(
   const maximumQuantity = getCartLineAvailableMaximumQuantity(lines, line);
   const quantity = Math.max(0, line.quantity);
 
-  return maximumQuantity === null
-    ? quantity
-    : Math.min(quantity, maximumQuantity);
+  return maximumQuantity === null ? quantity : Math.min(quantity, maximumQuantity);
 }
 
 /** Gives required lines priority, then fits free lines into remaining stock. */
-export function reconcileSharedCartLineQuantities<
-  T extends CartLineQuantity,
->(lines: T[]): T[] {
+export function reconcileSharedCartLineQuantities<T extends CartLineQuantity>(lines: T[]): T[] {
   const stockGroupKeys = new Set(
     lines
       .map((line) => getCartStockGroupKey(lines, line))
@@ -259,8 +228,7 @@ export function reconcileSharedCartLineQuantities<
 
   for (const stockGroupKey of stockGroupKeys) {
     const productLines = reconciled.filter(
-      (line) =>
-        getCartStockGroupKey(reconciled, line) === stockGroupKey,
+      (line) => getCartStockGroupKey(reconciled, line) === stockGroupKey,
     );
     // A single line has no sibling to share stock with. Its own shortfall is
     // already reported through maxQuantity, so the line stays visible with
@@ -280,10 +248,7 @@ export function reconcileSharedCartLineQuantities<
     let remainingQuantity = Math.max(0, stockQuantity - requiredQuantity);
 
     reconciled = reconciled.flatMap((line) => {
-      if (
-        getCartStockGroupKey(reconciled, line) !== stockGroupKey ||
-        line.parentLineId
-      ) {
+      if (getCartStockGroupKey(reconciled, line) !== stockGroupKey || line.parentLineId) {
         return [line];
       }
 
@@ -299,21 +264,18 @@ export function reconcileSharedCartLineQuantities<
   }
 
   return reconciled.filter(
-    (line) =>
-      !line.parentLineId || !removedParentLineIds.has(line.parentLineId),
+    (line) => !line.parentLineId || !removedParentLineIds.has(line.parentLineId),
   );
 }
 
-export function isRequiredAccessory(
-  accessory: Pick<AccessoryLink, 'required'>,
-): boolean {
+export function isRequiredAccessory(accessory: Pick<AccessoryLink, "required">): boolean {
   return Boolean(accessory.required);
 }
 
 /** Accessories the customer must book with the parent, auto-added to the cart. */
-export function selectRequiredAccessories<
-  T extends Pick<AccessoryLink, 'required'>,
->(accessories: T[]): T[] {
+export function selectRequiredAccessories<T extends Pick<AccessoryLink, "required">>(
+  accessories: T[],
+): T[] {
   return accessories.filter(isRequiredAccessory);
 }
 
@@ -321,9 +283,9 @@ export function selectRequiredAccessories<
  * Accessories the customer may add on top — the upsell list. Required ones are
  * excluded everywhere: the cart already carries them.
  */
-export function selectOptionalAccessories<
-  T extends Pick<AccessoryLink, 'required'>,
->(accessories: T[]): T[] {
+export function selectOptionalAccessories<T extends Pick<AccessoryLink, "required">>(
+  accessories: T[],
+): T[] {
   return accessories.filter((accessory) => !isRequiredAccessory(accessory));
 }
 
@@ -332,14 +294,13 @@ export function selectOptionalAccessories<
  * A non-empty result means the parent product is not bookable at that quantity.
  */
 export function findBlockingRequiredAccessories<
-  T extends Pick<AccessoryLink, 'required' | 'requiredQuantity' | 'quantity'>,
+  T extends Pick<AccessoryLink, "required" | "requiredQuantity" | "quantity">,
 >(accessories: T[], parentQuantity: number): T[] {
   const neededParents = Math.max(1, parentQuantity);
   return selectRequiredAccessories(accessories).filter(
     (accessory) =>
       accessory.quantity !== null &&
-      accessory.quantity <
-        getRequiredAccessoryUnitQuantity(accessory) * neededParents,
+      accessory.quantity < getRequiredAccessoryUnitQuantity(accessory) * neededParents,
   );
 }
 
@@ -348,7 +309,7 @@ export function buildRequiredAccessoryCartInputs(
   accessories: AccessoryLink[],
 ): RequiredAccessoryCartInput[] {
   return selectRequiredAccessories(accessories).map((accessory) => {
-    const accessoryPricingMode: PricingMode = accessory.pricingMode ?? 'day';
+    const accessoryPricingMode: PricingMode = accessory.pricingMode ?? "day";
 
     return {
       productId: accessory.id,
@@ -357,12 +318,9 @@ export function buildRequiredAccessoryCartInputs(
       price: toNumber(accessory.price) ?? 0,
       ...(accessory.promotion !== undefined ? { promotion: accessory.promotion } : {}),
       deposit: toNumber(accessory.deposit) ?? 0,
-      maxQuantity:
-        accessory.quantity === null
-          ? null
-          : Math.max(1, accessory.quantity),
+      maxQuantity: accessory.quantity === null ? null : Math.max(1, accessory.quantity),
       requiredQuantity: getRequiredAccessoryUnitQuantity(accessory),
-      pricingKind: accessory.pricingKind ?? 'duration',
+      pricingKind: accessory.pricingKind ?? "duration",
       pricingMode: accessoryPricingMode,
       productPricingMode: accessory.pricingMode,
       basePeriodMinutes: accessory.basePeriodMinutes ?? null,

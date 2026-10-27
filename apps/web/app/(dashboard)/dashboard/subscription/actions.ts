@@ -1,6 +1,6 @@
-'use server'
+"use server";
 
-import { getCurrentStore, hasPermission } from '@/lib/store-context'
+import { getCurrentStore, hasPermission } from "@/lib/store-context";
 import {
   createSubscriptionCheckoutSession,
   createCustomerPortalSession,
@@ -8,27 +8,27 @@ import {
   getOrCreateStripeCustomer,
   reactivateSubscription as reactivateSub,
   switchToPayAsYouGo as switchToPayg,
-} from '@/lib/stripe/subscriptions'
-import { revalidatePath } from 'next/cache'
-import type { Currency } from '@/lib/plans.shared'
-import { env } from '@/env'
+} from "@/lib/stripe/subscriptions";
+import { revalidatePath } from "next/cache";
+import type { Currency } from "@/lib/plans.shared";
+import { env } from "@/env";
 
 export async function createCheckoutSession({
   planSlug,
   interval,
   currency,
 }: {
-  planSlug: string
-  interval: 'monthly' | 'yearly'
-  currency: Currency
+  planSlug: string;
+  interval: "monthly" | "yearly";
+  currency: Currency;
 }) {
-  const store = await getCurrentStore()
+  const store = await getCurrentStore();
   if (!store) {
-    return { error: 'not_authenticated', url: null }
+    return { error: "not_authenticated", url: null };
   }
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    return { error: 'errors.permissionDenied', url: null }
+  if (!hasPermission(store.role, "manage_settings")) {
+    return { error: "errors.permissionDenied", url: null };
   }
 
   try {
@@ -41,26 +41,26 @@ export async function createCheckoutSession({
       stripeCouponId: store.stripeCouponId ?? undefined,
       successUrl: `${env.NEXT_PUBLIC_APP_URL}/dashboard/settings/subscription?success=true`,
       cancelUrl: `${env.NEXT_PUBLIC_APP_URL}/dashboard/settings/subscription?canceled=true`,
-    })
+    });
 
-    return session
+    return session;
   } catch (error) {
-    console.error('Error creating checkout session:', error)
+    console.error("Error creating checkout session:", error);
     const errorMessage =
-      error instanceof Error ? error.message : 'Failed to create checkout session'
-    return { error: errorMessage, url: null }
+      error instanceof Error ? error.message : "Failed to create checkout session";
+    return { error: errorMessage, url: null };
   }
 }
 
 export async function openCustomerPortal() {
-  const store = await getCurrentStore()
-  if (!store) throw new Error('Unauthorized')
+  const store = await getCurrentStore();
+  if (!store) throw new Error("Unauthorized");
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    throw new Error('errors.permissionDenied')
+  if (!hasPermission(store.role, "manage_settings")) {
+    throw new Error("errors.permissionDenied");
   }
 
-  return createCustomerPortalSession(store.id)
+  return createCustomerPortalSession(store.id);
 }
 
 /**
@@ -70,28 +70,28 @@ export async function openCustomerPortal() {
  * payment method and view/pay their month-end invoices.
  */
 export async function openBillingPortal() {
-  const store = await getCurrentStore()
-  if (!store) throw new Error('Unauthorized')
+  const store = await getCurrentStore();
+  if (!store) throw new Error("Unauthorized");
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    throw new Error('errors.permissionDenied')
+  if (!hasPermission(store.role, "manage_settings")) {
+    throw new Error("errors.permissionDenied");
   }
 
-  await getOrCreateStripeCustomer(store.id)
-  return createCustomerPortalSession(store.id)
+  await getOrCreateStripeCustomer(store.id);
+  return createCustomerPortalSession(store.id);
 }
 
 export async function cancelSubscription() {
-  const store = await getCurrentStore()
-  if (!store) throw new Error('Unauthorized')
+  const store = await getCurrentStore();
+  if (!store) throw new Error("Unauthorized");
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    throw new Error('errors.permissionDenied')
+  if (!hasPermission(store.role, "manage_settings")) {
+    throw new Error("errors.permissionDenied");
   }
 
-  const result = await cancelSub(store.id)
-  revalidatePath('/dashboard/settings/subscription')
-  return result
+  const result = await cancelSub(store.id);
+  revalidatePath("/dashboard/settings/subscription");
+  return result;
 }
 
 /**
@@ -100,32 +100,32 @@ export async function cancelSubscription() {
  * can confirm or show the effective date.
  */
 export async function switchToPayAsYouGo() {
-  const store = await getCurrentStore()
-  if (!store) return { error: 'errors.unauthorized' as const }
+  const store = await getCurrentStore();
+  if (!store) return { error: "errors.unauthorized" as const };
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    return { error: 'errors.permissionDenied' as const }
+  if (!hasPermission(store.role, "manage_settings")) {
+    return { error: "errors.permissionDenied" as const };
   }
 
   try {
-    const result = await switchToPayg(store.id)
-    revalidatePath('/dashboard/settings/subscription')
-    return { success: true as const, ...result }
+    const result = await switchToPayg(store.id);
+    revalidatePath("/dashboard/settings/subscription");
+    return { success: true as const, ...result };
   } catch (error) {
-    console.error('Error switching to pay-as-you-go:', error)
-    return { error: 'errors.switchFailed' as const }
+    console.error("Error switching to pay-as-you-go:", error);
+    return { error: "errors.switchFailed" as const };
   }
 }
 
 export async function reactivateSubscription() {
-  const store = await getCurrentStore()
-  if (!store) throw new Error('Unauthorized')
+  const store = await getCurrentStore();
+  if (!store) throw new Error("Unauthorized");
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    throw new Error('errors.permissionDenied')
+  if (!hasPermission(store.role, "manage_settings")) {
+    throw new Error("errors.permissionDenied");
   }
 
-  const result = await reactivateSub(store.id)
-  revalidatePath('/dashboard/settings/subscription')
-  return result
+  const result = await reactivateSub(store.id);
+  revalidatePath("/dashboard/settings/subscription");
+  return result;
 }

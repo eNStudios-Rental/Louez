@@ -1,23 +1,18 @@
-'use client';
+"use client";
 
-import { AlertTriangle, StickyNote } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { AlertTriangle, StickyNote } from "lucide-react";
+import { useTranslations } from "next-intl";
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@louez/ui';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@louez/ui";
 
-import type { ProductInventoryUnit } from '../../queries';
+import type { ProductInventoryUnit } from "../../queries";
 
 interface IndicatorsCellProps {
   row: ProductInventoryUnit;
 }
 
 export const IndicatorsCell = ({ row }: IndicatorsCellProps) => {
-  const t = useTranslations('dashboard.inventory.indicators');
+  const t = useTranslations("dashboard.inventory.indicators");
 
   return (
     <TooltipProvider>
@@ -31,7 +26,7 @@ export const IndicatorsCell = ({ row }: IndicatorsCellProps) => {
             >
               <AlertTriangle className="h-4 w-4" />
             </TooltipTrigger>
-            <TooltipContent>{t('conflicts')}</TooltipContent>
+            <TooltipContent>{t("conflicts")}</TooltipContent>
           </Tooltip>
         ) : null}
         {row.notes ? (
@@ -43,7 +38,7 @@ export const IndicatorsCell = ({ row }: IndicatorsCellProps) => {
             >
               <StickyNote className="h-4 w-4" />
             </TooltipTrigger>
-            <TooltipContent>{t('notes')}</TooltipContent>
+            <TooltipContent>{t("notes")}</TooltipContent>
           </Tooltip>
         ) : null}
         {!row.hasConflicts && !row.notes ? (

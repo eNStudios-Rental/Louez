@@ -24,7 +24,5 @@ export default async function PromoCodesSettingsPage() {
     orderBy: (promoCodes, { desc }) => [desc(promoCodes.createdAt)],
   });
 
-  return (
-    <PromoCodesSettingsContent codes={codes} currency={currency} />
-  );
+  return <PromoCodesSettingsContent codes={codes} currency={currency} />;
 }

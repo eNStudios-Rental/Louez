@@ -11,7 +11,7 @@
  * - All admin access should be logged for audit purposes
  */
 
-import { auth } from '@/lib/auth'
+import { auth } from "@/lib/auth";
 
 /**
  * Parses the admin emails from environment variable
@@ -23,12 +23,12 @@ function getAdminEmails(): string[] {
   // raw CSV string. A substring `includes()` on a raw string would let any email contained
   // in the configured value pass as a platform admin, so we parse to an array here and keep
   // membership an exact check.
-  const configured = process.env.PLATFORM_ADMIN_EMAILS
-  if (!configured) return []
+  const configured = process.env.PLATFORM_ADMIN_EMAILS;
+  if (!configured) return [];
   return configured
-    .split(',')
+    .split(",")
     .map((email) => email.trim().toLowerCase())
-    .filter(Boolean)
+    .filter(Boolean);
 }
 
 /**
@@ -38,17 +38,17 @@ function getAdminEmails(): string[] {
  * @returns true if the email is in the admin list
  */
 export function isPlatformAdmin(email: string | null | undefined): boolean {
-  if (!email) return false
+  if (!email) return false;
 
-  const adminEmails = getAdminEmails()
+  const adminEmails = getAdminEmails();
 
   // No admins configured - feature is disabled
   if (adminEmails.length === 0) {
-    return false
+    return false;
   }
 
   // Exact match comparison (case-insensitive)
-  return adminEmails.includes(email.toLowerCase().trim())
+  return adminEmails.includes(email.toLowerCase().trim());
 }
 
 /**
@@ -58,11 +58,11 @@ export function isPlatformAdmin(email: string | null | undefined): boolean {
  * @returns true if the current user is a platform admin
  */
 export async function isCurrentUserPlatformAdmin(): Promise<boolean> {
-  const session = await auth()
+  const session = await auth();
 
   if (!session?.user?.email) {
-    return false
+    return false;
   }
 
-  return isPlatformAdmin(session.user.email)
+  return isPlatformAdmin(session.user.email);
 }

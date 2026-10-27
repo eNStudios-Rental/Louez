@@ -6,12 +6,12 @@ interface CustomerRowLike {
   lastName: string | null;
   phone: string | null;
   customerType?: "individual" | "business" | null;
-  companyName: string | null;
-  companyNumber: string | null;
-  vatNumber: string | null;
-  address: string | null;
-  city: string | null;
-  postalCode: string | null;
+  companyName?: string | null;
+  companyNumber?: string | null;
+  vatNumber?: string | null;
+  address?: string | null;
+  city?: string | null;
+  postalCode?: string | null;
 }
 
 /** Form-ready customer from a `customers` row (session or OTP login). */

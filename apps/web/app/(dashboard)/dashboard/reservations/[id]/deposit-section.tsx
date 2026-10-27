@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useTranslations } from 'next-intl'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CreditCard,
   Shield,
@@ -12,12 +12,12 @@ import {
   AlertTriangle,
   Check,
   Banknote,
-} from 'lucide-react'
-import { toastManager } from '@louez/ui'
-import { formatDistanceToNow } from 'date-fns'
+} from "lucide-react";
+import { toastManager } from "@louez/ui";
+import { formatDistanceToNow } from "date-fns";
 
-import { Button } from '@louez/ui'
-import { Badge } from '@louez/ui'
+import { Button } from "@louez/ui";
+import { Badge } from "@louez/ui";
 import {
   CreditCardSolidIcon,
   FailedSolidIcon,
@@ -26,8 +26,8 @@ import {
   SubmittedSolidIcon,
   SuccessSolidIcon,
   XCircleSolidIcon,
-} from '@louez/ui/icons'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@louez/ui'
+} from "@louez/ui/icons";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@louez/ui";
 import {
   Dialog,
   DialogPopup,
@@ -36,7 +36,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@louez/ui'
+} from "@louez/ui";
 import {
   AlertDialog,
   AlertDialogClose,
@@ -45,45 +45,52 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@louez/ui'
-import { Input } from '@louez/ui'
-import { Label } from '@louez/ui'
-import { Textarea } from '@louez/ui'
-import { Progress } from '@louez/ui'
-import { cn, getCurrencySymbol } from '@louez/utils'
+} from "@louez/ui";
+import { Input } from "@louez/ui";
+import { Label } from "@louez/ui";
+import { Textarea } from "@louez/ui";
+import { Progress } from "@louez/ui";
+import { cn, getCurrencySymbol } from "@louez/utils";
 
-import { orpc } from '@/lib/orpc/react'
-import { invalidateReservationAll } from '@/lib/orpc/invalidation'
-import { useFormatLocale } from '@/hooks/use-format-locale'
+import { orpc } from "@/lib/orpc/react";
+import { invalidateReservationAll } from "@/lib/orpc/invalidation";
+import { useFormatLocale } from "@/hooks/use-format-locale";
 
-type DepositStatus = 'none' | 'pending' | 'card_saved' | 'authorized' | 'captured' | 'released' | 'failed'
+type DepositStatus =
+  | "none"
+  | "pending"
+  | "card_saved"
+  | "authorized"
+  | "captured"
+  | "released"
+  | "failed";
 
 interface PaymentMethodInfo {
-  id: string
-  brand: string | null
-  last4: string | null
-  expMonth: number | null
-  expYear: number | null
+  id: string;
+  brand: string | null;
+  last4: string | null;
+  expMonth: number | null;
+  expYear: number | null;
 }
 
 interface DepositSectionProps {
-  reservationId: string
-  depositAmount: string
-  depositStatus: DepositStatus | null
-  depositAuthorizationExpiresAt: Date | null
-  stripePaymentMethodId: string | null
-  currency?: string
+  reservationId: string;
+  depositAmount: string;
+  depositStatus: DepositStatus | null;
+  depositAuthorizationExpiresAt: Date | null;
+  stripePaymentMethodId: string | null;
+  currency?: string;
 }
 
 const CARD_BRANDS: Record<string, string> = {
-  visa: 'Visa',
-  mastercard: 'Mastercard',
-  amex: 'American Express',
-  discover: 'Discover',
-  diners: 'Diners Club',
-  jcb: 'JCB',
-  unionpay: 'UnionPay',
-}
+  visa: "Visa",
+  mastercard: "Mastercard",
+  amex: "American Express",
+  discover: "Discover",
+  diners: "Diners Club",
+  jcb: "JCB",
+  unionpay: "UnionPay",
+};
 
 export function DepositSection({
   reservationId,
@@ -91,213 +98,213 @@ export function DepositSection({
   depositStatus,
   depositAuthorizationExpiresAt,
   stripePaymentMethodId,
-  currency = 'PLN',
+  currency = "PLN",
 }: DepositSectionProps) {
-  const t = useTranslations('dashboard.reservations.deposit')
-  const { dateFns: dateLocale } = useFormatLocale()
-  const tCommon = useTranslations('common')
-  const tErrors = useTranslations('errors')
-  const currencySymbol = getCurrencySymbol(currency)
-  const queryClient = useQueryClient()
+  const t = useTranslations("dashboard.reservations.deposit");
+  const { dateFns: dateLocale } = useFormatLocale();
+  const tCommon = useTranslations("common");
+  const tErrors = useTranslations("errors");
+  const currencySymbol = getCurrencySymbol(currency);
+  const queryClient = useQueryClient();
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodInfo | null>(null)
-  const [captureModalOpen, setCaptureModalOpen] = useState(false)
-  const [releaseDialogOpen, setReleaseDialogOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodInfo | null>(null);
+  const [captureModalOpen, setCaptureModalOpen] = useState(false);
+  const [releaseDialogOpen, setReleaseDialogOpen] = useState(false);
 
   // Capture form state
-  const [captureAmount, setCaptureAmount] = useState('')
-  const [captureReason, setCaptureReason] = useState('')
+  const [captureAmount, setCaptureAmount] = useState("");
+  const [captureReason, setCaptureReason] = useState("");
 
-  const amount = parseFloat(depositAmount)
-  const status = depositStatus || 'pending'
+  const amount = parseFloat(depositAmount);
+  const status = depositStatus || "pending";
 
   // Calculate time remaining for authorization
   const authorizationExpired = depositAuthorizationExpiresAt
     ? new Date(depositAuthorizationExpiresAt) < new Date()
-    : false
+    : false;
 
   const authorizationTimeRemaining = depositAuthorizationExpiresAt
     ? formatDistanceToNow(new Date(depositAuthorizationExpiresAt), {
         locale: dateLocale,
         addSuffix: true,
       })
-    : null
+    : null;
 
   // Calculate progress for authorization countdown (7 days total)
   const getAuthorizationProgress = () => {
-    if (!depositAuthorizationExpiresAt) return 0
-    const expiresAt = new Date(depositAuthorizationExpiresAt).getTime()
-    const now = Date.now()
-    const sevenDays = 7 * 24 * 60 * 60 * 1000
-    const createdAt = expiresAt - sevenDays
-    const elapsed = now - createdAt
-    const progress = Math.max(0, Math.min(100, (elapsed / sevenDays) * 100))
-    return 100 - progress // Reverse for "time remaining"
-  }
+    if (!depositAuthorizationExpiresAt) return 0;
+    const expiresAt = new Date(depositAuthorizationExpiresAt).getTime();
+    const now = Date.now();
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    const createdAt = expiresAt - sevenDays;
+    const elapsed = now - createdAt;
+    const progress = Math.max(0, Math.min(100, (elapsed / sevenDays) * 100));
+    return 100 - progress; // Reverse for "time remaining"
+  };
 
   const paymentMethodQuery = useQuery({
     ...orpc.dashboard.reservations.getPaymentMethod.queryOptions({
       input: { reservationId },
     }),
-    enabled: Boolean(stripePaymentMethodId && status !== 'none'),
-  })
+    enabled: Boolean(stripePaymentMethodId && status !== "none"),
+  });
 
   useEffect(() => {
-    setPaymentMethod((paymentMethodQuery.data as PaymentMethodInfo | null) || null)
-  }, [paymentMethodQuery.data])
+    setPaymentMethod((paymentMethodQuery.data as PaymentMethodInfo | null) || null);
+  }, [paymentMethodQuery.data]);
 
   const createHoldMutation = useMutation(
     orpc.dashboard.reservations.createDepositHold.mutationOptions({
       onSuccess: async () => {
-        await invalidateReservationAll(queryClient, reservationId)
+        await invalidateReservationAll(queryClient, reservationId);
       },
     }),
-  )
+  );
 
   const captureHoldMutation = useMutation(
     orpc.dashboard.reservations.captureDepositHold.mutationOptions({
       onSuccess: async () => {
-        await invalidateReservationAll(queryClient, reservationId)
+        await invalidateReservationAll(queryClient, reservationId);
       },
     }),
-  )
+  );
 
   const releaseHoldMutation = useMutation(
     orpc.dashboard.reservations.releaseDepositHold.mutationOptions({
       onSuccess: async () => {
-        await invalidateReservationAll(queryClient, reservationId)
+        await invalidateReservationAll(queryClient, reservationId);
       },
     }),
-  )
+  );
 
   const handleCreateHold = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await createHoldMutation.mutateAsync({ reservationId })
-      toastManager.add({ title: t('holdCreated'), type: 'success' })
+      await createHoldMutation.mutateAsync({ reservationId });
+      toastManager.add({ title: t("holdCreated"), type: "success" });
     } catch {
-      toastManager.add({ title: tErrors('generic'), type: 'error' })
+      toastManager.add({ title: tErrors("generic"), type: "error" });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleCapture = async () => {
-    const captureAmountNum = parseFloat(captureAmount)
+    const captureAmountNum = parseFloat(captureAmount);
     if (isNaN(captureAmountNum) || captureAmountNum <= 0) {
-      toastManager.add({ title: t('invalidCaptureAmount'), type: 'error' })
-      return
+      toastManager.add({ title: t("invalidCaptureAmount"), type: "error" });
+      return;
     }
 
     if (captureAmountNum > amount) {
-      toastManager.add({ title: t('captureExceedsDeposit'), type: 'error' })
-      return
+      toastManager.add({ title: t("captureExceedsDeposit"), type: "error" });
+      return;
     }
 
     if (!captureReason.trim()) {
-      toastManager.add({ title: t('reasonRequired'), type: 'error' })
-      return
+      toastManager.add({ title: t("reasonRequired"), type: "error" });
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       await captureHoldMutation.mutateAsync({
         reservationId,
         payload: { amount: captureAmountNum, reason: captureReason },
-      })
-      toastManager.add({ title: t('captured'), type: 'success' })
-      setCaptureModalOpen(false)
-      setCaptureAmount('')
-      setCaptureReason('')
+      });
+      toastManager.add({ title: t("captured"), type: "success" });
+      setCaptureModalOpen(false);
+      setCaptureAmount("");
+      setCaptureReason("");
     } catch {
-      toastManager.add({ title: tErrors('generic'), type: 'error' })
+      toastManager.add({ title: tErrors("generic"), type: "error" });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleRelease = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await releaseHoldMutation.mutateAsync({ reservationId })
-      toastManager.add({ title: t('released'), type: 'success' })
-      setReleaseDialogOpen(false)
+      await releaseHoldMutation.mutateAsync({ reservationId });
+      toastManager.add({ title: t("released"), type: "success" });
+      setReleaseDialogOpen(false);
     } catch {
-      toastManager.add({ title: tErrors('generic'), type: 'error' })
+      toastManager.add({ title: tErrors("generic"), type: "error" });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Don't show if no deposit required
   if (amount <= 0) {
-    return null
+    return null;
   }
 
   const getStatusConfig = () => {
     switch (status) {
-      case 'none':
+      case "none":
         return {
           icon: ShieldSolidIcon,
-          iconClass: 'text-muted-foreground',
-          badgeVariant: 'expired' as const,
-          label: t('status.none'),
-        }
-      case 'pending':
+          iconClass: "text-muted-foreground",
+          badgeVariant: "expired" as const,
+          label: t("status.none"),
+        };
+      case "pending":
         return {
           icon: PendingSolidIcon,
-          iconClass: 'text-amber-500',
-          badgeVariant: 'pending' as const,
-          label: t('status.pending'),
-        }
-      case 'card_saved':
+          iconClass: "text-amber-500",
+          badgeVariant: "pending" as const,
+          label: t("status.pending"),
+        };
+      case "card_saved":
         return {
           icon: CreditCardSolidIcon,
-          iconClass: 'text-blue-500',
-          badgeVariant: 'submitted' as const,
-          label: t('status.cardSaved'),
-        }
-      case 'authorized':
+          iconClass: "text-blue-500",
+          badgeVariant: "submitted" as const,
+          label: t("status.cardSaved"),
+        };
+      case "authorized":
         return {
           icon: SubmittedSolidIcon,
-          iconClass: 'text-amber-500',
-          badgeVariant: 'submitted' as const,
-          label: t('status.authorized'),
-        }
-      case 'captured':
+          iconClass: "text-amber-500",
+          badgeVariant: "submitted" as const,
+          label: t("status.authorized"),
+        };
+      case "captured":
         return {
           icon: FailedSolidIcon,
-          iconClass: 'text-red-500',
-          badgeVariant: 'failed' as const,
-          label: t('status.captured'),
-        }
-      case 'released':
+          iconClass: "text-red-500",
+          badgeVariant: "failed" as const,
+          label: t("status.captured"),
+        };
+      case "released":
         return {
           icon: SuccessSolidIcon,
-          iconClass: 'text-emerald-500',
-          badgeVariant: 'success' as const,
-          label: t('status.released'),
-        }
-      case 'failed':
+          iconClass: "text-emerald-500",
+          badgeVariant: "success" as const,
+          label: t("status.released"),
+        };
+      case "failed":
         return {
           icon: XCircleSolidIcon,
-          iconClass: 'text-red-500',
-          badgeVariant: 'failed' as const,
-          label: t('status.failed'),
-        }
+          iconClass: "text-red-500",
+          badgeVariant: "failed" as const,
+          label: t("status.failed"),
+        };
       default:
         return {
           icon: ShieldSolidIcon,
-          iconClass: 'text-muted-foreground',
-          badgeVariant: 'expired' as const,
+          iconClass: "text-muted-foreground",
+          badgeVariant: "expired" as const,
           label: status,
-        }
+        };
     }
-  }
+  };
 
-  const statusConfig = getStatusConfig()
-  const StatusIcon = statusConfig.icon
+  const statusConfig = getStatusConfig();
+  const StatusIcon = statusConfig.icon;
 
   return (
     <>
@@ -306,64 +313,73 @@ export function DepositSection({
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              {t('title')}
+              {t("title")}
             </CardTitle>
             <Badge variant={statusConfig.badgeVariant}>
               <StatusIcon className="h-3 w-3 mr-1" />
               {statusConfig.label}
             </Badge>
           </div>
-          <CardDescription>{t('description')}</CardDescription>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           {/* Deposit amount */}
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-            <span className="text-sm text-muted-foreground">{t('amount')}</span>
+            <span className="text-sm text-muted-foreground">{t("amount")}</span>
             <span className="font-semibold">
-              {amount.toFixed(2)}{currencySymbol}
+              {amount.toFixed(2)}
+              {currencySymbol}
             </span>
           </div>
 
           {/* Saved card info */}
-          {paymentMethod && status !== 'none' && status !== 'pending' && (
+          {paymentMethod && status !== "none" && status !== "pending" && (
             <div className="flex items-center justify-between p-3 rounded-lg border">
               <div className="flex items-center gap-2">
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">
-                  {CARD_BRANDS[paymentMethod.brand || ''] || paymentMethod.brand}
-                  {' '}
+                  {CARD_BRANDS[paymentMethod.brand || ""] || paymentMethod.brand}{" "}
                   <span className="font-mono">****{paymentMethod.last4}</span>
                 </span>
               </div>
               {paymentMethod.expMonth && paymentMethod.expYear && (
                 <span className="text-xs text-muted-foreground">
-                  {String(paymentMethod.expMonth).padStart(2, '0')}/{String(paymentMethod.expYear).slice(-2)}
+                  {String(paymentMethod.expMonth).padStart(2, "0")}/
+                  {String(paymentMethod.expYear).slice(-2)}
                 </span>
               )}
             </div>
           )}
 
           {/* Authorization expiration warning */}
-          {status === 'authorized' && depositAuthorizationExpiresAt && (
-            <div className={cn(
-              'p-3 rounded-lg border space-y-2',
-              authorizationExpired
-                ? 'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/20'
-                : 'border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/20'
-            )}>
+          {status === "authorized" && depositAuthorizationExpiresAt && (
+            <div
+              className={cn(
+                "p-3 rounded-lg border space-y-2",
+                authorizationExpired
+                  ? "border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/20"
+                  : "border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/20",
+              )}
+            >
               <div className="flex items-center gap-2">
-                <Clock className={cn(
-                  'h-4 w-4',
-                  authorizationExpired ? 'text-red-500' : 'text-amber-500'
-                )} />
-                <span className={cn(
-                  'text-sm font-medium',
-                  authorizationExpired
-                    ? 'text-red-700 dark:text-red-400'
-                    : 'text-amber-700 dark:text-amber-400'
-                )}>
-                  {authorizationExpired ? t('expired') : t('expiresIn', { time: authorizationTimeRemaining ?? '' })}
+                <Clock
+                  className={cn(
+                    "h-4 w-4",
+                    authorizationExpired ? "text-red-500" : "text-amber-500",
+                  )}
+                />
+                <span
+                  className={cn(
+                    "text-sm font-medium",
+                    authorizationExpired
+                      ? "text-red-700 dark:text-red-400"
+                      : "text-amber-700 dark:text-amber-400",
+                  )}
+                >
+                  {authorizationExpired
+                    ? t("expired")
+                    : t("expiresIn", { time: authorizationTimeRemaining ?? "" })}
                 </span>
               </div>
               {!authorizationExpired && (
@@ -373,101 +389,93 @@ export function DepositSection({
           )}
 
           {/* Status-specific messages */}
-          {status === 'pending' && (
+          {status === "pending" && (
             <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
-                    {t('pendingTitle')}
+                    {t("pendingTitle")}
                   </p>
                   <p className="text-xs text-amber-600 dark:text-amber-500">
-                    {t('pendingDescription')}
+                    {t("pendingDescription")}
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {status === 'card_saved' && (
+          {status === "card_saved" && (
             <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900">
               <div className="flex items-start gap-2">
                 <CreditCard className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
-                    {t('cardSavedTitle')}
+                    {t("cardSavedTitle")}
                   </p>
                   <p className="text-xs text-blue-600 dark:text-blue-500">
-                    {t('cardSavedDescription')}
+                    {t("cardSavedDescription")}
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {status === 'authorized' && !authorizationExpired && (
+          {status === "authorized" && !authorizationExpired && (
             <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900">
               <div className="flex items-start gap-2">
                 <ShieldCheck className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
-                    {t('authorizedTitle')}
+                    {t("authorizedTitle")}
                   </p>
                   <p className="text-xs text-emerald-600 dark:text-emerald-500">
-                    {t('authorizedDescription')}
+                    {t("authorizedDescription")}
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {status === 'released' && (
+          {status === "released" && (
             <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900">
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-emerald-500" />
                 <p className="text-sm text-emerald-700 dark:text-emerald-400">
-                  {t('releasedDescription')}
+                  {t("releasedDescription")}
                 </p>
               </div>
             </div>
           )}
 
-          {status === 'captured' && (
+          {status === "captured" && (
             <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900">
               <div className="flex items-center gap-2">
                 <Banknote className="h-4 w-4 text-red-500" />
-                <p className="text-sm text-red-700 dark:text-red-400">
-                  {t('capturedDescription')}
-                </p>
+                <p className="text-sm text-red-700 dark:text-red-400">{t("capturedDescription")}</p>
               </div>
             </div>
           )}
 
-          {status === 'failed' && (
+          {status === "failed" && (
             <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-red-500" />
-                <p className="text-sm text-red-700 dark:text-red-400">
-                  {t('failedDescription')}
-                </p>
+                <p className="text-sm text-red-700 dark:text-red-400">{t("failedDescription")}</p>
               </div>
             </div>
           )}
 
           {/* Actions */}
           <div className="flex flex-wrap gap-2 pt-2">
-            {status === 'card_saved' && (
-              <Button
-                onClick={handleCreateHold}
-                isPending={isLoading}
-                className="w-full"
-              >
+            {status === "card_saved" && (
+              <Button onClick={handleCreateHold} isPending={isLoading} className="w-full">
                 <ShieldCheck data-slot="icon" />
-                {t('createHold')}
+                {t("createHold")}
               </Button>
             )}
 
-            {status === 'authorized' && !authorizationExpired && (
+            {status === "authorized" && !authorizationExpired && (
               <>
                 <Button
                   variant="outline"
@@ -476,19 +484,19 @@ export function DepositSection({
                   className="flex-1"
                 >
                   <Check className="mr-2 h-4 w-4" />
-                  {t('release')}
+                  {t("release")}
                 </Button>
                 <Button
                   variant="destructive"
                   onClick={() => {
-                    setCaptureAmount(amount.toFixed(2))
-                    setCaptureModalOpen(true)
+                    setCaptureAmount(amount.toFixed(2));
+                    setCaptureModalOpen(true);
                   }}
                   disabled={isLoading}
                   className="flex-1"
                 >
                   <Banknote className="mr-2 h-4 w-4" />
-                  {t('capture')}
+                  {t("capture")}
                 </Button>
               </>
             )}
@@ -502,62 +510,61 @@ export function DepositSection({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-red-500" />
-              {t('captureTitle')}
+              {t("captureTitle")}
             </DialogTitle>
-            <DialogDescription>
-              {t('captureDescription')}
-            </DialogDescription>
+            <DialogDescription>{t("captureDescription")}</DialogDescription>
           </DialogHeader>
 
           <DialogPanel>
-          <div className="space-y-4">
-            {/* Maximum amount info */}
-            <div className="p-3 rounded-lg bg-muted text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">{t('maxCapturable')}</span>
-                <span className="font-medium">{amount.toFixed(2)}{currencySymbol}</span>
+            <div className="space-y-4">
+              {/* Maximum amount info */}
+              <div className="p-3 rounded-lg bg-muted text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t("maxCapturable")}</span>
+                  <span className="font-medium">
+                    {amount.toFixed(2)}
+                    {currencySymbol}
+                  </span>
+                </div>
               </div>
-            </div>
 
-            {/* Amount input */}
-            <div className="space-y-2">
-              <Label htmlFor="captureAmount">{t('captureAmount')}</Label>
-              <div className="relative">
-                <Input
-                  id="captureAmount"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  max={amount}
-                  value={captureAmount}
-                  onChange={(e) => setCaptureAmount(e.target.value)}
-                  placeholder="0.00"
-                  className="pr-12"
+              {/* Amount input */}
+              <div className="space-y-2">
+                <Label htmlFor="captureAmount">{t("captureAmount")}</Label>
+                <div className="relative">
+                  <Input
+                    id="captureAmount"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    max={amount}
+                    value={captureAmount}
+                    onChange={(e) => setCaptureAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="pr-12"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                    {currencySymbol}
+                  </span>
+                </div>
+              </div>
+
+              {/* Reason input */}
+              <div className="space-y-2">
+                <Label htmlFor="captureReason">
+                  {t("captureReason")} <span className="text-destructive">*</span>
+                </Label>
+                <Textarea
+                  id="captureReason"
+                  value={captureReason}
+                  onChange={(e) => setCaptureReason(e.target.value)}
+                  placeholder={t("captureReasonPlaceholder")}
+                  rows={3}
+                  className="resize-none"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                  {currencySymbol}
-                </span>
+                <p className="text-xs text-muted-foreground">{t("captureReasonHint")}</p>
               </div>
             </div>
-
-            {/* Reason input */}
-            <div className="space-y-2">
-              <Label htmlFor="captureReason">
-                {t('captureReason')} <span className="text-destructive">*</span>
-              </Label>
-              <Textarea
-                id="captureReason"
-                value={captureReason}
-                onChange={(e) => setCaptureReason(e.target.value)}
-                placeholder={t('captureReasonPlaceholder')}
-                rows={3}
-                className="resize-none"
-              />
-              <p className="text-xs text-muted-foreground">
-                {t('captureReasonHint')}
-              </p>
-            </div>
-          </div>
           </DialogPanel>
 
           <DialogFooter>
@@ -566,14 +573,10 @@ export function DepositSection({
               onClick={() => setCaptureModalOpen(false)}
               disabled={isLoading}
             >
-              {tCommon('cancel')}
+              {tCommon("cancel")}
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleCapture}
-              isPending={isLoading}
-            >
-              {t('confirmCapture')}
+            <Button variant="destructive" onClick={handleCapture} isPending={isLoading}>
+              {t("confirmCapture")}
             </Button>
           </DialogFooter>
         </DialogPopup>
@@ -585,15 +588,15 @@ export function DepositSection({
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-emerald-500" />
-              {t('releaseTitle')}
+              {t("releaseTitle")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t('releaseDescription', { amount: `${amount.toFixed(2)}${currencySymbol}` })}
+              {t("releaseDescription", { amount: `${amount.toFixed(2)}${currencySymbol}` })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogClose render={<Button variant="outline" />} disabled={isLoading}>
-              {tCommon('cancel')}
+              {tCommon("cancel")}
             </AlertDialogClose>
             <AlertDialogClose
               render={<Button className="bg-emerald-600 text-white hover:bg-emerald-700" />}
@@ -601,11 +604,11 @@ export function DepositSection({
               disabled={isLoading}
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {t('confirmRelease')}
+              {t("confirmRelease")}
             </AlertDialogClose>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }

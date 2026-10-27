@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
 
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
@@ -12,9 +12,7 @@ interface CalendarPageProps {
  * The calendar page has been merged into the reservations page.
  * Redirect while translating the old query params to the unified scheme.
  */
-export default async function CalendarPage({
-  searchParams,
-}: CalendarPageProps) {
+export default async function CalendarPage({ searchParams }: CalendarPageProps) {
   const params = await searchParams;
 
   const getParam = (key: string) => {
@@ -24,20 +22,19 @@ export default async function CalendarPage({
 
   const target = new URLSearchParams();
 
-  const view = getParam('view') === 'products' ? 'planning' : 'calendar';
-  target.set('view', view);
+  const view = getParam("view") === "products" ? "planning" : "calendar";
+  target.set("view", view);
 
-  const date = getParam('date');
-  if (date) target.set('date', date);
+  const date = getParam("date");
+  if (date) target.set("date", date);
 
-  const range =
-    view === 'planning' ? getParam('productsPeriod') : getParam('calendarPeriod');
-  if (range === 'week' || range === 'twoWeeks' || range === 'month') {
-    target.set('range', range);
+  const range = view === "planning" ? getParam("productsPeriod") : getParam("calendarPeriod");
+  if (range === "week" || range === "twoWeeks" || range === "month") {
+    target.set("range", range);
   }
 
-  const productId = getParam('productId');
-  if (productId && productId !== 'all') target.set('productId', productId);
+  const productId = getParam("productId");
+  if (productId && productId !== "all") target.set("productId", productId);
 
   redirect(`/dashboard/reservations?${target.toString()}`);
 }

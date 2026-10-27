@@ -1,16 +1,16 @@
-'use server'
+"use server";
 
-import { revalidatePath } from 'next/cache'
-import { and, eq } from 'drizzle-orm'
-import { z } from 'zod'
-import { nanoid } from 'nanoid'
+import { revalidatePath } from "next/cache";
+import { and, eq } from "drizzle-orm";
+import { z } from "zod";
+import { nanoid } from "nanoid";
 
-import { db } from '@louez/db'
-import { storeLocations, stores } from '@louez/db'
-import { getCurrentStore, hasPermission } from '@/lib/store-context'
-import type { DeliverySettings } from '@louez/types'
+import { db } from "@louez/db";
+import { storeLocations, stores } from "@louez/db";
+import { getCurrentStore, hasPermission } from "@/lib/store-context";
+import type { DeliverySettings } from "@louez/types";
 
-const DELIVERY_MODES = ['optional', 'required', 'included'] as const
+const DELIVERY_MODES = ["optional", "required", "included"] as const;
 
 const deliverySettingsSchema = z.object({
   enabled: z.boolean(),
@@ -21,28 +21,28 @@ const deliverySettingsSchema = z.object({
   maximumDistance: z.number().min(1).max(500).nullable(),
   freeDeliveryThreshold: z.number().min(0).max(100000).nullable(),
   minimumOrderAmountForDelivery: z.number().min(0).max(100000).nullable(),
-})
+});
 
-type DeliverySettingsInput = z.infer<typeof deliverySettingsSchema>
+type DeliverySettingsInput = z.infer<typeof deliverySettingsSchema>;
 
 export async function updateDeliverySettings(data: DeliverySettingsInput) {
-  const store = await getCurrentStore()
+  const store = await getCurrentStore();
   if (!store) {
-    return { error: 'errors.unauthorized' }
+    return { error: "errors.unauthorized" };
   }
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    return { error: 'errors.permissionDenied' }
+  if (!hasPermission(store.role, "manage_settings")) {
+    return { error: "errors.permissionDenied" };
   }
 
-  const validated = deliverySettingsSchema.safeParse(data)
+  const validated = deliverySettingsSchema.safeParse(data);
   if (!validated.success) {
-    return { error: 'errors.invalidData' }
+    return { error: "errors.invalidData" };
   }
 
   // Validate store has coordinates if enabling delivery
   if (validated.data.enabled && (!store.latitude || !store.longitude)) {
-    return { error: 'errors.storeCoordinatesRequired' }
+    return { error: "errors.storeCoordinatesRequired" };
   }
 
   const deliverySettings: DeliverySettings = {
@@ -54,15 +54,15 @@ export async function updateDeliverySettings(data: DeliverySettingsInput) {
     maximumDistance: validated.data.maximumDistance,
     freeDeliveryThreshold: validated.data.freeDeliveryThreshold,
     minimumOrderAmountForDelivery: validated.data.minimumOrderAmountForDelivery,
-  }
+  };
 
   const currentSettings = store.settings || {
-    reservationMode: 'payment' as const,
+    reservationMode: "payment" as const,
     minRentalMinutes: 60,
     maxRentalMinutes: null,
     advanceNoticeMinutes: 1440,
     turnoverBufferMinutes: 0,
-  }
+  };
 
   await db
     .update(stores)
@@ -73,11 +73,11 @@ export async function updateDeliverySettings(data: DeliverySettingsInput) {
       },
       updatedAt: new Date(),
     })
-    .where(eq(stores.id, store.id))
+    .where(eq(stores.id, store.id));
 
-  revalidatePath('/dashboard/settings/delivery')
-  revalidatePath('/dashboard/settings')
-  return { success: true }
+  revalidatePath("/dashboard/settings/delivery");
+  revalidatePath("/dashboard/settings");
+  return { success: true };
 }
 
 const locationSchema = z.object({
@@ -89,21 +89,21 @@ const locationSchema = z.object({
   country: z.string().trim().length(2).optional().nullable(),
   latitude: z.number().min(-90).max(90).optional().nullable(),
   longitude: z.number().min(-180).max(180).optional().nullable(),
-})
+});
 
 export async function upsertStoreLocation(data: z.infer<typeof locationSchema>) {
-  const store = await getCurrentStore()
+  const store = await getCurrentStore();
   if (!store) {
-    return { error: 'errors.unauthorized' }
+    return { error: "errors.unauthorized" };
   }
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    return { error: 'errors.permissionDenied' }
+  if (!hasPermission(store.role, "manage_settings")) {
+    return { error: "errors.permissionDenied" };
   }
 
-  const validated = locationSchema.safeParse(data)
+  const validated = locationSchema.safeParse(data);
   if (!validated.success) {
-    return { error: 'errors.invalidData' }
+    return { error: "errors.invalidData" };
   }
 
   const values = {
@@ -112,46 +112,43 @@ export async function upsertStoreLocation(data: z.infer<typeof locationSchema>) 
     address: validated.data.address,
     city: validated.data.city || null,
     postalCode: validated.data.postalCode || null,
-    country: validated.data.country || store.settings?.country || 'FR',
+    country: validated.data.country || store.settings?.country || "FR",
     latitude: validated.data.latitude?.toString() ?? null,
     longitude: validated.data.longitude?.toString() ?? null,
     updatedAt: new Date(),
-  }
+  };
 
   if (validated.data.id) {
     await db
       .update(storeLocations)
       .set(values)
-      .where(and(
-        eq(storeLocations.id, validated.data.id),
-        eq(storeLocations.storeId, store.id),
-      ))
+      .where(and(eq(storeLocations.id, validated.data.id), eq(storeLocations.storeId, store.id)));
   } else {
     await db.insert(storeLocations).values({
       ...values,
       id: nanoid(),
-    })
+    });
   }
 
-  revalidatePath('/dashboard/settings/delivery')
-  return { success: true }
+  revalidatePath("/dashboard/settings/delivery");
+  return { success: true };
 }
 
 export async function setStoreLocationActive(id: string, isActive: boolean) {
-  const store = await getCurrentStore()
+  const store = await getCurrentStore();
   if (!store) {
-    return { error: 'errors.unauthorized' }
+    return { error: "errors.unauthorized" };
   }
 
-  if (!hasPermission(store.role, 'manage_settings')) {
-    return { error: 'errors.permissionDenied' }
+  if (!hasPermission(store.role, "manage_settings")) {
+    return { error: "errors.permissionDenied" };
   }
 
   await db
     .update(storeLocations)
     .set({ isActive, updatedAt: new Date() })
-    .where(and(eq(storeLocations.id, id), eq(storeLocations.storeId, store.id)))
+    .where(and(eq(storeLocations.id, id), eq(storeLocations.storeId, store.id)));
 
-  revalidatePath('/dashboard/settings/delivery')
-  return { success: true }
+  revalidatePath("/dashboard/settings/delivery");
+  return { success: true };
 }

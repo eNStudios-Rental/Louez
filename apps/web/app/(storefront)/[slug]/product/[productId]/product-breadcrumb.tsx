@@ -16,7 +16,12 @@ interface ProductBreadcrumbProps {
 }
 
 /** Home / Catalogue / Catégorie / Produit — the crawlable path above the page. */
-export const ProductBreadcrumb = ({ productName, category, className, getHref }: ProductBreadcrumbProps) => {
+export const ProductBreadcrumb = ({
+  productName,
+  category,
+  className,
+  getHref,
+}: ProductBreadcrumbProps) => {
   const t = useTranslations("storefront.product.breadcrumb");
   const links = [
     { href: "/", label: t("home") },

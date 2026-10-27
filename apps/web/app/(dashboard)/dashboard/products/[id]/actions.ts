@@ -1,9 +1,9 @@
-'use server';
+"use server";
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath } from "next/cache";
 
-import { and, eq, inArray, not } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
+import { and, eq, inArray, not } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
 import {
   buildUnitRentableDuringPredicate,
@@ -19,8 +19,8 @@ import {
   reservationItemUnits,
   reservationItems,
   reservations,
-} from '@louez/db';
-import { buildCombinationKey } from '@louez/utils';
+} from "@louez/db";
+import { buildCombinationKey } from "@louez/utils";
 import {
   type CloseDowntimeInput,
   type DeclareDowntimeInput,
@@ -38,21 +38,18 @@ import {
   retireUnitSchema,
   updateDowntimeSchema,
   updateUnitDetailsSchema,
-} from '@louez/validations';
+} from "@louez/validations";
 
-import { auth } from '@/lib/auth';
-import { getCurrentStore } from '@/lib/store-context';
-import { getUnitConflicts } from '@/lib/utils/unit-conflicts';
-import { buildUnitEvent, updateUnits } from '@/lib/utils/unit-mutations';
-import {
-  lockReservationProducts,
-  reserveInventory,
-} from '@/lib/reservations/reserve-inventory';
+import { auth } from "@/lib/auth";
+import { getCurrentStore } from "@/lib/store-context";
+import { getUnitConflicts } from "@/lib/utils/unit-conflicts";
+import { buildUnitEvent, updateUnits } from "@/lib/utils/unit-mutations";
+import { lockReservationProducts, reserveInventory } from "@/lib/reservations/reserve-inventory";
 import {
   resolveUnitAssignmentScope,
   unitMatchesAssignmentScope,
-} from '@/lib/utils/unit-availability';
-import { retryOnceOnDeadlock } from '@/lib/db/retry-once-on-deadlock';
+} from "@/lib/utils/unit-availability";
+import { retryOnceOnDeadlock } from "@/lib/db/retry-once-on-deadlock";
 
 async function getStoreForUser() {
   return getCurrentStore();
@@ -63,16 +60,11 @@ async function getActorUserId(): Promise<string | null> {
   return session?.user?.id ?? null;
 }
 
-function hasOwnProperty<T extends object>(
-  object: T,
-  key: PropertyKey,
-): boolean {
+function hasOwnProperty<T extends object>(object: T, key: PropertyKey): boolean {
   return Object.prototype.hasOwnProperty.call(object, key);
 }
 
-function normalizeNullableText(
-  value: string | null | undefined,
-): string | null {
+function normalizeNullableText(value: string | null | undefined): string | null {
   if (value == null) {
     return null;
   }
@@ -85,7 +77,7 @@ function normalizeMoney(value: string | null | undefined): string | null {
     return null;
   }
 
-  return value.trim().replace(',', '.') || null;
+  return value.trim().replace(",", ".") || null;
 }
 
 function toJsonDate(value: Date | null): string | null {
@@ -94,7 +86,7 @@ function toJsonDate(value: Date | null): string | null {
 
 async function logReservationActivity(
   reservationId: string,
-  activityType: 'modified',
+  activityType: "modified",
   metadata?: Record<string, unknown>,
 ) {
   const session = await auth();
@@ -148,24 +140,16 @@ async function getDowntimeForStore(downtimeId: string, storeId: string) {
       productId: productUnits.productId,
     })
     .from(productUnitDowntimes)
-    .innerJoin(
-      productUnits,
-      eq(productUnitDowntimes.productUnitId, productUnits.id),
-    )
+    .innerJoin(productUnits, eq(productUnitDowntimes.productUnitId, productUnits.id))
     .innerJoin(products, eq(productUnits.productId, products.id))
-    .where(
-      and(
-        eq(productUnitDowntimes.id, downtimeId),
-        eq(products.storeId, storeId),
-      ),
-    )
+    .where(and(eq(productUnitDowntimes.id, downtimeId), eq(products.storeId, storeId)))
     .limit(1);
 
   return downtime ?? null;
 }
 
 function revalidateInventoryPaths(productId?: string, reservationId?: string) {
-  revalidatePath('/dashboard/products');
+  revalidatePath("/dashboard/products");
 
   if (productId) {
     revalidatePath(`/dashboard/products/${productId}`);
@@ -180,17 +164,17 @@ function revalidateInventoryPaths(productId?: string, reservationId?: string) {
 export async function declareDowntime(input: DeclareDowntimeInput) {
   const store = await getStoreForUser();
   if (!store) {
-    return { error: 'errors.unauthorized' };
+    return { error: "errors.unauthorized" };
   }
 
   const validated = declareDowntimeSchema.safeParse(input);
   if (!validated.success) {
-    return { error: 'errors.invalidData' };
+    return { error: "errors.invalidData" };
   }
 
   const unit = await getUnitForStore(validated.data.unitId, store.id);
   if (!unit) {
-    return { error: 'errors.notFound' };
+    return { error: "errors.notFound" };
   }
 
   const downtimeId = nanoid();
@@ -216,7 +200,7 @@ export async function declareDowntime(input: DeclareDowntimeInput) {
           productUnitId: unit.id,
           event: {
             storeId: store.id,
-            type: 'downtime_declared',
+            type: "downtime_declared",
             actorUserId,
             identifierSnapshot: unit.identifier,
             payload: {
@@ -231,8 +215,8 @@ export async function declareDowntime(input: DeclareDowntimeInput) {
       );
     });
   } catch (error) {
-    console.error('Error declaring unit downtime:', error);
-    return { error: 'errors.invalidData' };
+    console.error("Error declaring unit downtime:", error);
+    return { error: "errors.invalidData" };
   }
 
   const conflicts = await getUnitConflicts(
@@ -253,37 +237,33 @@ export async function declareDowntime(input: DeclareDowntimeInput) {
 export async function updateDowntime(input: UpdateDowntimeInput) {
   const store = await getStoreForUser();
   if (!store) {
-    return { error: 'errors.unauthorized' };
+    return { error: "errors.unauthorized" };
   }
 
   const validated = updateDowntimeSchema.safeParse(input);
   if (!validated.success) {
-    return { error: 'errors.invalidData' };
+    return { error: "errors.invalidData" };
   }
 
-  const downtime = await getDowntimeForStore(
-    validated.data.downtimeId,
-    store.id,
-  );
+  const downtime = await getDowntimeForStore(validated.data.downtimeId, store.id);
   if (!downtime) {
-    return { error: 'errors.notFound' };
+    return { error: "errors.notFound" };
   }
 
-  const startsAt = hasOwnProperty(validated.data, 'startsAt')
+  const startsAt = hasOwnProperty(validated.data, "startsAt")
     ? (validated.data.startsAt ?? downtime.startsAt)
     : downtime.startsAt;
   const endsAt =
-    !hasOwnProperty(validated.data, 'endsAt') ||
-    validated.data.endsAt === undefined
+    !hasOwnProperty(validated.data, "endsAt") || validated.data.endsAt === undefined
       ? downtime.endsAt
       : validated.data.endsAt;
 
   if (endsAt && startsAt >= endsAt) {
-    return { error: 'errors.invalidData' };
+    return { error: "errors.invalidData" };
   }
 
   const reason = validated.data.reason ?? downtime.reason;
-  const note = hasOwnProperty(validated.data, 'note')
+  const note = hasOwnProperty(validated.data, "note")
     ? normalizeNullableText(validated.data.note)
     : downtime.note;
   const actorUserId = await getActorUserId();
@@ -306,7 +286,7 @@ export async function updateDowntime(input: UpdateDowntimeInput) {
           productUnitId: downtime.productUnitId,
           event: {
             storeId: store.id,
-            type: 'downtime_updated',
+            type: "downtime_updated",
             actorUserId,
             identifierSnapshot: downtime.unitIdentifier,
             payload: {
@@ -329,8 +309,8 @@ export async function updateDowntime(input: UpdateDowntimeInput) {
       );
     });
   } catch (error) {
-    console.error('Error updating unit downtime:', error);
-    return { error: 'errors.invalidData' };
+    console.error("Error updating unit downtime:", error);
+    return { error: "errors.invalidData" };
   }
 
   const conflicts = await getUnitConflicts(
@@ -351,25 +331,22 @@ export async function updateDowntime(input: UpdateDowntimeInput) {
 export async function closeDowntime(input: CloseDowntimeInput) {
   const store = await getStoreForUser();
   if (!store) {
-    return { error: 'errors.unauthorized' };
+    return { error: "errors.unauthorized" };
   }
 
   const validated = closeDowntimeSchema.safeParse(input);
   if (!validated.success) {
-    return { error: 'errors.invalidData' };
+    return { error: "errors.invalidData" };
   }
 
-  const downtime = await getDowntimeForStore(
-    validated.data.downtimeId,
-    store.id,
-  );
+  const downtime = await getDowntimeForStore(validated.data.downtimeId, store.id);
   if (!downtime) {
-    return { error: 'errors.notFound' };
+    return { error: "errors.notFound" };
   }
 
   const endsAt = validated.data.endsAt ?? new Date();
   if (downtime.startsAt >= endsAt) {
-    return { error: 'errors.invalidData' };
+    return { error: "errors.invalidData" };
   }
 
   const actorUserId = await getActorUserId();
@@ -389,7 +366,7 @@ export async function closeDowntime(input: CloseDowntimeInput) {
           productUnitId: downtime.productUnitId,
           event: {
             storeId: store.id,
-            type: 'downtime_closed',
+            type: "downtime_closed",
             actorUserId,
             identifierSnapshot: downtime.unitIdentifier,
             payload: {
@@ -401,8 +378,8 @@ export async function closeDowntime(input: CloseDowntimeInput) {
       );
     });
   } catch (error) {
-    console.error('Error closing unit downtime:', error);
-    return { error: 'errors.invalidData' };
+    console.error("Error closing unit downtime:", error);
+    return { error: "errors.invalidData" };
   }
 
   revalidateInventoryPaths(downtime.productId);
@@ -412,20 +389,17 @@ export async function closeDowntime(input: CloseDowntimeInput) {
 export async function deleteDowntime(input: DeleteDowntimeInput) {
   const store = await getStoreForUser();
   if (!store) {
-    return { error: 'errors.unauthorized' };
+    return { error: "errors.unauthorized" };
   }
 
   const validated = deleteDowntimeSchema.safeParse(input);
   if (!validated.success) {
-    return { error: 'errors.invalidData' };
+    return { error: "errors.invalidData" };
   }
 
-  const downtime = await getDowntimeForStore(
-    validated.data.downtimeId,
-    store.id,
-  );
+  const downtime = await getDowntimeForStore(validated.data.downtimeId, store.id);
   if (!downtime) {
-    return { error: 'errors.notFound' };
+    return { error: "errors.notFound" };
   }
 
   const actorUserId = await getActorUserId();
@@ -437,7 +411,7 @@ export async function deleteDowntime(input: DeleteDowntimeInput) {
           productUnitId: downtime.productUnitId,
           event: {
             storeId: store.id,
-            type: 'downtime_deleted',
+            type: "downtime_deleted",
             actorUserId,
             identifierSnapshot: downtime.unitIdentifier,
             payload: {
@@ -451,13 +425,11 @@ export async function deleteDowntime(input: DeleteDowntimeInput) {
         }),
       );
 
-      await tx
-        .delete(productUnitDowntimes)
-        .where(eq(productUnitDowntimes.id, downtime.id));
+      await tx.delete(productUnitDowntimes).where(eq(productUnitDowntimes.id, downtime.id));
     });
   } catch (error) {
-    console.error('Error deleting unit downtime:', error);
-    return { error: 'errors.invalidData' };
+    console.error("Error deleting unit downtime:", error);
+    return { error: "errors.invalidData" };
   }
 
   revalidateInventoryPaths(downtime.productId);
@@ -467,21 +439,21 @@ export async function deleteDowntime(input: DeleteDowntimeInput) {
 export async function retireUnit(input: RetireUnitInput) {
   const store = await getStoreForUser();
   if (!store) {
-    return { error: 'errors.unauthorized' };
+    return { error: "errors.unauthorized" };
   }
 
   const validated = retireUnitSchema.safeParse(input);
   if (!validated.success) {
-    return { error: 'errors.invalidData' };
+    return { error: "errors.invalidData" };
   }
 
   const unit = await getUnitForStore(validated.data.unitId, store.id);
   if (!unit) {
-    return { error: 'errors.notFound' };
+    return { error: "errors.notFound" };
   }
 
-  if (unit.lifecycleStatus === 'retired') {
-    return { error: 'errors.unitAlreadyRetired' };
+  if (unit.lifecycleStatus === "retired") {
+    return { error: "errors.unitAlreadyRetired" };
   }
 
   const now = new Date();
@@ -494,14 +466,14 @@ export async function retireUnit(input: RetireUnitInput) {
         {
           unitId: unit.id,
           values: {
-            lifecycleStatus: 'retired',
+            lifecycleStatus: "retired",
             retiredAt: now,
             retirementReason: validated.data.reason,
             retirementNote: note,
           },
           event: {
             storeId: store.id,
-            type: 'retired',
+            type: "retired",
             actorUserId,
             identifierSnapshot: unit.identifier,
             payload: {
@@ -514,8 +486,8 @@ export async function retireUnit(input: RetireUnitInput) {
       ]);
     });
   } catch (error) {
-    console.error('Error retiring unit:', error);
-    return { error: 'errors.invalidData' };
+    console.error("Error retiring unit:", error);
+    return { error: "errors.invalidData" };
   }
 
   const conflicts = await getUnitConflicts(
@@ -535,21 +507,21 @@ export async function retireUnit(input: RetireUnitInput) {
 export async function reinstateUnit(input: ReinstateUnitInput) {
   const store = await getStoreForUser();
   if (!store) {
-    return { error: 'errors.unauthorized' };
+    return { error: "errors.unauthorized" };
   }
 
   const validated = reinstateUnitSchema.safeParse(input);
   if (!validated.success) {
-    return { error: 'errors.invalidData' };
+    return { error: "errors.invalidData" };
   }
 
   const unit = await getUnitForStore(validated.data.unitId, store.id);
   if (!unit) {
-    return { error: 'errors.notFound' };
+    return { error: "errors.notFound" };
   }
 
-  if (unit.lifecycleStatus !== 'retired') {
-    return { error: 'errors.unitNotRetired' };
+  if (unit.lifecycleStatus !== "retired") {
+    return { error: "errors.unitNotRetired" };
   }
 
   const actorUserId = await getActorUserId();
@@ -560,7 +532,7 @@ export async function reinstateUnit(input: ReinstateUnitInput) {
         {
           unitId: unit.id,
           values: {
-            lifecycleStatus: 'active',
+            lifecycleStatus: "active",
             retiredAt: null,
             retirementReason: null,
             retirementNote: null,
@@ -569,7 +541,7 @@ export async function reinstateUnit(input: ReinstateUnitInput) {
           },
           event: {
             storeId: store.id,
-            type: 'reinstated',
+            type: "reinstated",
             actorUserId,
             identifierSnapshot: unit.identifier,
             payload: {
@@ -584,8 +556,8 @@ export async function reinstateUnit(input: ReinstateUnitInput) {
       ]);
     });
   } catch (error) {
-    console.error('Error reinstating unit:', error);
-    return { error: 'errors.invalidData' };
+    console.error("Error reinstating unit:", error);
+    return { error: "errors.invalidData" };
   }
 
   revalidateInventoryPaths(unit.productId);
@@ -595,23 +567,23 @@ export async function reinstateUnit(input: ReinstateUnitInput) {
 export async function updateUnitDetails(input: UpdateUnitDetailsInput) {
   const store = await getStoreForUser();
   if (!store) {
-    return { error: 'errors.unauthorized' };
+    return { error: "errors.unauthorized" };
   }
 
   const validated = updateUnitDetailsSchema.safeParse(input);
   if (!validated.success) {
-    return { error: 'errors.invalidData' };
+    return { error: "errors.invalidData" };
   }
 
   const unit = await getUnitForStore(validated.data.unitId, store.id);
   if (!unit) {
-    return { error: 'errors.notFound' };
+    return { error: "errors.notFound" };
   }
 
   const updates: Partial<typeof productUnits.$inferInsert> = {};
   const changes: Record<string, { from: unknown; to: unknown }> = {};
 
-  if (hasOwnProperty(validated.data, 'notes')) {
+  if (hasOwnProperty(validated.data, "notes")) {
     const nextNotes = normalizeNullableText(validated.data.notes);
     if (nextNotes !== unit.notes) {
       updates.notes = nextNotes;
@@ -619,7 +591,7 @@ export async function updateUnitDetails(input: UpdateUnitDetailsInput) {
     }
   }
 
-  if (hasOwnProperty(validated.data, 'purchasePrice')) {
+  if (hasOwnProperty(validated.data, "purchasePrice")) {
     const nextPurchasePrice = normalizeMoney(validated.data.purchasePrice);
     if (nextPurchasePrice !== unit.purchasePrice) {
       updates.purchasePrice = nextPurchasePrice;
@@ -630,7 +602,7 @@ export async function updateUnitDetails(input: UpdateUnitDetailsInput) {
     }
   }
 
-  if (hasOwnProperty(validated.data, 'purchasedAt')) {
+  if (hasOwnProperty(validated.data, "purchasedAt")) {
     const nextPurchasedAt = validated.data.purchasedAt ?? null;
     const currentPurchasedAtTime = unit.purchasedAt?.getTime() ?? null;
     const nextPurchasedAtTime = nextPurchasedAt?.getTime() ?? null;
@@ -658,7 +630,7 @@ export async function updateUnitDetails(input: UpdateUnitDetailsInput) {
           values: updates,
           event: {
             storeId: store.id,
-            type: 'updated',
+            type: "updated",
             actorUserId,
             identifierSnapshot: unit.identifier,
             payload: { changes },
@@ -667,8 +639,8 @@ export async function updateUnitDetails(input: UpdateUnitDetailsInput) {
       ]);
     });
   } catch (error) {
-    console.error('Error updating unit details:', error);
-    return { error: 'errors.invalidData' };
+    console.error("Error updating unit details:", error);
+    return { error: "errors.invalidData" };
   }
 
   revalidateInventoryPaths(unit.productId);
@@ -685,16 +657,16 @@ export async function reassignReservationItemUnit(
 }> {
   const store = await getStoreForUser();
   if (!store) {
-    return { error: 'errors.unauthorized' };
+    return { error: "errors.unauthorized" };
   }
 
   const validated = reassignReservationItemUnitSchema.safeParse(input);
   if (!validated.success) {
-    return { error: 'errors.invalidData' };
+    return { error: "errors.invalidData" };
   }
 
   if (validated.data.fromUnitId === validated.data.toUnitId) {
-    return { error: 'errors.invalidData' };
+    return { error: "errors.invalidData" };
   }
 
   const [item] = await db
@@ -709,10 +681,7 @@ export async function reassignReservationItemUnit(
       endDate: reservations.endDate,
     })
     .from(reservationItems)
-    .innerJoin(
-      reservations,
-      eq(reservationItems.reservationId, reservations.id),
-    )
+    .innerJoin(reservations, eq(reservationItems.reservationId, reservations.id))
     .where(
       and(
         eq(reservationItems.id, validated.data.reservationItemId),
@@ -722,7 +691,7 @@ export async function reassignReservationItemUnit(
     .limit(1);
 
   if (!item || !item.productId) {
-    return { error: 'errors.notFound' };
+    return { error: "errors.notFound" };
   }
 
   const actorUserId = await getActorUserId();
@@ -740,16 +709,11 @@ export async function reassignReservationItemUnit(
       const [lockedReservation] = await tx
         .select({ id: reservations.id })
         .from(reservations)
-        .where(
-          and(
-            eq(reservations.id, item.reservationId),
-            eq(reservations.storeId, store.id),
-          ),
-        )
-        .for('update');
+        .where(and(eq(reservations.id, item.reservationId), eq(reservations.storeId, store.id)))
+        .for("update");
 
       if (!lockedReservation) {
-        return { error: 'errors.notFound' };
+        return { error: "errors.notFound" };
       }
 
       // Locks come first, as locking reads only, in the order of the other
@@ -760,23 +724,20 @@ export async function reassignReservationItemUnit(
         await tx
           .select({ id: products.id })
           .from(products)
-          .where(
-            and(eq(products.id, item.productId), eq(products.storeId, store.id)),
-          )
-          .for('update');
+          .where(and(eq(products.id, item.productId), eq(products.storeId, store.id)))
+          .for("update");
       }
-
 
       const sortedLockUnitIds = [
         ...new Set([validated.data.fromUnitId, validated.data.toUnitId]),
-      ].sort((a, b) => a.localeCompare(b, 'en'));
+      ].sort((a, b) => a.localeCompare(b, "en"));
 
       await tx
         .select({ id: productUnits.id })
         .from(productUnits)
         .where(inArray(productUnits.id, sortedLockUnitIds))
         .orderBy(productUnits.id)
-        .for('update');
+        .for("update");
 
       const lockedProductsById = item.productId
         ? await lockReservationProducts(tx, store.id, [item.productId])
@@ -787,17 +748,14 @@ export async function reassignReservationItemUnit(
           id: reservationItems.id,
           productId: reservationItems.productId,
           combinationKey: reservationItems.combinationKey,
-      selectedAttributes: reservationItems.selectedAttributes,
-      quantity: reservationItems.quantity,
+          selectedAttributes: reservationItems.selectedAttributes,
+          quantity: reservationItems.quantity,
           reservationId: reservationItems.reservationId,
           startDate: reservations.startDate,
           endDate: reservations.endDate,
         })
         .from(reservationItems)
-        .innerJoin(
-          reservations,
-          eq(reservationItems.reservationId, reservations.id),
-        )
+        .innerJoin(reservations, eq(reservationItems.reservationId, reservations.id))
         .where(
           and(
             eq(reservationItems.id, validated.data.reservationItemId),
@@ -807,7 +765,7 @@ export async function reassignReservationItemUnit(
         .limit(1);
 
       if (!currentItem || !currentItem.productId) {
-        return { error: 'errors.notFound' };
+        return { error: "errors.notFound" };
       }
 
       const units = await tx
@@ -821,21 +779,14 @@ export async function reassignReservationItemUnit(
         })
         .from(productUnits)
         .innerJoin(products, eq(productUnits.productId, products.id))
-        .where(
-          and(
-            inArray(productUnits.id, sortedLockUnitIds),
-            eq(products.storeId, store.id),
-          ),
-        );
+        .where(and(inArray(productUnits.id, sortedLockUnitIds), eq(products.storeId, store.id)));
 
-      const fromUnit = units.find(
-        (unit) => unit.id === validated.data.fromUnitId,
-      );
+      const fromUnit = units.find((unit) => unit.id === validated.data.fromUnitId);
       const toUnit = units.find((unit) => unit.id === validated.data.toUnitId);
 
       if (!fromUnit || !toUnit) {
         return {
-          error: 'errors.invalidUnits',
+          error: "errors.invalidUnits",
           failedUnitIds: !toUnit ? [validated.data.toUnitId] : undefined,
         };
       }
@@ -845,13 +796,13 @@ export async function reassignReservationItemUnit(
         toUnit.productId !== currentItem.productId
       ) {
         return {
-          error: 'errors.unitProductMismatch',
+          error: "errors.unitProductMismatch",
           failedUnitIds: [toUnit.id],
         };
       }
 
-      if (toUnit.lifecycleStatus !== 'active') {
-        return { error: 'errors.invalidUnits', failedUnitIds: [toUnit.id] };
+      if (toUnit.lifecycleStatus !== "active") {
+        return { error: "errors.invalidUnits", failedUnitIds: [toUnit.id] };
       }
 
       // The replacement must be able to serve the line: its exact combination,
@@ -872,7 +823,7 @@ export async function reassignReservationItemUnit(
         })
       ) {
         return {
-          error: 'errors.unitCombinationMismatch',
+          error: "errors.unitCombinationMismatch",
           failedUnitIds: [toUnit.id],
         };
       }
@@ -889,7 +840,7 @@ export async function reassignReservationItemUnit(
         .limit(1);
 
       if (!existingAssignment) {
-        return { error: 'errors.notFound' };
+        return { error: "errors.notFound" };
       }
 
       // A pooled line may move to a unit of another combination, as long as
@@ -935,13 +886,13 @@ export async function reassignReservationItemUnit(
           });
         const strictStock = await checkStock(0);
         if (!strictStock.ok) {
-          return { error: 'errors.invalidUnits', failedUnitIds: [toUnit.id] };
+          return { error: "errors.invalidUnits", failedUnitIds: [toUnit.id] };
         }
         if (!validated.data.overrideTurnoverBuffer && turnoverBufferMinutes > 0) {
           const bufferedStock = await checkStock(turnoverBufferMinutes);
           if (!bufferedStock.ok) {
             return {
-              error: 'errors.turnoverBufferConflict',
+              error: "errors.turnoverBufferConflict",
               bufferConflict: true,
               failedUnitIds: [toUnit.id],
             };
@@ -961,7 +912,7 @@ export async function reassignReservationItemUnit(
         .limit(1);
 
       if (duplicateAssignment) {
-        return { error: 'errors.invalidUnits', failedUnitIds: [toUnit.id] };
+        return { error: "errors.invalidUnits", failedUnitIds: [toUnit.id] };
       }
 
       const [siblingAssignment] = await tx
@@ -981,7 +932,7 @@ export async function reassignReservationItemUnit(
         .limit(1);
 
       if (siblingAssignment) {
-        return { error: 'errors.invalidUnits', failedUnitIds: [toUnit.id] };
+        return { error: "errors.invalidUnits", failedUnitIds: [toUnit.id] };
       }
 
       const rentableUnits = await tx
@@ -990,15 +941,11 @@ export async function reassignReservationItemUnit(
         .where(
           and(
             eq(productUnits.id, toUnit.id),
-            buildUnitRentableDuringPredicate(
-              tx,
-              currentItem.startDate,
-              currentItem.endDate,
-            ),
+            buildUnitRentableDuringPredicate(tx, currentItem.startDate, currentItem.endDate),
           ),
         );
       if (rentableUnits.length === 0) {
-        return { error: 'errors.invalidUnits', failedUnitIds: [toUnit.id] };
+        return { error: "errors.invalidUnits", failedUnitIds: [toUnit.id] };
       }
 
       const busyUnitIds = await findBusyUnitIds(tx, {
@@ -1010,12 +957,12 @@ export async function reassignReservationItemUnit(
         excludeReservationItemId: currentItem.id,
       });
       const busyReason = busyUnitIds.get(toUnit.id);
-      if (busyReason === 'overlap') {
-        return { error: 'errors.invalidUnits', failedUnitIds: [toUnit.id] };
+      if (busyReason === "overlap") {
+        return { error: "errors.invalidUnits", failedUnitIds: [toUnit.id] };
       }
-      if (busyReason === 'buffer' && !validated.data.overrideTurnoverBuffer) {
+      if (busyReason === "buffer" && !validated.data.overrideTurnoverBuffer) {
         return {
-          error: 'errors.turnoverBufferConflict',
+          error: "errors.turnoverBufferConflict",
           bufferConflict: true,
           failedUnitIds: [toUnit.id],
         };
@@ -1038,7 +985,7 @@ export async function reassignReservationItemUnit(
           productUnitId: fromUnit.id,
           event: {
             storeId: store.id,
-            type: 'unassigned',
+            type: "unassigned",
             actorUserId,
             identifierSnapshot: fromUnit.identifier,
             payload: eventPayload,
@@ -1048,7 +995,7 @@ export async function reassignReservationItemUnit(
           productUnitId: toUnit.id,
           event: {
             storeId: store.id,
-            type: 'assigned',
+            type: "assigned",
             actorUserId,
             identifierSnapshot: toUnit.identifier,
             payload: eventPayload,
@@ -1062,16 +1009,14 @@ export async function reassignReservationItemUnit(
         toIdentifier: toUnit.identifier,
       };
     };
-    const reassignmentResult = await retryOnceOnDeadlock(() =>
-      db.transaction(reassignUnit),
-    );
+    const reassignmentResult = await retryOnceOnDeadlock(() => db.transaction(reassignUnit));
 
-    if ('error' in reassignmentResult && reassignmentResult.error) {
+    if ("error" in reassignmentResult && reassignmentResult.error) {
       return reassignmentResult;
     }
 
-    await logReservationActivity(item.reservationId, 'modified', {
-      action: 'unit_reassigned',
+    await logReservationActivity(item.reservationId, "modified", {
+      action: "unit_reassigned",
       reservationItemId: item.id,
       unitIdentifiers: {
         from: reassignmentResult.fromIdentifier,
@@ -1079,8 +1024,8 @@ export async function reassignReservationItemUnit(
       },
     });
   } catch (error) {
-    console.error('Error reassigning reservation item unit:', error);
-    return { error: 'errors.invalidData' };
+    console.error("Error reassigning reservation item unit:", error);
+    return { error: "errors.invalidData" };
   }
 
   revalidateInventoryPaths(item.productId, item.reservationId);

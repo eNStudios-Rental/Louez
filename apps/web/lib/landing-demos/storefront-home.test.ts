@@ -33,7 +33,10 @@ test("home fixtures keep the shared rental inventory, prices and French shop ide
     assert.equal(shop.heroImages.length, 2);
     assert.ok(shop.heroImages.every((src) => src.startsWith("https://louez.s3.fr-par.scw.cloud/")));
   }
-  assert.equal(new Set(locales.map((locale) => getStorefrontHomeDemo(locale).tagline)).size, locales.length);
+  assert.equal(
+    new Set(locales.map((locale) => getStorefrontHomeDemo(locale).tagline)).size,
+    locales.length,
+  );
   assert.deepEqual(getStorefrontHomeDemoText("unknown"), getStorefrontHomeDemoText("fr"));
 });
 

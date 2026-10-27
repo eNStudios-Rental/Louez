@@ -23,6 +23,7 @@ const toCents = (amount: number): number => Math.round(amount * 100);
 const line = (overrides: Partial<PricedCartLine> & { productId: string }): PricedCartLine => ({
   productName: `Product ${overrides.productId}`,
   quantity: 1,
+  priceNegotiable: false,
   pricingKind: "duration",
   duration: 2,
   unitPrice: 50,
@@ -31,7 +32,6 @@ const line = (overrides: Partial<PricedCartLine> & { productId: string }): Price
   originalSubtotal: 100,
   savings: 0,
   totalDeposit: 0,
-  priceNegotiable: false,
   taxSettings: null,
   ...overrides,
 });

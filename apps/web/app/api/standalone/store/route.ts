@@ -1,10 +1,10 @@
-import { connection, NextResponse } from 'next/server'
+import { connection, NextResponse } from "next/server";
 
-import { asc, eq } from 'drizzle-orm'
+import { asc, eq } from "drizzle-orm";
 
-import { db, stores } from '@louez/db'
+import { db, stores } from "@louez/db";
 
-import { isStandaloneMode } from '@/lib/deployment'
+import { isStandaloneMode } from "@/lib/deployment";
 
 /**
  * Resolve the storefront slug of a standalone instance.
@@ -16,21 +16,21 @@ import { isStandaloneMode } from '@/lib/deployment'
  * instance store is not a meaningful concept.
  */
 export async function GET() {
-  await connection()
+  await connection();
 
   if (!isStandaloneMode()) {
-    return new NextResponse(null, { status: 404 })
+    return new NextResponse(null, { status: 404 });
   }
 
   const store = await db.query.stores.findFirst({
     columns: { slug: true },
     where: eq(stores.onboardingCompleted, true),
     orderBy: [asc(stores.createdAt)],
-  })
+  });
 
   if (!store) {
-    return new NextResponse(null, { status: 404 })
+    return new NextResponse(null, { status: 404 });
   }
 
-  return NextResponse.json({ slug: store.slug })
+  return NextResponse.json({ slug: store.slug });
 }

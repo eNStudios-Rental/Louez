@@ -39,10 +39,7 @@ export async function settleNegotiableReservationItemPrice(input: {
       })
       .from(reservations)
       .where(
-        and(
-          eq(reservations.id, parsed.data.reservationId),
-          eq(reservations.storeId, store.id),
-        ),
+        and(eq(reservations.id, parsed.data.reservationId), eq(reservations.storeId, store.id)),
       )
       .for("update");
     if (!reservation || (reservation.status !== "pending" && reservation.status !== "quote")) {
@@ -84,7 +81,7 @@ export async function settleNegotiableReservationItemPrice(input: {
     const lineTax = taxEnabled
       ? displayMode === "inclusive"
         ? Number(money(totalPrice - totalExclTax))
-        : Number(money(totalPrice * taxRate / 100))
+        : Number(money((totalPrice * taxRate) / 100))
       : null;
     const taxDelta = lineTax ?? 0;
 

@@ -1,27 +1,27 @@
-'use server'
+"use server";
 
-import { db } from '@louez/db'
-import { getCurrentStore } from '@/lib/store-context'
-import { customers, reservations } from '@louez/db'
-import { eq, and, count } from 'drizzle-orm'
-import { revalidatePath } from 'next/cache'
+import { db } from "@louez/db";
+import { getCurrentStore } from "@/lib/store-context";
+import { customers, reservations } from "@louez/db";
+import { eq, and, count } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import {
   customerSchema,
   digitsOnly,
   isValidCompanyNumber,
   resolveCompanyNumberScheme,
   type CustomerInput,
-} from '@louez/validations'
-import { notifyCustomerCreated } from '@/lib/discord/platform-notifications'
+} from "@louez/validations";
+import { notifyCustomerCreated } from "@/lib/discord/platform-notifications";
 
 async function getStoreId() {
-  const store = await getCurrentStore()
+  const store = await getCurrentStore();
 
   if (!store) {
-    throw new Error('errors.storeNotFound')
+    throw new Error("errors.storeNotFound");
   }
 
-  return store.id
+  return store.id;
 }
 
 /**
@@ -35,48 +35,45 @@ async function getStoreId() {
  * identifier.
  */
 function resolveCustomerCompanyFields(validated: CustomerInput) {
-  if (validated.customerType !== 'business') {
-    return { companyNumber: null, companyNumberScheme: null, vatNumber: null }
+  if (validated.customerType !== "business") {
+    return { companyNumber: null, companyNumberScheme: null, vatNumber: null };
   }
 
-  const country = validated.country ?? ''
-  const raw = validated.companyNumber?.trim() ?? ''
-  const isUsable = raw.length > 0 && isValidCompanyNumber(country, raw)
-  const scheme = isUsable ? resolveCompanyNumberScheme(country) : null
+  const country = validated.country ?? "";
+  const raw = validated.companyNumber?.trim() ?? "";
+  const isUsable = raw.length > 0 && isValidCompanyNumber(country, raw);
+  const scheme = isUsable ? resolveCompanyNumberScheme(country) : null;
   // FR/BE identifiers are pure digits; elsewhere keep what was typed.
-  const companyNumber = scheme ? digitsOnly(raw) : raw
-  const vatNumber = validated.vatNumber?.replace(/\s/g, '').toUpperCase() ?? ''
+  const companyNumber = scheme ? digitsOnly(raw) : raw;
+  const vatNumber = validated.vatNumber?.replace(/\s/g, "").toUpperCase() ?? "";
 
   return {
     companyNumber: companyNumber.length > 0 ? companyNumber : null,
     companyNumberScheme: scheme,
     vatNumber: vatNumber.length > 0 ? vatNumber : null,
-  }
+  };
 }
 
 export async function createCustomer(data: CustomerInput) {
   try {
-    const store = await getCurrentStore()
-    if (!store) return { error: 'errors.storeNotFound' }
+    const store = await getCurrentStore();
+    if (!store) return { error: "errors.storeNotFound" };
 
-    const validated = customerSchema.parse(data)
+    const validated = customerSchema.parse(data);
 
-    const email = validated.email?.trim() || null
-    const firstName = validated.firstName?.trim() || null
-    const lastName = validated.lastName?.trim() || null
+    const email = validated.email?.trim() || null;
+    const firstName = validated.firstName?.trim() || null;
+    const lastName = validated.lastName?.trim() || null;
 
     // Email is optional for business customers, but remains unique when provided.
     const existingCustomer = email
       ? await db.query.customers.findFirst({
-          where: and(
-            eq(customers.storeId, store.id),
-            eq(customers.email, email)
-          ),
+          where: and(eq(customers.storeId, store.id), eq(customers.email, email)),
         })
-      : null
+      : null;
 
     if (existingCustomer) {
-      return { error: 'errors.emailAlreadyExists' }
+      return { error: "errors.emailAlreadyExists" };
     }
 
     const [customer] = await db
@@ -90,56 +87,50 @@ export async function createCustomer(data: CustomerInput) {
         phone: validated.phone?.trim() || null,
         ...resolveCustomerCompanyFields(validated),
       })
-      .$returningId()
+      .$returningId();
 
     notifyCustomerCreated(
       { id: store.id, name: store.name, slug: store.slug },
       {
         name:
-          validated.customerType === 'business'
-            ? validated.companyName?.trim() ?? ''
-            : [firstName, lastName].filter(Boolean).join(' '),
+          validated.customerType === "business"
+            ? (validated.companyName?.trim() ?? "")
+            : [firstName, lastName].filter(Boolean).join(" "),
         email,
-      }
-    ).catch(() => {})
+      },
+    ).catch(() => {});
 
-    revalidatePath('/dashboard/customers')
-    return { success: true, customerId: customer.id }
+    revalidatePath("/dashboard/customers");
+    return { success: true, customerId: customer.id };
   } catch (error) {
-    console.error('Error creating customer:', error)
-    return { error: 'errors.createCustomerError' }
+    console.error("Error creating customer:", error);
+    return { error: "errors.createCustomerError" };
   }
 }
 
 export async function updateCustomer(customerId: string, data: CustomerInput) {
   try {
-    const storeId = await getStoreId()
-    const validated = customerSchema.parse(data)
+    const storeId = await getStoreId();
+    const validated = customerSchema.parse(data);
 
     // Check if customer exists and belongs to store
     const existingCustomer = await db.query.customers.findFirst({
-      where: and(
-        eq(customers.id, customerId),
-        eq(customers.storeId, storeId)
-      ),
-    })
+      where: and(eq(customers.id, customerId), eq(customers.storeId, storeId)),
+    });
 
     if (!existingCustomer) {
-      return { error: 'errors.customerNotFound' }
+      return { error: "errors.customerNotFound" };
     }
 
     // Check if another customer with same email exists
-    const email = validated.email?.trim() || null
+    const email = validated.email?.trim() || null;
     if (email && email !== existingCustomer.email) {
       const emailExists = await db.query.customers.findFirst({
-        where: and(
-          eq(customers.storeId, storeId),
-          eq(customers.email, email)
-        ),
-      })
+        where: and(eq(customers.storeId, storeId), eq(customers.email, email)),
+      });
 
       if (emailExists) {
-        return { error: 'errors.emailAlreadyExists' }
+        return { error: "errors.emailAlreadyExists" };
       }
     }
 
@@ -154,67 +145,61 @@ export async function updateCustomer(customerId: string, data: CustomerInput) {
         ...resolveCustomerCompanyFields(validated),
         updatedAt: new Date(),
       })
-      .where(eq(customers.id, customerId))
+      .where(eq(customers.id, customerId));
 
-    revalidatePath('/dashboard/customers')
-    revalidatePath(`/dashboard/customers/${customerId}`)
-    return { success: true }
+    revalidatePath("/dashboard/customers");
+    revalidatePath(`/dashboard/customers/${customerId}`);
+    return { success: true };
   } catch (error) {
-    console.error('Error updating customer:', error)
-    return { error: 'errors.updateCustomerError' }
+    console.error("Error updating customer:", error);
+    return { error: "errors.updateCustomerError" };
   }
 }
 
 export async function deleteCustomer(customerId: string) {
   try {
-    const storeId = await getStoreId()
+    const storeId = await getStoreId();
 
     // Check if customer exists and belongs to store
     const existingCustomer = await db.query.customers.findFirst({
-      where: and(
-        eq(customers.id, customerId),
-        eq(customers.storeId, storeId)
-      ),
-    })
+      where: and(eq(customers.id, customerId), eq(customers.storeId, storeId)),
+    });
 
     if (!existingCustomer) {
-      return { error: 'errors.customerNotFound' }
+      return { error: "errors.customerNotFound" };
     }
 
     // Check if customer has reservations
     const reservationCount = await db
       .select({ count: count() })
       .from(reservations)
-      .where(eq(reservations.customerId, customerId))
+      .where(eq(reservations.customerId, customerId));
 
     if (reservationCount[0]?.count > 0) {
-      return { error: 'errors.customerHasReservations' }
+      return { error: "errors.customerHasReservations" };
     }
 
-    await db.delete(customers).where(eq(customers.id, customerId))
+    await db.delete(customers).where(eq(customers.id, customerId));
 
-    revalidatePath('/dashboard/customers')
-    return { success: true }
+    revalidatePath("/dashboard/customers");
+    return { success: true };
   } catch (error) {
-    console.error('Error deleting customer:', error)
-    return { error: 'errors.deleteCustomerError' }
+    console.error("Error deleting customer:", error);
+    return { error: "errors.deleteCustomerError" };
   }
 }
 
 export async function updateCustomerNotes(customerId: string, notes: string) {
   try {
-    const storeId = await getStoreId()
+    const storeId = await getStoreId();
 
     // Check if customer exists and belongs to store
     const existingCustomer = await db.query.customers.findFirst({
-      where: and(
-        eq(customers.id, customerId),
-        eq(customers.storeId, storeId)
-      ),
-    })
+      where: and(eq(customers.id, customerId), eq(customers.storeId, storeId)),
+    });
 
     if (!existingCustomer) {
-      return { error: 'errors.customerNotFound' }
+      return { error: "errors.customerNotFound" };
     }
 
     await db
@@ -223,12 +208,12 @@ export async function updateCustomerNotes(customerId: string, notes: string) {
         notes,
         updatedAt: new Date(),
       })
-      .where(eq(customers.id, customerId))
+      .where(eq(customers.id, customerId));
 
-    revalidatePath(`/dashboard/customers/${customerId}`)
-    return { success: true }
+    revalidatePath(`/dashboard/customers/${customerId}`);
+    return { success: true };
   } catch (error) {
-    console.error('Error updating customer notes:', error)
-    return { error: 'errors.updateNotesError' }
+    console.error("Error updating customer notes:", error);
+    return { error: "errors.updateNotesError" };
   }
 }

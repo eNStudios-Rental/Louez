@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
-import { createContext, useContext } from 'react'
+import { createContext, useContext } from "react";
 
 export interface InstanceConfig {
   /** Single-store, single-origin deployment (any LOUEZ_MODE but 'platform'). */
-  standalone: boolean
+  standalone: boolean;
   /** Whether an outgoing email transport (SMTP) is configured. */
-  emailConfigured: boolean
+  emailConfigured: boolean;
   /** Whether Google OAuth sign-in is configured. */
-  googleAuthConfigured: boolean
+  googleAuthConfigured: boolean;
 }
 
 // Defaults mirror the platform/cloud deployment so a component rendered
@@ -17,7 +17,7 @@ const InstanceConfigContext = createContext<InstanceConfig>({
   standalone: false,
   emailConfigured: true,
   googleAuthConfigured: true,
-})
+});
 
 /**
  * Exposes server-only instance capabilities to client components.
@@ -31,16 +31,12 @@ export function InstanceProvider({
   config,
   children,
 }: {
-  config: InstanceConfig
-  children: React.ReactNode
+  config: InstanceConfig;
+  children: React.ReactNode;
 }) {
-  return (
-    <InstanceConfigContext.Provider value={config}>
-      {children}
-    </InstanceConfigContext.Provider>
-  )
+  return <InstanceConfigContext.Provider value={config}>{children}</InstanceConfigContext.Provider>;
 }
 
 export function useInstanceConfig(): InstanceConfig {
-  return useContext(InstanceConfigContext)
+  return useContext(InstanceConfigContext);
 }

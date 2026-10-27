@@ -64,7 +64,12 @@ export const StoreContactDetails = ({
       ) : null}
       {phone ? (
         <li>
-          <StorePhoneContact phone={phone} sms={sms} iconClassName={iconClassName} autoFocus={autoFocus} />
+          <StorePhoneContact
+            phone={phone}
+            sms={sms}
+            iconClassName={iconClassName}
+            autoFocus={autoFocus}
+          />
         </li>
       ) : null}
       {whatsapp ? (

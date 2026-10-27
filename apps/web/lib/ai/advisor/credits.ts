@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, sql } from 'drizzle-orm'
+import { and, desc, eq, gte, sql } from "drizzle-orm";
 
 import {
   aiAdvisorConversations,
@@ -6,51 +6,45 @@ import {
   aiCreditTransactions,
   aiCredits,
   db,
-} from '@louez/db'
+} from "@louez/db";
 
-import { env } from '@/env'
+import { env } from "@/env";
 import {
   CREDIT_MICRO,
   costMicroUsdToCreditsMicro,
   getCreditCostBasisUsd,
   runCostMicroUsd,
   type AdvisorUsage,
-} from '@/lib/ai/pricing'
-import { log } from '@/lib/evlog'
-import type { Plan } from '@/lib/plans'
+} from "@/lib/ai/pricing";
+import { log } from "@/lib/evlog";
+import type { Plan } from "@/lib/plans";
 
-type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0]
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** Micro-credits ⇄ whole credits (for display and env-configured amounts). */
-export const microToCredits = (micro: number): number => micro / CREDIT_MICRO
-export const creditsToMicro = (credits: number): number =>
-  Math.round(credits * CREDIT_MICRO)
+export const microToCredits = (micro: number): number => micro / CREDIT_MICRO;
+export const creditsToMicro = (credits: number): number => Math.round(credits * CREDIT_MICRO);
 
 /**
  * Prepaid credits to gift a NEW store at account creation. Read from env,
  * snapshotted at onboarding (changing the env only affects future accounts).
  */
 export function getDefaultAiCredits(): number {
-  const n = Number(env.FREE_AI_CREDITS)
-  return Number.isFinite(n) && n >= 0 ? Math.trunc(n) : 0
+  const n = Number(env.FREE_AI_CREDITS);
+  return Number.isFinite(n) && n >= 0 ? Math.trunc(n) : 0;
 }
 
 /** Start of the current calendar month (the monthly-allowance reset boundary). */
 function startOfCalendarMonth(): Date {
-  const now = new Date()
-  return new Date(now.getFullYear(), now.getMonth(), 1)
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), 1);
 }
 
 /** Sum of the monthly-pocket consumption for a store this calendar month (micro-credits). */
-async function sumMonthlyUsedMicro(
-  runner: Tx | typeof db,
-  storeId: string,
-): Promise<number> {
+async function sumMonthlyUsedMicro(runner: Tx | typeof db, storeId: string): Promise<number> {
   const [row] = await runner
     .select({
-      used: sql<number>`COALESCE(SUM(${aiCreditDebits.fromMonthlyMicro}), 0)`.mapWith(
-        Number,
-      ),
+      used: sql<number>`COALESCE(SUM(${aiCreditDebits.fromMonthlyMicro}), 0)`.mapWith(Number),
     })
     .from(aiCreditDebits)
     .where(
@@ -58,39 +52,33 @@ async function sumMonthlyUsedMicro(
         eq(aiCreditDebits.storeId, storeId),
         gte(aiCreditDebits.createdAt, startOfCalendarMonth()),
       ),
-    )
-  return row?.used ?? 0
+    );
+  return row?.used ?? 0;
 }
 
 export type AiCreditsInfo = {
   /** null = unlimited monthly allowance. */
-  monthlyIncludedMicro: number | null
-  monthlyUsedMicro: number
+  monthlyIncludedMicro: number | null;
+  monthlyUsedMicro: number;
   /** null = unlimited. */
-  monthlyRemainingMicro: number | null
-  prepaidBalanceMicro: number
-  autoTopupEnabled: boolean
-  autoTopupThresholdMicro: number | null
-  autoTopupCredits: number | null
-  autoTopupPriceCents: number | null
-}
+  monthlyRemainingMicro: number | null;
+  prepaidBalanceMicro: number;
+  autoTopupEnabled: boolean;
+  autoTopupThresholdMicro: number | null;
+  autoTopupCredits: number | null;
+  autoTopupPriceCents: number | null;
+};
 
 /** Full credit standing for a store: monthly-included pocket + prepaid balance. */
-export async function getAiCreditsInfo(
-  storeId: string,
-  plan: Plan,
-): Promise<AiCreditsInfo> {
+export async function getAiCreditsInfo(storeId: string, plan: Plan): Promise<AiCreditsInfo> {
   const [creditsRow, monthlyUsedMicro] = await Promise.all([
     db.query.aiCredits.findFirst({ where: eq(aiCredits.storeId, storeId) }),
     sumMonthlyUsedMicro(db, storeId),
-  ])
-  const perMonth = plan.features.aiCreditsPerMonth
-  const monthlyIncludedMicro =
-    perMonth === null ? null : perMonth * CREDIT_MICRO
+  ]);
+  const perMonth = plan.features.aiCreditsPerMonth;
+  const monthlyIncludedMicro = perMonth === null ? null : perMonth * CREDIT_MICRO;
   const monthlyRemainingMicro =
-    monthlyIncludedMicro === null
-      ? null
-      : Math.max(0, monthlyIncludedMicro - monthlyUsedMicro)
+    monthlyIncludedMicro === null ? null : Math.max(0, monthlyIncludedMicro - monthlyUsedMicro);
   return {
     monthlyIncludedMicro,
     monthlyUsedMicro,
@@ -100,13 +88,13 @@ export async function getAiCreditsInfo(
     autoTopupThresholdMicro: creditsRow?.autoTopupThresholdMicro ?? null,
     autoTopupCredits: creditsRow?.autoTopupCredits ?? null,
     autoTopupPriceCents: creditsRow?.autoTopupPriceCents ?? null,
-  }
+  };
 }
 
 export type AdvisorCreditCheck = {
-  allowed: boolean
-  code?: 'credits_exhausted'
-}
+  allowed: boolean;
+  code?: "credits_exhausted";
+};
 
 /**
  * Pre-model credit gate — fail-closed. Blocks a new run only when there is no
@@ -117,19 +105,18 @@ export async function checkAdvisorCredits(
   storeId: string,
   plan: Plan,
 ): Promise<AdvisorCreditCheck> {
-  if (getCreditCostBasisUsd() <= 0) return { allowed: true }
+  if (getCreditCostBasisUsd() <= 0) return { allowed: true };
   try {
-    const info = await getAiCreditsInfo(storeId, plan)
-    const monthlyOk =
-      info.monthlyRemainingMicro === null || info.monthlyRemainingMicro > 0
-    if (monthlyOk || info.prepaidBalanceMicro > 0) return { allowed: true }
-    return { allowed: false, code: 'credits_exhausted' }
+    const info = await getAiCreditsInfo(storeId, plan);
+    const monthlyOk = info.monthlyRemainingMicro === null || info.monthlyRemainingMicro > 0;
+    if (monthlyOk || info.prepaidBalanceMicro > 0) return { allowed: true };
+    return { allowed: false, code: "credits_exhausted" };
   } catch (error) {
     log.error(
-      'advisor',
+      "advisor",
       `credit check failed: ${error instanceof Error ? error.message : String(error)}`,
-    )
-    return { allowed: false, code: 'credits_exhausted' }
+    );
+    return { allowed: false, code: "credits_exhausted" };
   }
 }
 
@@ -143,58 +130,52 @@ export async function checkAdvisorCredits(
 export async function recordAdvisorRunDebit(
   tx: Tx,
   params: {
-    storeId: string
-    conversationId: string
-    assistantMessageId: string
-    usage: AdvisorUsage
-    plan: Plan
+    storeId: string;
+    conversationId: string;
+    assistantMessageId: string;
+    usage: AdvisorUsage;
+    plan: Plan;
   },
 ): Promise<number> {
-  const { storeId, conversationId, assistantMessageId, usage, plan } = params
+  const { storeId, conversationId, assistantMessageId, usage, plan } = params;
 
-  const costMicroUsd = runCostMicroUsd(usage)
-  const rawCreditsMicro = costMicroUsdToCreditsMicro(costMicroUsd)
-  if (rawCreditsMicro <= 0) return 0
+  const costMicroUsd = runCostMicroUsd(usage);
+  const rawCreditsMicro = costMicroUsdToCreditsMicro(costMicroUsd);
+  if (rawCreditsMicro <= 0) return 0;
 
   // Serialize all of a store's debits (and guarantee the balance row exists) by
   // locking the ai_credits row up front. This makes the monthly-pocket split and
   // the per-conversation cap race-free across concurrent runs, and guarantees the
   // prepaid decrement always lands (no silent loss when the row was absent).
-  await tx
-    .insert(aiCredits)
-    .values({ storeId })
-    .onDuplicateKeyUpdate({ set: { storeId } })
+  await tx.insert(aiCredits).values({ storeId }).onDuplicateKeyUpdate({ set: { storeId } });
   await tx
     .select({ balanceMicro: aiCredits.balanceMicro })
     .from(aiCredits)
     .where(eq(aiCredits.storeId, storeId))
-    .for('update')
+    .for("update");
 
   // Read the conversation's accrued total under the lock (fresh) for the cap.
   const conv = await tx.query.aiAdvisorConversations.findFirst({
     where: eq(aiAdvisorConversations.id, conversationId),
     columns: { accruedCreditsMicro: true },
-  })
+  });
 
   // Per-conversation cap: never more than 1 credit total.
-  const capRemaining = Math.max(
-    0,
-    CREDIT_MICRO - (conv?.accruedCreditsMicro ?? 0),
-  )
-  const debitMicro = Math.min(rawCreditsMicro, capRemaining)
-  if (debitMicro <= 0) return 0
+  const capRemaining = Math.max(0, CREDIT_MICRO - (conv?.accruedCreditsMicro ?? 0));
+  const debitMicro = Math.min(rawCreditsMicro, capRemaining);
+  if (debitMicro <= 0) return 0;
 
   // Split across the monthly-included pocket first, then prepaid.
-  const perMonth = plan.features.aiCreditsPerMonth
-  let fromMonthly = 0
+  const perMonth = plan.features.aiCreditsPerMonth;
+  let fromMonthly = 0;
   if (perMonth === null) {
-    fromMonthly = debitMicro // unlimited monthly allowance
+    fromMonthly = debitMicro; // unlimited monthly allowance
   } else if (perMonth > 0) {
-    const monthlyUsed = await sumMonthlyUsedMicro(tx, storeId)
-    const monthlyRemaining = Math.max(0, perMonth * CREDIT_MICRO - monthlyUsed)
-    fromMonthly = Math.min(debitMicro, monthlyRemaining)
+    const monthlyUsed = await sumMonthlyUsedMicro(tx, storeId);
+    const monthlyRemaining = Math.max(0, perMonth * CREDIT_MICRO - monthlyUsed);
+    fromMonthly = Math.min(debitMicro, monthlyRemaining);
   }
-  const fromPrepaid = debitMicro - fromMonthly
+  const fromPrepaid = debitMicro - fromMonthly;
 
   // Insert the debit row first — the UNIQUE dedup key makes it exactly-once (a
   // retry throws, rolling back the whole tx, so nothing is double-debited).
@@ -209,7 +190,7 @@ export async function recordAdvisorRunDebit(
     debitedMicro: debitMicro,
     fromMonthlyMicro: fromMonthly,
     fromPrepaidMicro: fromPrepaid,
-  })
+  });
 
   // Bump the conversation accumulator (drives the cap on the next run).
   await tx
@@ -217,7 +198,7 @@ export async function recordAdvisorRunDebit(
     .set({
       accruedCreditsMicro: sql`${aiAdvisorConversations.accruedCreditsMicro} + ${debitMicro}`,
     })
-    .where(eq(aiAdvisorConversations.id, conversationId))
+    .where(eq(aiAdvisorConversations.id, conversationId));
 
   // Only the prepaid portion touches the stored balance. It may dip slightly
   // negative on the exact run that exhausts the balance (bounded to < 1 credit
@@ -231,10 +212,10 @@ export async function recordAdvisorRunDebit(
         totalUsedMicro: sql`${aiCredits.totalUsedMicro} + ${fromPrepaid}`,
         updatedAt: new Date(),
       })
-      .where(eq(aiCredits.storeId, storeId))
+      .where(eq(aiCredits.storeId, storeId));
   }
 
-  return debitMicro
+  return debitMicro;
 }
 
 /**
@@ -243,40 +224,40 @@ export async function recordAdvisorRunDebit(
  * already applied (safe under duplicate webhook deliveries).
  */
 export async function creditAiCredits(params: {
-  storeId: string
-  credits: number
-  type: 'grant' | 'topup' | 'auto_topup' | 'adjustment'
-  amountCents?: number
-  currency?: string
-  dedupKey?: string
-  stripeSessionId?: string
-  stripePaymentIntentId?: string
-  stripeInvoiceId?: string
+  storeId: string;
+  credits: number;
+  type: "grant" | "topup" | "auto_topup" | "adjustment";
+  amountCents?: number;
+  currency?: string;
+  dedupKey?: string;
+  stripeSessionId?: string;
+  stripePaymentIntentId?: string;
+  stripeInvoiceId?: string;
 }): Promise<boolean> {
-  const creditsMicro = creditsToMicro(params.credits)
-  if (creditsMicro <= 0) return false
+  const creditsMicro = creditsToMicro(params.credits);
+  if (creditsMicro <= 0) return false;
   try {
     return await db.transaction(async (tx) => {
       if (params.dedupKey) {
         const existing = await tx.query.aiCreditTransactions.findFirst({
           where: eq(aiCreditTransactions.dedupKey, params.dedupKey),
-        })
-        if (existing) return false // already credited
+        });
+        if (existing) return false; // already credited
       }
 
       // Ensure the balance row exists (no-op update on conflict), then increment.
       await tx
         .insert(aiCredits)
         .values({ storeId: params.storeId })
-        .onDuplicateKeyUpdate({ set: { storeId: params.storeId } })
+        .onDuplicateKeyUpdate({ set: { storeId: params.storeId } });
 
-      const isPurchase = params.type === 'topup' || params.type === 'auto_topup'
+      const isPurchase = params.type === "topup" || params.type === "auto_topup";
       await tx
         .update(aiCredits)
         .set({
           balanceMicro: sql`${aiCredits.balanceMicro} + ${creditsMicro}`,
           totalGrantedMicro:
-            params.type === 'grant'
+            params.type === "grant"
               ? sql`${aiCredits.totalGrantedMicro} + ${creditsMicro}`
               : sql`${aiCredits.totalGrantedMicro}`,
           totalPurchasedMicro: isPurchase
@@ -284,29 +265,29 @@ export async function creditAiCredits(params: {
             : sql`${aiCredits.totalPurchasedMicro}`,
           updatedAt: new Date(),
         })
-        .where(eq(aiCredits.storeId, params.storeId))
+        .where(eq(aiCredits.storeId, params.storeId));
 
       await tx.insert(aiCreditTransactions).values({
         storeId: params.storeId,
         type: params.type,
         creditsMicro,
         amountCents: params.amountCents ?? 0,
-        currency: params.currency ?? 'eur',
+        currency: params.currency ?? "eur",
         dedupKey: params.dedupKey,
         stripeSessionId: params.stripeSessionId,
         stripePaymentIntentId: params.stripePaymentIntentId,
         stripeInvoiceId: params.stripeInvoiceId,
-        status: 'completed',
+        status: "completed",
         completedAt: new Date(),
-      })
-      return true
-    })
+      });
+      return true;
+    });
   } catch (error) {
     log.error(
-      'advisor',
+      "advisor",
       `creditAiCredits failed: ${error instanceof Error ? error.message : String(error)}`,
-    )
-    return false
+    );
+    return false;
   }
 }
 
@@ -314,70 +295,60 @@ export async function creditAiCredits(params: {
 export async function updateAutoTopupConfig(
   storeId: string,
   config: {
-    enabled: boolean
-    thresholdCredits: number
-    credits: number
-    priceCents: number
+    enabled: boolean;
+    thresholdCredits: number;
+    credits: number;
+    priceCents: number;
   },
 ): Promise<void> {
-  await db
-    .insert(aiCredits)
-    .values({ storeId })
-    .onDuplicateKeyUpdate({ set: { storeId } })
+  await db.insert(aiCredits).values({ storeId }).onDuplicateKeyUpdate({ set: { storeId } });
   await db
     .update(aiCredits)
     .set({
       autoTopupEnabled: config.enabled,
-      autoTopupThresholdMicro: creditsToMicro(
-        Math.max(0, config.thresholdCredits),
-      ),
+      autoTopupThresholdMicro: creditsToMicro(Math.max(0, config.thresholdCredits)),
       autoTopupCredits: config.credits > 0 ? config.credits : null,
       autoTopupPriceCents: config.priceCents > 0 ? config.priceCents : null,
       updatedAt: new Date(),
     })
-    .where(eq(aiCredits.storeId, storeId))
+    .where(eq(aiCredits.storeId, storeId));
 }
 
 export type AiCreditTransactionRow = {
-  id: string
-  type: 'grant' | 'topup' | 'auto_topup' | 'adjustment'
-  creditsMicro: number
-  amountCents: number
-  currency: string
-  status: 'pending' | 'completed' | 'failed'
-  createdAt: Date
-  completedAt: Date | null
-}
+  id: string;
+  type: "grant" | "topup" | "auto_topup" | "adjustment";
+  creditsMicro: number;
+  amountCents: number;
+  currency: string;
+  status: "pending" | "completed" | "failed";
+  createdAt: Date;
+  completedAt: Date | null;
+};
 
 export type AiCreditDebitRow = {
-  id: string
-  kind: 'usage' | 'number_rental' | 'image_enhancement'
-  conversationId: string | null
-  imageKey: string | null
-  creditsMicro: number
-  audioSeconds: number
-  createdAt: Date
-}
+  id: string;
+  kind: "usage" | "number_rental" | "image_enhancement";
+  conversationId: string | null;
+  imageKey: string | null;
+  creditsMicro: number;
+  audioSeconds: number;
+  createdAt: Date;
+};
 
 export type AiCreditDebitHistory = {
-  rows: AiCreditDebitRow[]
-  total: number
-}
+  rows: AiCreditDebitRow[];
+  total: number;
+};
 
 /** Whether this store has ever spent a billable AI credit. */
 export async function hasEverUsedAiCredits(storeId: string): Promise<boolean> {
   const [row] = await db
     .select({ id: aiCreditDebits.id })
     .from(aiCreditDebits)
-    .where(
-      and(
-        eq(aiCreditDebits.storeId, storeId),
-        gte(aiCreditDebits.debitedMicro, 1),
-      ),
-    )
-    .limit(1)
+    .where(and(eq(aiCreditDebits.storeId, storeId), gte(aiCreditDebits.debitedMicro, 1)))
+    .limit(1);
 
-  return row !== undefined
+  return row !== undefined;
 }
 
 /**
@@ -391,12 +362,9 @@ export async function getAiCreditDebitHistory(
   storeId: string,
   params: { page?: number; pageSize?: number } = {},
 ): Promise<AiCreditDebitHistory> {
-  const pageSize = Math.min(Math.max(params.pageSize ?? 20, 1), 50)
-  const page = Math.max(params.page ?? 1, 1)
-  const where = and(
-    eq(aiCreditDebits.storeId, storeId),
-    gte(aiCreditDebits.debitedMicro, 1),
-  )
+  const pageSize = Math.min(Math.max(params.pageSize ?? 20, 1), 50);
+  const page = Math.max(params.page ?? 1, 1);
+  const where = and(eq(aiCreditDebits.storeId, storeId), gte(aiCreditDebits.debitedMicro, 1));
   const [rows, [countRow]] = await Promise.all([
     db
       .select({
@@ -417,22 +385,22 @@ export async function getAiCreditDebitHistory(
       .select({ count: sql<number>`COUNT(*)`.mapWith(Number) })
       .from(aiCreditDebits)
       .where(where),
-  ])
-  return { rows, total: countRow?.count ?? 0 }
+  ]);
+  return { rows, total: countRow?.count ?? 0 };
 }
 
 export type AiCreditUsageSummary = {
   /** Distinct advisor conversations billed this month. */
-  conversations: number
+  conversations: number;
   /** Distinct voice calls billed this month. */
-  calls: number
+  calls: number;
   /** Total billed call time this month, in seconds. */
-  callSeconds: number
+  callSeconds: number;
   /** Product images enhanced this month. */
-  images: number
+  images: number;
   /** Micro-credits spent this month, all kinds together. */
-  creditsMicro: number
-}
+  creditsMicro: number;
+};
 
 /**
  * "What your credits bought you this month" recap for the dashboard, derived
@@ -440,9 +408,7 @@ export type AiCreditUsageSummary = {
  * cost, no tokens). Conversations and calls are counted distinctly because one
  * conversation bills several runs.
  */
-export async function getAiCreditUsageSummary(
-  storeId: string,
-): Promise<AiCreditUsageSummary> {
+export async function getAiCreditUsageSummary(storeId: string): Promise<AiCreditUsageSummary> {
   const [row] = await db
     .select({
       conversations:
@@ -453,18 +419,12 @@ export async function getAiCreditUsageSummary(
         sql<number>`COUNT(DISTINCT CASE WHEN ${aiCreditDebits.audioSeconds} > 0 THEN ${aiCreditDebits.conversationId} END)`.mapWith(
           Number,
         ),
-      callSeconds:
-        sql<number>`COALESCE(SUM(${aiCreditDebits.audioSeconds}), 0)`.mapWith(
-          Number,
-        ),
+      callSeconds: sql<number>`COALESCE(SUM(${aiCreditDebits.audioSeconds}), 0)`.mapWith(Number),
       images:
         sql<number>`COUNT(CASE WHEN ${aiCreditDebits.kind} = 'image_enhancement' THEN 1 END)`.mapWith(
           Number,
         ),
-      creditsMicro:
-        sql<number>`COALESCE(SUM(${aiCreditDebits.debitedMicro}), 0)`.mapWith(
-          Number,
-        ),
+      creditsMicro: sql<number>`COALESCE(SUM(${aiCreditDebits.debitedMicro}), 0)`.mapWith(Number),
     })
     .from(aiCreditDebits)
     .where(
@@ -473,14 +433,14 @@ export async function getAiCreditUsageSummary(
         gte(aiCreditDebits.debitedMicro, 1),
         gte(aiCreditDebits.createdAt, startOfCalendarMonth()),
       ),
-    )
+    );
   return {
     conversations: row?.conversations ?? 0,
     calls: row?.calls ?? 0,
     callSeconds: row?.callSeconds ?? 0,
     images: row?.images ?? 0,
     creditsMicro: row?.creditsMicro ?? 0,
-  }
+  };
 }
 
 /** Recent credit acquisitions (grants + purchases) for the dashboard history. */
@@ -502,6 +462,6 @@ export async function getAiCreditHistory(
     .from(aiCreditTransactions)
     .where(eq(aiCreditTransactions.storeId, storeId))
     .orderBy(desc(aiCreditTransactions.createdAt))
-    .limit(limit)
-  return rows
+    .limit(limit);
+  return rows;
 }

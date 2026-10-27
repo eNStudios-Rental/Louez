@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@louez/ui'
-import { Button } from '@louez/ui'
-import { Avatar, AvatarFallback, AvatarImage } from '@louez/ui'
-import { cn, formatCurrency } from '@louez/utils'
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@louez/ui";
+import { Button } from "@louez/ui";
+import { Avatar, AvatarFallback, AvatarImage } from "@louez/ui";
+import { cn, formatCurrency } from "@louez/utils";
 import {
   ArrowUpRight,
   ArrowDownRight,
@@ -14,89 +14,94 @@ import {
   Sparkles,
   AlertTriangle,
   Zap,
-} from 'lucide-react'
-import type { StorePerformance } from '@/lib/dashboard/multi-store-metrics'
-import { setCurrentStoreAction } from '../actions'
+} from "lucide-react";
+import type { StorePerformance } from "@/lib/dashboard/multi-store-metrics";
+import { setCurrentStoreAction } from "../actions";
 
 interface StoresTableProps {
-  stores: StorePerformance[]
+  stores: StorePerformance[];
   translations: {
-    title: string
-    store: string
-    plan: string
-    revenue: string
-    change: string
-    reservations: string
-    pending: string
-    customers: string
-    goToStore: string
-  }
-  limitsMap?: Record<string, boolean>
-  readOnly?: boolean
+    title: string;
+    store: string;
+    plan: string;
+    revenue: string;
+    change: string;
+    reservations: string;
+    pending: string;
+    customers: string;
+    goToStore: string;
+  };
+  limitsMap?: Record<string, boolean>;
+  readOnly?: boolean;
 }
 
 function PlanBadge({ planSlug, planName }: { planSlug: string; planName: string }) {
   const planConfig: Record<string, { className: string; icon: React.ReactNode }> = {
     pro: {
-      className: 'bg-primary/10 text-primary',
+      className: "bg-primary/10 text-primary",
       icon: <Sparkles className="h-3 w-3" />,
     },
     ultra: {
-      className: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+      className: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
       icon: <Crown className="h-3 w-3" />,
     },
     pay_as_you_go: {
-      className: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+      className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
       icon: <Zap className="h-3 w-3" />,
     },
-  }
+  };
 
-  const config = planConfig[planSlug] || planConfig.pay_as_you_go
+  const config = planConfig[planSlug] || planConfig.pay_as_you_go;
 
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium',
-        config.className
+        "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
+        config.className,
       )}
     >
       {config.icon}
       {planName}
     </span>
-  )
+  );
 }
 
 function ChangeIndicator({ change }: { change: number }) {
-  const isPositive = change > 0
-  const isNegative = change < 0
-  const isNeutral = change === 0
+  const isPositive = change > 0;
+  const isNegative = change < 0;
+  const isNeutral = change === 0;
 
   return (
     <div
       className={cn(
-        'flex items-center gap-0.5 text-xs font-medium',
-        isPositive && 'text-emerald-600 dark:text-emerald-400',
-        isNegative && 'text-red-600 dark:text-red-400',
-        isNeutral && 'text-muted-foreground'
+        "flex items-center gap-0.5 text-xs font-medium",
+        isPositive && "text-emerald-600 dark:text-emerald-400",
+        isNegative && "text-red-600 dark:text-red-400",
+        isNeutral && "text-muted-foreground",
       )}
     >
       {isPositive && <ArrowUpRight className="h-3 w-3" />}
       {isNegative && <ArrowDownRight className="h-3 w-3" />}
       {isNeutral && <Minus className="h-3 w-3" />}
-      <span>{isNeutral ? '0' : `${isPositive ? '+' : ''}${change.toFixed(1)}`}%</span>
+      <span>{isNeutral ? "0" : `${isPositive ? "+" : ""}${change.toFixed(1)}`}%</span>
     </div>
-  )
+  );
 }
 
-export function StoresTable({ stores, translations, limitsMap = {}, readOnly = false }: StoresTableProps) {
-  const router = useRouter()
+export function StoresTable({
+  stores,
+  translations,
+  limitsMap = {},
+  readOnly = false,
+}: StoresTableProps) {
+  const router = useRouter();
 
   const handleStoreClick = async (storeId: string) => {
-    if (readOnly) return
-    await setCurrentStoreAction(storeId)
-    router.push('/dashboard')
-    router.refresh()
-  }
+    if (readOnly) return;
+    await setCurrentStoreAction(storeId);
+    router.push("/dashboard");
+    router.refresh();
+  };
 
   return (
     <Card>
@@ -111,8 +116,12 @@ export function StoresTable({ stores, translations, limitsMap = {}, readOnly = f
                 <th className="pb-3 font-medium">{translations.store}</th>
                 <th className="pb-3 font-medium">{translations.plan}</th>
                 <th className="pb-3 font-medium text-right">{translations.revenue}</th>
-                <th className="pb-3 font-medium text-right hidden sm:table-cell">{translations.reservations}</th>
-                <th className="pb-3 font-medium text-right hidden md:table-cell">{translations.customers}</th>
+                <th className="pb-3 font-medium text-right hidden sm:table-cell">
+                  {translations.reservations}
+                </th>
+                <th className="pb-3 font-medium text-right hidden md:table-cell">
+                  {translations.customers}
+                </th>
                 <th className="pb-3 font-medium text-right"></th>
               </tr>
             </thead>
@@ -181,5 +190,5 @@ export function StoresTable({ stores, translations, limitsMap = {}, readOnly = f
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -60,7 +60,9 @@ async function RevenueHeroSection({
 }) {
   const { intl: formatLocale } = await getRequestFormatLocale();
   const stats = await getPeriodPaymentStats(storeId, window);
-  return <RevenueHero stats={stats} window={window} formatLocale={formatLocale} currency={currency} />;
+  return (
+    <RevenueHero stats={stats} window={window} formatLocale={formatLocale} currency={currency} />
+  );
 }
 
 function RevenueHeroSkeleton() {

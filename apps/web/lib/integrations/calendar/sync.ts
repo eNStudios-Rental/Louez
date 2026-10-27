@@ -1,5 +1,5 @@
-import { and, eq, gte, inArray, lte, or } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
+import { and, eq, gte, inArray, lte, or } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
 import {
   db,
@@ -8,12 +8,9 @@ import {
   reservations,
   storeCalendarIntegrations,
   storeIntegrations,
-} from '@louez/db';
+} from "@louez/db";
 
-import {
-  decryptIntegrationSecret,
-  encryptIntegrationSecret,
-} from '@/lib/integrations/credentials';
+import { decryptIntegrationSecret, encryptIntegrationSecret } from "@/lib/integrations/credentials";
 import {
   GOOGLE_CALENDAR_PROVIDER_KEY,
   GoogleCalendarApiError,
@@ -21,28 +18,22 @@ import {
   insertGoogleCalendarEvent,
   refreshGoogleCalendarAccessToken,
   updateGoogleCalendarEvent,
-} from '@/lib/integrations/providers/google-calendar/google-calendar-client';
+} from "@/lib/integrations/providers/google-calendar/google-calendar-client";
 
-import { buildReservationCalendarEventPayload } from './calendar-event-payload';
+import { buildReservationCalendarEventPayload } from "./calendar-event-payload";
 
 const MAX_ATTEMPTS = 8;
 const IMMEDIATE_BACKFILL_SYNC_LIMIT = 10;
 
 function isMissingProviderEvent(error: unknown): boolean {
-  return (
-    error instanceof GoogleCalendarApiError &&
-    (error.status === 404 || error.status === 410)
-  );
+  return error instanceof GoogleCalendarApiError && (error.status === 404 || error.status === 410);
 }
 
-async function processCalendarSyncQueueImmediately(
-  limit: number,
-  context: string,
-): Promise<void> {
+async function processCalendarSyncQueueImmediately(limit: number, context: string): Promise<void> {
   const result = await processCalendarSyncQueue(limit);
 
   if (result.failed > 0) {
-    console.warn('[calendar] Immediate sync left failed events for retry', {
+    console.warn("[calendar] Immediate sync left failed events for retry", {
       context,
       ...result,
     });
@@ -68,9 +59,9 @@ export async function markReservationForCalendarSync(
     .where(
       and(
         eq(storeIntegrations.storeId, storeId),
-        eq(storeIntegrations.category, 'calendar'),
+        eq(storeIntegrations.category, "calendar"),
         eq(storeIntegrations.enabled, true),
-        inArray(storeIntegrations.status, ['active', 'error', 'syncing']),
+        inArray(storeIntegrations.status, ["active", "error", "syncing"]),
         eq(storeIntegrations.providerKey, GOOGLE_CALENDAR_PROVIDER_KEY),
       ),
     );
@@ -84,14 +75,14 @@ export async function markReservationForCalendarSync(
         id: nanoid(),
         reservationId,
         integrationId: integration.integrationId,
-        syncStatus: 'pending',
+        syncStatus: "pending",
         attemptCount: 0,
         nextAttemptAt: new Date(),
         updatedAt: new Date(),
       })
       .onDuplicateKeyUpdate({
         set: {
-          syncStatus: 'pending',
+          syncStatus: "pending",
           attemptCount: 0,
           nextAttemptAt: new Date(),
           lastError: null,
@@ -102,7 +93,7 @@ export async function markReservationForCalendarSync(
   }
 
   if (enqueued > 0) {
-    await processCalendarSyncQueueImmediately(enqueued, 'reservation_enqueued');
+    await processCalendarSyncQueueImmediately(enqueued, "reservation_enqueued");
   }
 }
 
@@ -126,14 +117,8 @@ export async function enqueueCalendarBackfill(params: {
         eq(reservations.storeId, params.storeId),
         or(
           and(lte(reservations.startDate, now), gte(reservations.endDate, now)),
-          and(
-            gte(reservations.startDate, now),
-            lte(reservations.startDate, futureUntil),
-          ),
-          and(
-            gte(reservations.startDate, pastSince),
-            lte(reservations.startDate, now),
-          ),
+          and(gte(reservations.startDate, now), lte(reservations.startDate, futureUntil)),
+          and(gte(reservations.startDate, pastSince), lte(reservations.startDate, now)),
         ),
       ),
     );
@@ -145,14 +130,14 @@ export async function enqueueCalendarBackfill(params: {
         id: nanoid(),
         reservationId: row.reservationId,
         integrationId: params.integrationId,
-        syncStatus: 'pending',
+        syncStatus: "pending",
         attemptCount: 0,
         nextAttemptAt: new Date(),
         updatedAt: new Date(),
       })
       .onDuplicateKeyUpdate({
         set: {
-          syncStatus: 'pending',
+          syncStatus: "pending",
           attemptCount: 0,
           nextAttemptAt: new Date(),
           lastError: null,
@@ -164,7 +149,7 @@ export async function enqueueCalendarBackfill(params: {
   if (rows.length > 0) {
     await processCalendarSyncQueueImmediately(
       Math.min(rows.length, IMMEDIATE_BACKFILL_SYNC_LIMIT),
-      'calendar_backfill_enqueued',
+      "calendar_backfill_enqueued",
     );
   }
 
@@ -186,7 +171,7 @@ async function getAccessTokenForIntegration(params: {
   }
 
   if (!params.refreshTokenEncrypted) {
-    throw new Error('Google Calendar refresh token is missing');
+    throw new Error("Google Calendar refresh token is missing");
   }
 
   const refreshToken = decryptIntegrationSecret(params.refreshTokenEncrypted);
@@ -215,13 +200,13 @@ async function processCalendarEvent(row: {
   attemptCount: number;
   calendarId: string | null;
   syncPendingReservations: boolean;
-  cancelledReservationBehavior: 'show' | 'hide';
+  cancelledReservationBehavior: "show" | "hide";
   accessTokenEncrypted: string | null;
   refreshTokenEncrypted: string | null;
   expiresAt: Date | null;
 }): Promise<void> {
   if (!row.calendarId) {
-    throw new Error('Calendar destination is not configured');
+    throw new Error("Calendar destination is not configured");
   }
 
   const payload = await buildReservationCalendarEventPayload({
@@ -250,7 +235,7 @@ async function processCalendarEvent(row: {
       .set({
         providerEventId: null,
         payloadHash: payload.payloadHash,
-        syncStatus: 'synced',
+        syncStatus: "synced",
         lastSyncedAt: new Date(),
         lastError: null,
         updatedAt: new Date(),
@@ -260,7 +245,7 @@ async function processCalendarEvent(row: {
   }
 
   if (!payload.event) {
-    throw new Error('Calendar event payload is missing');
+    throw new Error("Calendar event payload is missing");
   }
 
   let providerEvent: { id: string };
@@ -297,7 +282,7 @@ async function processCalendarEvent(row: {
     .set({
       providerEventId: providerEvent.id,
       payloadHash: payload.payloadHash,
-      syncStatus: 'synced',
+      syncStatus: "synced",
       lastSyncedAt: new Date(),
       lastError: null,
       updatedAt: new Date(),
@@ -312,7 +297,7 @@ async function processCalendarEvent(row: {
   await db
     .update(storeIntegrations)
     .set({
-      status: 'active',
+      status: "active",
       lastErrorCode: null,
       lastErrorMessage: null,
       updatedAt: new Date(),
@@ -333,19 +318,14 @@ export async function processCalendarSyncQueue(limit = 25): Promise<{
       providerEventId: reservationCalendarEvents.providerEventId,
       attemptCount: reservationCalendarEvents.attemptCount,
       calendarId: storeCalendarIntegrations.calendarId,
-      syncPendingReservations:
-        storeCalendarIntegrations.syncPendingReservations,
-      cancelledReservationBehavior:
-        storeCalendarIntegrations.cancelledReservationBehavior,
+      syncPendingReservations: storeCalendarIntegrations.syncPendingReservations,
+      cancelledReservationBehavior: storeCalendarIntegrations.cancelledReservationBehavior,
       accessTokenEncrypted: integrationCredentials.accessTokenEncrypted,
       refreshTokenEncrypted: integrationCredentials.refreshTokenEncrypted,
       expiresAt: integrationCredentials.expiresAt,
     })
     .from(reservationCalendarEvents)
-    .innerJoin(
-      storeIntegrations,
-      eq(storeIntegrations.id, reservationCalendarEvents.integrationId),
-    )
+    .innerJoin(storeIntegrations, eq(storeIntegrations.id, reservationCalendarEvents.integrationId))
     .innerJoin(
       storeCalendarIntegrations,
       eq(storeCalendarIntegrations.integrationId, storeIntegrations.id),
@@ -356,7 +336,7 @@ export async function processCalendarSyncQueue(limit = 25): Promise<{
     )
     .where(
       and(
-        inArray(reservationCalendarEvents.syncStatus, ['pending', 'failed']),
+        inArray(reservationCalendarEvents.syncStatus, ["pending", "failed"]),
         lte(reservationCalendarEvents.nextAttemptAt, new Date()),
         eq(storeIntegrations.enabled, true),
         eq(storeIntegrations.providerKey, GOOGLE_CALENDAR_PROVIDER_KEY),
@@ -374,12 +354,12 @@ export async function processCalendarSyncQueue(limit = 25): Promise<{
     } catch (error) {
       failed++;
       const nextAttemptCount = row.attemptCount + 1;
-      const message = error instanceof Error ? error.message : 'Unknown error';
+      const message = error instanceof Error ? error.message : "Unknown error";
 
       await db
         .update(reservationCalendarEvents)
         .set({
-          syncStatus: nextAttemptCount >= MAX_ATTEMPTS ? 'failed' : 'failed',
+          syncStatus: nextAttemptCount >= MAX_ATTEMPTS ? "failed" : "failed",
           attemptCount: nextAttemptCount,
           nextAttemptAt: getRetryDate(nextAttemptCount),
           lastError: message,
@@ -387,12 +367,12 @@ export async function processCalendarSyncQueue(limit = 25): Promise<{
         })
         .where(eq(reservationCalendarEvents.id, row.id));
 
-      if (message.includes('refresh') || message.includes('token')) {
+      if (message.includes("refresh") || message.includes("token")) {
         await db
           .update(storeIntegrations)
           .set({
-            status: 'needs_reconnect',
-            lastErrorCode: 'google_calendar_reconnect_required',
+            status: "needs_reconnect",
+            lastErrorCode: "google_calendar_reconnect_required",
             lastErrorMessage: message,
             updatedAt: new Date(),
           })
@@ -401,8 +381,8 @@ export async function processCalendarSyncQueue(limit = 25): Promise<{
         await db
           .update(storeIntegrations)
           .set({
-            status: 'error',
-            lastErrorCode: 'google_calendar_sync_failed',
+            status: "error",
+            lastErrorCode: "google_calendar_sync_failed",
             lastErrorMessage: message,
             updatedAt: new Date(),
           })

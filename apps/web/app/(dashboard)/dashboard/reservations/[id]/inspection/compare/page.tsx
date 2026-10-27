@@ -1,33 +1,27 @@
-import { notFound, redirect } from 'next/navigation'
-import { eq, and } from 'drizzle-orm'
-import { getTranslations } from 'next-intl/server'
-import { db } from '@louez/db'
-import {
-  reservations,
-  inspections,
-  inspectionItems,
-  inspectionPhotos,
-  customers
-} from '@louez/db'
-import { getCurrentStore } from '@/lib/store-context'
-import { ComparisonView } from './comparison-view'
-import type { ConditionRating } from '@louez/types'
-import { DashboardBreadcrumbLabel } from '@/components/dashboard/dashboard-breadcrumbs-context'
+import { notFound, redirect } from "next/navigation";
+import { eq, and } from "drizzle-orm";
+import { getTranslations } from "next-intl/server";
+import { db } from "@louez/db";
+import { reservations, inspections, inspectionItems, inspectionPhotos, customers } from "@louez/db";
+import { getCurrentStore } from "@/lib/store-context";
+import { ComparisonView } from "./comparison-view";
+import type { ConditionRating } from "@louez/types";
+import { DashboardBreadcrumbLabel } from "@/components/dashboard/dashboard-breadcrumbs-context";
 
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
 export const instant = false;
 
 interface PageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }
 
 export default async function InspectionComparePage({ params }: PageProps) {
-  const { id: reservationId } = await params
+  const { id: reservationId } = await params;
 
-  const store = await getCurrentStore()
+  const store = await getCurrentStore();
   if (!store) {
-    redirect('/login')
+    redirect("/login");
   }
 
   // Get reservation
@@ -38,19 +32,14 @@ export default async function InspectionComparePage({ params }: PageProps) {
       customerId: reservations.customerId,
     })
     .from(reservations)
-    .where(
-      and(
-        eq(reservations.id, reservationId),
-        eq(reservations.storeId, store.id)
-      )
-    )
-    .limit(1)
+    .where(and(eq(reservations.id, reservationId), eq(reservations.storeId, store.id)))
+    .limit(1);
 
   if (!reservation) {
-    notFound()
+    notFound();
   }
 
-  const tInspection = await getTranslations('dashboard.settings.inspection')
+  const tInspection = await getTranslations("dashboard.settings.inspection");
 
   // Get customer name
   const [customer] = await db
@@ -60,11 +49,9 @@ export default async function InspectionComparePage({ params }: PageProps) {
     })
     .from(customers)
     .where(eq(customers.id, reservation.customerId))
-    .limit(1)
+    .limit(1);
 
-  const customerName = customer
-    ? `${customer.firstName} ${customer.lastName}`
-    : 'Client'
+  const customerName = customer ? `${customer.firstName} ${customer.lastName}` : "Client";
 
   // Get both inspections
   const reservationInspections = await db
@@ -79,19 +66,19 @@ export default async function InspectionComparePage({ params }: PageProps) {
       customerSignature: inspections.customerSignature,
     })
     .from(inspections)
-    .where(eq(inspections.reservationId, reservationId))
+    .where(eq(inspections.reservationId, reservationId));
 
-  const departureInspection = reservationInspections.find((i) => i.type === 'departure')
-  const returnInspection = reservationInspections.find((i) => i.type === 'return')
+  const departureInspection = reservationInspections.find((i) => i.type === "departure");
+  const returnInspection = reservationInspections.find((i) => i.type === "return");
 
   // Need at least one inspection
   if (!departureInspection && !returnInspection) {
-    redirect(`/dashboard/reservations/${reservationId}`)
+    redirect(`/dashboard/reservations/${reservationId}`);
   }
 
   // Get items with photos for each inspection
   const getInspectionData = async (inspectionId: string | undefined) => {
-    if (!inspectionId) return null
+    if (!inspectionId) return null;
 
     const items = await db
       .select({
@@ -101,7 +88,7 @@ export default async function InspectionComparePage({ params }: PageProps) {
         notes: inspectionItems.notes,
       })
       .from(inspectionItems)
-      .where(eq(inspectionItems.inspectionId, inspectionId))
+      .where(eq(inspectionItems.inspectionId, inspectionId));
 
     // Get photos for each item
     const itemsWithPhotos = await Promise.all(
@@ -114,14 +101,14 @@ export default async function InspectionComparePage({ params }: PageProps) {
             caption: inspectionPhotos.caption,
           })
           .from(inspectionPhotos)
-          .where(eq(inspectionPhotos.inspectionItemId, item.id))
+          .where(eq(inspectionPhotos.inspectionItemId, item.id));
 
         const productSnapshot = item.productSnapshot as {
-          name?: string
-          unitIdentifier?: string | null
-        } | null
-        const productName = productSnapshot?.name || 'Équipement'
-        const unitIdentifier = productSnapshot?.unitIdentifier ?? null
+          name?: string;
+          unitIdentifier?: string | null;
+        } | null;
+        const productName = productSnapshot?.name || "Équipement";
+        const unitIdentifier = productSnapshot?.unitIdentifier ?? null;
 
         return {
           id: item.id,
@@ -135,44 +122,48 @@ export default async function InspectionComparePage({ params }: PageProps) {
             thumbnailUrl: p.thumbnailUrl,
             caption: p.caption,
           })),
-        }
-      })
-    )
+        };
+      }),
+    );
 
-    return itemsWithPhotos
-  }
+    return itemsWithPhotos;
+  };
 
   const departureItems = departureInspection
     ? await getInspectionData(departureInspection.id)
-    : null
-  const returnItems = returnInspection
-    ? await getInspectionData(returnInspection.id)
-    : null
+    : null;
+  const returnItems = returnInspection ? await getInspectionData(returnInspection.id) : null;
 
   // Format data for comparison view
-  const formattedDeparture = departureInspection && departureItems ? {
-    id: departureInspection.id,
-    type: 'departure' as const,
-    status: departureInspection.status as 'draft' | 'completed' | 'signed',
-    hasDamage: departureInspection.hasDamage,
-    notes: departureInspection.notes,
-    createdAt: departureInspection.createdAt,
-    signedAt: departureInspection.signedAt,
-    hasSignature: !!departureInspection.customerSignature,
-    items: departureItems,
-  } : null
+  const formattedDeparture =
+    departureInspection && departureItems
+      ? {
+          id: departureInspection.id,
+          type: "departure" as const,
+          status: departureInspection.status as "draft" | "completed" | "signed",
+          hasDamage: departureInspection.hasDamage,
+          notes: departureInspection.notes,
+          createdAt: departureInspection.createdAt,
+          signedAt: departureInspection.signedAt,
+          hasSignature: !!departureInspection.customerSignature,
+          items: departureItems,
+        }
+      : null;
 
-  const formattedReturn = returnInspection && returnItems ? {
-    id: returnInspection.id,
-    type: 'return' as const,
-    status: returnInspection.status as 'draft' | 'completed' | 'signed',
-    hasDamage: returnInspection.hasDamage,
-    notes: returnInspection.notes,
-    createdAt: returnInspection.createdAt,
-    signedAt: returnInspection.signedAt,
-    hasSignature: !!returnInspection.customerSignature,
-    items: returnItems,
-  } : null
+  const formattedReturn =
+    returnInspection && returnItems
+      ? {
+          id: returnInspection.id,
+          type: "return" as const,
+          status: returnInspection.status as "draft" | "completed" | "signed",
+          hasDamage: returnInspection.hasDamage,
+          notes: returnInspection.notes,
+          createdAt: returnInspection.createdAt,
+          signedAt: returnInspection.signedAt,
+          hasSignature: !!returnInspection.customerSignature,
+          items: returnItems,
+        }
+      : null;
 
   return (
     <>
@@ -180,7 +171,7 @@ export default async function InspectionComparePage({ params }: PageProps) {
         pathname={`/dashboard/reservations/${reservationId}`}
         label={`#${reservation.number}`}
       />
-      <DashboardBreadcrumbLabel label={tInspection('comparison.title')} />
+      <DashboardBreadcrumbLabel label={tInspection("comparison.title")} />
       <ComparisonView
         reservationId={reservationId}
         reservationNumber={reservation.number}
@@ -189,5 +180,5 @@ export default async function InspectionComparePage({ params }: PageProps) {
         return_={formattedReturn}
       />
     </>
-  )
+  );
 }

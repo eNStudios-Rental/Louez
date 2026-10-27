@@ -179,7 +179,7 @@ export const initiatePayment = async (
       createReservationInstantAccessUrl({
         storeId: store.id,
         storeSlug: store.slug,
-        customerEmail: reservation.customer.email,
+        customerEmail: reservation.customer.email ?? "",
         reservationId: reservation.id,
         redirectPath: `/account/reservations/${reservation.id}?event=payment_received`,
         ttlMs: PAYMENT_RETURN_ACCESS_TTL_MS,

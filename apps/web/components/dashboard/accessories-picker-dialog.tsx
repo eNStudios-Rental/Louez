@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from "react";
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 
 import {
   Button,
@@ -14,12 +14,12 @@ import {
   DialogPopup,
   DialogTitle,
   DialogTrigger,
-} from '@louez/ui';
-import { CheckIcon, PlusIcon } from '@louez/ui/icons';
-import { cn, formatCurrency } from '@louez/utils';
+} from "@louez/ui";
+import { CheckIcon, PlusIcon } from "@louez/ui/icons";
+import { cn, formatCurrency } from "@louez/utils";
 
-import { ProductImage } from '@/components/product/product-image';
-import { SearchInput } from '@/components/ui/search-input';
+import { ProductImage } from "@/components/product/product-image";
+import { SearchInput } from "@/components/ui/search-input";
 
 interface AccessoryOption {
   id: string;
@@ -48,10 +48,10 @@ export const AccessoriesPickerDialog = ({
   currency,
   disabled = false,
 }: AccessoriesPickerDialogProps) => {
-  const t = useTranslations('dashboard.products.form');
-  const tCommon = useTranslations('common');
+  const t = useTranslations("dashboard.products.form");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
 
   const selected = useMemo(() => new Set(selectedIds), [selectedIds]);
 
@@ -70,7 +70,7 @@ export const AccessoriesPickerDialog = ({
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
-    if (!nextOpen) setSearch('');
+    if (!nextOpen) setSearch("");
   };
 
   return (
@@ -86,28 +86,28 @@ export const AccessoriesPickerDialog = ({
         }
       >
         <PlusIcon />
-        {t('addAccessory')}
+        {t("addAccessory")}
       </DialogTrigger>
 
       <DialogPopup className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{t('selectAccessories')}</DialogTitle>
-          <DialogDescription>{t('selectAccessoriesDescription')}</DialogDescription>
+          <DialogTitle>{t("selectAccessories")}</DialogTitle>
+          <DialogDescription>{t("selectAccessoriesDescription")}</DialogDescription>
           <SearchInput
             groupClassName="mt-2"
-            placeholder={t('searchProducts')}
-            clearLabel={t('clearSearch')}
+            placeholder={t("searchProducts")}
+            clearLabel={t("clearSearch")}
             enableShortcut={false}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            onClear={() => setSearch('')}
+            onClear={() => setSearch("")}
           />
         </DialogHeader>
 
         <DialogPanel className="px-4">
           {filteredOptions.length === 0 ? (
             <p className="text-muted-foreground py-8 text-center text-sm">
-              {search ? t('noProductsFound') : t('noProductsAvailable')}
+              {search ? t("noProductsFound") : t("noProductsAvailable")}
             </p>
           ) : (
             <ul className="space-y-0.5">
@@ -122,10 +122,10 @@ export const AccessoriesPickerDialog = ({
                       disabled={disabled}
                       onClick={() => onToggle(option.id)}
                       className={cn(
-                        'flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors',
-                        'hover:bg-muted focus-visible:ring-ring/50 focus-visible:ring-1 focus-visible:outline-none',
-                        'disabled:pointer-events-none disabled:opacity-64',
-                        isSelected && 'bg-muted/64',
+                        "flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors",
+                        "hover:bg-muted focus-visible:ring-ring/50 focus-visible:ring-1 focus-visible:outline-none",
+                        "disabled:pointer-events-none disabled:opacity-64",
+                        isSelected && "bg-muted/64",
                       )}
                     >
                       <ProductImage
@@ -146,10 +146,10 @@ export const AccessoriesPickerDialog = ({
                       <span
                         aria-hidden
                         className={cn(
-                          'flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors',
+                          "flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors",
                           isSelected
-                            ? 'border-primary bg-primary text-primary-foreground'
-                            : 'border-input text-transparent',
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-input text-transparent",
                         )}
                       >
                         <CheckIcon className="size-3" />
@@ -164,10 +164,10 @@ export const AccessoriesPickerDialog = ({
 
         <DialogFooter className="sm:justify-between">
           <p className="text-muted-foreground self-center text-sm max-sm:text-center">
-            {t('accessoriesSelectedCount', { count: selectedCount })}
+            {t("accessoriesSelectedCount", { count: selectedCount })}
           </p>
           <Button type="button" onClick={() => handleOpenChange(false)}>
-            {tCommon('done')}
+            {tCommon("done")}
           </Button>
         </DialogFooter>
       </DialogPopup>

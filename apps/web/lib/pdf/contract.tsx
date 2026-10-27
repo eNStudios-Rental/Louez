@@ -149,9 +149,9 @@ interface Store {
 }
 
 interface Customer {
-  firstName: string;
-  lastName: string;
-  email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
   customerType?: "individual" | "business" | null;
   companyName?: string | null;
   phone?: string | null;
@@ -360,17 +360,25 @@ export function ContractDocument({
             reservation.customer.companyName ? (
               <>
                 <Text style={styles.partyName}>{reservation.customer.companyName}</Text>
-                <Text style={styles.partyInfo}>
-                  {t.parties.contact}: {reservation.customer.firstName}{" "}
-                  {reservation.customer.lastName}
-                </Text>
+                {(reservation.customer.firstName || reservation.customer.lastName) && (
+                  <Text style={styles.partyInfo}>
+                    {t.parties.contact}:{" "}
+                    {[reservation.customer.firstName, reservation.customer.lastName]
+                      .filter(Boolean)
+                      .join(" ")}
+                  </Text>
+                )}
               </>
             ) : (
               <Text style={styles.partyName}>
-                {reservation.customer.firstName} {reservation.customer.lastName}
+                {[reservation.customer.firstName, reservation.customer.lastName]
+                  .filter(Boolean)
+                  .join(" ") || "—"}
               </Text>
             )}
-            <Text style={styles.partyInfo}>{reservation.customer.email}</Text>
+            {reservation.customer.email && (
+              <Text style={styles.partyInfo}>{reservation.customer.email}</Text>
+            )}
             {reservation.customer.phone && (
               <Text style={styles.partyInfo}>{reservation.customer.phone}</Text>
             )}
@@ -698,7 +706,9 @@ export function ContractDocument({
                     </View>
                     {reservation.signedAt && (
                       <View style={styles.signatureDateRow}>
-                        <Text style={styles.signatureDateLabel}>{t.signature.validatedOnLabel}</Text>
+                        <Text style={styles.signatureDateLabel}>
+                          {t.signature.validatedOnLabel}
+                        </Text>
                         <Text style={styles.signatureDate}>
                           {formatDateTimePrecise(reservation.signedAt)}
                         </Text>

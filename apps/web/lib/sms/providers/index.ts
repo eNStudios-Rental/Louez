@@ -8,7 +8,7 @@
  * 3. Register it in the provider factory (../client.ts)
  */
 
-export { SmsPartnerProvider } from './smspartner'
+export { SmsPartnerProvider } from "./smspartner";
 
 // Future providers:
 // export { TwilioProvider } from './twilio'

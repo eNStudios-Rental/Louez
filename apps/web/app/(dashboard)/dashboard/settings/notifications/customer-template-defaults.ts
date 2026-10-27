@@ -3,7 +3,10 @@ import type { EmailLocale } from "@/lib/email/i18n";
 import { supplementalMessages } from "@/lib/i18n/supplemental-messages";
 
 // Default subjects per event type and locale
-export const DEFAULT_SUBJECTS: Record<EmailLocale, Record<CustomerNotificationEventType, string>> = {
+export const DEFAULT_SUBJECTS: Record<
+  EmailLocale,
+  Record<CustomerNotificationEventType, string>
+> = {
   fr: {
     customer_request_received: "Demande de réservation reçue",
     customer_request_accepted: "Votre demande de réservation a été acceptée",
@@ -226,7 +229,10 @@ export const DEFAULT_SUBJECTS: Record<EmailLocale, Record<CustomerNotificationEv
 };
 
 // SMS templates per locale
-export const DEFAULT_SMS_TEMPLATES: Record<EmailLocale, Record<CustomerNotificationEventType, string>> = {
+export const DEFAULT_SMS_TEMPLATES: Record<
+  EmailLocale,
+  Record<CustomerNotificationEventType, string>
+> = {
   fr: {
     customer_request_received:
       "{storeName}\nDemande reçue #{number}\nNous reviendrons vers vous rapidement.",

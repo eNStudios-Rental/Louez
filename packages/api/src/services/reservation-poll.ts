@@ -1,26 +1,26 @@
-import { customers, db, receivedInvoices, reservations, storeIntegrations } from '@louez/db'
-import type { ReservationPollResponse } from '@louez/types'
-import { and, count, desc, eq, sql } from 'drizzle-orm'
+import { customers, db, receivedInvoices, reservations, storeIntegrations } from "@louez/db";
+import type { ReservationPollResponse } from "@louez/types";
+import { and, count, desc, eq, sql } from "drizzle-orm";
 
 interface GetReservationPollDataParams {
-  storeId: string
+  storeId: string;
 }
 
 export async function getReservationPollData(
   params: GetReservationPollDataParams,
 ): Promise<ReservationPollResponse> {
-  const { storeId } = params
+  const { storeId } = params;
 
   const pendingResult = await db
     .select({ count: count() })
     .from(reservations)
-    .where(and(eq(reservations.storeId, storeId), eq(reservations.status, 'pending')))
+    .where(and(eq(reservations.storeId, storeId), eq(reservations.status, "pending")));
 
   const latestReservation = await db.query.reservations.findFirst({
     where: and(
       eq(reservations.storeId, storeId),
-      eq(reservations.status, 'pending'),
-      eq(reservations.source, 'online'),
+      eq(reservations.status, "pending"),
+      eq(reservations.source, "online"),
     ),
     orderBy: [desc(reservations.createdAt)],
     columns: {
@@ -29,7 +29,7 @@ export async function getReservationPollData(
       status: true,
       number: true,
     },
-  })
+  });
 
   const pendingReservations = await db
     .select({
@@ -42,9 +42,9 @@ export async function getReservationPollData(
     })
     .from(reservations)
     .leftJoin(customers, eq(reservations.customerId, customers.id))
-    .where(and(eq(reservations.storeId, storeId), eq(reservations.status, 'pending')))
+    .where(and(eq(reservations.storeId, storeId), eq(reservations.status, "pending")))
     .orderBy(desc(reservations.createdAt))
-    .limit(5)
+    .limit(5);
 
   const pendingSupplierInvoiceResult = await db
     .select({ count: count() })
@@ -53,17 +53,15 @@ export async function getReservationPollData(
       storeIntegrations,
       and(
         eq(storeIntegrations.storeId, receivedInvoices.storeId),
-        eq(storeIntegrations.providerKey, 'superpdp'),
+        eq(storeIntegrations.providerKey, "superpdp"),
       ),
     )
-    .where(
-      and(eq(receivedInvoices.storeId, storeId), eq(receivedInvoices.ourAction, 'none')),
-    )
+    .where(and(eq(receivedInvoices.storeId, storeId), eq(receivedInvoices.ourAction, "none")));
 
   const totalResult = await db
     .select({ count: count() })
     .from(reservations)
-    .where(eq(reservations.storeId, storeId))
+    .where(eq(reservations.storeId, storeId));
 
   return {
     pendingCount: pendingResult[0]?.count || 0,
@@ -75,7 +73,7 @@ export async function getReservationPollData(
       status: reservation.status,
       createdAt: reservation.createdAt.toISOString(),
       startDate: reservation.startDate.toISOString(),
-      customerName: reservation.customerName || 'Client',
+      customerName: reservation.customerName || "Client",
     })),
     latestReservation: latestReservation
       ? {
@@ -86,5 +84,5 @@ export async function getReservationPollData(
         }
       : null,
     timestamp: new Date().toISOString(),
-  }
+  };
 }

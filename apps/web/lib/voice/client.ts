@@ -9,32 +9,32 @@
  *   Twilio: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN
  */
 
-import { env } from '@/env'
+import { env } from "@/env";
 
-import { TwilioVoiceProvider } from './providers'
-import type { VoiceProvider, VoiceProviderType } from './types'
+import { TwilioVoiceProvider } from "./providers";
+import type { VoiceProvider, VoiceProviderType } from "./types";
 
-let providerInstance: VoiceProvider | null = null
+let providerInstance: VoiceProvider | null = null;
 
 function getProviderType(): VoiceProviderType {
-  return env.VOICE_PROVIDER ?? 'twilio'
+  return env.VOICE_PROVIDER ?? "twilio";
 }
 
 function createProvider(type: VoiceProviderType): VoiceProvider {
   switch (type) {
-    case 'twilio':
-      return new TwilioVoiceProvider()
+    case "twilio":
+      return new TwilioVoiceProvider();
     default:
-      return new TwilioVoiceProvider()
+      return new TwilioVoiceProvider();
   }
 }
 
 /** Configured voice provider instance (lazy-loaded singleton). */
 export function getVoiceProvider(): VoiceProvider {
   if (!providerInstance) {
-    providerInstance = createProvider(getProviderType())
+    providerInstance = createProvider(getProviderType());
   }
-  return providerInstance
+  return providerInstance;
 }
 
 /**
@@ -44,22 +44,22 @@ export function getVoiceProvider(): VoiceProvider {
  * for the full gate.
  */
 export function isVoiceConfigured(): boolean {
-  if (env.AI_PHONE_ENABLED !== 'true' && env.AI_PHONE_ENABLED !== '1') {
-    return false
+  if (env.AI_PHONE_ENABLED !== "true" && env.AI_PHONE_ENABLED !== "1") {
+    return false;
   }
-  return getVoiceProvider().isConfigured()
+  return getVoiceProvider().isConfigured();
 }
 
 export function getVoiceConfigStatus(): {
-  enabled: boolean
-  provider: VoiceProviderType
-  configured: boolean
-  missingVars?: string[]
+  enabled: boolean;
+  provider: VoiceProviderType;
+  configured: boolean;
+  missingVars?: string[];
 } {
-  const provider = getVoiceProvider()
+  const provider = getVoiceProvider();
   return {
     enabled: isVoiceConfigured(),
     provider: provider.name,
     ...provider.getConfigStatus(),
-  }
+  };
 }

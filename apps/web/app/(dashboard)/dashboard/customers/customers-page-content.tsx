@@ -1,24 +1,20 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
+import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 
-import { orpc } from '@/lib/orpc/react'
-import { CustomersFilters } from './customers-filters'
-import { CustomersPageHeading } from './customers-page-heading'
-import { CustomersTable } from './customers-table'
-import {
-  UpgradeModal,
-  LimitBanner,
-  BlurOverlay,
-} from '@/components/dashboard/upgrade-modal'
-import type { LimitStatus } from '@/lib/plan-limits'
+import { orpc } from "@/lib/orpc/react";
+import { CustomersFilters } from "./customers-filters";
+import { CustomersPageHeading } from "./customers-page-heading";
+import { CustomersTable } from "./customers-table";
+import { UpgradeModal, LimitBanner, BlurOverlay } from "@/components/dashboard/upgrade-modal";
+import type { LimitStatus } from "@/lib/plan-limits";
 
 interface CustomersPageContentProps {
-  limits: LimitStatus
-  planSlug: string
-  initialTotalCount: number
+  limits: LimitStatus;
+  planSlug: string;
+  initialTotalCount: number;
 }
 
 export function CustomersPageContent({
@@ -26,48 +22,38 @@ export function CustomersPageContent({
   planSlug,
   initialTotalCount,
 }: CustomersPageContentProps) {
-  const searchParams = useSearchParams()
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const searchParams = useSearchParams();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-  const search = searchParams.get('search') || undefined
-  const sort = searchParams.get('sort')
-  const type = searchParams.get('type')
+  const search = searchParams.get("search") || undefined;
+  const sort = searchParams.get("sort");
+  const type = searchParams.get("type");
 
   const customersQuery = useQuery({
     ...orpc.dashboard.customers.list.queryOptions({
       input: {
         search,
         sort:
-          sort === 'recent' ||
-          sort === 'name' ||
-          sort === 'reservations' ||
-          sort === 'spent'
+          sort === "recent" || sort === "name" || sort === "reservations" || sort === "spent"
             ? sort
             : undefined,
-        type:
-          type === 'all' || type === 'individual' || type === 'business'
-            ? type
-            : undefined,
+        type: type === "all" || type === "individual" || type === "business" ? type : undefined,
       },
     }),
     placeholderData: (previousData) => previousData,
-  })
+  });
 
-  const customers = customersQuery.data?.customers ?? []
-  const totalCount = customersQuery.data?.totalCount ?? initialTotalCount
+  const customers = customersQuery.data?.customers ?? [];
+  const totalCount = customersQuery.data?.totalCount ?? initialTotalCount;
 
   // Determine which customers to show vs blur
-  const displayLimit = limits.limit
-  const hasLimit = displayLimit !== null
-  const isOverLimit = limits.isOverLimit
+  const displayLimit = limits.limit;
+  const hasLimit = displayLimit !== null;
+  const isOverLimit = limits.isOverLimit;
 
   // For customers, we show the most recent ones and blur older ones
-  const visibleCustomers = hasLimit && isOverLimit
-    ? customers.slice(0, displayLimit)
-    : customers
-  const blurredCustomers = hasLimit && isOverLimit
-    ? customers.slice(displayLimit)
-    : []
+  const visibleCustomers = hasLimit && isOverLimit ? customers.slice(0, displayLimit) : customers;
+  const blurredCustomers = hasLimit && isOverLimit ? customers.slice(displayLimit) : [];
 
   return (
     <div className="space-y-6">
@@ -118,5 +104,5 @@ export function CustomersPageContent({
         currentPlan={planSlug}
       />
     </div>
-  )
+  );
 }

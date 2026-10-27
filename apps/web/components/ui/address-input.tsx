@@ -1,25 +1,20 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { useQueryClient } from '@tanstack/react-query';
-import { Loader2, MapPin, Search, X } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { createPortal } from 'react-dom';
-import { useDebouncedCallback } from 'use-debounce';
+import { useQueryClient } from "@tanstack/react-query";
+import { Loader2, MapPin, Search, X } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { createPortal } from "react-dom";
+import { useDebouncedCallback } from "use-debounce";
 
-import type { AddressDetails, AddressSuggestion } from '@louez/types';
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from '@louez/ui';
-import { cn } from '@louez/utils';
+import type { AddressDetails, AddressSuggestion } from "@louez/types";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@louez/ui";
+import { cn } from "@louez/utils";
 
-import { AddressMapModal } from '@/components/ui/address-map-modal';
+import { AddressMapModal } from "@/components/ui/address-map-modal";
 
-import { orpc } from '@/lib/orpc/react';
+import { orpc } from "@/lib/orpc/react";
 
 export interface AddressInputSource {
   search: (query: string) => AddressSuggestion[] | Promise<AddressSuggestion[]>;
@@ -57,9 +52,9 @@ interface AddressInputProps {
 export const AddressInput = ({
   id,
   name,
-  value = '',
-  displayAddress = '',
-  additionalInfo = '',
+  value = "",
+  displayAddress = "",
+  additionalInfo = "",
   latitude,
   longitude,
   onChange,
@@ -73,7 +68,7 @@ export const AddressInput = ({
   source,
   autoFocus = true,
 }: AddressInputProps) => {
-  const t = useTranslations('common.addressInput');
+  const t = useTranslations("common.addressInput");
   const queryClient = useQueryClient();
   const [inputValue, setInputValue] = useState(value);
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
@@ -98,14 +93,13 @@ export const AddressInput = ({
       if (
         containerRef.current &&
         !containerRef.current.contains(event.target as Node) &&
-        (!dropdownRef.current ||
-          !dropdownRef.current.contains(event.target as Node))
+        (!dropdownRef.current || !dropdownRef.current.contains(event.target as Node))
       ) {
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Position the portal dropdown relative to the input
@@ -116,7 +110,7 @@ export const AddressInput = ({
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       setDropdownStyle({
-        position: 'fixed',
+        position: "fixed",
         top: rect.bottom + 4,
         left: rect.left,
         width: rect.width,
@@ -126,11 +120,11 @@ export const AddressInput = ({
 
     updatePosition();
 
-    window.addEventListener('scroll', updatePosition, true);
-    window.addEventListener('resize', updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
     return () => {
-      window.removeEventListener('scroll', updatePosition, true);
-      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
     };
   }, [isOpen, suggestions.length]);
 
@@ -154,7 +148,7 @@ export const AddressInput = ({
         setIsOpen((data.suggestions || []).length > 0);
         setSelectedIndex(-1);
       } catch (error) {
-        console.error('Address search error:', error);
+        console.error("Address search error:", error);
         setSuggestions([]);
       } finally {
         setIsLoading(false);
@@ -168,16 +162,9 @@ export const AddressInput = ({
   const resolveTypedAddress = useCallback(async () => {
     const query = inputValue.trim();
     const hasCoordinates =
-      latitude !== null &&
-      latitude !== undefined &&
-      longitude !== null &&
-      longitude !== undefined;
+      latitude !== null && latitude !== undefined && longitude !== null && longitude !== undefined;
 
-    if (
-      query.length < 3 ||
-      (hasCoordinates && query === displayAddress) ||
-      disabled
-    ) {
+    if (query.length < 3 || (hasCoordinates && query === displayAddress) || disabled) {
       return;
     }
 
@@ -201,7 +188,7 @@ export const AddressInput = ({
       onChange(formattedAddress, lat, lng, formattedAddress, additionalInfo);
       onAddressResolved?.(data.details);
     } catch (error) {
-      console.error('Address resolve error:', error);
+      console.error("Address resolve error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -225,7 +212,7 @@ export const AddressInput = ({
 
     // If user types manually, clear coordinates
     if (newValue !== value) {
-      onChange(newValue, null, null, newValue, '');
+      onChange(newValue, null, null, newValue, "");
     }
   };
 
@@ -242,34 +229,18 @@ export const AddressInput = ({
             );
 
         if (data.details) {
-          const {
-            formattedAddress,
-            latitude: lat,
-            longitude: lng,
-          } = data.details;
+          const { formattedAddress, latitude: lat, longitude: lng } = data.details;
           setInputValue(formattedAddress);
-          onChange(formattedAddress, lat, lng, formattedAddress, '');
+          onChange(formattedAddress, lat, lng, formattedAddress, "");
           onAddressResolved?.(data.details);
         } else {
           setInputValue(suggestion.description);
-          onChange(
-            suggestion.description,
-            null,
-            null,
-            suggestion.description,
-            '',
-          );
+          onChange(suggestion.description, null, null, suggestion.description, "");
         }
       } catch (error) {
-        console.error('Error fetching address details:', error);
+        console.error("Error fetching address details:", error);
         setInputValue(suggestion.description);
-        onChange(
-          suggestion.description,
-          null,
-          null,
-          suggestion.description,
-          '',
-        );
+        onChange(suggestion.description, null, null, suggestion.description, "");
       } finally {
         setSuggestions([]);
         setIsOpen(false);
@@ -281,8 +252,8 @@ export const AddressInput = ({
   );
 
   const handleClear = () => {
-    setInputValue('');
-    onChange('', null, null, '', '');
+    setInputValue("");
+    onChange("", null, null, "", "");
     setSuggestions([]);
     setIsOpen(false);
     if (autoFocus) inputRef.current?.focus();
@@ -290,7 +261,7 @@ export const AddressInput = ({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen) {
-      if (e.key === 'Enter') {
+      if (e.key === "Enter") {
         e.preventDefault();
         void resolveTypedAddress();
       }
@@ -298,23 +269,21 @@ export const AddressInput = ({
     }
 
     switch (e.key) {
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
-        setSelectedIndex((prev) =>
-          prev < suggestions.length - 1 ? prev + 1 : prev,
-        );
+        setSelectedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : prev));
         break;
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
         setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
         break;
-      case 'Enter':
+      case "Enter":
         e.preventDefault();
         if (selectedIndex >= 0 && suggestions[selectedIndex]) {
           handleSelect(suggestions[selectedIndex]);
         }
         break;
-      case 'Escape':
+      case "Escape":
         setIsOpen(false);
         setSelectedIndex(-1);
         break;
@@ -343,24 +312,15 @@ export const AddressInput = ({
     longitude: number | null;
   }) => {
     setInputValue(data.displayAddress || data.address);
-    onChange(
-      data.address,
-      data.latitude,
-      data.longitude,
-      data.displayAddress,
-      data.additionalInfo,
-    );
+    onChange(data.address, data.latitude, data.longitude, data.displayAddress, data.additionalInfo);
   };
 
   const hasCoordinates =
-    latitude !== null &&
-    latitude !== undefined &&
-    longitude !== null &&
-    longitude !== undefined;
+    latitude !== null && latitude !== undefined && longitude !== null && longitude !== undefined;
 
   return (
     <>
-      <div ref={containerRef} className={cn('relative', className)}>
+      <div ref={containerRef} className={cn("relative", className)}>
         <InputGroup>
           <InputGroupInput
             ref={inputRef}
@@ -373,7 +333,7 @@ export const AddressInput = ({
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
             onFocus={() => suggestions.length > 0 && setIsOpen(true)}
-            placeholder={placeholder || t('placeholder')}
+            placeholder={placeholder || t("placeholder")}
             disabled={disabled}
             aria-invalid={ariaInvalid}
             autoComplete="one-time-code"
@@ -385,11 +345,7 @@ export const AddressInput = ({
           />
           <InputGroupAddon align="inline-end" className="gap-0.5 py-1">
             {isLoading && (
-              <InputGroupButton
-                type="button"
-                size="icon-xs"
-                title={t('editLocation')}
-              >
+              <InputGroupButton type="button" size="icon-xs" title={t("editLocation")}>
                 <Loader2 className="text-muted-foreground size-4 animate-spin" />
               </InputGroupButton>
             )}
@@ -399,11 +355,11 @@ export const AddressInput = ({
                 size="icon-xs"
                 className={cn(
                   hasCoordinates
-                    ? 'text-primary hover:text-primary hover:bg-primary/10'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+                    ? "text-primary hover:text-primary hover:bg-primary/10"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted",
                 )}
                 onClick={() => setIsModalOpen(true)}
-                title={t('editLocation')}
+                title={t("editLocation")}
               >
                 <MapPin className="h-4 w-4" />
               </InputGroupButton>
@@ -441,10 +397,10 @@ export const AddressInput = ({
                 }}
                 onClick={() => handleSelect(suggestion)}
                 className={cn(
-                  'flex w-full items-start gap-2 rounded-sm px-2 py-2 text-left text-sm transition-colors',
+                  "flex w-full items-start gap-2 rounded-sm px-2 py-2 text-left text-sm transition-colors",
                   index === selectedIndex
-                    ? 'bg-accent text-accent-foreground'
-                    : 'hover:bg-accent hover:text-accent-foreground',
+                    ? "bg-accent text-accent-foreground"
+                    : "hover:bg-accent hover:text-accent-foreground",
                 )}
               >
                 <Search className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" />

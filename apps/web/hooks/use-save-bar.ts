@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from "react";
 
 /**
  * Tiny external store that tracks whether a bottom-anchored save bar is on

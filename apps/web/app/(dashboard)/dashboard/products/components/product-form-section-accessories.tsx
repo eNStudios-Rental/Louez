@@ -1,20 +1,14 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@louez/ui';
-import { LinkIcon, PuzzleIcon } from '@louez/ui/icons';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@louez/ui";
+import { LinkIcon, PuzzleIcon } from "@louez/ui/icons";
 
-import { AccessoriesSelector } from '@/components/dashboard/accessories-selector';
-import { getFieldError } from '@/hooks/form/form-context';
+import { AccessoriesSelector } from "@/components/dashboard/accessories-selector";
+import { getFieldError } from "@/hooks/form/form-context";
 
-import type { AvailableAccessory, ProductFormComponentApi } from '../types';
+import type { AvailableAccessory, ProductFormComponentApi } from "../types";
 
 interface ProductFormSectionAccessoriesProps {
   form: ProductFormComponentApi;
@@ -29,16 +23,16 @@ export function ProductFormSectionAccessories({
   currency,
   disabled,
 }: ProductFormSectionAccessoriesProps) {
-  const t = useTranslations('dashboard.products.form');
+  const t = useTranslations("dashboard.products.form");
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <LinkIcon className="h-5 w-5 shrink-0" />
-          {t('accessories')}
+          {t("accessories")}
         </CardTitle>
-        <CardDescription>{t('accessoriesDescription')}</CardDescription>
+        <CardDescription>{t("accessoriesDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
         {availableAccessories.length > 0 ? (
@@ -65,9 +59,9 @@ export function ProductFormSectionAccessories({
             <div className="bg-muted mb-3 rounded-full p-3">
               <PuzzleIcon className="text-muted-foreground h-6 w-6" />
             </div>
-            <p className="text-sm font-medium">{t('noAccessoriesAvailable')}</p>
+            <p className="text-sm font-medium">{t("noAccessoriesAvailable")}</p>
             <p className="text-muted-foreground mt-1 max-w-[260px] text-sm">
-              {t('noAccessoriesHint')}
+              {t("noAccessoriesHint")}
             </p>
           </div>
         )}

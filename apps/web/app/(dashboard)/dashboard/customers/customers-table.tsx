@@ -1,29 +1,32 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { format } from 'date-fns'
+import Link from "next/link";
+import { format } from "date-fns";
 
-import { useTranslations } from 'next-intl'
-import { MoreHorizontal, Mail, Phone, MapPin, Eye, Pencil, Trash2, Users, Building2 } from 'lucide-react'
-import { useState, useTransition } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-
-import { Button } from '@louez/ui'
+import { useTranslations } from "next-intl";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@louez/ui'
+  MoreHorizontal,
+  Mail,
+  Phone,
+  MapPin,
+  Eye,
+  Pencil,
+  Trash2,
+  Users,
+  Building2,
+} from "lucide-react";
+import { useState, useTransition } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+
+import { Button } from "@louez/ui";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@louez/ui";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@louez/ui'
+} from "@louez/ui";
 import {
   AlertDialog,
   AlertDialogClose,
@@ -32,79 +35,85 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@louez/ui'
-import { Badge } from '@louez/ui'
-import { formatCurrency } from '@louez/utils'
-import { orpc } from '@/lib/orpc/react'
-import { EmailContactPopover } from '@/components/dashboard/email-contact-popover'
-import { PhoneContactPopover } from '@/components/dashboard/phone-contact-popover'
-import { deleteCustomer } from './actions'
-import { useFormatLocale } from '@/hooks/use-format-locale'
+} from "@louez/ui";
+import { Badge } from "@louez/ui";
+import { formatCurrency } from "@louez/utils";
+import { orpc } from "@/lib/orpc/react";
+import { EmailContactPopover } from "@/components/dashboard/email-contact-popover";
+import { PhoneContactPopover } from "@/components/dashboard/phone-contact-popover";
+import { deleteCustomer } from "./actions";
+import { useFormatLocale } from "@/hooks/use-format-locale";
 
 export interface Customer {
-  id: string
-  customerType: 'individual' | 'business'
-  email: string | null
-  firstName: string | null
-  lastName: string | null
-  companyName: string | null
-  phone: string | null
-  city: string | null
-  createdAt: Date | string
-  reservationCount: number
-  totalSpent: string
-  lastReservation: Date | string | null
+  id: string;
+  customerType: "individual" | "business";
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  companyName: string | null;
+  phone: string | null;
+  city: string | null;
+  createdAt: Date | string;
+  reservationCount: number;
+  totalSpent: string;
+  lastReservation: Date | string | null;
 }
 
 interface CustomersTableProps {
-  customers: Customer[]
-  readOnly?: boolean
-  onOpenCustomer?: (customer: Customer) => void
-  getCustomerHref?: (customer: Customer) => string
-  currency?: string
+  customers: Customer[];
+  readOnly?: boolean;
+  onOpenCustomer?: (customer: Customer) => void;
+  getCustomerHref?: (customer: Customer) => string;
+  currency?: string;
 }
 
-export const CustomersTable = ({ customers, readOnly = false, onOpenCustomer, getCustomerHref, currency = 'PLN' }: CustomersTableProps) => {
-  const t = useTranslations('dashboard.customers')
-  const { intl: formatLocale, dateFns: dateLocale } = useFormatLocale()
-  const tCommon = useTranslations('common')
-  const queryClient = useQueryClient()
-  const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [isPending, startTransition] = useTransition()
+export const CustomersTable = ({
+  customers,
+  readOnly = false,
+  onOpenCustomer,
+  getCustomerHref,
+  currency = "PLN",
+}: CustomersTableProps) => {
+  const t = useTranslations("dashboard.customers");
+  const { intl: formatLocale, dateFns: dateLocale } = useFormatLocale();
+  const tCommon = useTranslations("common");
+  const queryClient = useQueryClient();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const handleDelete = () => {
-    if (readOnly || !deleteId) return
+    if (readOnly || !deleteId) return;
 
     startTransition(async () => {
-      const result = await deleteCustomer(deleteId)
+      const result = await deleteCustomer(deleteId);
       if (result.error) {
-        alert(result.error)
+        alert(result.error);
       } else {
         await queryClient.invalidateQueries({
           queryKey: orpc.dashboard.customers.list.key(),
-        })
+        });
       }
-      setDeleteId(null)
-    })
-  }
+      setDeleteId(null);
+    });
+  };
 
   if (customers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
         <Users className="h-12 w-12 text-muted-foreground/50" />
-        <h3 className="mt-4 text-lg font-semibold">{t('noCustomers')}</h3>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {t('noCustomersDescription')}
-        </p>
+        <h3 className="mt-4 text-lg font-semibold">{t("noCustomers")}</h3>
+        <p className="mt-2 text-sm text-muted-foreground">{t("noCustomersDescription")}</p>
         <Button
           disabled={readOnly}
-          render={readOnly ? undefined : <Link href="/dashboard/customers/new?source=customers_page" />}
+          render={
+            readOnly ? undefined : <Link href="/dashboard/customers/new?source=customers_page" />
+          }
           className="mt-4"
         >
-          {t('addCustomer')}
+          {t("addCustomer")}
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -113,142 +122,171 @@ export const CustomersTable = ({ customers, readOnly = false, onOpenCustomer, ge
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{t('customer')}</TableHead>
-              <TableHead>{t('contact')}</TableHead>
-              <TableHead className="text-center">{t('totalReservations')}</TableHead>
-              <TableHead className="text-right">{t('totalSpent')}</TableHead>
-              <TableHead>{t('lastReservation')}</TableHead>
+              <TableHead>{t("customer")}</TableHead>
+              <TableHead>{t("contact")}</TableHead>
+              <TableHead className="text-center">{t("totalReservations")}</TableHead>
+              <TableHead className="text-right">{t("totalSpent")}</TableHead>
+              <TableHead>{t("lastReservation")}</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {customers.map((customer) => {
-              const contactName = [customer.firstName, customer.lastName]
-                .filter(Boolean)
-                .join(' ')
+              const contactName = [customer.firstName, customer.lastName].filter(Boolean).join(" ");
               const displayName =
-                contactName || customer.companyName || customer.email || t('customer')
+                contactName || customer.companyName || customer.email || t("customer");
 
               return (
-              <TableRow key={customer.id}>
-                <TableCell>
-                  <div className="space-y-1">
-                    {customer.customerType === 'business' && customer.companyName ? (
-                      <>
+                <TableRow key={customer.id}>
+                  <TableCell>
+                    <div className="space-y-1">
+                      {customer.customerType === "business" && customer.companyName ? (
+                        <>
+                          <Link
+                            href={
+                              getCustomerHref?.(customer) ??
+                              (readOnly ? "#" : `/dashboard/customers/${customer.id}`)
+                            }
+                            prefetch={readOnly || onOpenCustomer ? false : undefined}
+                            data-customer-link={customer.id}
+                            onClick={(event) => {
+                              if (readOnly || onOpenCustomer) {
+                                event.preventDefault();
+                                onOpenCustomer?.(customer);
+                              }
+                            }}
+                            className="font-medium hover:underline flex items-center gap-1.5"
+                          >
+                            <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                            {customer.companyName}
+                          </Link>
+                          {contactName && (
+                            <div className="text-sm text-muted-foreground">{contactName}</div>
+                          )}
+                        </>
+                      ) : (
                         <Link
-                          href={getCustomerHref?.(customer) ?? (readOnly ? '#' : `/dashboard/customers/${customer.id}`)}
+                          href={
+                            getCustomerHref?.(customer) ??
+                            (readOnly ? "#" : `/dashboard/customers/${customer.id}`)
+                          }
                           prefetch={readOnly || onOpenCustomer ? false : undefined}
                           data-customer-link={customer.id}
                           onClick={(event) => {
                             if (readOnly || onOpenCustomer) {
-                              event.preventDefault()
-                              onOpenCustomer?.(customer)
+                              event.preventDefault();
+                              onOpenCustomer?.(customer);
                             }
                           }}
-                          className="font-medium hover:underline flex items-center gap-1.5"
+                          className="font-medium hover:underline"
                         >
-                          <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                          {customer.companyName}
+                          {displayName}
                         </Link>
-                        {contactName && (
-                          <div className="text-sm text-muted-foreground">{contactName}</div>
-                        )}
-                      </>
+                      )}
+                      {customer.city && (
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <MapPin className="h-3 w-3" />
+                          {customer.city}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      {customer.email && (
+                        <div className="flex items-center gap-1 text-sm">
+                          <Mail className="h-3 w-3 text-muted-foreground" />
+                          <EmailContactPopover
+                            disabled={readOnly}
+                            email={customer.email}
+                            className="text-foreground"
+                          />
+                        </div>
+                      )}
+                      {customer.phone && (
+                        <div className="flex items-center gap-1 text-sm">
+                          <Phone className="h-3 w-3 text-muted-foreground" />
+                          <PhoneContactPopover
+                            disabled={readOnly}
+                            phone={customer.phone}
+                            className="text-foreground"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge variant="expired">{customer.reservationCount}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right font-medium">
+                    {formatCurrency(parseFloat(customer.totalSpent), currency, formatLocale)}
+                  </TableCell>
+                  <TableCell>
+                    {customer.lastReservation ? (
+                      <span className="text-sm text-muted-foreground">
+                        {format(new Date(customer.lastReservation), "dd MMM yyyy", {
+                          locale: dateLocale,
+                        })}
+                      </span>
                     ) : (
-                      <Link
-                        href={getCustomerHref?.(customer) ?? (readOnly ? '#' : `/dashboard/customers/${customer.id}`)}
-                        prefetch={readOnly || onOpenCustomer ? false : undefined}
-                        data-customer-link={customer.id}
-                        onClick={(event) => {
-                          if (readOnly || onOpenCustomer) {
-                            event.preventDefault()
-                            onOpenCustomer?.(customer)
+                      <span className="text-sm text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu modal={!readOnly}>
+                      <DropdownMenuTrigger
+                        disabled={readOnly}
+                        render={<Button variant="ghost" size="icon" />}
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">{tCommon("actions")}</span>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" finalFocus={readOnly ? false : undefined}>
+                        <DropdownMenuItem
+                          render={
+                            <Link
+                              href={
+                                getCustomerHref?.(customer) ??
+                                (readOnly ? "#" : `/dashboard/customers/${customer.id}`)
+                              }
+                              prefetch={readOnly || onOpenCustomer ? false : undefined}
+                              onClick={(event) => {
+                                if (readOnly || onOpenCustomer) {
+                                  event.preventDefault();
+                                  onOpenCustomer?.(customer);
+                                }
+                              }}
+                            />
                           }
-                        }}
-                        className="font-medium hover:underline"
-                      >
-                        {displayName}
-                      </Link>
-                    )}
-                    {customer.city && (
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <MapPin className="h-3 w-3" />
-                        {customer.city}
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="space-y-1">
-                    {customer.email && (
-                      <div className="flex items-center gap-1 text-sm">
-                        <Mail className="h-3 w-3 text-muted-foreground" />
-                        <EmailContactPopover disabled={readOnly} email={customer.email} className="text-foreground" />
-                      </div>
-                    )}
-                    {customer.phone && (
-                      <div className="flex items-center gap-1 text-sm">
-                        <Phone className="h-3 w-3 text-muted-foreground" />
-                        <PhoneContactPopover disabled={readOnly} phone={customer.phone} className="text-foreground" />
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="text-center">
-                  <Badge variant="expired">{customer.reservationCount}</Badge>
-                </TableCell>
-                <TableCell className="text-right font-medium">
-                  {formatCurrency(parseFloat(customer.totalSpent), currency, formatLocale)}
-                </TableCell>
-                <TableCell>
-                  {customer.lastReservation ? (
-                    <span className="text-sm text-muted-foreground">
-                      {format(new Date(customer.lastReservation), 'dd MMM yyyy', { locale: dateLocale })}
-                    </span>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">-</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu modal={!readOnly}>
-                    <DropdownMenuTrigger disabled={readOnly} render={<Button variant="ghost" size="icon" />}>
-                      <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">{tCommon('actions')}</span>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" finalFocus={readOnly ? false : undefined}>
-                      <DropdownMenuItem render={
-                        <Link
-                          href={getCustomerHref?.(customer) ?? (readOnly ? '#' : `/dashboard/customers/${customer.id}`)}
-                          prefetch={readOnly || onOpenCustomer ? false : undefined}
-                          onClick={(event) => {
-                            if (readOnly || onOpenCustomer) {
-                              event.preventDefault()
-                              onOpenCustomer?.(customer)
-                            }
-                          }}
-                        />
-                      }>
-                        <Eye className="mr-2 h-4 w-4" />
-                        {t('viewDetails')}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem disabled={readOnly} render={readOnly ? undefined : <Link href={`/dashboard/customers/${customer.id}/edit`} />}>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        {tCommon('edit')}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => setDeleteId(customer.id)}
-                        disabled={readOnly || customer.reservationCount > 0}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        {tCommon('delete')}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-              )
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          {t("viewDetails")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          disabled={readOnly}
+                          render={
+                            readOnly ? undefined : (
+                              <Link href={`/dashboard/customers/${customer.id}/edit`} />
+                            )
+                          }
+                        >
+                          <Pencil className="mr-2 h-4 w-4" />
+                          {tCommon("edit")}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => setDeleteId(customer.id)}
+                          disabled={readOnly || customer.reservationCount > 0}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          {tCommon("delete")}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              );
             })}
           </TableBody>
         </Table>
@@ -257,23 +295,23 @@ export const CustomersTable = ({ customers, readOnly = false, onOpenCustomer, ge
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('deleteConfirm.title')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('deleteConfirm.description')}
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t("deleteConfirm.title")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("deleteConfirm.description")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogClose render={<Button variant="outline" />}>{tCommon('cancel')}</AlertDialogClose>
+            <AlertDialogClose render={<Button variant="outline" />}>
+              {tCommon("cancel")}
+            </AlertDialogClose>
             <AlertDialogClose
               render={<Button variant="destructive" />}
               onClick={handleDelete}
               disabled={isPending}
             >
-              {isPending ? tCommon('loading') : tCommon('delete')}
+              {isPending ? tCommon("loading") : tCommon("delete")}
             </AlertDialogClose>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
-}
+  );
+};

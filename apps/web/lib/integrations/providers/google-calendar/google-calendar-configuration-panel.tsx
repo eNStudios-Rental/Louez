@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams } from "next/navigation";
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertCircle, CalendarCheck, RefreshCw, Unplug } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AlertCircle, CalendarCheck, RefreshCw, Unplug } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   Alert,
@@ -19,9 +19,9 @@ import {
   Label,
   Switch,
   toastManager,
-} from '@louez/ui';
+} from "@louez/ui";
 
-import { orpc } from '@/lib/orpc/react';
+import { orpc } from "@/lib/orpc/react";
 
 export const GoogleCalendarConfigurationPanel = () => {
   const t = useTranslations();
@@ -30,12 +30,10 @@ export const GoogleCalendarConfigurationPanel = () => {
   const stateQuery = useQuery(
     orpc.dashboard.integrations.getCalendarState.queryOptions({ input: {} }),
   );
-  const oauthError = searchParams.get('error');
+  const oauthError = searchParams.get("error");
 
   const calendarState =
-    stateQuery.data && !('error' in stateQuery.data)
-      ? stateQuery.data.google
-      : null;
+    stateQuery.data && !("error" in stateQuery.data) ? stateQuery.data.google : null;
 
   const invalidate = async () => {
     await queryClient.invalidateQueries({
@@ -48,7 +46,7 @@ export const GoogleCalendarConfigurationPanel = () => {
     });
     await queryClient.invalidateQueries({
       queryKey: orpc.dashboard.integrations.getDetail.key({
-        input: { integrationId: 'google-calendar' },
+        input: { integrationId: "google-calendar" },
       }),
     });
   };
@@ -56,11 +54,11 @@ export const GoogleCalendarConfigurationPanel = () => {
   const updateSettingsMutation = useMutation(
     orpc.dashboard.integrations.updateGoogleCalendarSettings.mutationOptions({
       onSuccess: async () => {
-        toastManager.add({ type: 'success', title: 'Parametres enregistres' });
+        toastManager.add({ type: "success", title: "Parametres enregistres" });
         await invalidate();
       },
       onError: () => {
-        toastManager.add({ type: 'error', title: t('errors.generic') });
+        toastManager.add({ type: "error", title: t("errors.generic") });
       },
     }),
   );
@@ -69,13 +67,13 @@ export const GoogleCalendarConfigurationPanel = () => {
     orpc.dashboard.integrations.resyncGoogleCalendar.mutationOptions({
       onSuccess: async () => {
         toastManager.add({
-          type: 'success',
-          title: 'Resynchronisation lancee',
+          type: "success",
+          title: "Resynchronisation lancee",
         });
         await invalidate();
       },
       onError: () => {
-        toastManager.add({ type: 'error', title: t('errors.generic') });
+        toastManager.add({ type: "error", title: t("errors.generic") });
       },
     }),
   );
@@ -84,13 +82,13 @@ export const GoogleCalendarConfigurationPanel = () => {
     orpc.dashboard.integrations.disconnectGoogleCalendar.mutationOptions({
       onSuccess: async () => {
         toastManager.add({
-          type: 'success',
-          title: 'Google Calendar deconnecte',
+          type: "success",
+          title: "Google Calendar deconnecte",
         });
         await invalidate();
       },
       onError: () => {
-        toastManager.add({ type: 'error', title: t('errors.generic') });
+        toastManager.add({ type: "error", title: t("errors.generic") });
       },
     }),
   );
@@ -116,22 +114,19 @@ export const GoogleCalendarConfigurationPanel = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {oauthError === 'googleCalendarNotConfigured' && (
+          {oauthError === "googleCalendarNotConfigured" && (
             <Alert variant="error">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Google Calendar OAuth n'est pas configure. Ajoutez
-                GOOGLE_CALENDAR_CLIENT_ID et GOOGLE_CALENDAR_CLIENT_SECRET dans
-                apps/web/.env, puis redemarrez le serveur de dev.
+                Google Calendar OAuth n'est pas configure. Ajoutez GOOGLE_CALENDAR_CLIENT_ID et
+                GOOGLE_CALENDAR_CLIENT_SECRET dans apps/web/.env, puis redemarrez le serveur de dev.
               </AlertDescription>
             </Alert>
           )}
           <Button
             type="button"
             onClick={() => {
-              window.location.assign(
-                '/api/integrations/google-calendar/oauth/start',
-              );
+              window.location.assign("/api/integrations/google-calendar/oauth/start");
             }}
           >
             <CalendarCheck className="mr-2 h-4 w-4" />
@@ -150,10 +145,10 @@ export const GoogleCalendarConfigurationPanel = () => {
             <div>
               <CardTitle>Connexion Google Calendar</CardTitle>
               <CardDescription>
-                {calendarState.accountEmail || 'Compte Google connecte'}
+                {calendarState.accountEmail || "Compte Google connecte"}
               </CardDescription>
             </div>
-            <Badge variant={calendarState.status === 'active' ? 'success' : 'expired'}>
+            <Badge variant={calendarState.status === "active" ? "success" : "expired"}>
               {calendarState.status}
             </Badge>
           </div>
@@ -161,11 +156,9 @@ export const GoogleCalendarConfigurationPanel = () => {
         <CardContent className="space-y-4">
           <div className="grid gap-3 text-sm sm:grid-cols-2">
             <div>
-              <p className="text-muted-foreground text-xs tracking-wide uppercase">
-                Agenda
-              </p>
+              <p className="text-muted-foreground text-xs tracking-wide uppercase">Agenda</p>
               <p className="font-medium">
-                {calendarState.calendarName || 'Agenda de réservations'}
+                {calendarState.calendarName || "Agenda de réservations"}
               </p>
             </div>
             <div>
@@ -175,7 +168,7 @@ export const GoogleCalendarConfigurationPanel = () => {
               <p className="font-medium">
                 {calendarState.lastSyncAt
                   ? new Date(calendarState.lastSyncAt).toLocaleString()
-                  : 'Pas encore synchronise'}
+                  : "Pas encore synchronise"}
               </p>
             </div>
           </div>
@@ -213,8 +206,7 @@ export const GoogleCalendarConfigurationPanel = () => {
         <CardHeader>
           <CardTitle>Regles de synchronisation</CardTitle>
           <CardDescription>
-            Les evenements synchronises sont prives et ne bloquent pas votre
-            disponibilite Google.
+            Les evenements synchronises sont prives et ne bloquent pas votre disponibilite Google.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -233,8 +225,7 @@ export const GoogleCalendarConfigurationPanel = () => {
               onCheckedChange={(checked) =>
                 updateSettingsMutation.mutate({
                   syncPendingReservations: checked,
-                  cancelledReservationBehavior:
-                    calendarState.cancelledReservationBehavior,
+                  cancelledReservationBehavior: calendarState.cancelledReservationBehavior,
                 })
               }
             />
@@ -246,18 +237,16 @@ export const GoogleCalendarConfigurationPanel = () => {
                 Afficher les réservations annulées dans l'agenda
               </Label>
               <p className="text-muted-foreground text-sm">
-                Les reservations annulees restent visibles avec leur statut
-                d'annulation.
+                Les reservations annulees restent visibles avec leur statut d'annulation.
               </p>
             </div>
             <Switch
               id="google-calendar-show-cancelled"
-              checked={calendarState.cancelledReservationBehavior === 'show'}
+              checked={calendarState.cancelledReservationBehavior === "show"}
               onCheckedChange={(checked) =>
                 updateSettingsMutation.mutate({
-                  syncPendingReservations:
-                    calendarState.syncPendingReservations,
-                  cancelledReservationBehavior: checked ? 'show' : 'hide',
+                  syncPendingReservations: calendarState.syncPendingReservations,
+                  cancelledReservationBehavior: checked ? "show" : "hide",
                 })
               }
             />

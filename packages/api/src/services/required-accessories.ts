@@ -14,9 +14,7 @@ export interface MissingRequiredAccessory {
 export function validateRequiredAccessoryLines(params: {
   lines: Array<{ productId: string; quantity: number }>;
   requiredAccessories: RequiredAccessoryLine[];
-}):
-  | { valid: true; missing: [] }
-  | { valid: false; missing: MissingRequiredAccessory[] } {
+}): { valid: true; missing: [] } | { valid: false; missing: MissingRequiredAccessory[] } {
   const quantityByProductId = new Map<string, number>();
   for (const line of params.lines) {
     quantityByProductId.set(
@@ -45,8 +43,7 @@ export function validateRequiredAccessoryLines(params: {
   }
 
   const missing = [...requiredByAccessory.values()].flatMap((requirement) => {
-    const providedQuantity =
-      quantityByProductId.get(requirement.accessoryProductId) ?? 0;
+    const providedQuantity = quantityByProductId.get(requirement.accessoryProductId) ?? 0;
     return providedQuantity < requirement.quantity
       ? [
           {
@@ -59,7 +56,5 @@ export function validateRequiredAccessoryLines(params: {
       : [];
   });
 
-  return missing.length > 0
-    ? { valid: false, missing }
-    : { valid: true, missing: [] };
+  return missing.length > 0 ? { valid: false, missing } : { valid: true, missing: [] };
 }

@@ -1,51 +1,48 @@
-import { db } from '@louez/db'
-import { getCurrentStore } from '@/lib/store-context'
-import { customers } from '@louez/db'
-import { eq, and } from 'drizzle-orm'
-import { redirect, notFound } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { getTranslations } from 'next-intl/server'
+import { db } from "@louez/db";
+import { getCurrentStore } from "@/lib/store-context";
+import { customers } from "@louez/db";
+import { eq, and } from "drizzle-orm";
+import { redirect, notFound } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
-import { Button } from '@louez/ui'
-import { DashboardBreadcrumbLabel } from '@/components/dashboard/dashboard-breadcrumbs-context'
-import { CustomerForm } from '../../customer-form'
+import { Button } from "@louez/ui";
+import { DashboardBreadcrumbLabel } from "@/components/dashboard/dashboard-breadcrumbs-context";
+import { CustomerForm } from "../../customer-form";
 
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
 export const instant = false;
 
 interface EditCustomerPageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }
 
 export default async function EditCustomerPage({ params }: EditCustomerPageProps) {
-  const t = await getTranslations('dashboard.customers')
-  const store = await getCurrentStore()
+  const t = await getTranslations("dashboard.customers");
+  const store = await getCurrentStore();
 
   if (!store) {
-    redirect('/onboarding')
+    redirect("/onboarding");
   }
 
-  const { id } = await params
+  const { id } = await params;
 
   const customer = await db.query.customers.findFirst({
-    where: and(
-      eq(customers.id, id),
-      eq(customers.storeId, store.id)
-    ),
-  })
+    where: and(eq(customers.id, id), eq(customers.storeId, store.id)),
+  });
 
   if (!customer) {
-    notFound()
+    notFound();
   }
 
   const customerBreadcrumbLabel =
-    customer.customerType === 'business' && customer.companyName
+    customer.customerType === "business" && customer.companyName
       ? customer.companyName
-      : [customer.firstName, customer.lastName].filter(Boolean).join(' ') ||
+      : [customer.firstName, customer.lastName].filter(Boolean).join(" ") ||
         customer.email ||
-        t('customer')
+        t("customer");
 
   return (
     <div className="space-y-6">
@@ -53,22 +50,24 @@ export default async function EditCustomerPage({ params }: EditCustomerPageProps
         pathname={`/dashboard/customers/${customer.id}`}
         label={customerBreadcrumbLabel}
       />
-      <DashboardBreadcrumbLabel label={t('editCustomer')} />
+      <DashboardBreadcrumbLabel label={t("editCustomer")} />
       <div className="flex items-center gap-4">
-        <Button render={<Link href={`/dashboard/customers/${customer.id}`} />} variant="ghost" size="icon">
+        <Button
+          render={<Link href={`/dashboard/customers/${customer.id}`} />}
+          variant="ghost"
+          size="icon"
+        >
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            {t('editCustomer')} - {customerBreadcrumbLabel}
+            {t("editCustomer")} - {customerBreadcrumbLabel}
           </h1>
-          <p className="text-muted-foreground">
-            {t('editCustomerDescription')}
-          </p>
+          <p className="text-muted-foreground">{t("editCustomerDescription")}</p>
         </div>
       </div>
 
       <CustomerForm customer={customer} />
     </div>
-  )
+  );
 }

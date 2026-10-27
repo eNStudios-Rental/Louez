@@ -1,26 +1,26 @@
-'use client'
+"use client";
 
-import { useTranslations } from 'next-intl'
+import { useTranslations } from "next-intl";
 
-import { Badge } from '@louez/ui'
+import { Badge } from "@louez/ui";
 import {
   CreditCardSolidIcon,
   ReviewSolidIcon,
   SuccessSolidIcon,
   XCircleSolidIcon,
-} from '@louez/ui/icons'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@louez/ui'
-import { cn, getCurrencySymbol } from '@louez/utils'
+} from "@louez/ui/icons";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@louez/ui";
+import { cn, getCurrencySymbol } from "@louez/utils";
 
 interface PaymentStatusBadgeProps {
-  rentalAmount: number
-  rentalPaid: number
-  depositAmount: number
-  depositCollected: number
-  depositReturned: number
-  className?: string
-  showDetails?: boolean
-  currency?: string
+  rentalAmount: number;
+  rentalPaid: number;
+  depositAmount: number;
+  depositCollected: number;
+  depositReturned: number;
+  className?: string;
+  showDetails?: boolean;
+  currency?: string;
 }
 
 export function PaymentStatusBadge({
@@ -31,107 +31,112 @@ export function PaymentStatusBadge({
   depositReturned,
   className,
   showDetails = true,
-  currency = 'PLN',
+  currency = "PLN",
 }: PaymentStatusBadgeProps) {
-  const t = useTranslations('dashboard.reservations')
-  const currencySymbol = getCurrencySymbol(currency)
+  const t = useTranslations("dashboard.reservations");
+  const currencySymbol = getCurrencySymbol(currency);
 
-  const isRentalFullyPaid = rentalPaid >= rentalAmount
-  const isDepositFullyCollected = depositCollected >= depositAmount
-  const depositToReturn = depositCollected - depositReturned
+  const isRentalFullyPaid = rentalPaid >= rentalAmount;
+  const isDepositFullyCollected = depositCollected >= depositAmount;
+  const depositToReturn = depositCollected - depositReturned;
 
   // Calcul du statut global de paiement
   const getPaymentStatus = () => {
     if (isRentalFullyPaid) {
-      return 'paid'
+      return "paid";
     }
     if (rentalPaid > 0) {
-      return 'partial'
+      return "partial";
     }
-    return 'unpaid'
-  }
+    return "unpaid";
+  };
 
-  const paymentStatus = getPaymentStatus()
+  const paymentStatus = getPaymentStatus();
 
   // Calcul du statut de la caution
   const getDepositStatus = () => {
-    if (depositAmount === 0) return null
-    if (!isDepositFullyCollected) return 'to_collect'
-    if (depositToReturn > 0) return 'to_return'
-    return 'returned'
-  }
+    if (depositAmount === 0) return null;
+    if (!isDepositFullyCollected) return "to_collect";
+    if (depositToReturn > 0) return "to_return";
+    return "returned";
+  };
 
-  const depositStatus = getDepositStatus()
+  const depositStatus = getDepositStatus();
 
   const paymentStatusConfig = {
     paid: {
-      label: t('paymentBadge.paid'),
+      label: t("paymentBadge.paid"),
       icon: SuccessSolidIcon,
-      variant: 'success' as const,
+      variant: "success" as const,
     },
     partial: {
-      label: t('paymentBadge.partial'),
+      label: t("paymentBadge.partial"),
       icon: ReviewSolidIcon,
-      variant: 'pending' as const,
+      variant: "pending" as const,
     },
     unpaid: {
-      label: t('paymentBadge.unpaid'),
+      label: t("paymentBadge.unpaid"),
       icon: XCircleSolidIcon,
-      variant: 'failed' as const,
+      variant: "failed" as const,
     },
-  }
+  };
 
   const depositStatusConfig = {
     to_collect: {
-      label: t('paymentBadge.depositToCollect'),
-      variant: 'pending' as const,
+      label: t("paymentBadge.depositToCollect"),
+      variant: "pending" as const,
     },
     to_return: {
-      label: t('paymentBadge.depositToReturn'),
-      variant: 'submitted' as const,
+      label: t("paymentBadge.depositToReturn"),
+      variant: "submitted" as const,
     },
     returned: {
-      label: t('paymentBadge.depositReturned'),
-      variant: 'success' as const,
+      label: t("paymentBadge.depositReturned"),
+      variant: "success" as const,
     },
-  }
+  };
 
-  const currentPaymentConfig = paymentStatusConfig[paymentStatus]
-  const currentDepositConfig = depositStatus ? depositStatusConfig[depositStatus] : null
-  const PaymentIcon = currentPaymentConfig.icon
+  const currentPaymentConfig = paymentStatusConfig[paymentStatus];
+  const currentDepositConfig = depositStatus ? depositStatusConfig[depositStatus] : null;
+  const PaymentIcon = currentPaymentConfig.icon;
 
   const tooltipContent = (
     <div className="space-y-1.5 text-xs">
       <div className="flex items-center justify-between gap-4">
-        <span>{t('payment.rental')}:</span>
+        <span>{t("payment.rental")}:</span>
         <span className="font-mono">
-          {rentalPaid.toFixed(2)}{currencySymbol} / {rentalAmount.toFixed(2)}{currencySymbol}
+          {rentalPaid.toFixed(2)}
+          {currencySymbol} / {rentalAmount.toFixed(2)}
+          {currencySymbol}
         </span>
       </div>
       {depositAmount > 0 && (
         <>
           <div className="flex items-center justify-between gap-4">
-            <span>{t('payment.deposit')}:</span>
+            <span>{t("payment.deposit")}:</span>
             <span className="font-mono">
-              {depositCollected.toFixed(2)}{currencySymbol} / {depositAmount.toFixed(2)}{currencySymbol}
+              {depositCollected.toFixed(2)}
+              {currencySymbol} / {depositAmount.toFixed(2)}
+              {currencySymbol}
             </span>
           </div>
           {depositReturned > 0 && (
             <div className="flex items-center justify-between gap-4">
-              <span>{t('payment.returned')}:</span>
+              <span>{t("payment.returned")}:</span>
               <span className="font-mono text-emerald-600">
-                -{depositReturned.toFixed(2)}{currencySymbol}
+                -{depositReturned.toFixed(2)}
+                {currencySymbol}
               </span>
             </div>
           )}
         </>
       )}
     </div>
-  )
+  );
 
   return (
     <TooltipProvider>
-      <div className={cn('flex items-center gap-1.5 flex-wrap', className)}>
+      <div className={cn("flex items-center gap-1.5 flex-wrap", className)}>
         {/* Badge statut paiement principal */}
         <Tooltip>
           <TooltipTrigger
@@ -165,27 +170,27 @@ export function PaymentStatusBadge({
               {currentDepositConfig.label}
             </TooltipTrigger>
             <TooltipContent side="bottom">
-              {depositStatus === 'to_collect' && (
+              {depositStatus === "to_collect" && (
                 <span>
-                  {t('paymentBadge.depositToCollectAmount', {
+                  {t("paymentBadge.depositToCollectAmount", {
                     formattedAmount: `${(depositAmount - depositCollected).toFixed(2)}${currencySymbol}`,
                   })}
                 </span>
               )}
-              {depositStatus === 'to_return' && (
+              {depositStatus === "to_return" && (
                 <span>
-                  {t('paymentBadge.depositToReturnAmount', {
+                  {t("paymentBadge.depositToReturnAmount", {
                     formattedAmount: `${depositToReturn.toFixed(2)}${currencySymbol}`,
                   })}
                 </span>
               )}
-              {depositStatus === 'returned' && (
-                <span>{t('paymentBadge.depositFullyReturned')}</span>
+              {depositStatus === "returned" && (
+                <span>{t("paymentBadge.depositFullyReturned")}</span>
               )}
             </TooltipContent>
           </Tooltip>
         )}
       </div>
     </TooltipProvider>
-  )
+  );
 }

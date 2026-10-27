@@ -31,6 +31,7 @@ export const getDemoCustomer = (index: number) => {
     firstName,
     lastName,
     email: `${firstName}.${lastName}@example.com`.toLowerCase(),
+    companyName: null,
   };
 };
 

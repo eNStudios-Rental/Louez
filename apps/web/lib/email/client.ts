@@ -1,8 +1,5 @@
-import {
-  isEmailConfigured,
-  sendEmail as transportSendEmail,
-} from '@louez/email';
-import type { SendEmailOptions } from '@louez/email';
+import { isEmailConfigured, sendEmail as transportSendEmail } from "@louez/email";
+import type { SendEmailOptions } from "@louez/email";
 
 /**
  * App-level transactional email refuses to pretend: without a transport the
@@ -13,12 +10,10 @@ import type { SendEmailOptions } from '@louez/email';
  */
 export const sendEmail = async (options: SendEmailOptions) => {
   if (!isEmailConfigured()) {
-    console.log(
-      `[email] SMTP not configured — "${options.subject}" to ${options.to} not sent`,
-    );
-    throw new Error('EMAIL_NOT_CONFIGURED');
+    console.log(`[email] SMTP not configured — "${options.subject}" to ${options.to} not sent`);
+    throw new Error("EMAIL_NOT_CONFIGURED");
   }
   return transportSendEmail(options);
 };
 
-export type { EmailAttachment, SendEmailOptions } from '@louez/email';
+export type { EmailAttachment, SendEmailOptions } from "@louez/email";

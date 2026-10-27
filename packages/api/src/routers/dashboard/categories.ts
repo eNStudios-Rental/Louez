@@ -1,11 +1,11 @@
-import { categories, db, nextCategorySlug, productCategories, products } from '@louez/db';
-import { categorySchema, isOwnedImageUrl } from '@louez/validations';
-import { and, asc, eq, inArray, ne, sql } from 'drizzle-orm';
-import { ORPCError } from '@orpc/server';
-import { z } from 'zod';
+import { categories, db, nextCategorySlug, productCategories, products } from "@louez/db";
+import { categorySchema, isOwnedImageUrl } from "@louez/validations";
+import { and, asc, eq, inArray, ne, sql } from "drizzle-orm";
+import { ORPCError } from "@orpc/server";
+import { z } from "zod";
 
-import { dashboardProcedure } from '../../procedures';
-import { getProductIdsByCategoryAndAncestors } from '../../services/category-hierarchy';
+import { dashboardProcedure } from "../../procedures";
+import { getProductIdsByCategoryAndAncestors } from "../../services/category-hierarchy";
 
 const categoryOutputSchema = z.object({
   id: z.string(),
@@ -62,10 +62,7 @@ const list = dashboardProcedure
       }
     }
 
-    const productIdsByCategoryId = getProductIdsByCategoryAndAncestors(
-      categoryRows,
-      assignments,
-    );
+    const productIdsByCategoryId = getProductIdsByCategoryAndAncestors(categoryRows, assignments);
 
     return categoryRows.map((category) => ({
       ...category,
@@ -85,21 +82,15 @@ const create = dashboardProcedure
     if (parentId) {
       const parent = await db.query.categories.findFirst({
         columns: { id: true },
-        where: and(
-          eq(categories.id, parentId),
-          eq(categories.storeId, context.store.id),
-        ),
+        where: and(eq(categories.id, parentId), eq(categories.storeId, context.store.id)),
       });
       if (!parent) {
-        throw new ORPCError('BAD_REQUEST', { message: 'errors.categoryNotFound' });
+        throw new ORPCError("BAD_REQUEST", { message: "errors.categoryNotFound" });
       }
     }
 
-    if (
-      imageUrl &&
-      !isOwnedImageUrl(imageUrl, `${context.store.id}/categories`)
-    ) {
-      throw new ORPCError('BAD_REQUEST', { message: 'errors.invalidData' });
+    if (imageUrl && !isOwnedImageUrl(imageUrl, `${context.store.id}/categories`)) {
+      throw new ORPCError("BAD_REQUEST", { message: "errors.invalidData" });
     }
 
     // Idempotent by name: return the existing category instead of duplicating
@@ -150,21 +141,18 @@ const update = dashboardProcedure
   .handler(async ({ context, input }) => {
     const category = await db.query.categories.findFirst({
       columns: { id: true, parentId: true, description: true, imageUrl: true },
-      where: and(
-        eq(categories.id, input.id),
-        eq(categories.storeId, context.store.id),
-      ),
+      where: and(eq(categories.id, input.id), eq(categories.storeId, context.store.id)),
     });
 
     if (!category) {
-      throw new ORPCError('NOT_FOUND', { message: 'errors.categoryNotFound' });
+      throw new ORPCError("NOT_FOUND", { message: "errors.categoryNotFound" });
     }
 
     let parentId = category.parentId;
     if (input.parentId !== undefined) {
       const candidateParentId = input.parentId?.trim() || null;
       if (candidateParentId === input.id) {
-        throw new ORPCError('BAD_REQUEST', { message: 'errors.invalidData' });
+        throw new ORPCError("BAD_REQUEST", { message: "errors.invalidData" });
       }
 
       if (candidateParentId) {
@@ -187,30 +175,27 @@ const update = dashboardProcedure
         };
 
         if (isDescendant(candidateParentId, input.id)) {
-          throw new ORPCError('BAD_REQUEST', { message: 'errors.invalidData' });
+          throw new ORPCError("BAD_REQUEST", { message: "errors.invalidData" });
         }
 
         const parent = allCategories.find((c) => c.id === candidateParentId);
         if (!parent) {
-          throw new ORPCError('BAD_REQUEST', { message: 'errors.categoryNotFound' });
+          throw new ORPCError("BAD_REQUEST", { message: "errors.categoryNotFound" });
         }
       }
       parentId = candidateParentId;
     }
 
     const description =
-      input.description === undefined
-        ? category.description
-        : input.description?.trim() || null;
-    const imageUrl =
-      input.imageUrl === undefined ? category.imageUrl : input.imageUrl || null;
+      input.description === undefined ? category.description : input.description?.trim() || null;
+    const imageUrl = input.imageUrl === undefined ? category.imageUrl : input.imageUrl || null;
 
     if (
       imageUrl &&
       imageUrl !== category.imageUrl &&
       !isOwnedImageUrl(imageUrl, `${context.store.id}/categories`)
     ) {
-      throw new ORPCError('BAD_REQUEST', { message: 'errors.invalidData' });
+      throw new ORPCError("BAD_REQUEST", { message: "errors.invalidData" });
     }
 
     const duplicate = await db
@@ -226,7 +211,7 @@ const update = dashboardProcedure
       .limit(1);
 
     if (duplicate[0]) {
-      throw new ORPCError('CONFLICT', { message: 'errors.invalidData' });
+      throw new ORPCError("CONFLICT", { message: "errors.invalidData" });
     }
 
     await db
@@ -238,12 +223,7 @@ const update = dashboardProcedure
         imageUrl,
         updatedAt: new Date(),
       })
-      .where(
-        and(
-          eq(categories.id, input.id),
-          eq(categories.storeId, context.store.id),
-        ),
-      );
+      .where(and(eq(categories.id, input.id), eq(categories.storeId, context.store.id)));
 
     return { id: input.id, parentId, name: input.name, description, imageUrl };
   });
@@ -260,18 +240,15 @@ const remove = dashboardProcedure
     const replacementCategoryId = input.replacementCategoryId ?? null;
     const category = await db.query.categories.findFirst({
       columns: { id: true },
-      where: and(
-        eq(categories.id, input.id),
-        eq(categories.storeId, context.store.id),
-      ),
+      where: and(eq(categories.id, input.id), eq(categories.storeId, context.store.id)),
     });
 
     if (!category) {
-      throw new ORPCError('NOT_FOUND', { message: 'errors.categoryNotFound' });
+      throw new ORPCError("NOT_FOUND", { message: "errors.categoryNotFound" });
     }
 
     if (replacementCategoryId === input.id) {
-      throw new ORPCError('BAD_REQUEST', { message: 'errors.invalidData' });
+      throw new ORPCError("BAD_REQUEST", { message: "errors.invalidData" });
     }
 
     if (replacementCategoryId) {
@@ -284,8 +261,8 @@ const remove = dashboardProcedure
       });
 
       if (!replacement) {
-        throw new ORPCError('BAD_REQUEST', {
-          message: 'errors.categoryNotFound',
+        throw new ORPCError("BAD_REQUEST", {
+          message: "errors.categoryNotFound",
         });
       }
     }
@@ -299,30 +276,22 @@ const remove = dashboardProcedure
         .from(productCategories)
         .innerJoin(products, eq(products.id, productCategories.productId))
         .where(
-          and(
-            eq(products.storeId, context.store.id),
-            eq(productCategories.categoryId, input.id),
-          ),
+          and(eq(products.storeId, context.store.id), eq(productCategories.categoryId, input.id)),
         );
 
-      await tx
-        .delete(productCategories)
-        .where(eq(productCategories.categoryId, input.id));
+      await tx.delete(productCategories).where(eq(productCategories.categoryId, input.id));
 
       const affectedIds = affectedLinks.map((link) => link.productId);
       if (affectedIds.length > 0) {
         if (replacementCategoryId) {
-          const existingReplacementLinks =
-            await tx.query.productCategories.findMany({
-              columns: { productId: true },
-              where: and(
-                inArray(productCategories.productId, affectedIds),
-                eq(productCategories.categoryId, replacementCategoryId),
-              ),
-            });
-          const alreadyLinked = new Set(
-            existingReplacementLinks.map((link) => link.productId),
-          );
+          const existingReplacementLinks = await tx.query.productCategories.findMany({
+            columns: { productId: true },
+            where: and(
+              inArray(productCategories.productId, affectedIds),
+              eq(productCategories.categoryId, replacementCategoryId),
+            ),
+          });
+          const alreadyLinked = new Set(existingReplacementLinks.map((link) => link.productId));
           const replacementLinks = affectedLinks
             .filter((link) => !alreadyLinked.has(link.productId))
             .map((link) => ({
@@ -352,10 +321,7 @@ const remove = dashboardProcedure
           await tx
             .update(products)
             .set({
-              categoryId:
-                replacementCategoryId ??
-                replacementByProduct.get(productId) ??
-                null,
+              categoryId: replacementCategoryId ?? replacementByProduct.get(productId) ?? null,
             })
             .where(
               and(
@@ -370,21 +336,11 @@ const remove = dashboardProcedure
       await tx
         .update(categories)
         .set({ parentId: null })
-        .where(
-          and(
-            eq(categories.parentId, input.id),
-            eq(categories.storeId, context.store.id),
-          ),
-        );
+        .where(and(eq(categories.parentId, input.id), eq(categories.storeId, context.store.id)));
 
       await tx
         .delete(categories)
-        .where(
-          and(
-            eq(categories.id, input.id),
-            eq(categories.storeId, context.store.id),
-          ),
-        );
+        .where(and(eq(categories.id, input.id), eq(categories.storeId, context.store.id)));
     });
 
     return { id: input.id };

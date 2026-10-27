@@ -1,8 +1,8 @@
-import type { AiPhoneSettings } from '@louez/types'
+import type { AiPhoneSettings } from "@louez/types";
 
-import { isAIChatConfigured } from '@/lib/ai/provider'
-import { getStorePlan } from '@/lib/plan-limits'
-import { isVoiceConfigured } from '@/lib/voice/client'
+import { isAIChatConfigured } from "@/lib/ai/provider";
+import { getStorePlan } from "@/lib/plan-limits";
+import { isVoiceConfigured } from "@/lib/voice/client";
 
 /**
  * Whether the AI voice agent is usable at the PLATFORM level: the operator
@@ -10,7 +10,7 @@ import { isVoiceConfigured } from '@/lib/voice/client'
  * AI provider. When false, the whole feature is invisible and the webhooks 404.
  */
 export function isVoiceAgentConfigured(): boolean {
-  return isVoiceConfigured() && isAIChatConfigured()
+  return isVoiceConfigured() && isAIChatConfigured();
 }
 
 /**
@@ -19,11 +19,11 @@ export function isVoiceAgentConfigured(): boolean {
  * feature. Used by the settings page and the inbound webhook.
  */
 export async function isVoiceAgentActiveForStore(store: {
-  id: string
-  aiPhoneSettings: AiPhoneSettings | null
+  id: string;
+  aiPhoneSettings: AiPhoneSettings | null;
 }): Promise<boolean> {
   if (!store.aiPhoneSettings?.enabled || !isVoiceAgentConfigured()) {
-    return false
+    return false;
   }
-  return (await getStorePlan(store.id)).features.aiPhone
+  return (await getStorePlan(store.id)).features.aiPhone;
 }

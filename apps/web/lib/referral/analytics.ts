@@ -1,10 +1,10 @@
-import 'server-only';
+import "server-only";
 
-import { getPostHogServer, shutdownPostHogServer } from '@/lib/posthog';
+import { getPostHogServer, shutdownPostHogServer } from "@/lib/posthog";
 import {
   type ReferralAnalyticsEvent,
   referralAnalyticsBaseProperties,
-} from '@/lib/referral/analytics-events';
+} from "@/lib/referral/analytics-events";
 
 export async function captureReferralServerEvent({
   distinctId,

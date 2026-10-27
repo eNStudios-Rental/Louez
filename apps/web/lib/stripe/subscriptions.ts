@@ -1,20 +1,20 @@
-import { stripe } from './client'
-import { db } from '@louez/db'
-import { stores, subscriptions, users, storeMembers } from '@louez/db'
-import { eq, and } from 'drizzle-orm'
-import { nanoid } from 'nanoid'
-import { getPlan, getPlans, getPlanPriceId, type Plan, type Currency } from '@/lib/plans'
-import { env } from '@/env'
+import { stripe } from "./client";
+import { db } from "@louez/db";
+import { stores, subscriptions, users, storeMembers } from "@louez/db";
+import { eq, and } from "drizzle-orm";
+import { nanoid } from "nanoid";
+import { getPlan, getPlans, getPlanPriceId, type Plan, type Currency } from "@/lib/plans";
+import { env } from "@/env";
 
 interface CreateCheckoutSessionOptions {
-  storeId: string
-  planSlug: string
-  interval: 'monthly' | 'yearly'
-  currency: Currency
-  trialDays?: number
-  stripeCouponId?: string
-  successUrl: string
-  cancelUrl: string
+  storeId: string;
+  planSlug: string;
+  interval: "monthly" | "yearly";
+  currency: Currency;
+  trialDays?: number;
+  stripeCouponId?: string;
+  successUrl: string;
+  cancelUrl: string;
 }
 
 /**
@@ -27,28 +27,28 @@ interface CreateCheckoutSessionOptions {
 export async function getOrCreateStripeCustomer(storeId: string): Promise<string> {
   const existingSubscription = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.storeId, storeId),
-  })
+  });
 
   if (existingSubscription?.stripeCustomerId) {
-    return existingSubscription.stripeCustomerId
+    return existingSubscription.stripeCustomerId;
   }
 
   const store = await db.query.stores.findFirst({
     where: eq(stores.id, storeId),
     columns: { id: true, name: true, email: true, userId: true },
-  })
+  });
 
   if (!store) {
-    throw new Error('Store not found')
+    throw new Error("Store not found");
   }
 
   const ownerMember = await db
     .select({ email: users.email })
     .from(storeMembers)
     .innerJoin(users, eq(storeMembers.userId, users.id))
-    .where(and(eq(storeMembers.storeId, storeId), eq(storeMembers.role, 'owner')))
+    .where(and(eq(storeMembers.storeId, storeId), eq(storeMembers.role, "owner")))
     .limit(1)
-    .then((res) => res[0])
+    .then((res) => res[0]);
 
   const customer = await stripe.customers.create({
     email: store.email || ownerMember?.email || undefined,
@@ -57,27 +57,27 @@ export async function getOrCreateStripeCustomer(storeId: string): Promise<string
       storeId: store.id,
       userId: store.userId,
     },
-  })
+  });
 
   // Persist immediately to prevent duplicate customers on retry
   if (existingSubscription) {
     await db
       .update(subscriptions)
       .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
-      .where(eq(subscriptions.id, existingSubscription.id))
+      .where(eq(subscriptions.id, existingSubscription.id));
   } else {
     // A store with no subscription row yet is a pay-as-you-go store (the default),
     // not a free one — the free tier no longer exists.
     await db.insert(subscriptions).values({
       id: nanoid(),
       storeId,
-      planSlug: 'pay_as_you_go',
-      billingMode: 'pay_as_you_go',
+      planSlug: "pay_as_you_go",
+      billingMode: "pay_as_you_go",
       stripeCustomerId: customer.id,
-    })
+    });
   }
 
-  return customer.id
+  return customer.id;
 }
 
 export async function createSubscriptionCheckoutSession({
@@ -91,27 +91,27 @@ export async function createSubscriptionCheckoutSession({
   cancelUrl,
 }: CreateCheckoutSessionOptions) {
   // Get the plan from code
-  const plan = getPlan(planSlug)
+  const plan = getPlan(planSlug);
 
   if (!plan) {
-    throw new Error('Plan not found')
+    throw new Error("Plan not found");
   }
 
   // Determine the price ID based on interval and currency
-  const priceId = getPlanPriceId(plan, interval, currency)
+  const priceId = getPlanPriceId(plan, interval, currency);
 
   if (!priceId) {
-    throw new Error(`Price not configured for this plan in ${currency.toUpperCase()}`)
+    throw new Error(`Price not configured for this plan in ${currency.toUpperCase()}`);
   }
 
   // Get or create Stripe customer (persisted to DB to avoid duplicates on abandoned checkouts)
-  const stripeCustomerId = await getOrCreateStripeCustomer(storeId)
-  const hasTrial = Boolean(trialDays && trialDays > 0)
+  const stripeCustomerId = await getOrCreateStripeCustomer(storeId);
+  const hasTrial = Boolean(trialDays && trialDays > 0);
 
   // Create the checkout session
   const session = await stripe.checkout.sessions.create({
     customer: stripeCustomerId,
-    mode: 'subscription',
+    mode: "subscription",
     line_items: [
       {
         price: priceId,
@@ -132,19 +132,19 @@ export async function createSubscriptionCheckoutSession({
       planSlug: plan.slug,
     },
     // Do not force card collection when trial starts with no immediate amount due.
-    payment_method_collection: hasTrial ? 'if_required' : 'always',
+    payment_method_collection: hasTrial ? "if_required" : "always",
     // Allow updating existing customer's info during checkout
     // Required for tax_id_collection when customer already exists
     customer_update: {
-      name: 'auto',
-      address: 'auto',
+      name: "auto",
+      address: "auto",
     },
     // Apply platform admin discount if configured
     // Note: Stripe doesn't allow both discounts and allow_promotion_codes
     ...(stripeCouponId
       ? { discounts: [{ coupon: stripeCouponId }] }
       : { allow_promotion_codes: true }),
-    billing_address_collection: 'required',
+    billing_address_collection: "required",
     // Automatically calculate and add tax based on customer location
     automatic_tax: {
       enabled: true,
@@ -152,39 +152,39 @@ export async function createSubscriptionCheckoutSession({
     tax_id_collection: {
       enabled: true,
     },
-  })
+  });
 
   return {
     sessionId: session.id,
     url: session.url,
-  }
+  };
 }
 
 export async function createCustomerPortalSession(storeId: string) {
   const subscription = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.storeId, storeId),
-  })
+  });
 
   if (!subscription?.stripeCustomerId) {
-    throw new Error('No Stripe customer found for this store')
+    throw new Error("No Stripe customer found for this store");
   }
 
   const session = await stripe.billingPortal.sessions.create({
     customer: subscription.stripeCustomerId,
     return_url: `${env.NEXT_PUBLIC_APP_URL}/dashboard/settings/subscription`,
-  })
+  });
 
   return {
     url: session.url,
-  }
+  };
 }
 
 export async function hasStripeCustomer(storeId: string): Promise<boolean> {
   const subscription = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.storeId, storeId),
     columns: { stripeCustomerId: true },
-  })
-  return !!subscription?.stripeCustomerId
+  });
+  return !!subscription?.stripeCustomerId;
 }
 
 /**
@@ -197,32 +197,32 @@ export async function storeHasDefaultPaymentMethod(storeId: string): Promise<boo
   const subscription = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.storeId, storeId),
     columns: { stripeCustomerId: true },
-  })
-  if (!subscription?.stripeCustomerId) return false
+  });
+  if (!subscription?.stripeCustomerId) return false;
 
   try {
-    const customer = await stripe.customers.retrieve(subscription.stripeCustomerId)
-    if (customer.deleted) return false
-    return Boolean(customer.invoice_settings?.default_payment_method || customer.default_source)
+    const customer = await stripe.customers.retrieve(subscription.stripeCustomerId);
+    if (customer.deleted) return false;
+    return Boolean(customer.invoice_settings?.default_payment_method || customer.default_source);
   } catch (error) {
-    console.error('Failed to check default payment method:', error)
-    return false
+    console.error("Failed to check default payment method:", error);
+    return false;
   }
 }
 
 export async function cancelSubscription(storeId: string) {
   const subscription = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.storeId, storeId),
-  })
+  });
 
   if (!subscription?.stripeSubscriptionId) {
-    throw new Error('No active subscription found')
+    throw new Error("No active subscription found");
   }
 
   // Cancel at period end
   await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
     cancel_at_period_end: true,
-  })
+  });
 
   // Update DB
   await db
@@ -231,28 +231,28 @@ export async function cancelSubscription(storeId: string) {
       cancelAtPeriodEnd: true,
       updatedAt: new Date(),
     })
-    .where(eq(subscriptions.id, subscription.id))
+    .where(eq(subscriptions.id, subscription.id));
 
-  return { success: true }
+  return { success: true };
 }
 
 export async function reactivateSubscription(storeId: string) {
   const subscription = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.storeId, storeId),
-  })
+  });
 
   if (!subscription?.stripeSubscriptionId) {
-    throw new Error('No subscription found')
+    throw new Error("No subscription found");
   }
 
   // Reactivate and clear any pending switch-to-PAYG flag (merge-safe metadata write).
-  const current = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId)
-  const metadata = { ...current.metadata }
-  delete metadata.pendingBillingMode
+  const current = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
+  const metadata = { ...current.metadata };
+  delete metadata.pendingBillingMode;
   await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
     cancel_at_period_end: false,
-    metadata: { ...metadata, pendingBillingMode: '' },
-  })
+    metadata: { ...metadata, pendingBillingMode: "" },
+  });
 
   // Update DB
   await db
@@ -261,14 +261,14 @@ export async function reactivateSubscription(storeId: string) {
       cancelAtPeriodEnd: false,
       updatedAt: new Date(),
     })
-    .where(eq(subscriptions.id, subscription.id))
+    .where(eq(subscriptions.id, subscription.id));
 
-  return { success: true }
+  return { success: true };
 }
 
 export type SwitchToPayAsYouGoResult =
-  | { mode: 'immediate' }
-  | { mode: 'deferred'; effectiveAt: Date | null }
+  | { mode: "immediate" }
+  | { mode: "deferred"; effectiveAt: Date | null };
 
 /**
  * Owner-initiated switch to pay-as-you-go.
@@ -279,23 +279,23 @@ export type SwitchToPayAsYouGoResult =
 export async function switchToPayAsYouGo(storeId: string): Promise<SwitchToPayAsYouGoResult> {
   const subscription = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.storeId, storeId),
-  })
+  });
 
   // Active paid subscription → defer to period end.
   if (subscription?.stripeSubscriptionId) {
-    const current = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId)
+    const current = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
     await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
       cancel_at_period_end: true,
-      metadata: { ...current.metadata, pendingBillingMode: 'pay_as_you_go' },
-    })
+      metadata: { ...current.metadata, pendingBillingMode: "pay_as_you_go" },
+    });
     await db
       .update(subscriptions)
       .set({ cancelAtPeriodEnd: true, updatedAt: new Date() })
-      .where(eq(subscriptions.id, subscription.id))
+      .where(eq(subscriptions.id, subscription.id));
     return {
-      mode: 'deferred',
+      mode: "deferred",
       effectiveAt: subscription.currentPeriodEnd ?? null,
-    }
+    };
   }
 
   // No active Stripe subscription (or no row yet) → switch immediately. Set planSlug
@@ -304,61 +304,61 @@ export async function switchToPayAsYouGo(storeId: string): Promise<SwitchToPayAs
     await db
       .update(subscriptions)
       .set({
-        planSlug: 'pay_as_you_go',
-        billingMode: 'pay_as_you_go',
+        planSlug: "pay_as_you_go",
+        billingMode: "pay_as_you_go",
         updatedAt: new Date(),
       })
-      .where(eq(subscriptions.id, subscription.id))
+      .where(eq(subscriptions.id, subscription.id));
   } else {
     await db.insert(subscriptions).values({
       id: nanoid(),
       storeId,
-      planSlug: 'pay_as_you_go',
-      billingMode: 'pay_as_you_go',
-    })
+      planSlug: "pay_as_you_go",
+      billingMode: "pay_as_you_go",
+    });
   }
-  return { mode: 'immediate' }
+  return { mode: "immediate" };
 }
 
 export async function getSubscriptionWithPlan(storeId: string) {
   const subscription = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.storeId, storeId),
-  })
+  });
 
   if (!subscription) {
-    return null
+    return null;
   }
 
   // Get plan from code
-  const plan = getPlan(subscription.planSlug)
+  const plan = getPlan(subscription.planSlug);
 
   // Get billing interval and currency from Stripe if subscription exists
-  let billingInterval: 'monthly' | 'yearly' | null = null
-  let billingCurrency: Currency | null = null
+  let billingInterval: "monthly" | "yearly" | null = null;
+  let billingCurrency: Currency | null = null;
   // 'pay_as_you_go' when the owner scheduled a switch that takes effect at period end.
-  let pendingBillingMode: string | null = null
+  let pendingBillingMode: string | null = null;
   if (subscription.stripeSubscriptionId) {
     try {
       const stripeSubscription = await stripe.subscriptions.retrieve(
         subscription.stripeSubscriptionId,
-        { expand: ['items.data'] },
-      )
-      pendingBillingMode = stripeSubscription.metadata?.pendingBillingMode || null
-      const firstItem = stripeSubscription.items.data[0]
-      if (firstItem?.price?.recurring?.interval === 'year') {
-        billingInterval = 'yearly'
-      } else if (firstItem?.price?.recurring?.interval === 'month') {
-        billingInterval = 'monthly'
+        { expand: ["items.data"] },
+      );
+      pendingBillingMode = stripeSubscription.metadata?.pendingBillingMode || null;
+      const firstItem = stripeSubscription.items.data[0];
+      if (firstItem?.price?.recurring?.interval === "year") {
+        billingInterval = "yearly";
+      } else if (firstItem?.price?.recurring?.interval === "month") {
+        billingInterval = "monthly";
       }
       // Get the actual currency used for this subscription
       if (firstItem?.price?.currency) {
-        const currency = firstItem.price.currency.toLowerCase()
-        if (currency === 'eur' || currency === 'usd') {
-          billingCurrency = currency as Currency
+        const currency = firstItem.price.currency.toLowerCase();
+        if (currency === "eur" || currency === "usd") {
+          billingCurrency = currency as Currency;
         }
       }
     } catch (error) {
-      console.error('Error fetching Stripe subscription:', error)
+      console.error("Error fetching Stripe subscription:", error);
     }
   }
 
@@ -368,35 +368,35 @@ export async function getSubscriptionWithPlan(storeId: string) {
     billingInterval,
     billingCurrency,
     pendingBillingMode,
-  }
+  };
 }
 
 export async function syncSubscriptionFromStripe(stripeSubscriptionId: string) {
   const stripeSubscription = await stripe.subscriptions.retrieve(stripeSubscriptionId, {
-    expand: ['items.data'],
-  })
+    expand: ["items.data"],
+  });
 
   const subscription = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.stripeSubscriptionId, stripeSubscriptionId),
-  })
+  });
 
   if (!subscription) {
-    console.error(`Subscription not found: ${stripeSubscriptionId}`)
-    return null
+    console.error(`Subscription not found: ${stripeSubscriptionId}`);
+    return null;
   }
 
-  let status: 'active' | 'cancelled' | 'past_due' | 'trialing' = 'active'
-  if (stripeSubscription.status === 'past_due') {
-    status = 'past_due'
-  } else if (stripeSubscription.status === 'canceled') {
-    status = 'cancelled'
-  } else if (stripeSubscription.status === 'trialing') {
-    status = 'trialing'
+  let status: "active" | "cancelled" | "past_due" | "trialing" = "active";
+  if (stripeSubscription.status === "past_due") {
+    status = "past_due";
+  } else if (stripeSubscription.status === "canceled") {
+    status = "cancelled";
+  } else if (stripeSubscription.status === "trialing") {
+    status = "trialing";
   }
 
   // In new Stripe API versions, period dates are on subscription items
-  const firstItem = stripeSubscription.items.data[0]
-  const currentPeriodEnd = new Date(firstItem.current_period_end * 1000)
+  const firstItem = stripeSubscription.items.data[0];
+  const currentPeriodEnd = new Date(firstItem.current_period_end * 1000);
 
   await db
     .update(subscriptions)
@@ -406,9 +406,9 @@ export async function syncSubscriptionFromStripe(stripeSubscriptionId: string) {
       cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
       updatedAt: new Date(),
     })
-    .where(eq(subscriptions.id, subscription.id))
+    .where(eq(subscriptions.id, subscription.id));
 
-  return subscription
+  return subscription;
 }
 
 /**
@@ -418,19 +418,19 @@ export async function getCurrentPlanSlug(storeId: string): Promise<string> {
   const subscription = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.storeId, storeId),
     columns: { planSlug: true, status: true, billingMode: true },
-  })
+  });
 
   // No subscription, PAYG mode, or a cancelled paid plan all resolve to pay-as-you-go
   // (the free tier no longer exists).
-  if (!subscription || subscription.billingMode === 'pay_as_you_go') {
-    return 'pay_as_you_go'
+  if (!subscription || subscription.billingMode === "pay_as_you_go") {
+    return "pay_as_you_go";
   }
 
-  if (subscription.status === 'cancelled') {
-    return 'pay_as_you_go'
+  if (subscription.status === "cancelled") {
+    return "pay_as_you_go";
   }
 
-  return subscription.planSlug
+  return subscription.planSlug;
 }
 
-export { getPlans, getPlan, type Plan }
+export { getPlans, getPlan, type Plan };

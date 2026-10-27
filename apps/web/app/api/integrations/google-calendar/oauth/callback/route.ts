@@ -1,48 +1,46 @@
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
 
-import { and, eq } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
+import { and, eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
 import {
   db,
   integrationCredentials,
   storeCalendarIntegrations,
   storeIntegrations,
-} from '@louez/db';
+} from "@louez/db";
 
-import { auth } from '@/lib/auth';
-import { enqueueCalendarBackfill } from '@/lib/integrations/calendar/sync';
-import { encryptIntegrationSecret } from '@/lib/integrations/credentials';
+import { auth } from "@/lib/auth";
+import { enqueueCalendarBackfill } from "@/lib/integrations/calendar/sync";
+import { encryptIntegrationSecret } from "@/lib/integrations/credentials";
 import {
   GOOGLE_CALENDAR_CATEGORY,
   GOOGLE_CALENDAR_PROVIDER_KEY,
   createGoogleCalendar,
   exchangeGoogleCalendarCode,
   getGoogleAccountEmail,
-} from '@/lib/integrations/providers/google-calendar/google-calendar-client';
-import { parseGoogleCalendarOAuthState } from '@/lib/integrations/providers/google-calendar/oauth-state';
-import { verifyStoreAccess } from '@/lib/store-context';
+} from "@/lib/integrations/providers/google-calendar/google-calendar-client";
+import { parseGoogleCalendarOAuthState } from "@/lib/integrations/providers/google-calendar/oauth-state";
+import { verifyStoreAccess } from "@/lib/store-context";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const code = url.searchParams.get('code');
-  const stateValue = url.searchParams.get('state');
+  const code = url.searchParams.get("code");
+  const stateValue = url.searchParams.get("state");
   const session = await auth();
 
   if (!code || !stateValue || !session?.user?.id) {
-    redirect('/dashboard/settings/integrations/google-calendar?error=oauth');
+    redirect("/dashboard/settings/integrations/google-calendar?error=oauth");
   }
 
   const state = parseGoogleCalendarOAuthState(stateValue);
   if (!state || state.userId !== session.user.id) {
-    redirect('/dashboard/settings/integrations/google-calendar?error=oauth');
+    redirect("/dashboard/settings/integrations/google-calendar?error=oauth");
   }
 
   const role = await verifyStoreAccess(state.storeId);
-  if (role !== 'owner' && role !== 'platform_admin') {
-    redirect(
-      '/dashboard/settings/integrations/google-calendar?error=permissionDenied',
-    );
+  if (role !== "owner" && role !== "platform_admin") {
+    redirect("/dashboard/settings/integrations/google-calendar?error=permissionDenied");
   }
 
   const store = await db.query.stores.findFirst({
@@ -50,9 +48,7 @@ export async function GET(request: Request) {
     columns: { id: true, name: true },
   });
   if (!store) {
-    redirect(
-      '/dashboard/settings/integrations/google-calendar?error=storeNotFound',
-    );
+    redirect("/dashboard/settings/integrations/google-calendar?error=storeNotFound");
   }
 
   const token = await exchangeGoogleCalendarCode(code);
@@ -76,7 +72,7 @@ export async function GET(request: Request) {
       enabled: true,
       connectedByUserId: session.user.id,
       providerAccountEmail: accountEmail,
-      status: 'active',
+      status: "active",
       updatedAt: new Date(),
     })
     .onDuplicateKeyUpdate({
@@ -84,7 +80,7 @@ export async function GET(request: Request) {
         enabled: true,
         connectedByUserId: session.user.id,
         providerAccountEmail: accountEmail,
-        status: 'active',
+        status: "active",
         lastErrorCode: null,
         lastErrorMessage: null,
         updatedAt: new Date(),
@@ -98,7 +94,7 @@ export async function GET(request: Request) {
     ),
   });
   if (!integration) {
-    redirect('/dashboard/settings/integrations/google-calendar?error=oauth');
+    redirect("/dashboard/settings/integrations/google-calendar?error=oauth");
   }
 
   await db
@@ -106,7 +102,7 @@ export async function GET(request: Request) {
     .values({
       id: nanoid(),
       integrationId: integration.id,
-      credentialKind: 'oauth',
+      credentialKind: "oauth",
       accessTokenEncrypted: encryptedAccessToken.encrypted,
       refreshTokenEncrypted: encryptedRefreshToken.encrypted,
       expiresAt: token.expiresAt,
@@ -133,7 +129,7 @@ export async function GET(request: Request) {
       calendarId: calendar.id,
       calendarName: calendar.summary,
       syncPendingReservations: true,
-      cancelledReservationBehavior: 'show',
+      cancelledReservationBehavior: "show",
       backfillMonths: 12,
       backfillPastDays: 30,
       updatedAt: new Date(),

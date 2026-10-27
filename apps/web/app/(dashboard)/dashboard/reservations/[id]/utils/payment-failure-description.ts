@@ -1,73 +1,71 @@
-type FailureActivityType = 'payment_failed' | 'deposit_failed'
+type FailureActivityType = "payment_failed" | "deposit_failed";
 
 interface FormatFailureDescriptionParams {
-  activityType: string
-  description: string | null
-  metadata: Record<string, unknown> | null
-  t: (key: string, values?: Record<string, string | number>) => string
+  activityType: string;
+  description: string | null;
+  metadata: Record<string, unknown> | null;
+  t: (key: string, values?: Record<string, string | number>) => string;
 }
 
 export interface FormattedActivityDescription {
-  message: string
-  technicalMessage?: string
+  message: string;
+  technicalMessage?: string;
 }
 
 const ERROR_KIND_BY_CODE: Record<string, string> = {
-  authentication_required: 'authenticationRequired',
-  card_declined: 'cardDeclined',
-  insufficient_funds: 'insufficientFunds',
-  expired_card: 'expiredCard',
-  incorrect_cvc: 'incorrectCvc',
-  processing_error: 'processingError',
-  do_not_honor: 'doNotHonor',
-}
+  authentication_required: "authenticationRequired",
+  card_declined: "cardDeclined",
+  insufficient_funds: "insufficientFunds",
+  expired_card: "expiredCard",
+  incorrect_cvc: "incorrectCvc",
+  processing_error: "processingError",
+  do_not_honor: "doNotHonor",
+};
 
 const ERROR_PATTERNS: Array<{ pattern: RegExp; kind: string }> = [
   {
     pattern: /failed authentication|authentication required|3d[\s-]?secure|requires_action/i,
-    kind: 'authenticationRequired',
+    kind: "authenticationRequired",
   },
   {
     pattern: /insufficient funds/i,
-    kind: 'insufficientFunds',
+    kind: "insufficientFunds",
   },
   {
     pattern: /expired card/i,
-    kind: 'expiredCard',
+    kind: "expiredCard",
   },
   {
     pattern: /incorrect cvc|invalid cvc|cvc check failed/i,
-    kind: 'incorrectCvc',
+    kind: "incorrectCvc",
   },
   {
     pattern: /do not honor/i,
-    kind: 'doNotHonor',
+    kind: "doNotHonor",
   },
   {
     pattern: /processing error|temporary issue|network error/i,
-    kind: 'processingError',
+    kind: "processingError",
   },
   {
     pattern: /card declined|declined/i,
-    kind: 'cardDeclined',
+    kind: "cardDeclined",
   },
-]
+];
 
 function asString(value: unknown): string | undefined {
-  if (typeof value !== 'string') return undefined
-  const trimmed = value.trim()
-  return trimmed.length > 0 ? trimmed : undefined
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
 }
 
 function getRawErrorMessage(
   description: string | null,
-  metadata: Record<string, unknown> | null
+  metadata: Record<string, unknown> | null,
 ): string | undefined {
   return (
-    asString(metadata?.error) ??
-    asString(metadata?.stripeErrorMessage) ??
-    asString(description)
-  )
+    asString(metadata?.error) ?? asString(metadata?.stripeErrorMessage) ?? asString(description)
+  );
 }
 
 function getStripeErrorCode(metadata: Record<string, unknown> | null): string | undefined {
@@ -75,33 +73,33 @@ function getStripeErrorCode(metadata: Record<string, unknown> | null): string | 
     asString(metadata?.errorCode) ??
     asString(metadata?.stripeErrorCode) ??
     asString(metadata?.declineCode) ??
-    asString(metadata?.stripeDeclineCode)
+    asString(metadata?.stripeDeclineCode);
 
-  return code?.toLowerCase()
+  return code?.toLowerCase();
 }
 
 function looksLikeStripeTechnicalError(rawErrorMessage: string | undefined): boolean {
-  if (!rawErrorMessage) return false
+  if (!rawErrorMessage) return false;
 
   return /(paymentintent|paymentmethod|stripe|authentication|3d[\s-]?secure|declined|cvc|card)/i.test(
-    rawErrorMessage
-  )
+    rawErrorMessage,
+  );
 }
 
 function resolveErrorKind(
   code: string | undefined,
-  rawErrorMessage: string | undefined
+  rawErrorMessage: string | undefined,
 ): string | undefined {
   if (code && ERROR_KIND_BY_CODE[code]) {
-    return ERROR_KIND_BY_CODE[code]
+    return ERROR_KIND_BY_CODE[code];
   }
 
   if (!rawErrorMessage) {
-    return undefined
+    return undefined;
   }
 
-  const patternMatch = ERROR_PATTERNS.find(({ pattern }) => pattern.test(rawErrorMessage))
-  return patternMatch?.kind
+  const patternMatch = ERROR_PATTERNS.find(({ pattern }) => pattern.test(rawErrorMessage));
+  return patternMatch?.kind;
 }
 
 export function formatPaymentFailureDescription({
@@ -111,40 +109,40 @@ export function formatPaymentFailureDescription({
   t,
 }: FormatFailureDescriptionParams): FormattedActivityDescription | null {
   // Show rejection reason from metadata
-  if (activityType === 'rejected' && metadata?.rejectionReason) {
-    return { message: metadata.rejectionReason as string }
+  if (activityType === "rejected" && metadata?.rejectionReason) {
+    return { message: metadata.rejectionReason as string };
   }
 
-  if (activityType !== 'payment_failed' && activityType !== 'deposit_failed') {
-    if (!description) return null
-    return { message: description }
+  if (activityType !== "payment_failed" && activityType !== "deposit_failed") {
+    if (!description) return null;
+    return { message: description };
   }
 
   // For payment/deposit failures, use metadata error instead of raw description
-  const failureType = activityType as FailureActivityType
-  const rawErrorMessage = getRawErrorMessage(description, metadata)
-  const errorCode = getStripeErrorCode(metadata)
-  const errorKind = resolveErrorKind(errorCode, rawErrorMessage)
+  const failureType = activityType as FailureActivityType;
+  const rawErrorMessage = getRawErrorMessage(description, metadata);
+  const errorCode = getStripeErrorCode(metadata);
+  const errorKind = resolveErrorKind(errorCode, rawErrorMessage);
 
   const hasStripeSignal =
     asString(metadata?.paymentIntentId) !== undefined ||
-    asString(metadata?.method) === 'stripe' ||
-    looksLikeStripeTechnicalError(rawErrorMessage)
+    asString(metadata?.method) === "stripe" ||
+    looksLikeStripeTechnicalError(rawErrorMessage);
 
   if (!hasStripeSignal || !rawErrorMessage) {
-    if (!description) return null
-    return { message: description }
+    if (!description) return null;
+    return { message: description };
   }
 
   if (!errorKind) {
     return {
       message: t(`activity.paymentFailure.${failureType}.generic`),
       technicalMessage: rawErrorMessage,
-    }
+    };
   }
 
   return {
     message: t(`activity.paymentFailure.${failureType}.${errorKind}`),
     technicalMessage: rawErrorMessage,
-  }
+  };
 }

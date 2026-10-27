@@ -1,8 +1,8 @@
-import { GlobeSolidIcon, UserPlusSolidIcon } from '@louez/ui/icons'
-import { getTranslations } from 'next-intl/server'
+import { GlobeSolidIcon, UserPlusSolidIcon } from "@louez/ui/icons";
+import { getTranslations } from "next-intl/server";
 
-import { getRequestFormatLocale } from '@/lib/i18n/format-locale.server'
-import { formatStoreDate } from '@/lib/utils/store-date'
+import { getRequestFormatLocale } from "@/lib/i18n/format-locale.server";
+import { formatStoreDate } from "@/lib/utils/store-date";
 import {
   Clock,
   CheckCircle,
@@ -27,185 +27,213 @@ import {
   ClipboardCheck,
   ClipboardX,
   PenLine,
-} from 'lucide-react'
+} from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@louez/ui'
-import { Badge } from '@louez/ui'
-import { Avatar, AvatarFallback, AvatarImage } from '@louez/ui'
-import { formatCurrency } from '@louez/utils'
+import { Card, CardContent, CardHeader, CardTitle } from "@louez/ui";
+import { Badge } from "@louez/ui";
+import { Avatar, AvatarFallback, AvatarImage } from "@louez/ui";
+import { formatCurrency } from "@louez/utils";
 
-type ActivityType = 'created' | 'confirmed' | 'rejected' | 'cancelled' | 'picked_up' | 'returned' | 'note_updated' | 'payment_added' | 'payment_updated' | 'payment_received' | 'payment_initiated' | 'payment_failed' | 'payment_expired' | 'deposit_authorized' | 'deposit_captured' | 'deposit_released' | 'deposit_failed' | 'access_link_sent' | 'modified' | 'inspection_departure_started' | 'inspection_departure_completed' | 'inspection_return_started' | 'inspection_return_completed' | 'inspection_damage_detected' | 'inspection_signed'
+type ActivityType =
+  | "created"
+  | "confirmed"
+  | "rejected"
+  | "cancelled"
+  | "picked_up"
+  | "returned"
+  | "note_updated"
+  | "payment_added"
+  | "payment_updated"
+  | "payment_received"
+  | "payment_initiated"
+  | "payment_failed"
+  | "payment_expired"
+  | "deposit_authorized"
+  | "deposit_captured"
+  | "deposit_released"
+  | "deposit_failed"
+  | "access_link_sent"
+  | "modified"
+  | "inspection_departure_started"
+  | "inspection_departure_completed"
+  | "inspection_return_started"
+  | "inspection_return_completed"
+  | "inspection_damage_detected"
+  | "inspection_signed";
 
 interface Activity {
-  id: string
-  activityType: ActivityType
-  description: string | null
-  metadata: Record<string, unknown> | null
-  createdAt: Date
+  id: string;
+  activityType: ActivityType;
+  description: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: Date;
   user: {
-    id: string
-    name: string | null
-    email: string
-    image: string | null
-  } | null
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  } | null;
 }
 
 interface ActivityTimelineProps {
-  activities: Activity[]
-  reservationCreatedAt: Date
-  reservationSource: string | null
-  timezone?: string
+  activities: Activity[];
+  reservationCreatedAt: Date;
+  reservationSource: string | null;
+  timezone?: string;
   createdByUser?: {
-    id: string
-    name: string | null
-    email: string
-    image: string | null
-  } | null
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  } | null;
 }
 
-const ACTIVITY_CONFIG: Record<ActivityType, {
-  icon: React.ReactNode
-  bgColor: string
-  iconColor: string
-}> = {
+const ACTIVITY_CONFIG: Record<
+  ActivityType,
+  {
+    icon: React.ReactNode;
+    bgColor: string;
+    iconColor: string;
+  }
+> = {
   created: {
     icon: <Plus className="h-4 w-4" />,
-    bgColor: 'bg-primary/10',
-    iconColor: 'text-primary',
+    bgColor: "bg-primary/10",
+    iconColor: "text-primary",
   },
   confirmed: {
     icon: <CheckCircle className="h-4 w-4" />,
-    bgColor: 'bg-emerald-100 dark:bg-emerald-950/50',
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    bgColor: "bg-emerald-100 dark:bg-emerald-950/50",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
   },
   rejected: {
     icon: <XCircle className="h-4 w-4" />,
-    bgColor: 'bg-red-100 dark:bg-red-950/50',
-    iconColor: 'text-red-600 dark:text-red-400',
+    bgColor: "bg-red-100 dark:bg-red-950/50",
+    iconColor: "text-red-600 dark:text-red-400",
   },
   cancelled: {
     icon: <Ban className="h-4 w-4" />,
-    bgColor: 'bg-red-100 dark:bg-red-950/50',
-    iconColor: 'text-red-600 dark:text-red-400',
+    bgColor: "bg-red-100 dark:bg-red-950/50",
+    iconColor: "text-red-600 dark:text-red-400",
   },
   picked_up: {
     icon: <ArrowUpRight className="h-4 w-4" />,
-    bgColor: 'bg-emerald-100 dark:bg-emerald-950/50',
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    bgColor: "bg-emerald-100 dark:bg-emerald-950/50",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
   },
   returned: {
     icon: <ArrowDownRight className="h-4 w-4" />,
-    bgColor: 'bg-blue-100 dark:bg-blue-950/50',
-    iconColor: 'text-blue-600 dark:text-blue-400',
+    bgColor: "bg-blue-100 dark:bg-blue-950/50",
+    iconColor: "text-blue-600 dark:text-blue-400",
   },
   note_updated: {
     icon: <FileText className="h-4 w-4" />,
-    bgColor: 'bg-gray-100 dark:bg-gray-900/50',
-    iconColor: 'text-gray-600 dark:text-gray-400',
+    bgColor: "bg-gray-100 dark:bg-gray-900/50",
+    iconColor: "text-gray-600 dark:text-gray-400",
   },
   payment_added: {
     icon: <CreditCard className="h-4 w-4" />,
-    bgColor: 'bg-emerald-100 dark:bg-emerald-950/50',
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    bgColor: "bg-emerald-100 dark:bg-emerald-950/50",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
   },
   payment_updated: {
     icon: <CreditCard className="h-4 w-4" />,
-    bgColor: 'bg-amber-100 dark:bg-amber-950/50',
-    iconColor: 'text-amber-600 dark:text-amber-400',
+    bgColor: "bg-amber-100 dark:bg-amber-950/50",
+    iconColor: "text-amber-600 dark:text-amber-400",
   },
   payment_received: {
     icon: <Wifi className="h-4 w-4" />,
-    bgColor: 'bg-emerald-100 dark:bg-emerald-950/50',
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    bgColor: "bg-emerald-100 dark:bg-emerald-950/50",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
   },
   payment_initiated: {
     icon: <Hourglass className="h-4 w-4" />,
-    bgColor: 'bg-blue-100 dark:bg-blue-950/50',
-    iconColor: 'text-blue-600 dark:text-blue-400',
+    bgColor: "bg-blue-100 dark:bg-blue-950/50",
+    iconColor: "text-blue-600 dark:text-blue-400",
   },
   payment_failed: {
     icon: <AlertCircle className="h-4 w-4" />,
-    bgColor: 'bg-red-100 dark:bg-red-950/50',
-    iconColor: 'text-red-600 dark:text-red-400',
+    bgColor: "bg-red-100 dark:bg-red-950/50",
+    iconColor: "text-red-600 dark:text-red-400",
   },
   payment_expired: {
     icon: <Clock className="h-4 w-4" />,
-    bgColor: 'bg-gray-100 dark:bg-gray-900/50',
-    iconColor: 'text-gray-600 dark:text-gray-400',
+    bgColor: "bg-gray-100 dark:bg-gray-900/50",
+    iconColor: "text-gray-600 dark:text-gray-400",
   },
   deposit_authorized: {
     icon: <ShieldCheck className="h-4 w-4" />,
-    bgColor: 'bg-amber-100 dark:bg-amber-950/50',
-    iconColor: 'text-amber-600 dark:text-amber-400',
+    bgColor: "bg-amber-100 dark:bg-amber-950/50",
+    iconColor: "text-amber-600 dark:text-amber-400",
   },
   deposit_captured: {
     icon: <Banknote className="h-4 w-4" />,
-    bgColor: 'bg-red-100 dark:bg-red-950/50',
-    iconColor: 'text-red-600 dark:text-red-400',
+    bgColor: "bg-red-100 dark:bg-red-950/50",
+    iconColor: "text-red-600 dark:text-red-400",
   },
   deposit_released: {
     icon: <ShieldCheck className="h-4 w-4" />,
-    bgColor: 'bg-emerald-100 dark:bg-emerald-950/50',
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    bgColor: "bg-emerald-100 dark:bg-emerald-950/50",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
   },
   deposit_failed: {
     icon: <ShieldX className="h-4 w-4" />,
-    bgColor: 'bg-red-100 dark:bg-red-950/50',
-    iconColor: 'text-red-600 dark:text-red-400',
+    bgColor: "bg-red-100 dark:bg-red-950/50",
+    iconColor: "text-red-600 dark:text-red-400",
   },
   access_link_sent: {
     icon: <Link className="h-4 w-4" />,
-    bgColor: 'bg-blue-100 dark:bg-blue-950/50',
-    iconColor: 'text-blue-600 dark:text-blue-400',
+    bgColor: "bg-blue-100 dark:bg-blue-950/50",
+    iconColor: "text-blue-600 dark:text-blue-400",
   },
   modified: {
     icon: <Pencil className="h-4 w-4" />,
-    bgColor: 'bg-amber-100 dark:bg-amber-950/50',
-    iconColor: 'text-amber-600 dark:text-amber-400',
+    bgColor: "bg-amber-100 dark:bg-amber-950/50",
+    iconColor: "text-amber-600 dark:text-amber-400",
   },
   // Inspection events
   inspection_departure_started: {
     icon: <ClipboardCheck className="h-4 w-4" />,
-    bgColor: 'bg-blue-100 dark:bg-blue-950/50',
-    iconColor: 'text-blue-600 dark:text-blue-400',
+    bgColor: "bg-blue-100 dark:bg-blue-950/50",
+    iconColor: "text-blue-600 dark:text-blue-400",
   },
   inspection_departure_completed: {
     icon: <ClipboardCheck className="h-4 w-4" />,
-    bgColor: 'bg-emerald-100 dark:bg-emerald-950/50',
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    bgColor: "bg-emerald-100 dark:bg-emerald-950/50",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
   },
   inspection_return_started: {
     icon: <ClipboardCheck className="h-4 w-4" />,
-    bgColor: 'bg-blue-100 dark:bg-blue-950/50',
-    iconColor: 'text-blue-600 dark:text-blue-400',
+    bgColor: "bg-blue-100 dark:bg-blue-950/50",
+    iconColor: "text-blue-600 dark:text-blue-400",
   },
   inspection_return_completed: {
     icon: <ClipboardCheck className="h-4 w-4" />,
-    bgColor: 'bg-emerald-100 dark:bg-emerald-950/50',
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    bgColor: "bg-emerald-100 dark:bg-emerald-950/50",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
   },
   inspection_damage_detected: {
     icon: <ClipboardX className="h-4 w-4" />,
-    bgColor: 'bg-red-100 dark:bg-red-950/50',
-    iconColor: 'text-red-600 dark:text-red-400',
+    bgColor: "bg-red-100 dark:bg-red-950/50",
+    iconColor: "text-red-600 dark:text-red-400",
   },
   inspection_signed: {
     icon: <PenLine className="h-4 w-4" />,
-    bgColor: 'bg-emerald-100 dark:bg-emerald-950/50',
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    bgColor: "bg-emerald-100 dark:bg-emerald-950/50",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
   },
-}
+};
 
 function getUserInitials(name: string | null, email: string): string {
   if (name) {
     return name
-      .split(' ')
+      .split(" ")
       .map((n) => n[0])
-      .join('')
+      .join("")
       .toUpperCase()
-      .slice(0, 2)
+      .slice(0, 2);
   }
-  return email[0].toUpperCase()
+  return email[0].toUpperCase();
 }
 
 export async function ActivityTimeline({
@@ -214,25 +242,25 @@ export async function ActivityTimeline({
   reservationSource,
   timezone,
 }: ActivityTimelineProps) {
-  const t = await getTranslations('dashboard.reservations')
-  const { intl: formatLocale } = await getRequestFormatLocale()
+  const t = await getTranslations("dashboard.reservations");
+  const { intl: formatLocale } = await getRequestFormatLocale();
 
   // Sort activities by date (most recent first)
   const sortedActivities = [...activities].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
 
   // Find the creation activity to get source info
-  const createdActivity = activities.find((a) => a.activityType === 'created')
-  const isManualCreation = reservationSource === 'manual' ||
-    (createdActivity?.metadata?.source === 'manual')
+  const createdActivity = activities.find((a) => a.activityType === "created");
+  const isManualCreation =
+    reservationSource === "manual" || createdActivity?.metadata?.source === "manual";
 
   return (
     <Card>
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-base">
           <Clock className="h-4 w-4" />
-          {t('history')}
+          {t("history")}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -244,11 +272,17 @@ export async function ActivityTimeline({
             {sortedActivities.length === 0 ? (
               // Fallback: show creation event if no activities
               <ActivityItem
-                icon={isManualCreation ? <UserPlus className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
+                icon={
+                  isManualCreation ? (
+                    <UserPlus className="h-4 w-4" />
+                  ) : (
+                    <Globe className="h-4 w-4" />
+                  )
+                }
                 bgColor="bg-primary/10"
                 iconColor="text-primary"
-                title={t('reservationCreated')}
-                source={isManualCreation ? 'manual' : 'online'}
+                title={t("reservationCreated")}
+                source={isManualCreation ? "manual" : "online"}
                 timestamp={reservationCreatedAt}
                 user={null}
                 timezone={timezone}
@@ -256,21 +290,25 @@ export async function ActivityTimeline({
               />
             ) : (
               sortedActivities.map((activity) => {
-                const config = ACTIVITY_CONFIG[activity.activityType]
-                const isCreationEvent = activity.activityType === 'created'
+                const config = ACTIVITY_CONFIG[activity.activityType];
+                const isCreationEvent = activity.activityType === "created";
                 const activitySource = isCreationEvent
                   ? (activity.metadata?.source as string) || reservationSource
-                  : undefined
+                  : undefined;
 
                 return (
                   <ActivityItem
                     key={activity.id}
                     icon={
-                      isCreationEvent
-                        ? activitySource === 'manual'
-                          ? <UserPlus className="h-4 w-4" />
-                          : <Globe className="h-4 w-4" />
-                        : config.icon
+                      isCreationEvent ? (
+                        activitySource === "manual" ? (
+                          <UserPlus className="h-4 w-4" />
+                        ) : (
+                          <Globe className="h-4 w-4" />
+                        )
+                      ) : (
+                        config.icon
+                      )
                     }
                     bgColor={config.bgColor}
                     iconColor={config.iconColor}
@@ -284,28 +322,28 @@ export async function ActivityTimeline({
                     locale={formatLocale}
                     activityType={activity.activityType}
                   />
-                )
+                );
               })
             )}
           </div>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 interface ActivityItemProps {
-  icon: React.ReactNode
-  bgColor: string
-  iconColor: string
-  title: string
-  subtitle?: string | null
-  timestamp: Date
-  user: Activity['user']
-  metadata?: Record<string, unknown> | null
-  source?: string | null
-  timezone?: string
-  locale: string
+  icon: React.ReactNode;
+  bgColor: string;
+  iconColor: string;
+  title: string;
+  subtitle?: string | null;
+  timestamp: Date;
+  user: Activity["user"];
+  metadata?: Record<string, unknown> | null;
+  source?: string | null;
+  timezone?: string;
+  locale: string;
 }
 
 async function ActivityItem({
@@ -322,12 +360,12 @@ async function ActivityItem({
   locale,
   activityType,
 }: ActivityItemProps & { activityType?: ActivityType }) {
-  const t = await getTranslations('dashboard.reservations')
+  const t = await getTranslations("dashboard.reservations");
 
   // Extract payment amount from metadata for payment-related activities
-  const paymentAmount = metadata?.amount as number | undefined
-  const paymentCurrency = (metadata?.currency as string) || 'PLN'
-  const isStripePayment = metadata?.method === 'stripe'
+  const paymentAmount = metadata?.amount as number | undefined;
+  const paymentCurrency = (metadata?.currency as string) || "PLN";
+  const isStripePayment = metadata?.method === "stripe";
 
   return (
     <div className="relative flex gap-3 pl-1">
@@ -346,27 +384,27 @@ async function ActivityItem({
             {/* Source badge for creation events */}
             {source && (
               <Badge
-                variant={source === 'manual' ? 'progress' : 'success'}
+                variant={source === "manual" ? "progress" : "success"}
                 className="h-4 px-1.5 py-0 text-[10px]"
               >
-                {source === 'manual' ? (
+                {source === "manual" ? (
                   <>
                     <UserPlusSolidIcon className="h-2.5 w-2.5 mr-0.5" />
-                    {t('sourceManual')}
+                    {t("sourceManual")}
                   </>
                 ) : (
                   <>
                     <GlobeSolidIcon className="h-2.5 w-2.5 mr-0.5" />
-                    {t('sourceOnline')}
+                    {t("sourceOnline")}
                   </>
                 )}
               </Badge>
             )}
             {/* Stripe badge for online payment activities */}
-            {(activityType === 'payment_received' ||
-              activityType === 'payment_initiated' ||
-              activityType === 'payment_failed' ||
-              activityType === 'payment_expired') &&
+            {(activityType === "payment_received" ||
+              activityType === "payment_initiated" ||
+              activityType === "payment_failed" ||
+              activityType === "payment_expired") &&
               isStripePayment && (
                 <Badge variant="submitted" className="text-[10px] px-1.5 py-0 h-4 border-0">
                   Stripe
@@ -374,43 +412,43 @@ async function ActivityItem({
               )}
             {/* Payment amount badge */}
             {paymentAmount &&
-              (activityType === 'payment_received' ||
-                activityType === 'payment_initiated' ||
-                activityType === 'payment_failed' ||
-                activityType === 'payment_expired') && (
+              (activityType === "payment_received" ||
+                activityType === "payment_initiated" ||
+                activityType === "payment_failed" ||
+                activityType === "payment_expired") && (
                 <Badge
                   variant={
-                    activityType === 'payment_received'
-                      ? 'success'
-                      : activityType === 'payment_failed' || activityType === 'payment_expired'
-                        ? 'failed'
-                        : 'progress'
+                    activityType === "payment_received"
+                      ? "success"
+                      : activityType === "payment_failed" || activityType === "payment_expired"
+                        ? "failed"
+                        : "progress"
                   }
                   className="h-4 px-1.5 py-0 font-mono text-[10px]"
                 >
-                  {activityType === 'payment_received' ? '+' : ''}
+                  {activityType === "payment_received" ? "+" : ""}
                   {formatCurrency(paymentAmount, paymentCurrency, locale)}
                 </Badge>
               )}
             {/* Modified amount badge */}
-            {activityType === 'modified' && metadata?.difference !== undefined && (
+            {activityType === "modified" && metadata?.difference !== undefined && (
               <Badge
                 variant={
                   (metadata.difference as number) > 0
-                    ? 'success'
+                    ? "success"
                     : (metadata.difference as number) < 0
-                      ? 'failed'
-                      : 'expired'
+                      ? "failed"
+                      : "expired"
                 }
                 className="h-4 px-1.5 py-0 font-mono text-[10px]"
               >
-                {(metadata.difference as number) >= 0 ? '+' : ''}
+                {(metadata.difference as number) >= 0 ? "+" : ""}
                 {formatCurrency(metadata.difference as number, paymentCurrency, locale)}
               </Badge>
             )}
           </div>
           <time className="text-xs text-muted-foreground">
-            {formatStoreDate(timestamp, timezone, 'COMPACT_DATETIME', locale)}
+            {formatStoreDate(timestamp, timezone, "COMPACT_DATETIME", locale)}
           </time>
         </div>
 
@@ -424,34 +462,41 @@ async function ActivityItem({
               </AvatarFallback>
             </Avatar>
             <span className="text-xs text-muted-foreground">
-              {t('activityBy')} <span className="font-medium text-foreground">{user.name || user.email}</span>
+              {t("activityBy")}{" "}
+              <span className="font-medium text-foreground">{user.name || user.email}</span>
             </span>
           </div>
         )}
 
         {/* Show "by customer" for online reservations/payments */}
-        {!user && (source === 'online' || activityType === 'payment_received' || activityType === 'payment_initiated' || activityType === 'payment_failed' || activityType === 'payment_expired') && (
-          <div className="flex items-center gap-2 mt-1">
-            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-muted">
-              <User className="h-2.5 w-2.5 text-muted-foreground" />
+        {!user &&
+          (source === "online" ||
+            activityType === "payment_received" ||
+            activityType === "payment_initiated" ||
+            activityType === "payment_failed" ||
+            activityType === "payment_expired") && (
+            <div className="flex items-center gap-2 mt-1">
+              <div className="flex h-4 w-4 items-center justify-center rounded-full bg-muted">
+                <User className="h-2.5 w-2.5 text-muted-foreground" />
+              </div>
+              <span className="text-xs text-muted-foreground">{t("activityByCustomer")}</span>
             </div>
-            <span className="text-xs text-muted-foreground">
-              {t('activityByCustomer')}
-            </span>
-          </div>
-        )}
+          )}
 
         {/* Show "system" for other cases without user */}
-        {!user && source !== 'online' && !source && !['payment_received', 'payment_initiated', 'payment_failed', 'payment_expired'].includes(activityType || '') && (
-          <div className="flex items-center gap-2 mt-1">
-            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-muted">
-              <User className="h-2.5 w-2.5 text-muted-foreground" />
+        {!user &&
+          source !== "online" &&
+          !source &&
+          !["payment_received", "payment_initiated", "payment_failed", "payment_expired"].includes(
+            activityType || "",
+          ) && (
+            <div className="flex items-center gap-2 mt-1">
+              <div className="flex h-4 w-4 items-center justify-center rounded-full bg-muted">
+                <User className="h-2.5 w-2.5 text-muted-foreground" />
+              </div>
+              <span className="text-xs text-muted-foreground">{t("activitySystem")}</span>
             </div>
-            <span className="text-xs text-muted-foreground">
-              {t('activitySystem')}
-            </span>
-          </div>
-        )}
+          )}
 
         {/* Description/Reason */}
         {subtitle && (
@@ -461,5 +506,5 @@ async function ActivityItem({
         )}
       </div>
     </div>
-  )
+  );
 }

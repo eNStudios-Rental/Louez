@@ -18,7 +18,11 @@ interface TeamInvitationRowProps {
   readOnly?: boolean;
 }
 
-export const TeamInvitationRow = ({ invitation, canManageMembers, readOnly = false }: TeamInvitationRowProps) => {
+export const TeamInvitationRow = ({
+  invitation,
+  canManageMembers,
+  readOnly = false,
+}: TeamInvitationRowProps) => {
   const t = useTranslations("dashboard.team");
   const tErrors = useTranslations("errors");
   const format = useFormatter();
@@ -52,7 +56,10 @@ export const TeamInvitationRow = ({ invitation, canManageMembers, readOnly = fal
   };
 
   return (
-    <div data-demo-target="team-pending-invitation" className="bg-muted/40 flex flex-col gap-3 rounded-xl p-3 sm:flex-row sm:items-center sm:gap-4">
+    <div
+      data-demo-target="team-pending-invitation"
+      className="bg-muted/40 flex flex-col gap-3 rounded-xl p-3 sm:flex-row sm:items-center sm:gap-4"
+    >
       <DashboardIconTile
         icon={MailIcon}
         accent="pending"

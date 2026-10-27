@@ -38,8 +38,7 @@ for (const locale of ["zh", "ja", "ko"] as const) {
 }
 
 export const getPdfFonts = (locale: Locale) => {
-  const family = locale === "zh" || locale === "ja" || locale === "ko"
-    ? `LouezCJK-${locale}`
-    : PDF_FONT_FAMILY;
+  const family =
+    locale === "zh" || locale === "ja" || locale === "ko" ? `LouezCJK-${locale}` : PDF_FONT_FAMILY;
   return { regular: family, bold: family };
 };

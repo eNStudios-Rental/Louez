@@ -1,4 +1,4 @@
-import type { StockKind, UnitAttributes } from '@louez/types';
+import type { StockKind, UnitAttributes } from "@louez/types";
 
 export interface CartDemandLine {
   productId: string;
@@ -12,12 +12,8 @@ function hasSameSelection(
   left: UnitAttributes | undefined,
   right: UnitAttributes | undefined,
 ): boolean {
-  const leftEntries = Object.entries(left ?? {}).sort(([a], [b]) =>
-    a.localeCompare(b),
-  );
-  const rightEntries = Object.entries(right ?? {}).sort(([a], [b]) =>
-    a.localeCompare(b),
-  );
+  const leftEntries = Object.entries(left ?? {}).sort(([a], [b]) => a.localeCompare(b));
+  const rightEntries = Object.entries(right ?? {}).sort(([a], [b]) => a.localeCompare(b));
 
   return (
     leftEntries.length === rightEntries.length &&
@@ -40,7 +36,7 @@ export function getCartRequestedQuantity(
     }
 
     const sharesStock =
-      stockKind === 'consumable' ||
+      stockKind === "consumable" ||
       (candidate.startDate === line.startDate &&
         candidate.endDate === line.endDate &&
         hasSameSelection(candidate.selectedAttributes, line.selectedAttributes));

@@ -247,15 +247,8 @@ export function registerReservationTools(server: McpServer, ctx: McpSessionConte
             return { ok: false as const, error: "Reservation not found." };
           }
 
-          const lockedAllowed = getAllowedReservationStatusTransitions(
-            lockedReservation.status,
-          );
-          if (
-            !canTransitionReservationStatus(
-              lockedReservation.status,
-              newStatus,
-            )
-          ) {
+          const lockedAllowed = getAllowedReservationStatusTransitions(lockedReservation.status);
+          if (!canTransitionReservationStatus(lockedReservation.status, newStatus)) {
             return {
               ok: false as const,
               error:

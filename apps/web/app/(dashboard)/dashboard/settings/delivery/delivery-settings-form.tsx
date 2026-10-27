@@ -333,12 +333,14 @@ export const DeliverySettingsForm = ({
     <form.AppForm>
       <form.Form
         className="space-y-6"
-        {...(readOnly ? {
-          onSubmit: (event: FormEvent<HTMLFormElement>) => {
-            event.preventDefault();
-            event.stopPropagation();
-          },
-        } : {})}
+        {...(readOnly
+          ? {
+              onSubmit: (event: FormEvent<HTMLFormElement>) => {
+                event.preventDefault();
+                event.stopPropagation();
+              },
+            }
+          : {})}
       >
         <RootError error={rootError} />
 
@@ -455,53 +457,55 @@ export const DeliverySettingsForm = ({
                   ))}
                 </div>
 
-                {!readOnly && <Dialog open={locationFormOpen} onOpenChange={setLocationFormOpen}>
-                  <DialogPopup>
-                    <DialogPanel>
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingLocation ? t("locationsEdit") : t("locationsAdd")}
-                        </DialogTitle>
-                        <DialogDescription>{t("locationsDialogDescription")}</DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="grid gap-2">
-                          <Label htmlFor="location-name">{t("locationsName")}</Label>
-                          <Input
-                            id="location-name"
-                            value={locationName}
-                            onChange={(event) => setLocationName(event.target.value)}
-                          />
+                {!readOnly && (
+                  <Dialog open={locationFormOpen} onOpenChange={setLocationFormOpen}>
+                    <DialogPopup>
+                      <DialogPanel>
+                        <DialogHeader>
+                          <DialogTitle>
+                            {editingLocation ? t("locationsEdit") : t("locationsAdd")}
+                          </DialogTitle>
+                          <DialogDescription>{t("locationsDialogDescription")}</DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="grid gap-2">
+                            <Label htmlFor="location-name">{t("locationsName")}</Label>
+                            <Input
+                              id="location-name"
+                              value={locationName}
+                              onChange={(event) => setLocationName(event.target.value)}
+                            />
+                          </div>
+                          <div className="grid gap-2">
+                            <Label>{t("locationsAddress")}</Label>
+                            <AddressInput
+                              value={locationAddress}
+                              latitude={locationLatitude}
+                              longitude={locationLongitude}
+                              onChange={handleLocationAddressChange}
+                            />
+                          </div>
                         </div>
-                        <div className="grid gap-2">
-                          <Label>{t("locationsAddress")}</Label>
-                          <AddressInput
-                            value={locationAddress}
-                            latitude={locationLatitude}
-                            longitude={locationLongitude}
-                            onChange={handleLocationAddressChange}
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setLocationFormOpen(false)}
-                        >
-                          {tCommon("cancel")}
-                        </Button>
-                        <Button
-                          type="button"
-                          onClick={handleSaveLocation}
-                          disabled={!locationName.trim() || !locationAddress.trim() || isPending}
-                        >
-                          {tCommon("save")}
-                        </Button>
-                      </DialogFooter>
-                    </DialogPanel>
-                  </DialogPopup>
-                </Dialog>}
+                        <DialogFooter>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setLocationFormOpen(false)}
+                          >
+                            {tCommon("cancel")}
+                          </Button>
+                          <Button
+                            type="button"
+                            onClick={handleSaveLocation}
+                            disabled={!locationName.trim() || !locationAddress.trim() || isPending}
+                          >
+                            {tCommon("save")}
+                          </Button>
+                        </DialogFooter>
+                      </DialogPanel>
+                    </DialogPopup>
+                  </Dialog>
+                )}
               </div>
             )}
 

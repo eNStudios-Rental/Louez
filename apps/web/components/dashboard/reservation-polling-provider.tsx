@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { ReactNode } from 'react'
-import { ReservationPollingProvider as Provider } from '@/contexts/reservation-polling-context'
+import { ReactNode } from "react";
+import { ReservationPollingProvider as Provider } from "@/contexts/reservation-polling-context";
 
 interface ReservationPollingWrapperProps {
-  children: ReactNode
-  interval?: number
+  children: ReactNode;
+  interval?: number;
 }
 
 // Re-export the provider for backward compatibility
@@ -17,5 +17,5 @@ export function ReservationPollingProvider({
     <Provider interval={interval} playSound={true}>
       {children}
     </Provider>
-  )
+  );
 }

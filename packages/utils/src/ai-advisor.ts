@@ -1,4 +1,4 @@
-import type { AdvisorValidatedCart } from '@louez/types';
+import type { AdvisorValidatedCart } from "@louez/types";
 
 interface CartForValidation {
   items: { productId: string; quantity: number }[];

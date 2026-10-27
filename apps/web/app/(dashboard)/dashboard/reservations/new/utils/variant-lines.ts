@@ -1,7 +1,4 @@
-import type {
-  CombinationAvailability,
-  ProductAvailability,
-} from '@louez/types';
+import type { CombinationAvailability, ProductAvailability } from "@louez/types";
 import {
   DEFAULT_COMBINATION_KEY,
   buildCombinationKey,
@@ -10,24 +7,22 @@ import {
   getSelectionCapacity,
   getSelectionMode,
   getTotalAvailableForSelection,
-} from '@louez/utils';
-import type { StockQuantityLimit } from '@louez/utils';
+} from "@louez/utils";
+import type { StockQuantityLimit } from "@louez/utils";
 
-import type { Product, SelectedProduct } from '../types';
+import type { Product, SelectedProduct } from "../types";
 
 export interface LineQuantityConstraints {
   lineMaxQuantity: StockQuantityLimit;
   selectionCapacity: number;
-  selectionMode: 'none' | 'partial' | 'full';
+  selectionMode: "none" | "partial" | "full";
   hasBookingAttributes: boolean;
 }
 
 export type ReservedByProductCombination = Map<string, number>;
 
 function getSortedAxes(product: Product) {
-  return (product.bookingAttributeAxes || [])
-    .slice()
-    .sort((a, b) => a.position - b.position);
+  return (product.bookingAttributeAxes || []).slice().sort((a, b) => a.position - b.position);
 }
 
 export function getProductCombinationAvailabilityKey(
@@ -54,7 +49,7 @@ export function buildProductCombinations(
   >();
 
   for (const unit of product.units || []) {
-    if ((unit.lifecycleStatus || 'active') !== 'active') {
+    if ((unit.lifecycleStatus || "active") !== "active") {
       continue;
     }
     if (unit.inDowntimeNow) {
@@ -65,10 +60,7 @@ export function buildProductCombinations(
       bookingAttributeAxes,
       unit.attributes || undefined,
     );
-    const combinationKey = buildCombinationKey(
-      bookingAttributeAxes,
-      selectedAttributes,
-    );
+    const combinationKey = buildCombinationKey(bookingAttributeAxes, selectedAttributes);
     const current = byCombination.get(combinationKey);
 
     if (!current) {
@@ -89,10 +81,7 @@ export function buildProductCombinations(
         reservedByCombination.get(
           getProductCombinationAvailabilityKey(product.id, combinationKey),
         ) || 0;
-      const availableQuantity = Math.max(
-        0,
-        value.totalQuantity - reservedQuantity,
-      );
+      const availableQuantity = Math.max(0, value.totalQuantity - reservedQuantity);
 
       return {
         combinationKey,
@@ -102,10 +91,10 @@ export function buildProductCombinations(
         reservedQuantity,
         status:
           availableQuantity === 0
-            ? ('unavailable' as const)
+            ? ("unavailable" as const)
             : availableQuantity < value.totalQuantity
-              ? ('limited' as const)
-              : ('available' as const),
+              ? ("limited" as const)
+              : ("available" as const),
       };
     })
     .sort((a, b) => {
@@ -117,7 +106,7 @@ export function buildProductCombinations(
         bookingAttributeAxes,
         b.selectedAttributes,
       );
-      return sortA.localeCompare(sortB, 'en');
+      return sortA.localeCompare(sortB, "en");
     });
 }
 
@@ -145,14 +134,14 @@ function getTrackedPoolCapacity(
 
 function getProductSelectableQuantity(product: Product) {
   if (!product.trackUnits) {
-    if (product.stockKind === 'untracked') {
+    if (product.stockKind === "untracked") {
       return null;
     }
     return Math.max(0, product.quantity);
   }
 
   const activeUnits = (product.units || []).filter(
-    (unit) => (unit.lifecycleStatus || 'active') === 'active',
+    (unit) => (unit.lifecycleStatus || "active") === "active",
   );
 
   return Math.max(0, activeUnits.length || product.quantity);
@@ -168,8 +157,7 @@ export function getLineQuantityConstraints(
   periodProductAvailability?: ProductAvailability,
 ): LineQuantityConstraints {
   const bookingAttributeAxes = getSortedAxes(product);
-  const hasBookingAttributes =
-    product.trackUnits && bookingAttributeAxes.length > 0;
+  const hasBookingAttributes = product.trackUnits && bookingAttributeAxes.length > 0;
   const combinations = buildProductCombinations(
     product,
     reservedByCombination,
@@ -178,20 +166,16 @@ export function getLineQuantityConstraints(
   );
 
   const otherLines = productLines.filter((item) => item.lineId !== line.lineId);
-  const otherProductQuantity = otherLines.reduce(
-    (sum, item) => sum + item.quantity,
-    0,
-  );
+  const otherProductQuantity = otherLines.reduce((sum, item) => sum + item.quantity, 0);
 
   const productCapacity: StockQuantityLimit = product.trackUnits
     ? getTrackedPoolCapacity(product, combinations, periodProductAvailability)
-    : product.stockKind === 'untracked'
+    : product.stockKind === "untracked"
       ? null
-    : Math.max(
-        0,
-        periodProductAvailability?.availableQuantity ??
-          product.quantity - reservedQuantity,
-      );
+      : Math.max(
+          0,
+          periodProductAvailability?.availableQuantity ?? product.quantity - reservedQuantity,
+        );
   const productSelectableQuantity = getProductSelectableQuantity(product);
   const remainingSelectableQuantity =
     productSelectableQuantity === null
@@ -202,7 +186,7 @@ export function getLineQuantityConstraints(
     return {
       lineMaxQuantity: remainingSelectableQuantity,
       selectionCapacity: productCapacity ?? 0,
-      selectionMode: 'none',
+      selectionMode: "none",
       hasBookingAttributes: false,
     };
   }
@@ -219,7 +203,7 @@ export function getLineQuantityConstraints(
 
   let selectionCapacity = selection.capacity;
 
-  if (selection.mode === 'full') {
+  if (selection.mode === "full") {
     const lineCombinationKey = buildCombinationKey(
       bookingAttributeAxes,
       normalizedSelectedAttributes,
@@ -229,14 +213,11 @@ export function getLineQuantityConstraints(
         bookingAttributeAxes,
         otherLine.selectedAttributes,
       );
-      if (getSelectionMode(bookingAttributeAxes, otherAttributes) !== 'full') {
+      if (getSelectionMode(bookingAttributeAxes, otherAttributes) !== "full") {
         return sum;
       }
 
-      const otherCombinationKey = buildCombinationKey(
-        bookingAttributeAxes,
-        otherAttributes,
-      );
+      const otherCombinationKey = buildCombinationKey(bookingAttributeAxes, otherAttributes);
       if (otherCombinationKey !== lineCombinationKey) {
         return sum;
       }
@@ -244,21 +225,12 @@ export function getLineQuantityConstraints(
       return sum + otherLine.quantity;
     }, 0);
 
-    const exactCapacity = getTotalAvailableForSelection(
-      combinations,
-      normalizedSelectedAttributes,
-    );
-    selectionCapacity = Math.max(
-      0,
-      exactCapacity - sameCombinationUsedByOthers,
-    );
+    const exactCapacity = getTotalAvailableForSelection(combinations, normalizedSelectedAttributes);
+    selectionCapacity = Math.max(0, exactCapacity - sameCombinationUsedByOthers);
   }
 
   return {
-    lineMaxQuantity: Math.max(
-      0,
-      Math.min(remainingSelectableQuantity ?? 0, selectionCapacity),
-    ),
+    lineMaxQuantity: Math.max(0, Math.min(remainingSelectableQuantity ?? 0, selectionCapacity)),
     selectionCapacity,
     selectionMode: selection.mode,
     hasBookingAttributes: true,

@@ -1,26 +1,26 @@
-'use server'
+"use server";
 
-import { revalidatePath } from 'next/cache'
-import { eq } from 'drizzle-orm'
-import { nanoid } from 'nanoid'
-import { z } from 'zod'
+import { revalidatePath } from "next/cache";
+import { eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
+import { z } from "zod";
 
-import { db } from '@louez/db'
-import { stores, subscriptions } from '@louez/db'
-import { getCurrentStore } from '@/lib/store-context'
-import { isCurrentUserPlatformAdmin } from '@/lib/platform-admin'
-import { createStoreCoupon } from '@/lib/stripe/coupons'
+import { db } from "@louez/db";
+import { stores, subscriptions } from "@louez/db";
+import { getCurrentStore } from "@/lib/store-context";
+import { isCurrentUserPlatformAdmin } from "@/lib/platform-admin";
+import { createStoreCoupon } from "@/lib/stripe/coupons";
 
 const paygTierSchema = z.object({
   upToCount: z.number().int().positive().nullable(),
   priceCents: z.number().int().min(0).max(1_000_000),
-})
+});
 
 const adminSettingsSchema = z.object({
   trialDays: z.number().int().min(0).max(365),
   discountPercent: z.number().int().min(0).max(100),
   discountDurationMonths: z.number().int().min(0).max(120),
-  billingMode: z.enum(['subscription', 'pay_as_you_go']),
+  billingMode: z.enum(["subscription", "pay_as_you_go"]),
   payAsYouGoConfig: z
     .object({
       flatRateCents: z.number().int().min(0).max(1_000_000).nullable(),
@@ -30,20 +30,18 @@ const adminSettingsSchema = z.object({
         .superRefine((tiers, ctx) => {
           // Reject contradictory ladders: at most one open-ended band and no two
           // bands sharing the same upper bound (would make the total order-dependent).
-          const bounds = tiers
-            .map((t) => t.upToCount)
-            .filter((c): c is number => c !== null)
+          const bounds = tiers.map((t) => t.upToCount).filter((c): c is number => c !== null);
           if (new Set(bounds).size !== bounds.length) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
-              message: 'Duplicate tier limit',
-            })
+              message: "Duplicate tier limit",
+            });
           }
           if (tiers.filter((t) => t.upToCount === null).length > 1) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
-              message: 'Multiple open-ended tiers',
-            })
+              message: "Multiple open-ended tiers",
+            });
           }
         }),
       currency: z.string().length(3),
@@ -51,24 +49,24 @@ const adminSettingsSchema = z.object({
     .nullable(),
   // Welcome allowance: number of free reservations gifted to the store.
   freeReservationsGranted: z.number().int().min(0).max(100_000),
-})
+});
 
-export type AdminSettingsInput = z.infer<typeof adminSettingsSchema>
+export type AdminSettingsInput = z.infer<typeof adminSettingsSchema>;
 
 export async function updateAdminSettings(data: AdminSettingsInput) {
-  const store = await getCurrentStore()
+  const store = await getCurrentStore();
   if (!store) {
-    return { error: 'errors.unauthorized' }
+    return { error: "errors.unauthorized" };
   }
 
-  const isAdmin = await isCurrentUserPlatformAdmin()
+  const isAdmin = await isCurrentUserPlatformAdmin();
   if (!isAdmin) {
-    return { error: 'errors.unauthorized' }
+    return { error: "errors.unauthorized" };
   }
 
-  const validated = adminSettingsSchema.safeParse(data)
+  const validated = adminSettingsSchema.safeParse(data);
   if (!validated.success) {
-    return { error: 'errors.invalidData' }
+    return { error: "errors.invalidData" };
   }
 
   const {
@@ -78,17 +76,17 @@ export async function updateAdminSettings(data: AdminSettingsInput) {
     billingMode,
     payAsYouGoConfig,
     freeReservationsGranted,
-  } = validated.data
+  } = validated.data;
 
   // Handle Stripe coupon creation/update (network side-effect, kept out of the
   // database transaction below).
-  let stripeCouponId: string | null = store.stripeCouponId ?? null
+  let stripeCouponId: string | null = store.stripeCouponId ?? null;
 
   if (discountPercent > 0) {
     // Only create new coupon if discount configuration changed
     const discountChanged =
       discountPercent !== store.discountPercent ||
-      discountDurationMonths !== store.discountDurationMonths
+      discountDurationMonths !== store.discountDurationMonths;
 
     if (discountChanged) {
       try {
@@ -96,15 +94,15 @@ export async function updateAdminSettings(data: AdminSettingsInput) {
           storeId: store.id,
           percentOff: discountPercent,
           durationMonths: discountDurationMonths,
-        })
+        });
       } catch (error) {
-        console.error('Failed to create Stripe coupon:', error)
-        return { error: 'errors.stripeCouponFailed' }
+        console.error("Failed to create Stripe coupon:", error);
+        return { error: "errors.stripeCouponFailed" };
       }
     }
   } else {
     // Clear coupon reference when discount is removed
-    stripeCouponId = null
+    stripeCouponId = null;
   }
 
   // Persist trial/discount (stores) and billing mode/pricing (subscriptions) atomically.
@@ -118,12 +116,12 @@ export async function updateAdminSettings(data: AdminSettingsInput) {
         stripeCouponId,
         updatedAt: new Date(),
       })
-      .where(eq(stores.id, store.id))
+      .where(eq(stores.id, store.id));
 
     const existing = await tx.query.subscriptions.findFirst({
       where: eq(subscriptions.storeId, store.id),
       columns: { id: true },
-    })
+    });
 
     if (existing) {
       await tx
@@ -134,7 +132,7 @@ export async function updateAdminSettings(data: AdminSettingsInput) {
           freeReservationsGranted,
           updatedAt: new Date(),
         })
-        .where(eq(subscriptions.id, existing.id))
+        .where(eq(subscriptions.id, existing.id));
     } else {
       // No subscription row yet → the store can't be on real (Stripe) subscription
       // billing, so it is created as pay-as-you-go regardless of the selected mode
@@ -142,15 +140,15 @@ export async function updateAdminSettings(data: AdminSettingsInput) {
       await tx.insert(subscriptions).values({
         id: nanoid(),
         storeId: store.id,
-        planSlug: 'pay_as_you_go',
-        billingMode: 'pay_as_you_go',
+        planSlug: "pay_as_you_go",
+        billingMode: "pay_as_you_go",
         payAsYouGoConfig,
         freeReservationsGranted,
-      })
+      });
     }
-  })
+  });
 
-  revalidatePath('/dashboard/settings/admin')
-  revalidatePath('/dashboard/settings/subscription')
-  return { success: true }
+  revalidatePath("/dashboard/settings/admin");
+  revalidatePath("/dashboard/settings/subscription");
+  return { success: true };
 }

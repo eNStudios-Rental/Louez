@@ -1,5 +1,5 @@
-import { env } from '@/env';
-import type { Plan } from '@/lib/plans.shared';
+import { env } from "@/env";
+import type { Plan } from "@/lib/plans.shared";
 
 export {
   CURRENCY_SYMBOLS,
@@ -11,7 +11,7 @@ export {
   type Currency,
   type Plan,
   type PlanPrices,
-} from '@/lib/plans.shared';
+} from "@/lib/plans.shared";
 
 // SMS top-up pricing per plan (in cents)
 export const SMS_TOPUP_PRICING: Record<string, number | null> = {
@@ -29,7 +29,7 @@ export const SMS_TOPUP_PRICING: Record<string, number | null> = {
  * advisor runs on rate-limits only: no metering, no gate, no billing UI.
  */
 export function areAiCreditsEnabled(): boolean {
-  return env.AI_CREDITS_ENABLED === 'true' || env.AI_CREDITS_ENABLED === '1';
+  return env.AI_CREDITS_ENABLED === "true" || env.AI_CREDITS_ENABLED === "1";
 }
 
 /** Monthly INCLUDED credits per plan slug, parsed from env JSON. `{}` when unset. */
@@ -37,8 +37,8 @@ function getAiCreditsMonthlyIncluded(): Record<string, number> {
   const raw = env.AI_CREDIT_MONTHLY_INCLUDED;
   if (!raw) return {};
   try {
-    const parsed: unknown = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    if (!parsed || typeof parsed !== 'object') return {};
+    const parsed: unknown = typeof raw === "string" ? JSON.parse(raw) : raw;
+    if (!parsed || typeof parsed !== "object") return {};
     const out: Record<string, number> = {};
     for (const [slug, v] of Object.entries(parsed as Record<string, unknown>)) {
       const n = Number(v);
@@ -60,14 +60,12 @@ export function getAiCreditPackages(): AiCreditPackage[] {
   const raw = env.AI_CREDIT_PACKAGES;
   if (!raw) return [];
   try {
-    const parsed: unknown = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    const parsed: unknown = typeof raw === "string" ? JSON.parse(raw) : raw;
     if (!Array.isArray(parsed)) return [];
     return parsed
       .map((p) => ({
         credits: Math.trunc(Number((p as { credits?: unknown })?.credits)),
-        priceCents: Math.trunc(
-          Number((p as { priceCents?: unknown })?.priceCents),
-        ),
+        priceCents: Math.trunc(Number((p as { priceCents?: unknown })?.priceCents)),
       }))
       .filter(
         (p) =>
@@ -84,14 +82,11 @@ export function getAiCreditPackages(): AiCreditPackage[] {
 /**
  * Base plan definitions (without Stripe IDs)
  */
-const BASE_PLANS: Record<
-  string,
-  Omit<Plan, 'stripePriceMonthly' | 'stripePriceYearly'>
-> = {
+const BASE_PLANS: Record<string, Omit<Plan, "stripePriceMonthly" | "stripePriceYearly">> = {
   pro: {
-    slug: 'pro',
-    name: 'Pro',
-    description: 'Pour les loueurs professionnels',
+    slug: "pro",
+    name: "Pro",
+    description: "Pour les loueurs professionnels",
     price: 49,
     isPopular: true,
     features: {
@@ -117,9 +112,9 @@ const BASE_PLANS: Record<
     },
   },
   ultra: {
-    slug: 'ultra',
-    name: 'Ultra',
-    description: 'Pour les entreprises exigeantes',
+    slug: "ultra",
+    name: "Ultra",
+    description: "Pour les entreprises exigeantes",
     price: 159,
     features: {
       maxProducts: null, // unlimited
@@ -153,9 +148,9 @@ const BASE_PLANS: Record<
  * monthly allowance, PAYG stores pay for every SMS (via top-up credits).
  */
 export const PAY_AS_YOU_GO_PLAN: Plan = {
-  slug: 'pay_as_you_go',
-  name: 'Pay as you go',
-  description: 'Facturation à la location',
+  slug: "pay_as_you_go",
+  name: "Pay as you go",
+  description: "Facturation à la location",
   price: 0,
   features: {
     maxProducts: null,

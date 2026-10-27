@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-import { parseAsStringLiteral, useQueryState } from 'nuqs';
+import { parseAsStringLiteral, useQueryState } from "nuqs";
 
-import { CalendarRange, List } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { CalendarRange, List } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   CardAction,
@@ -15,23 +15,23 @@ import {
   CardTitle,
   ToggleGroup,
   ToggleGroupItem,
-} from '@louez/ui';
-import type { StockKind } from '@louez/types';
+} from "@louez/ui";
+import type { StockKind } from "@louez/types";
 
 import {
   ReservationConfirmDialogs,
   useReservationActions,
-} from '@/app/(dashboard)/dashboard/reservations/reservations-actions';
-import { ReservationsCardView } from '@/app/(dashboard)/dashboard/reservations/reservations-card-view';
+} from "@/app/(dashboard)/dashboard/reservations/reservations-actions";
+import { ReservationsCardView } from "@/app/(dashboard)/dashboard/reservations/reservations-card-view";
 import type {
   Reservation,
   ReservationStatus,
-} from '@/app/(dashboard)/dashboard/reservations/reservations-types';
-import { EmptyState } from '@/components/ui/empty-state';
+} from "@/app/(dashboard)/dashboard/reservations/reservations-types";
+import { EmptyState } from "@/components/ui/empty-state";
 
-import type { ProductTimelineData } from '../reservation-timeline-actions';
+import type { ProductTimelineData } from "../reservation-timeline-actions";
 
-import { ProductReservationsTimeline } from './reservations-timeline/product-reservations-timeline';
+import { ProductReservationsTimeline } from "./reservations-timeline/product-reservations-timeline";
 
 interface ProductReservationsSectionBodyProps {
   reservationsPage: { items: Reservation[]; total: number };
@@ -64,34 +64,30 @@ export const ProductReservationsSectionBody = ({
   onOpenReservation,
   getReservationHref,
 }: ProductReservationsSectionBodyProps) => {
-  const t = useTranslations('dashboard.products.detail.reservations');
+  const t = useTranslations("dashboard.products.detail.reservations");
   const router = useRouter();
 
   // View mode is URL-persisted (`resaView`) so timeline links are shareable.
   const [storedViewMode, setViewMode] = useQueryState(
-    'resaView',
-    parseAsStringLiteral(['list', 'calendar'] as const)
-      .withDefault('calendar')
-      .withOptions({ history: 'replace' }),
+    "resaView",
+    parseAsStringLiteral(["list", "calendar"] as const)
+      .withDefault("calendar")
+      .withOptions({ history: "replace" }),
   );
 
-  const viewMode = readOnly ? 'calendar' : storedViewMode;
+  const viewMode = readOnly ? "calendar" : storedViewMode;
 
   const handleViewModeChange = (value: string[]) => {
     const selected = value[0];
-    if (readOnly || (selected !== 'list' && selected !== 'calendar')) return;
+    if (readOnly || (selected !== "list" && selected !== "calendar")) return;
     void setViewMode(selected);
   };
 
   // Shared quick actions (accept / reject / picked up / returned) from the
   // reservations page. The list here is server-rendered, so refresh after
   // each mutation to reflect the new status.
-  const {
-    loadingAction,
-    handleStatusChange,
-    openRejectDialog,
-    confirmDialogsProps,
-  } = useReservationActions();
+  const { loadingAction, handleStatusChange, openRejectDialog, confirmDialogsProps } =
+    useReservationActions();
 
   const handleStatusChangeAndRefresh = async (
     e: React.MouseEvent,
@@ -112,21 +108,21 @@ export const ProductReservationsSectionBody = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <CalendarRange className="h-4 w-4" />
-          {t('title')}
+          {t("title")}
         </CardTitle>
         <CardAction>
           <ToggleGroup value={[viewMode]} onValueChange={handleViewModeChange}>
-            <ToggleGroupItem disabled={readOnly} value="list" aria-label={t('viewList')}>
+            <ToggleGroupItem disabled={readOnly} value="list" aria-label={t("viewList")}>
               <List className="h-4 w-4" />
             </ToggleGroupItem>
-            <ToggleGroupItem value="calendar" aria-label={t('viewCalendar')}>
+            <ToggleGroupItem value="calendar" aria-label={t("viewCalendar")}>
               <CalendarRange className="h-4 w-4" />
             </ToggleGroupItem>
           </ToggleGroup>
         </CardAction>
       </CardHeader>
       <CardContent>
-        {viewMode === 'calendar' ? (
+        {viewMode === "calendar" ? (
           <ProductReservationsTimeline
             productId={productId}
             currency={currency}
@@ -142,7 +138,7 @@ export const ProductReservationsSectionBody = ({
             getReservationHref={getReservationHref}
           />
         ) : reservationsPage.items.length === 0 ? (
-          <EmptyState icon={CalendarRange} title={t('empty')} />
+          <EmptyState icon={CalendarRange} title={t("empty")} />
         ) : (
           <>
             <ReservationsCardView
@@ -159,9 +155,9 @@ export const ProductReservationsSectionBody = ({
             />
             {reservationsPage.total > reservationsPage.items.length && (
               <p className="text-muted-foreground mt-3 text-center text-xs">
-                {t('viewAllHint', { total: reservationsPage.total })}{' '}
+                {t("viewAllHint", { total: reservationsPage.total })}{" "}
                 <Link href="/dashboard/reservations" className="underline">
-                  {t('viewAllLink')}
+                  {t("viewAllLink")}
                 </Link>
               </p>
             )}
@@ -170,4 +166,4 @@ export const ProductReservationsSectionBody = ({
       </CardContent>
     </>
   );
-}
+};

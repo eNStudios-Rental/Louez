@@ -1,17 +1,17 @@
-'use server';
+"use server";
 
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray } from "drizzle-orm";
 
-import { db } from '@louez/db';
-import { referralRewards, stores, subscriptions } from '@louez/db';
+import { db } from "@louez/db";
+import { referralRewards, stores, subscriptions } from "@louez/db";
 
-import { priceForLocationIndex } from '@/lib/pay-as-you-go/config';
-import { getStoreBilling } from '@/lib/pay-as-you-go/metering';
-import { getReferralProgramConfig } from '@/lib/referral/defaults';
-import { buildReferralUrl } from '@/lib/referral/link';
-import type { ReferralRewardKind } from '@/lib/referral/reward';
-import { getCurrentStore } from '@/lib/store-context';
-import { generateReferralCode } from '@/lib/utils/referral';
+import { priceForLocationIndex } from "@/lib/pay-as-you-go/config";
+import { getStoreBilling } from "@/lib/pay-as-you-go/metering";
+import { getReferralProgramConfig } from "@/lib/referral/defaults";
+import { buildReferralUrl } from "@/lib/referral/link";
+import type { ReferralRewardKind } from "@/lib/referral/reward";
+import { getCurrentStore } from "@/lib/store-context";
+import { generateReferralCode } from "@/lib/utils/referral";
 
 export interface ReferralData {
   id: string;
@@ -92,7 +92,7 @@ export async function getReferralData(): Promise<{
     db.query.referralRewards.findMany({
       where: and(
         eq(referralRewards.referrerStoreId, store.id),
-        eq(referralRewards.status, 'granted'),
+        eq(referralRewards.status, "granted"),
       ),
       columns: {
         referredStoreId: true,
@@ -105,13 +105,9 @@ export async function getReferralData(): Promise<{
 
   const rewardedIds = new Set(rewards.map((r) => r.referredStoreId));
   const unitValueCents = priceForLocationIndex(billing.config, 1);
-  const freeReservationsEarned = rewards.reduce(
-    (sum, r) => sum + r.freeReservations,
-    0,
-  );
+  const freeReservationsEarned = rewards.reduce((sum, r) => sum + r.freeReservations, 0);
   const creditEarnedCents = rewards.reduce((sum, r) => sum + r.creditCents, 0);
-  const rewardValueCents =
-    freeReservationsEarned * unitValueCents + creditEarnedCents;
+  const rewardValueCents = freeReservationsEarned * unitValueCents + creditEarnedCents;
 
   // Fetch all referred stores' subscriptions in one query (avoid an N+1 fan-out).
   const referredIds = referredStores.map((ref) => ref.id);
@@ -131,8 +127,8 @@ export async function getReferralData(): Promise<{
       slug: ref.slug,
       logoUrl: ref.logoUrl,
       joinedAt: ref.createdAt,
-      planSlug: sub?.planSlug ?? 'pay_as_you_go',
-      subscriptionStatus: sub?.status ?? 'active',
+      planSlug: sub?.planSlug ?? "pay_as_you_go",
+      subscriptionStatus: sub?.status ?? "active",
       rewarded: rewardedIds.has(ref.id),
     };
   });
@@ -149,8 +145,7 @@ export async function getReferralData(): Promise<{
     freeReservationsEarned,
     rewardValueCents,
     freeReservationsRemaining: billing.freeReservationsRemaining,
-    freeReservationsRemainingValueCents:
-      billing.freeReservationsRemaining * unitValueCents,
+    freeReservationsRemainingValueCents: billing.freeReservationsRemaining * unitValueCents,
     currency: billing.config.currency,
   };
 
@@ -160,12 +155,9 @@ export async function getReferralData(): Promise<{
     referredReward: programConfig.referredRewardFreeReservations,
     // Value the headline reward from the same entry-tier tariff used for the stats euro
     // anchor, so "N réservations offertes (≈ Y €)" stays consistent across the hub.
-    rewardValueCents:
-      programConfig.referrerRewardFreeReservations * unitValueCents,
+    rewardValueCents: programConfig.referrerRewardFreeReservations * unitValueCents,
     referrerRewardKind:
-      billing.billingMode === 'subscription'
-        ? 'invoice_credit'
-        : 'free_reservations',
+      billing.billingMode === "subscription" ? "invoice_credit" : "free_reservations",
     minQualifyingAmountCents: programConfig.minQualifyingAmountCents,
     currency: billing.config.currency,
   };
@@ -207,15 +199,11 @@ export async function getReferralRewardSummary(): Promise<{
 
   return {
     referrerReward: programConfig.referrerRewardFreeReservations,
-    rewardValueCents:
-      programConfig.referrerRewardFreeReservations * unitValueCents,
+    rewardValueCents: programConfig.referrerRewardFreeReservations * unitValueCents,
     currency: billing.config.currency,
     freeReservationsRemaining: billing.freeReservationsRemaining,
     freeReservationsGranted: billing.freeReservationsGranted,
-    rewardKind:
-      billing.billingMode === 'subscription'
-        ? 'invoice_credit'
-        : 'free_reservations',
+    rewardKind: billing.billingMode === "subscription" ? "invoice_credit" : "free_reservations",
   };
 }
 

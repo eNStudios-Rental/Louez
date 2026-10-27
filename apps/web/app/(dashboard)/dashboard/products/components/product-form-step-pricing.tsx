@@ -365,13 +365,13 @@ function PricingCard(props: PricingStepProps) {
               ",",
               ".",
             );
-            const rateTiers = (isCurrent ? seasonal.draft.tiers : toStoredTiers(period, baseDraft.baseRate.unit)).map(
-              (tier) => ({
-                price: tier.price.replace(",", "."),
-                duration: tier.duration,
-                unit: tier.unit,
-              }),
-            );
+            const rateTiers = (
+              isCurrent ? seasonal.draft.tiers : toStoredTiers(period, baseDraft.baseRate.unit)
+            ).map((tier) => ({
+              price: tier.price.replace(",", "."),
+              duration: tier.duration,
+              unit: tier.unit,
+            }));
 
             const result = await updateSeasonalPricing(id, {
               name,

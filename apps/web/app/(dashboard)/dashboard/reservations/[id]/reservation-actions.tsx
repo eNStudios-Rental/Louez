@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { toastManager } from '@louez/ui'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toastManager } from "@louez/ui";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   ArrowDownRight,
@@ -12,9 +12,9 @@ import {
   Loader2,
   Package,
   XCircle,
-} from 'lucide-react'
-import { useTranslations } from 'next-intl'
-import { useState } from 'react'
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 
 import {
   AlertDialog,
@@ -23,33 +23,50 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle, Button, Card,
-  CardContent, Dialog, DialogDescription,
+  AlertDialogTitle,
+  Button,
+  Card,
+  CardContent,
+  Dialog,
+  DialogDescription,
   DialogFooter,
-  DialogHeader, DialogPanel, DialogPopup, DialogTitle, Label, Textarea
-} from '@louez/ui'
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+  Label,
+  Textarea,
+} from "@louez/ui";
 
-import { useStoreTimezone } from '@/contexts/store-context'
-import { useFormatLocale } from '@/hooks/use-format-locale'
-import { formatStoreDate } from '@/lib/utils/store-date'
+import { useStoreTimezone } from "@/contexts/store-context";
+import { useFormatLocale } from "@/hooks/use-format-locale";
+import { formatStoreDate } from "@/lib/utils/store-date";
 
-import { invalidateReservationAll } from '@/lib/orpc/invalidation'
-import { orpc } from '@/lib/orpc/react'
+import { invalidateReservationAll } from "@/lib/orpc/invalidation";
+import { orpc } from "@/lib/orpc/react";
 
-type ReservationStatus = 'pending' | 'confirmed' | 'ongoing' | 'completed' | 'cancelled' | 'rejected' | 'quote' | 'declined'
+type ReservationStatus =
+  | "pending"
+  | "confirmed"
+  | "ongoing"
+  | "completed"
+  | "cancelled"
+  | "rejected"
+  | "quote"
+  | "declined";
 type ActionWarning = {
-  key: string
-  params?: Record<string, string | number>
-}
+  key: string;
+  params?: Record<string, string | number>;
+};
 
 interface ReservationActionsProps {
-  reservationId: string
-  status: ReservationStatus
-  startDate: Date
-  endDate: Date
-  isDepositCollected?: boolean
-  isRentalPaid?: boolean
-  hasOnlinePaymentPending?: boolean
+  reservationId: string;
+  status: ReservationStatus;
+  startDate: Date;
+  endDate: Date;
+  isDepositCollected?: boolean;
+  isRentalPaid?: boolean;
+  hasOnlinePaymentPending?: boolean;
 }
 
 export function ReservationActions({
@@ -61,75 +78,75 @@ export function ReservationActions({
   isRentalPaid = false,
   hasOnlinePaymentPending = false,
 }: ReservationActionsProps) {
-  const t = useTranslations('dashboard.reservations')
-  const tCommon = useTranslations('common')
-  const tErrors = useTranslations('errors')
-  const { intl: formatLocale } = useFormatLocale()
-  const timezone = useStoreTimezone()
-  const queryClient = useQueryClient()
+  const t = useTranslations("dashboard.reservations");
+  const tCommon = useTranslations("common");
+  const tErrors = useTranslations("errors");
+  const { intl: formatLocale } = useFormatLocale();
+  const timezone = useStoreTimezone();
+  const queryClient = useQueryClient();
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
-  const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
-  const [rejectionReason, setRejectionReason] = useState('')
+  const [isLoading, setIsLoading] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const formatWarning = (warning: ActionWarning) => {
-    const key = warning.key.replace('errors.', '')
-    return tErrors(key, warning.params || {})
-  }
+    const key = warning.key.replace("errors.", "");
+    return tErrors(key, warning.params || {});
+  };
 
   const showWarnings = (warnings: unknown, newStatus: ReservationStatus) => {
     if (!Array.isArray(warnings) || warnings.length === 0) {
-      return
+      return;
     }
 
     const parsedWarnings: ActionWarning[] = warnings
       .filter(
         (warning): warning is ActionWarning =>
           Boolean(warning) &&
-          typeof warning === 'object' &&
-          'key' in warning &&
-          typeof (warning as { key?: unknown }).key === 'string',
+          typeof warning === "object" &&
+          "key" in warning &&
+          typeof (warning as { key?: unknown }).key === "string",
       )
       .map((warning) => ({
         key: warning.key,
         params: warning.params,
-      }))
+      }));
 
     if (parsedWarnings.length === 0) {
-      return
+      return;
     }
 
-    if (newStatus === 'confirmed') {
+    if (newStatus === "confirmed") {
       const tulipWarnings = parsedWarnings.filter((warning) =>
-        warning.key.startsWith('errors.tulip'),
-      )
+        warning.key.startsWith("errors.tulip"),
+      );
 
       if (tulipWarnings.length > 0) {
         toastManager.add({
-          title: tulipWarnings.map(formatWarning).join(' • '),
-          type: 'warning',
-        })
+          title: tulipWarnings.map(formatWarning).join(" • "),
+          type: "warning",
+        });
       }
 
       const otherWarnings = parsedWarnings.filter(
-        (warning) => !warning.key.startsWith('errors.tulip'),
-      )
+        (warning) => !warning.key.startsWith("errors.tulip"),
+      );
       if (otherWarnings.length > 0) {
         toastManager.add({
-          title: otherWarnings.map(formatWarning).join(' • '),
-          type: 'warning',
-        })
+          title: otherWarnings.map(formatWarning).join(" • "),
+          type: "warning",
+        });
       }
 
-      return
+      return;
     }
 
     toastManager.add({
-      title: parsedWarnings.map(formatWarning).join(' • '),
-      type: 'warning',
-    })
-  }
+      title: parsedWarnings.map(formatWarning).join(" • "),
+      type: "warning",
+    });
+  };
 
   const updateStatusMutation = useMutation(
     orpc.dashboard.reservations.updateStatus.mutationOptions({
@@ -138,22 +155,22 @@ export function ReservationActions({
           queryKey: orpc.dashboard.reservations.getById.key({
             input: { reservationId: input.reservationId },
           }),
-        })
+        });
 
         const previous = queryClient.getQueryData(
           orpc.dashboard.reservations.getById.key({
             input: { reservationId: input.reservationId },
           }),
-        )
+        );
 
         queryClient.setQueryData(
           orpc.dashboard.reservations.getById.key({
             input: { reservationId: input.reservationId },
           }),
           (current: any) => (current ? { ...current, status: input.status } : current),
-        )
+        );
 
-        return { previous }
+        return { previous };
       },
       onError: (_error, input, ctx) => {
         if (ctx?.previous) {
@@ -162,11 +179,11 @@ export function ReservationActions({
               input: { reservationId: input.reservationId },
             }),
             ctx.previous,
-          )
+          );
         }
       },
     }),
-  )
+  );
 
   const cancelMutation = useMutation(
     orpc.dashboard.reservations.cancel.mutationOptions({
@@ -175,22 +192,22 @@ export function ReservationActions({
           queryKey: orpc.dashboard.reservations.getById.key({
             input: { reservationId: input.reservationId },
           }),
-        })
+        });
 
         const previous = queryClient.getQueryData(
           orpc.dashboard.reservations.getById.key({
             input: { reservationId: input.reservationId },
           }),
-        )
+        );
 
         queryClient.setQueryData(
           orpc.dashboard.reservations.getById.key({
             input: { reservationId: input.reservationId },
           }),
-          (current: any) => (current ? { ...current, status: 'cancelled' } : current),
-        )
+          (current: any) => (current ? { ...current, status: "cancelled" } : current),
+        );
 
-        return { previous }
+        return { previous };
       },
       onError: (_error, input, ctx) => {
         if (ctx?.previous) {
@@ -199,59 +216,62 @@ export function ReservationActions({
               input: { reservationId: input.reservationId },
             }),
             ctx.previous,
-          )
+          );
         }
       },
     }),
-  )
+  );
 
   const handleStatusChange = async (newStatus: ReservationStatus, reason?: string) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const result = await updateStatusMutation.mutateAsync({
         reservationId,
         status: newStatus,
         rejectionReason: reason,
-      })
+      });
 
-      const warnings = result && typeof result === 'object' && 'warnings' in result ? (result as any).warnings : undefined
-      showWarnings(warnings, newStatus)
+      const warnings =
+        result && typeof result === "object" && "warnings" in result
+          ? (result as any).warnings
+          : undefined;
+      showWarnings(warnings, newStatus);
 
-      toastManager.add({ title: t('statusUpdated'), type: 'success' })
-      await invalidateReservationAll(queryClient, reservationId)
+      toastManager.add({ title: t("statusUpdated"), type: "success" });
+      await invalidateReservationAll(queryClient, reservationId);
     } catch {
-      toastManager.add({ title: tErrors('generic'), type: 'error' })
+      toastManager.add({ title: tErrors("generic"), type: "error" });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleReject = async () => {
-    await handleStatusChange('rejected', rejectionReason || undefined)
-    setRejectDialogOpen(false)
-    setRejectionReason('')
-  }
+    await handleStatusChange("rejected", rejectionReason || undefined);
+    setRejectDialogOpen(false);
+    setRejectionReason("");
+  };
 
   const handleCancel = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await cancelMutation.mutateAsync({ reservationId })
-      toastManager.add({ title: t('reservationCancelled'), type: 'success' })
-      await invalidateReservationAll(queryClient, reservationId)
+      await cancelMutation.mutateAsync({ reservationId });
+      toastManager.add({ title: t("reservationCancelled"), type: "success" });
+      await invalidateReservationAll(queryClient, reservationId);
     } catch {
-      toastManager.add({ title: tErrors('generic'), type: 'error' })
+      toastManager.add({ title: tErrors("generic"), type: "error" });
     } finally {
-      setIsLoading(false)
-      setCancelDialogOpen(false)
+      setIsLoading(false);
+      setCancelDialogOpen(false);
     }
-  }
+  };
 
-  const canCancel = !['cancelled', 'completed', 'rejected', 'declined'].includes(status)
+  const canCancel = !["cancelled", "completed", "rejected", "declined"].includes(status);
 
   // Render different card based on status
   const renderContent = () => {
     switch (status) {
-      case 'pending':
+      case "pending":
         // If there's an online payment pending, show a different message
         if (hasOnlinePaymentPending) {
           return (
@@ -262,11 +282,11 @@ export function ReservationActions({
                     <Loader2 className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 animate-spin" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium">{t('paymentPendingCard.title')}</p>
+                    <p className="text-sm font-medium">{t("paymentPendingCard.title")}</p>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {t('paymentPendingCard.description')}
+                  {t("paymentPendingCard.description")}
                 </p>
                 {canCancel && (
                   <button
@@ -274,12 +294,12 @@ export function ReservationActions({
                     onClick={() => setCancelDialogOpen(true)}
                     disabled={isLoading}
                   >
-                    {t('cancelReservation')}
+                    {t("cancelReservation")}
                   </button>
                 )}
               </CardContent>
             </Card>
-          )
+          );
         }
 
         // Standard request pending (manual approval needed)
@@ -291,21 +311,19 @@ export function ReservationActions({
                   <Clock className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">{t('pendingCard.title')}</p>
+                  <p className="text-sm font-medium">{t("pendingCard.title")}</p>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {t('pendingCard.description')}
-              </p>
+              <p className="text-xs text-muted-foreground">{t("pendingCard.description")}</p>
               <div className="space-y-2">
                 <Button
                   variant="default"
                   className="w-full"
-                  onClick={() => handleStatusChange('confirmed')}
+                  onClick={() => handleStatusChange("confirmed")}
                   isPending={isLoading}
                 >
                   <CheckCircle data-slot="icon" />
-                  {t('acceptRequest')}
+                  {t("acceptRequest")}
                 </Button>
                 <Button
                   variant="destructive"
@@ -314,14 +332,14 @@ export function ReservationActions({
                   disabled={isLoading}
                 >
                   <XCircle className="mr-2 h-3.5 w-3.5" />
-                  {t('rejectRequest')}
+                  {t("rejectRequest")}
                 </Button>
               </div>
             </CardContent>
           </Card>
-        )
+        );
 
-      case 'confirmed':
+      case "confirmed":
         return (
           <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
             <CardContent className="p-4 space-y-3">
@@ -330,22 +348,22 @@ export function ReservationActions({
                   <CheckCircle className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">{t('confirmedCard.title')}</p>
+                  <p className="text-sm font-medium">{t("confirmedCard.title")}</p>
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                {t('confirmedCard.pickupOn', {
-                  date: formatStoreDate(startDate, timezone, 'SHORT_DATETIME', formatLocale),
+                {t("confirmedCard.pickupOn", {
+                  date: formatStoreDate(startDate, timezone, "SHORT_DATETIME", formatLocale),
                 })}
               </p>
 
               <Button
                 className="w-full"
-                onClick={() => handleStatusChange('ongoing')}
+                onClick={() => handleStatusChange("ongoing")}
                 isPending={isLoading}
               >
                 <ArrowUpRight data-slot="icon" />
-                {t('actions.markPickedUp')}
+                {t("actions.markPickedUp")}
               </Button>
 
               {/* Warning messages - compact */}
@@ -354,13 +372,13 @@ export function ReservationActions({
                   {!isDepositCollected && (
                     <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
                       <AlertCircle className="h-3 w-3 shrink-0" />
-                      <p className="text-[11px]">{t('confirmedCard.depositWarning')}</p>
+                      <p className="text-[11px]">{t("confirmedCard.depositWarning")}</p>
                     </div>
                   )}
                   {!isRentalPaid && (
                     <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
                       <AlertCircle className="h-3 w-3 shrink-0" />
-                      <p className="text-[11px]">{t('confirmedCard.paymentWarning')}</p>
+                      <p className="text-[11px]">{t("confirmedCard.paymentWarning")}</p>
                     </div>
                   )}
                 </div>
@@ -373,15 +391,15 @@ export function ReservationActions({
                     onClick={() => setCancelDialogOpen(true)}
                     disabled={isLoading}
                   >
-                    {t('cancelReservation')}
+                    {t("cancelReservation")}
                   </button>
                 </div>
               )}
             </CardContent>
           </Card>
-        )
+        );
 
-      case 'ongoing':
+      case "ongoing":
         return (
           <Card className="border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20">
             <CardContent className="p-4 space-y-3">
@@ -390,22 +408,22 @@ export function ReservationActions({
                   <Package className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">{t('ongoingCard.title')}</p>
+                  <p className="text-sm font-medium">{t("ongoingCard.title")}</p>
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                {t('ongoingCard.returnOn', {
-                  date: formatStoreDate(endDate, timezone, 'SHORT_DATETIME', formatLocale),
+                {t("ongoingCard.returnOn", {
+                  date: formatStoreDate(endDate, timezone, "SHORT_DATETIME", formatLocale),
                 })}
               </p>
 
               <Button
                 className="w-full"
-                onClick={() => handleStatusChange('completed')}
+                onClick={() => handleStatusChange("completed")}
                 isPending={isLoading}
               >
                 <ArrowDownRight data-slot="icon" />
-                {t('actions.markReturned')}
+                {t("actions.markReturned")}
               </Button>
 
               {canCancel && (
@@ -415,15 +433,15 @@ export function ReservationActions({
                     onClick={() => setCancelDialogOpen(true)}
                     disabled={isLoading}
                   >
-                    {t('cancelReservation')}
+                    {t("cancelReservation")}
                   </button>
                 </div>
               )}
             </CardContent>
           </Card>
-        )
+        );
 
-      case 'completed':
+      case "completed":
         return (
           <Card>
             <CardContent className="p-4">
@@ -432,17 +450,15 @@ export function ReservationActions({
                   <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">{t('completedCard.title')}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {t('completedCard.description')}
-                  </p>
+                  <p className="text-sm font-medium">{t("completedCard.title")}</p>
+                  <p className="text-xs text-muted-foreground">{t("completedCard.description")}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-        )
+        );
 
-      case 'cancelled':
+      case "cancelled":
         return (
           <Card>
             <CardContent className="p-4">
@@ -451,17 +467,15 @@ export function ReservationActions({
                   <Ban className="h-4 w-4 text-red-600 dark:text-red-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">{t('cancelledCard.title')}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {t('cancelledCard.description')}
-                  </p>
+                  <p className="text-sm font-medium">{t("cancelledCard.title")}</p>
+                  <p className="text-xs text-muted-foreground">{t("cancelledCard.description")}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-        )
+        );
 
-      case 'rejected':
+      case "rejected":
         return (
           <Card>
             <CardContent className="p-4">
@@ -470,20 +484,18 @@ export function ReservationActions({
                   <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">{t('rejectedCard.title')}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {t('rejectedCard.description')}
-                  </p>
+                  <p className="text-sm font-medium">{t("rejectedCard.title")}</p>
+                  <p className="text-xs text-muted-foreground">{t("rejectedCard.description")}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-        )
+        );
 
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <>
@@ -493,41 +505,28 @@ export function ReservationActions({
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <DialogPopup>
           <DialogHeader>
-            <DialogTitle>{t('rejectDialog.title')}</DialogTitle>
-            <DialogDescription>
-              {t('rejectDialog.description')}
-            </DialogDescription>
+            <DialogTitle>{t("rejectDialog.title")}</DialogTitle>
+            <DialogDescription>{t("rejectDialog.description")}</DialogDescription>
           </DialogHeader>
           <DialogPanel>
-          <div className="space-y-2">
-            <Label htmlFor="rejection-reason">
-              {t('rejectDialog.reasonLabel')}
-            </Label>
-            <Textarea
-              id="rejection-reason"
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              placeholder={t('rejectDialog.reasonPlaceholder')}
-              rows={3}
-            />
-            <p className="text-xs text-muted-foreground">
-              {t('rejectDialog.reasonHint')}
-            </p>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="rejection-reason">{t("rejectDialog.reasonLabel")}</Label>
+              <Textarea
+                id="rejection-reason"
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder={t("rejectDialog.reasonPlaceholder")}
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground">{t("rejectDialog.reasonHint")}</p>
+            </div>
           </DialogPanel>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setRejectDialogOpen(false)}
-            >
-              {tCommon('cancel')}
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
+              {tCommon("cancel")}
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleReject}
-              isPending={isLoading}
-            >
-              {t('rejectRequest')}
+            <Button variant="destructive" onClick={handleReject} isPending={isLoading}>
+              {t("rejectRequest")}
             </Button>
           </DialogFooter>
         </DialogPopup>
@@ -537,23 +536,20 @@ export function ReservationActions({
       <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('cancelConfirmTitle')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('cancelConfirmDescription')}
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t("cancelConfirmTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("cancelConfirmDescription")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogClose render={<Button variant="outline" />}>{tCommon('back')}</AlertDialogClose>
-            <AlertDialogClose
-              render={<Button variant="destructive" />}
-              onClick={handleCancel}
-            >
+            <AlertDialogClose render={<Button variant="outline" />}>
+              {tCommon("back")}
+            </AlertDialogClose>
+            <AlertDialogClose render={<Button variant="destructive" />} onClick={handleCancel}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {t('cancelReservation')}
+              {t("cancelReservation")}
             </AlertDialogClose>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }

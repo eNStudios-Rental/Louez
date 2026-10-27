@@ -1,31 +1,29 @@
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { getTranslations } from 'next-intl/server'
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
-import { getCurrentStore } from '@/lib/store-context'
-import { resolveDashboardCreationSource } from '@/lib/openreplay/events'
-import { Button } from '@louez/ui'
-import { CustomerForm } from '../customer-form'
+import { getCurrentStore } from "@/lib/store-context";
+import { resolveDashboardCreationSource } from "@/lib/openreplay/events";
+import { Button } from "@louez/ui";
+import { CustomerForm } from "../customer-form";
 
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
 export const instant = false;
 
 interface NewCustomerPageProps {
-  searchParams: Promise<{ source?: string | string[] }>
+  searchParams: Promise<{ source?: string | string[] }>;
 }
 
-export default async function NewCustomerPage({
-  searchParams,
-}: NewCustomerPageProps) {
-  const t = await getTranslations('dashboard.customers')
-  const store = await getCurrentStore()
-  const { source } = await searchParams
-  const openReplaySource = resolveDashboardCreationSource(source)
+export default async function NewCustomerPage({ searchParams }: NewCustomerPageProps) {
+  const t = await getTranslations("dashboard.customers");
+  const store = await getCurrentStore();
+  const { source } = await searchParams;
+  const openReplaySource = resolveDashboardCreationSource(source);
 
   if (!store) {
-    redirect('/onboarding')
+    redirect("/onboarding");
   }
 
   return (
@@ -35,14 +33,12 @@ export default async function NewCustomerPage({
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t('newCustomer')}</h1>
-          <p className="text-muted-foreground">
-            {t('newCustomerDescription')}
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("newCustomer")}</h1>
+          <p className="text-muted-foreground">{t("newCustomerDescription")}</p>
         </div>
       </div>
 
       <CustomerForm openReplaySource={openReplaySource} />
     </div>
-  )
+  );
 }

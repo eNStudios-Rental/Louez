@@ -122,14 +122,16 @@ export const PeriodEditor = ({
       .filter((_, index) => calendar.data?.[index]?.available === false)
       .map(({ day }) => day),
   );
-  const isProductUnavailable = suppliedAvailability?.isDayUnavailable ?? (
-    productId ? (day: Date) => unavailableDays.has(format(day, "yyyy-MM-dd")) : undefined
-  );
+  const isProductUnavailable =
+    suppliedAvailability?.isDayUnavailable ??
+    (productId ? (day: Date) => unavailableDays.has(format(day, "yyyy-MM-dd")) : undefined);
   const checking =
-    !suppliedAvailability && Boolean(productId) &&
+    !suppliedAvailability &&
+    Boolean(productId) &&
     (calendar.isFetching || (core.canSubmit && availability.isFetching));
   const failed =
-    !suppliedAvailability && Boolean(productId) &&
+    !suppliedAvailability &&
+    Boolean(productId) &&
     (calendar.isError || (core.canSubmit && availability.isError));
   const unavailable = suppliedAvailability
     ? core.canSubmit && !canSubmit
@@ -185,7 +187,13 @@ export const PeriodEditor = ({
           {availabilityStatus}
         </DialogPanel>
         <DialogFooter variant="bare" className="sm:flex-col-reverse sm:items-stretch">
-          <Button data-demo-target="period-apply" size="xl" className="w-full" onClick={handleApply} disabled={!canSubmit}>
+          <Button
+            data-demo-target="period-apply"
+            size="xl"
+            className="w-full"
+            onClick={handleApply}
+            disabled={!canSubmit}
+          >
             {t("validate")}
           </Button>
           <PeriodSummary period={core.period} timezone={rules.timezone} />

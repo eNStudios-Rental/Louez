@@ -1,5 +1,5 @@
-import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import assert from "node:assert/strict";
+import { test } from "node:test";
 
 import {
   buildRequiredAccessoryCartInputs,
@@ -11,63 +11,58 @@ import {
   reconcileSharedCartLineQuantities,
   reconcileRequiredAccessoryLineQuantity,
   selectOptionalAccessories,
-} from './cart-required-accessories';
+} from "./cart-required-accessories";
 
 const mediaSet = {
-  id: 'media-set',
-  name: 'Media set',
-  price: '0.00',
-  deposit: '0',
+  id: "media-set",
+  name: "Media set",
+  price: "0.00",
+  deposit: "0",
   images: null,
   quantity: 4,
   required: true,
   requiredQuantity: 2,
-  pricingKind: 'fixed' as const,
-  pricingMode: 'day' as const,
+  pricingKind: "fixed" as const,
+  pricingMode: "day" as const,
 };
 
 const tripod = {
-  id: 'tripod',
-  name: 'Tripod',
-  price: '9.50',
-  deposit: '20',
-  images: ['tripod.jpg'],
+  id: "tripod",
+  name: "Tripod",
+  price: "9.50",
+  deposit: "20",
+  images: ["tripod.jpg"],
   quantity: 3,
   required: false,
   requiredQuantity: 1,
-  pricingKind: 'duration' as const,
-  pricingMode: 'day' as const,
+  pricingKind: "duration" as const,
+  pricingMode: "day" as const,
 };
 
-test('splits required accessories from the upsell list', () => {
+test("splits required accessories from the upsell list", () => {
   assert.deepEqual(
-    selectOptionalAccessories([mediaSet, tripod]).map(
-      (accessory) => accessory.id,
-    ),
-    ['tripod'],
+    selectOptionalAccessories([mediaSet, tripod]).map((accessory) => accessory.id),
+    ["tripod"],
   );
 });
 
-test('builds a cart input carrying the per-parent-unit requirement', () => {
+test("builds a cart input carrying the per-parent-unit requirement", () => {
   const [input] = buildRequiredAccessoryCartInputs([mediaSet, tripod]);
 
-  assert.equal(input.productId, 'media-set');
+  assert.equal(input.productId, "media-set");
   assert.equal(input.requiredQuantity, 2);
   assert.equal(input.price, 0);
   assert.equal(input.maxQuantity, 4);
 });
 
-test('flags a required accessory that cannot cover the parent quantity', () => {
+test("flags a required accessory that cannot cover the parent quantity", () => {
   assert.equal(findBlockingRequiredAccessories([mediaSet], 2).length, 0);
   assert.equal(findBlockingRequiredAccessories([mediaSet], 3).length, 1);
   // An optional accessory never blocks its parent.
-  assert.equal(
-    findBlockingRequiredAccessories([{ ...tripod, quantity: 0 }], 1).length,
-    0,
-  );
+  assert.equal(findBlockingRequiredAccessories([{ ...tripod, quantity: 0 }], 1).length, 0);
 });
 
-test('allows extra required accessories without going below the parent minimum', () => {
+test("allows extra required accessories without going below the parent minimum", () => {
   const line = {
     requiredQuantity: 2,
     maxQuantity: 8,
@@ -96,7 +91,7 @@ test('allows extra required accessories without going below the parent minimum',
   );
 });
 
-test('preserves the selected total when the parent quantity changes', () => {
+test("preserves the selected total when the parent quantity changes", () => {
   const line = {
     quantity: 3,
     requiredQuantity: 1,
@@ -129,27 +124,27 @@ test('preserves the selected total when the parent quantity changes', () => {
   );
 });
 
-test('shares an accessory stock cap across every cart line', () => {
+test("shares an accessory stock cap across every cart line", () => {
   const lines = [
     {
-      lineId: 'parent',
-      productId: 'smoke-machine',
+      lineId: "parent",
+      productId: "smoke-machine",
       quantity: 1,
       maxQuantity: 5,
     },
     {
-      lineId: 'required-fluid',
-      parentLineId: 'parent',
-      productId: 'fog-fluid',
-      stockKind: 'consumable' as const,
+      lineId: "required-fluid",
+      parentLineId: "parent",
+      productId: "fog-fluid",
+      stockKind: "consumable" as const,
       quantity: 1,
       maxQuantity: 5,
       requiredQuantity: 1,
     },
     {
-      lineId: 'free-fluid',
-      productId: 'fog-fluid',
-      stockKind: 'consumable' as const,
+      lineId: "free-fluid",
+      productId: "fog-fluid",
+      stockKind: "consumable" as const,
       quantity: 2,
       maxQuantity: 5,
     },
@@ -159,46 +154,43 @@ test('shares an accessory stock cap across every cart line', () => {
   assert.equal(getCartLineAvailableMaximumQuantity(lines, lines[2]), 4);
 });
 
-test('clamps a newly added consumable to the stock left by required lines', () => {
+test("clamps a newly added consumable to the stock left by required lines", () => {
   const lines = [
     {
-      lineId: 'required-fluid',
-      parentLineId: 'parent',
-      productId: 'fog-fluid',
-      stockKind: 'consumable' as const,
+      lineId: "required-fluid",
+      parentLineId: "parent",
+      productId: "fog-fluid",
+      stockKind: "consumable" as const,
       quantity: 12,
       maxQuantity: 15,
       requiredQuantity: 1,
     },
     {
-      lineId: 'free-fluid',
-      productId: 'fog-fluid',
+      lineId: "free-fluid",
+      productId: "fog-fluid",
       quantity: 8,
       maxQuantity: 15,
     },
   ];
 
-  assert.equal(
-    clampCartLineQuantityToAvailableMaximum(lines, lines[1]),
-    3,
-  );
+  assert.equal(clampCartLineQuantityToAvailableMaximum(lines, lines[1]), 3);
 });
 
-test('removes free consumable units when required lines use all stock', () => {
+test("removes free consumable units when required lines use all stock", () => {
   const lines = [
     {
-      lineId: 'required-fluid',
-      parentLineId: 'parent',
-      productId: 'fog-fluid',
-      stockKind: 'consumable' as const,
+      lineId: "required-fluid",
+      parentLineId: "parent",
+      productId: "fog-fluid",
+      stockKind: "consumable" as const,
       quantity: 15,
       maxQuantity: 15,
       requiredQuantity: 1,
     },
     {
-      lineId: 'free-fluid',
-      productId: 'fog-fluid',
-      stockKind: 'consumable' as const,
+      lineId: "free-fluid",
+      productId: "fog-fluid",
+      stockKind: "consumable" as const,
       quantity: 15,
       maxQuantity: 15,
     },
@@ -209,28 +201,28 @@ test('removes free consumable units when required lines use all stock', () => {
       lineId: line.lineId,
       quantity: line.quantity,
     })),
-    [{ lineId: 'required-fluid', quantity: 15 }],
+    [{ lineId: "required-fluid", quantity: 15 }],
   );
 });
 
-test('shares returnable stock across identical cart selections', () => {
+test("shares returnable stock across identical cart selections", () => {
   const lines = [
     {
-      lineId: 'required-fluid',
-      parentLineId: 'parent',
-      productId: 'fog-fluid',
-      stockKind: 'returnable' as const,
-      selectionSignature: '__default',
+      lineId: "required-fluid",
+      parentLineId: "parent",
+      productId: "fog-fluid",
+      stockKind: "returnable" as const,
+      selectionSignature: "__default",
       quantity: 15,
       maxQuantity: 15,
       requiredQuantity: 1,
     },
     {
-      lineId: 'free-fluid',
-      productId: 'fog-fluid',
+      lineId: "free-fluid",
+      productId: "fog-fluid",
       // A newly added free line has not necessarily been resolved yet. It must
       // inherit the product's stock pool from its resolved required sibling.
-      selectionSignature: '__default',
+      selectionSignature: "__default",
       quantity: 15,
       maxQuantity: 15,
     },
@@ -238,19 +230,19 @@ test('shares returnable stock across identical cart selections', () => {
 
   assert.deepEqual(
     reconcileSharedCartLineQuantities(lines).map((line) => line.lineId),
-    ['required-fluid'],
+    ["required-fluid"],
   );
 });
 
-test('leaves a lone returnable line alone when its stock runs out', () => {
+test("leaves a lone returnable line alone when its stock runs out", () => {
   // The server already reports the shortfall through maxQuantity; removing or
   // shrinking the line would hide that message from the customer.
   const lines = [
     {
-      lineId: 'bike',
-      productId: 'bike',
-      stockKind: 'returnable' as const,
-      selectionSignature: '__default',
+      lineId: "bike",
+      productId: "bike",
+      stockKind: "returnable" as const,
+      selectionSignature: "__default",
       quantity: 3,
       maxQuantity: 0,
     },
@@ -261,17 +253,17 @@ test('leaves a lone returnable line alone when its stock runs out', () => {
       lineId: line.lineId,
       quantity: line.quantity,
     })),
-    [{ lineId: 'bike', quantity: 3 }],
+    [{ lineId: "bike", quantity: 3 }],
   );
 });
 
-test('leaves a lone returnable line alone on a partial shortfall', () => {
+test("leaves a lone returnable line alone on a partial shortfall", () => {
   const lines = [
     {
-      lineId: 'bike',
-      productId: 'bike',
-      stockKind: 'returnable' as const,
-      selectionSignature: '__default',
+      lineId: "bike",
+      productId: "bike",
+      stockKind: "returnable" as const,
+      selectionSignature: "__default",
       quantity: 3,
       maxQuantity: 2,
     },
@@ -283,21 +275,21 @@ test('leaves a lone returnable line alone on a partial shortfall', () => {
   );
 });
 
-test('keeps different returnable selections independent', () => {
+test("keeps different returnable selections independent", () => {
   const lines = [
     {
-      lineId: 'small',
-      productId: 'helmet',
-      stockKind: 'returnable' as const,
-      selectionSignature: 'size:S',
+      lineId: "small",
+      productId: "helmet",
+      stockKind: "returnable" as const,
+      selectionSignature: "size:S",
       quantity: 1,
       maxQuantity: 2,
     },
     {
-      lineId: 'large',
-      productId: 'helmet',
-      stockKind: 'returnable' as const,
-      selectionSignature: 'size:L',
+      lineId: "large",
+      productId: "helmet",
+      stockKind: "returnable" as const,
+      selectionSignature: "size:L",
       quantity: 1,
       maxQuantity: 3,
     },
@@ -307,27 +299,27 @@ test('keeps different returnable selections independent', () => {
   assert.equal(getCartLineAvailableMaximumQuantity(lines, lines[1]), 3);
 });
 
-test('limits the parent when another line uses required accessory stock', () => {
+test("limits the parent when another line uses required accessory stock", () => {
   const lines = [
     {
-      lineId: 'parent',
-      productId: 'smoke-machine',
+      lineId: "parent",
+      productId: "smoke-machine",
       quantity: 1,
       maxQuantity: 5,
     },
     {
-      lineId: 'required-fluid',
-      parentLineId: 'parent',
-      productId: 'fog-fluid',
-      stockKind: 'consumable' as const,
+      lineId: "required-fluid",
+      parentLineId: "parent",
+      productId: "fog-fluid",
+      stockKind: "consumable" as const,
       quantity: 1,
       maxQuantity: 5,
       requiredQuantity: 2,
     },
     {
-      lineId: 'free-fluid',
-      productId: 'fog-fluid',
-      stockKind: 'consumable' as const,
+      lineId: "free-fluid",
+      productId: "fog-fluid",
+      stockKind: "consumable" as const,
       quantity: 1,
       maxQuantity: 5,
     },
@@ -337,20 +329,20 @@ test('limits the parent when another line uses required accessory stock', () => 
   assert.equal(getCartLineAvailableMaximumQuantity(lines, lines[1]), 4);
 });
 
-test('limits an untracked parent only through its finite required accessory', () => {
+test("limits an untracked parent only through its finite required accessory", () => {
   const lines = [
     {
-      lineId: 'parent',
-      productId: 'cleaning-service',
-      stockKind: 'untracked' as const,
+      lineId: "parent",
+      productId: "cleaning-service",
+      stockKind: "untracked" as const,
       quantity: 1,
       maxQuantity: null,
     },
     {
-      lineId: 'required-product',
-      parentLineId: 'parent',
-      productId: 'cleaning-product',
-      stockKind: 'consumable' as const,
+      lineId: "required-product",
+      parentLineId: "parent",
+      productId: "cleaning-product",
+      stockKind: "consumable" as const,
       quantity: 2,
       maxQuantity: 5,
       requiredQuantity: 2,
@@ -360,20 +352,20 @@ test('limits an untracked parent only through its finite required accessory', ()
   assert.equal(getCartLineAvailableMaximumQuantity(lines, lines[0]), 2);
 });
 
-test('an untracked required accessory does not limit its parent', () => {
+test("an untracked required accessory does not limit its parent", () => {
   const lines = [
     {
-      lineId: 'parent',
-      productId: 'bike',
-      stockKind: 'returnable' as const,
+      lineId: "parent",
+      productId: "bike",
+      stockKind: "returnable" as const,
       quantity: 1,
       maxQuantity: 4,
     },
     {
-      lineId: 'required-service',
-      parentLineId: 'parent',
-      productId: 'cleaning-service',
-      stockKind: 'untracked' as const,
+      lineId: "required-service",
+      parentLineId: "parent",
+      productId: "cleaning-service",
+      stockKind: "untracked" as const,
       quantity: 1,
       maxQuantity: null,
       requiredQuantity: 1,
@@ -384,62 +376,57 @@ test('an untracked required accessory does not limit its parent', () => {
   assert.equal(clampCartLineQuantityToAvailableMaximum(lines, lines[1]), 1);
 });
 
-test('reports when shared stock falls below a required child minimum', () => {
+test("reports when shared stock falls below a required child minimum", () => {
   const lines = [
     {
-      lineId: 'parent',
-      productId: 'smoke-machine',
+      lineId: "parent",
+      productId: "smoke-machine",
       quantity: 2,
       maxQuantity: 5,
     },
     {
-      lineId: 'required-fluid',
-      parentLineId: 'parent',
-      productId: 'fog-fluid',
-      stockKind: 'consumable' as const,
+      lineId: "required-fluid",
+      parentLineId: "parent",
+      productId: "fog-fluid",
+      stockKind: "consumable" as const,
       quantity: 2,
       maxQuantity: 2,
       requiredQuantity: 1,
     },
     {
-      lineId: 'free-fluid',
-      productId: 'fog-fluid',
-      stockKind: 'consumable' as const,
+      lineId: "free-fluid",
+      productId: "fog-fluid",
+      stockKind: "consumable" as const,
       quantity: 1,
       maxQuantity: 2,
     },
   ];
 
-  assert.equal(
-    getCartLineAvailableMaximumQuantity(lines, lines[1]),
-    1,
-  );
+  assert.equal(getCartLineAvailableMaximumQuantity(lines, lines[1]), 1);
 });
 
-test('groups required accessory lines under the line that owns them', () => {
+test("groups required accessory lines under the line that owns them", () => {
   const groups = groupCartLinesByParent([
-    { lineId: 'parent' },
-    { lineId: 'child', parentLineId: 'parent' },
-    { lineId: 'other' },
+    { lineId: "parent" },
+    { lineId: "child", parentLineId: "parent" },
+    { lineId: "other" },
   ]);
 
   assert.deepEqual(
     groups.map((group) => group.line.lineId),
-    ['parent', 'other'],
+    ["parent", "other"],
   );
   assert.deepEqual(
     groups[0].children.map((child) => child.lineId),
-    ['child'],
+    ["child"],
   );
 });
 
-test('keeps an orphan child visible as a top-level line', () => {
-  const groups = groupCartLinesByParent([
-    { lineId: 'child', parentLineId: 'gone' },
-  ]);
+test("keeps an orphan child visible as a top-level line", () => {
+  const groups = groupCartLinesByParent([{ lineId: "child", parentLineId: "gone" }]);
 
   assert.deepEqual(
     groups.map((group) => group.line.lineId),
-    ['child'],
+    ["child"],
   );
 });

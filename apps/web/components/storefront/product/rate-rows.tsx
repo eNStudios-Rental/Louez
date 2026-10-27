@@ -54,7 +54,8 @@ export const RateRows = ({ rows, className, comparisonPeriodMinutes }: RateRowsP
               />
               {showsUnitPrice ? (
                 <span className="text-[0.65rem] text-muted-foreground">
-                  {formatMoney(Math.round((row.price / duration) / 1.23))} netto / {formatPeriodLabel(comparisonPeriod)}
+                  {formatMoney(Math.round(row.price / duration / 1.23))} netto /{" "}
+                  {formatPeriodLabel(comparisonPeriod)}
                 </span>
               ) : null}
             </span>

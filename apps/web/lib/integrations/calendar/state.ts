@@ -1,15 +1,15 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq } from "drizzle-orm";
 
 import {
   db,
   reservationCalendarEvents,
   storeCalendarIntegrations,
   storeIntegrations,
-} from '@louez/db';
+} from "@louez/db";
 
-import { GOOGLE_CALENDAR_PROVIDER_KEY } from '@/lib/integrations/providers/google-calendar/google-calendar-client';
+import { GOOGLE_CALENDAR_PROVIDER_KEY } from "@/lib/integrations/providers/google-calendar/google-calendar-client";
 
-export const ICS_CALENDAR_PROVIDER_KEY = 'ics-calendar';
+export const ICS_CALENDAR_PROVIDER_KEY = "ics-calendar";
 
 export type CalendarIntegrationState = {
   storeId: string;
@@ -23,7 +23,7 @@ export type CalendarIntegrationState = {
     lastSyncAt: string | null;
     lastError: string | null;
     syncPendingReservations: boolean;
-    cancelledReservationBehavior: 'show' | 'hide';
+    cancelledReservationBehavior: "show" | "hide";
     pendingEvents: number;
     failedEvents: number;
   };
@@ -62,8 +62,8 @@ export async function getCalendarIntegrationState(params: {
       .from(reservationCalendarEvents)
       .where(eq(reservationCalendarEvents.integrationId, google.id));
 
-    pendingEvents = rows.filter((row) => row.syncStatus === 'pending').length;
-    failedEvents = rows.filter((row) => row.syncStatus === 'failed').length;
+    pendingEvents = rows.filter((row) => row.syncStatus === "pending").length;
+    failedEvents = rows.filter((row) => row.syncStatus === "failed").length;
   }
 
   return {
@@ -72,15 +72,14 @@ export async function getCalendarIntegrationState(params: {
       enabled: google?.enabled ?? false,
       connected: Boolean(google?.credentials?.refreshTokenEncrypted),
       configured: Boolean(google?.calendarSettings?.calendarId),
-      status: google?.status ?? 'disabled',
+      status: google?.status ?? "disabled",
       accountEmail: google?.providerAccountEmail ?? null,
       calendarName: google?.calendarSettings?.calendarName ?? null,
       lastSyncAt: google?.calendarSettings?.lastSyncAt?.toISOString() ?? null,
       lastError: google?.lastErrorMessage ?? null,
-      syncPendingReservations:
-        google?.calendarSettings?.syncPendingReservations ?? true,
+      syncPendingReservations: google?.calendarSettings?.syncPendingReservations ?? true,
       cancelledReservationBehavior:
-        google?.calendarSettings?.cancelledReservationBehavior ?? 'show',
+        google?.calendarSettings?.cancelledReservationBehavior ?? "show",
       pendingEvents,
       failedEvents,
     },
@@ -94,7 +93,7 @@ export async function getCalendarIntegrationState(params: {
 export async function updateGoogleCalendarSettings(params: {
   storeId: string;
   syncPendingReservations: boolean;
-  cancelledReservationBehavior: 'show' | 'hide';
+  cancelledReservationBehavior: "show" | "hide";
 }): Promise<{ success: true } | { error: string }> {
   const integration = await db.query.storeIntegrations.findFirst({
     where: and(
@@ -104,7 +103,7 @@ export async function updateGoogleCalendarSettings(params: {
   });
 
   if (!integration) {
-    return { error: 'errors.integrationNotFound' };
+    return { error: "errors.integrationNotFound" };
   }
 
   await db

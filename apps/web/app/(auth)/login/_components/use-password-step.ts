@@ -1,33 +1,33 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from "react";
 
-import { revalidateLogic } from '@tanstack/react-form';
-import { useMutation } from '@tanstack/react-query';
-import { useTranslations } from 'next-intl';
-import { z } from 'zod';
+import { revalidateLogic } from "@tanstack/react-form";
+import { useMutation } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { z } from "zod";
 
-import { authClient } from '@louez/auth/client';
-import { MIN_PASSWORD_LENGTH } from '@louez/auth/password-policy';
+import { authClient } from "@louez/auth/client";
+import { MIN_PASSWORD_LENGTH } from "@louez/auth/password-policy";
 
 import {
   createAuthMutationError,
   getAuthErrorCode,
   getMutationAuthCode,
   resolveAuthErrorMessage,
-} from '@/lib/utils/util.auth-error';
+} from "@/lib/utils/util.auth-error";
 
-import { useAppForm } from '@/hooks/form/form';
+import { useAppForm } from "@/hooks/form/form";
 
-import { useCallbackUrl } from './use-callback-url';
-import { rememberLastSignInMethod } from './util.last-sign-in-method';
+import { useCallbackUrl } from "./use-callback-url";
+import { rememberLastSignInMethod } from "./util.last-sign-in-method";
 
-export type PasswordMode = 'signIn' | 'signUp';
+export type PasswordMode = "signIn" | "signUp";
 
 export const usePasswordStep = () => {
-  const t = useTranslations('auth');
+  const t = useTranslations("auth");
   const callbackUrl = useCallbackUrl();
-  const [mode, setMode] = useState<PasswordMode>('signIn');
+  const [mode, setMode] = useState<PasswordMode>("signIn");
   const [rootError, setRootError] = useState<string | null>(null);
 
   const signInMutation = useMutation({
@@ -44,11 +44,7 @@ export const usePasswordStep = () => {
   });
 
   const signUpMutation = useMutation({
-    mutationFn: async (value: {
-      name: string;
-      email: string;
-      password: string;
-    }) => {
+    mutationFn: async (value: { name: string; email: string; password: string }) => {
       const result = await authClient.signUp.email({
         name: value.name,
         email: value.email,
@@ -64,25 +60,22 @@ export const usePasswordStep = () => {
   const passwordSchema = useMemo(
     () =>
       z.object({
-        name:
-          mode === 'signUp'
-            ? z.string().min(1, t('errors.default'))
-            : z.string(),
-        email: z.email(t('errors.invalidEmail')),
-        password: z.string().min(MIN_PASSWORD_LENGTH, t('errors.passwordTooShort')),
+        name: mode === "signUp" ? z.string().min(1, t("errors.default")) : z.string(),
+        email: z.email(t("errors.invalidEmail")),
+        password: z.string().min(MIN_PASSWORD_LENGTH, t("errors.passwordTooShort")),
       }),
     [mode, t],
   );
 
   const form = useAppForm({
     defaultValues: {
-      name: '',
-      email: '',
-      password: '',
+      name: "",
+      email: "",
+      password: "",
     },
     validationLogic: revalidateLogic({
-      mode: 'submit',
-      modeAfterSubmission: 'change',
+      mode: "submit",
+      modeAfterSubmission: "change",
     }),
     validators: {
       onSubmit: passwordSchema,
@@ -91,12 +84,12 @@ export const usePasswordStep = () => {
       setRootError(null);
 
       try {
-        if (mode === 'signUp') {
+        if (mode === "signUp") {
           await signUpMutation.mutateAsync(value);
         } else {
           await signInMutation.mutateAsync(value);
         }
-        rememberLastSignInMethod('password');
+        rememberLastSignInMethod("password");
         window.location.href = callbackUrl;
       } catch (error) {
         setRootError(resolveAuthErrorMessage(t, getMutationAuthCode(error)));
@@ -106,7 +99,7 @@ export const usePasswordStep = () => {
 
   const toggleMode = () => {
     setRootError(null);
-    setMode((prev) => (prev === 'signIn' ? 'signUp' : 'signIn'));
+    setMode((prev) => (prev === "signIn" ? "signUp" : "signIn"));
   };
 
   const isPending = signInMutation.isPending || signUpMutation.isPending;

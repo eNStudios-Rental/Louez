@@ -1,17 +1,17 @@
-import { render } from '@react-email/render'
-import { env } from '@/env'
-import { sendEmail, type EmailAttachment } from './client'
-import { db } from '@louez/db'
-import { emailLogs } from '@louez/db'
-import { getEmailTranslations, type EmailLocale } from './i18n'
-import { getLogoForLightBackground } from '@louez/utils'
-import { resolveEmailLogo } from './logo'
+import { render } from "@react-email/render";
+import { env } from "@/env";
+import { sendEmail, type EmailAttachment } from "./client";
+import { db } from "@louez/db";
+import { emailLogs } from "@louez/db";
+import { getEmailTranslations, type EmailLocale } from "./i18n";
+import { getLogoForLightBackground } from "@louez/utils";
+import { resolveEmailLogo } from "./logo";
 import {
   composeInstantAccessEmail,
   composeReminderPickupEmail,
   composeReminderReturnEmail,
-} from './compose'
-import type { ReservationLocationSnapshot } from '@louez/types'
+} from "./compose";
+import type { ReservationLocationSnapshot } from "@louez/types";
 import {
   VerificationCodeEmail,
   ReservationConfirmationEmail,
@@ -39,55 +39,55 @@ import {
   DepositAuthorizationRequestEmail,
   QuoteSentEmail,
   SupplierInvoiceReceivedEmail,
-} from './templates'
+} from "./templates";
 
 interface Store {
-  id: string
-  name: string
-  logoUrl?: string | null
-  darkLogoUrl?: string | null
-  email?: string | null
-  phone?: string | null
-  address?: string | null
+  id: string;
+  name: string;
+  logoUrl?: string | null;
+  darkLogoUrl?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
   theme?: {
-    mode?: 'light' | 'dark'
-    primaryColor?: string
-  } | null
+    mode?: "light" | "dark";
+    primaryColor?: string;
+  } | null;
   settings?: {
-    currency?: string
-    country?: string
-    timezone?: string
-  } | null
+    currency?: string;
+    country?: string;
+    timezone?: string;
+  } | null;
   emailSettings?: {
-    confirmationEnabled?: boolean
-    reminderPickupEnabled?: boolean
-    reminderReturnEnabled?: boolean
-    replyToEmail?: string | null
-    defaultSignature?: string
-    confirmationContent?: import('@louez/types').EmailCustomContent
-    rejectionContent?: import('@louez/types').EmailCustomContent
-    pickupReminderContent?: import('@louez/types').EmailCustomContent
-    returnReminderContent?: import('@louez/types').EmailCustomContent
-    requestAcceptedContent?: import('@louez/types').EmailCustomContent
-    requestReceivedContent?: import('@louez/types').EmailCustomContent
-  } | null
+    confirmationEnabled?: boolean;
+    reminderPickupEnabled?: boolean;
+    reminderReturnEnabled?: boolean;
+    replyToEmail?: string | null;
+    defaultSignature?: string;
+    confirmationContent?: import("@louez/types").EmailCustomContent;
+    rejectionContent?: import("@louez/types").EmailCustomContent;
+    pickupReminderContent?: import("@louez/types").EmailCustomContent;
+    returnReminderContent?: import("@louez/types").EmailCustomContent;
+    requestAcceptedContent?: import("@louez/types").EmailCustomContent;
+    requestReceivedContent?: import("@louez/types").EmailCustomContent;
+  } | null;
 }
 
 type StoreWithEmailDateSettings = Store & {
-  settings: Store['settings']
-}
+  settings: Store["settings"];
+};
 
 interface Customer {
-  firstName: string
-  lastName: string
-  email: string
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
 }
 
 interface ReservationItem {
-  name: string
-  quantity: number
-  unitPrice: number
-  totalPrice: number
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
 }
 
 // Log email in database
@@ -102,15 +102,15 @@ export async function logEmail({
   messageId,
   error,
 }: {
-  storeId: string
-  reservationId?: string
-  customerId?: string
-  to: string
-  subject: string
-  templateType: string
-  status: 'sent' | 'failed'
-  messageId?: string
-  error?: string
+  storeId: string;
+  reservationId?: string;
+  customerId?: string;
+  to: string;
+  subject: string;
+  templateType: string;
+  status: "sent" | "failed";
+  messageId?: string;
+  error?: string;
 }) {
   try {
     await db.insert(emailLogs).values({
@@ -123,9 +123,9 @@ export async function logEmail({
       status,
       messageId: messageId || null,
       error: error || null,
-    })
+    });
   } catch (e) {
-    console.error('Failed to log email:', e)
+    console.error("Failed to log email:", e);
   }
 }
 
@@ -134,49 +134,55 @@ export async function sendVerificationCodeEmail({
   to,
   store,
   code,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: Store
-  code: string
-  locale?: EmailLocale
+  to: string;
+  store: Store;
+  code: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const subject = `${t.verificationCode.subject.replace('{code}', code)} - ${store.name}`
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const t = getEmailTranslations(locale);
+  const subject = `${t.verificationCode.subject.replace("{code}", code)} - ${store.name}`;
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const html = await render(
     VerificationCodeEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       storeEmail: store.email,
       storePhone: store.phone,
       code,
       locale,
-    })
-  )
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments: logo.attachments, fromName: store.name })
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      attachments: logo.attachments,
+      fromName: store.name,
+    });
     await logEmail({
       storeId: store.id,
       to,
       subject,
-      templateType: 'verification_code',
-      status: 'sent',
+      templateType: "verification_code",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       to,
       subject,
-      templateType: 'verification_code',
-      status: 'failed',
+      templateType: "verification_code",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -190,45 +196,45 @@ export async function sendReservationConfirmationEmail({
   reservationUrl,
   documentAttachments = [],
   contractSignatureUrl,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: Store
-  customer: Customer
+  to: string;
+  store: Store;
+  customer: Customer;
   reservation: {
-    id: string
-    number: string
-    startDate: Date
-    endDate: Date
-    subtotalAmount: number
-    depositAmount: number
-    totalAmount: number
+    id: string;
+    number: string;
+    startDate: Date;
+    endDate: Date;
+    subtotalAmount: number;
+    depositAmount: number;
+    totalAmount: number;
     // Tax info
-    taxEnabled?: boolean
-    taxRate?: number | null
-    subtotalExclTax?: number | null
-    taxAmount?: number | null
-    pickupLocationSnapshot?: ReservationLocationSnapshot | null
-    returnLocationSnapshot?: ReservationLocationSnapshot | null
-  }
-  items: ReservationItem[]
-  reservationUrl: string
-  documentAttachments?: EmailAttachment[]
-  contractSignatureUrl?: string
-  locale?: EmailLocale
+    taxEnabled?: boolean;
+    taxRate?: number | null;
+    subtotalExclTax?: number | null;
+    taxAmount?: number | null;
+    pickupLocationSnapshot?: ReservationLocationSnapshot | null;
+    returnLocationSnapshot?: ReservationLocationSnapshot | null;
+  };
+  items: ReservationItem[];
+  reservationUrl: string;
+  documentAttachments?: EmailAttachment[];
+  contractSignatureUrl?: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const customContent = store.emailSettings?.confirmationContent
+  const t = getEmailTranslations(locale);
+  const customContent = store.emailSettings?.confirmationContent;
   const subject = customContent?.subject
-    ? customContent.subject.replace('{number}', reservation.number)
-    : `${t.confirmReservation.subject.replace('{number}', reservation.number)} - ${store.name}`
+    ? customContent.subject.replace("{number}", reservation.number)
+    : `${t.confirmReservation.subject.replace("{number}", reservation.number)} - ${store.name}`;
 
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const html = await render(
     ReservationConfirmationEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       storeAddress: store.address,
       pickupLocationSnapshot: reservation.pickupLocationSnapshot,
       returnLocationSnapshot: reservation.returnLocationSnapshot,
@@ -236,7 +242,7 @@ export async function sendReservationConfirmationEmail({
       storeEmail: store.email,
       storeTimezone: store.settings?.timezone,
       storeCountry: store.settings?.country,
-      customerFirstName: customer.firstName,
+      customerFirstName: customer.firstName ?? "",
       reservationNumber: reservation.number,
       startDate: reservation.startDate,
       endDate: reservation.endDate,
@@ -248,13 +254,13 @@ export async function sendReservationConfirmationEmail({
       contractSignatureUrl,
       customContent,
       locale,
-      currency: store.settings?.currency || 'PLN',
+      currency: store.settings?.currency || "PLN",
       taxEnabled: reservation.taxEnabled,
       taxRate: reservation.taxRate,
       subtotalExclTax: reservation.subtotalExclTax,
       taxAmount: reservation.taxAmount,
-    })
-  )
+    }),
+  );
 
   try {
     const result = await sendEmail({
@@ -263,28 +269,28 @@ export async function sendReservationConfirmationEmail({
       html,
       attachments: [...logo.attachments, ...documentAttachments],
       fromName: store.name,
-    })
+    });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'reservation_confirmation',
-      status: 'sent',
+      templateType: "reservation_confirmation",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'reservation_confirmation',
-      status: 'failed',
+      templateType: "reservation_confirmation",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -296,37 +302,37 @@ export async function sendReservationModifiedEmail({
   reservation,
   reservationUrl,
   previousPeriod,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: Store
-  customer: Customer
+  to: string;
+  store: Store;
+  customer: Customer;
   reservation: {
-    id: string
-    number: string
-    startDate: Date
-    endDate: Date
-  }
-  reservationUrl: string
+    id: string;
+    number: string;
+    startDate: Date;
+    endDate: Date;
+  };
+  reservationUrl: string;
   previousPeriod?: {
-    startDate: Date
-    endDate: Date
-  } | null
-  locale?: EmailLocale
+    startDate: Date;
+    endDate: Date;
+  } | null;
+  locale?: EmailLocale;
 }) {
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
-  const subject = `${getReservationModifiedEmailSubject(reservation.number, locale)} - ${store.name}`
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
+  const subject = `${getReservationModifiedEmailSubject(reservation.number, locale)} - ${store.name}`;
   const html = await render(
     ReservationModifiedEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       storeAddress: store.address,
       storePhone: store.phone,
       storeEmail: store.email,
       storeTimezone: store.settings?.timezone,
       storeCountry: store.settings?.country,
-      customerFirstName: customer.firstName,
+      customerFirstName: customer.firstName ?? "",
       reservationNumber: reservation.number,
       previousStartDate: previousPeriod?.startDate,
       previousEndDate: previousPeriod?.endDate,
@@ -335,7 +341,7 @@ export async function sendReservationModifiedEmail({
       reservationUrl,
       locale,
     }),
-  )
+  );
 
   try {
     const result = await sendEmail({
@@ -344,28 +350,28 @@ export async function sendReservationModifiedEmail({
       html,
       attachments: logo.attachments,
       fromName: store.name,
-    })
+    });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'reservation_modified',
-      status: 'sent',
+      templateType: "reservation_modified",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'reservation_modified',
-      status: 'failed',
+      templateType: "reservation_modified",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -375,68 +381,74 @@ export async function sendRequestReceivedEmail({
   store,
   customer,
   reservation,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: Store
-  customer: Customer
+  to: string;
+  store: Store;
+  customer: Customer;
   reservation: {
-    id: string
-    number: string
-    startDate: Date
-    endDate: Date
-  }
-  locale?: EmailLocale
+    id: string;
+    number: string;
+    startDate: Date;
+    endDate: Date;
+  };
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const customContent = store.emailSettings?.requestReceivedContent
+  const t = getEmailTranslations(locale);
+  const customContent = store.emailSettings?.requestReceivedContent;
   const subject = customContent?.subject
-    ? customContent.subject.replace('{number}', reservation.number)
-    : `${t.requestReceived.subject.replace('{number}', reservation.number)} - ${store.name}`
+    ? customContent.subject.replace("{number}", reservation.number)
+    : `${t.requestReceived.subject.replace("{number}", reservation.number)} - ${store.name}`;
 
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const html = await render(
     RequestReceivedEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       storeEmail: store.email,
       storePhone: store.phone,
       storeAddress: store.address,
       storeTimezone: store.settings?.timezone,
       storeCountry: store.settings?.country,
-      customerFirstName: customer.firstName,
+      customerFirstName: customer.firstName ?? "",
       reservationNumber: reservation.number,
       startDate: reservation.startDate,
       endDate: reservation.endDate,
       customContent,
       locale,
-    })
-  )
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments: logo.attachments, fromName: store.name })
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      attachments: logo.attachments,
+      fromName: store.name,
+    });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'request_received',
-      status: 'sent',
+      templateType: "request_received",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'request_received',
-      status: 'failed',
+      templateType: "request_received",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -451,46 +463,46 @@ export async function sendRequestAcceptedEmail({
   contractUrl,
   termsUrl,
   paymentUrl,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: Store
-  customer: Customer
+  to: string;
+  store: Store;
+  customer: Customer;
   reservation: {
-    id: string
-    number: string
-    startDate: Date
-    endDate: Date
-    totalAmount: number
-    depositAmount?: number
-  }
-  items: { name: string; quantity: number; totalPrice: number }[]
-  reservationUrl: string
-  contractUrl: string
-  termsUrl?: string | null
-  paymentUrl?: string | null
-  locale?: EmailLocale
+    id: string;
+    number: string;
+    startDate: Date;
+    endDate: Date;
+    totalAmount: number;
+    depositAmount?: number;
+  };
+  items: { name: string; quantity: number; totalPrice: number }[];
+  reservationUrl: string;
+  contractUrl: string;
+  termsUrl?: string | null;
+  paymentUrl?: string | null;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const customContent = store.emailSettings?.requestAcceptedContent
+  const t = getEmailTranslations(locale);
+  const customContent = store.emailSettings?.requestAcceptedContent;
   const subject = customContent?.subject
-    ? customContent.subject.replace('{number}', reservation.number)
-    : `${t.requestAccepted.subject.replace('{number}', reservation.number)} - ${store.name}`
+    ? customContent.subject.replace("{number}", reservation.number)
+    : `${t.requestAccepted.subject.replace("{number}", reservation.number)} - ${store.name}`;
 
-  const depositAmount = reservation.depositAmount ?? 0
+  const depositAmount = reservation.depositAmount ?? 0;
 
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const html = await render(
     RequestAcceptedEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       storeAddress: store.address,
       storeEmail: store.email,
       storePhone: store.phone,
       storeTimezone: store.settings?.timezone,
       storeCountry: store.settings?.country,
-      customerFirstName: customer.firstName,
+      customerFirstName: customer.firstName ?? "",
       reservationNumber: reservation.number,
       startDate: reservation.startDate,
       endDate: reservation.endDate,
@@ -503,33 +515,39 @@ export async function sendRequestAcceptedEmail({
       paymentUrl,
       customContent,
       locale,
-      currency: store.settings?.currency || 'PLN',
-    })
-  )
+      currency: store.settings?.currency || "PLN",
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments: logo.attachments, fromName: store.name })
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      attachments: logo.attachments,
+      fromName: store.name,
+    });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'request_accepted',
-      status: 'sent',
+      templateType: "request_accepted",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'request_accepted',
-      status: 'failed',
+      templateType: "request_accepted",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -540,64 +558,70 @@ export async function sendRequestRejectedEmail({
   customer,
   reservation,
   reason,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: Store
-  customer: Customer
+  to: string;
+  store: Store;
+  customer: Customer;
   reservation: {
-    id: string
-    number: string
-  }
-  reason?: string | null
-  locale?: EmailLocale
+    id: string;
+    number: string;
+  };
+  reason?: string | null;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const customContent = store.emailSettings?.rejectionContent
+  const t = getEmailTranslations(locale);
+  const customContent = store.emailSettings?.rejectionContent;
   const subject = customContent?.subject
-    ? customContent.subject.replace('{number}', reservation.number)
-    : `${t.requestRejected.subject.replace('{number}', reservation.number)} - ${store.name}`
+    ? customContent.subject.replace("{number}", reservation.number)
+    : `${t.requestRejected.subject.replace("{number}", reservation.number)} - ${store.name}`;
 
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const html = await render(
     RequestRejectedEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       storeEmail: store.email,
       storePhone: store.phone,
       storeAddress: store.address,
-      customerFirstName: customer.firstName,
+      customerFirstName: customer.firstName ?? "",
       reservationNumber: reservation.number,
       reason,
       customContent,
       locale,
-    })
-  )
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments: logo.attachments, fromName: store.name })
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      attachments: logo.attachments,
+      fromName: store.name,
+    });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'request_rejected',
-      status: 'sent',
+      templateType: "request_rejected",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'request_rejected',
-      status: 'failed',
+      templateType: "request_rejected",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -607,22 +631,22 @@ export async function sendRequestRejectedEmail({
  * renderer, no second copy of the wording to keep in sync.
  */
 export interface RenderedEmail {
-  subject: string
-  html: string
-  attachments: EmailAttachment[]
+  subject: string;
+  html: string;
+  attachments: EmailAttachment[];
 }
 
 interface ReminderPickupEmailParams {
-  store: Store
-  customer: Customer
+  store: Store;
+  customer: Customer;
   reservation: {
-    id: string
-    number: string
-    startDate: Date
-  }
-  reservationUrl: string
-  additionalMessage?: string | null
-  locale?: EmailLocale
+    id: string;
+    number: string;
+    startDate: Date;
+  };
+  reservationUrl: string;
+  additionalMessage?: string | null;
+  locale?: EmailLocale;
 }
 
 export async function renderReminderPickupEmail({
@@ -631,9 +655,9 @@ export async function renderReminderPickupEmail({
   reservation,
   reservationUrl,
   additionalMessage,
-  locale = 'fr',
+  locale = "fr",
 }: ReminderPickupEmailParams): Promise<RenderedEmail> {
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const { subject, element } = composeReminderPickupEmail({
     store,
     customer,
@@ -642,9 +666,9 @@ export async function renderReminderPickupEmail({
     additionalMessage,
     locale,
     logoUrl: logo.url,
-  })
+  });
 
-  return { subject, html: await render(element), attachments: logo.attachments }
+  return { subject, html: await render(element), attachments: logo.attachments };
 }
 
 // Reminder Pickup Email
@@ -655,7 +679,7 @@ export async function sendReminderPickupEmail({
   reservation,
   reservationUrl,
   additionalMessage,
-  locale = 'fr',
+  locale = "fr",
 }: ReminderPickupEmailParams & { to: string }) {
   const { subject, html, attachments } = await renderReminderPickupEmail({
     store,
@@ -664,44 +688,44 @@ export async function sendReminderPickupEmail({
     reservationUrl,
     additionalMessage,
     locale,
-  })
+  });
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments, fromName: store.name })
+    const result = await sendEmail({ to, subject, html, attachments, fromName: store.name });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'reminder_pickup',
-      status: 'sent',
+      templateType: "reminder_pickup",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'reminder_pickup',
-      status: 'failed',
+      templateType: "reminder_pickup",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
 interface ReminderReturnEmailParams {
-  store: Store
-  customer: Customer
+  store: Store;
+  customer: Customer;
   reservation: {
-    id: string
-    number: string
-    endDate: Date
-  }
-  additionalMessage?: string | null
-  locale?: EmailLocale
+    id: string;
+    number: string;
+    endDate: Date;
+  };
+  additionalMessage?: string | null;
+  locale?: EmailLocale;
 }
 
 export async function renderReminderReturnEmail({
@@ -709,9 +733,9 @@ export async function renderReminderReturnEmail({
   customer,
   reservation,
   additionalMessage,
-  locale = 'fr',
+  locale = "fr",
 }: ReminderReturnEmailParams): Promise<RenderedEmail> {
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const { subject, element } = composeReminderReturnEmail({
     store,
     customer,
@@ -719,9 +743,9 @@ export async function renderReminderReturnEmail({
     additionalMessage,
     locale,
     logoUrl: logo.url,
-  })
+  });
 
-  return { subject, html: await render(element), attachments: logo.attachments }
+  return { subject, html: await render(element), attachments: logo.attachments };
 }
 
 // Reminder Return Email
@@ -731,7 +755,7 @@ export async function sendReminderReturnEmail({
   customer,
   reservation,
   additionalMessage,
-  locale = 'fr',
+  locale = "fr",
 }: ReminderReturnEmailParams & { to: string }) {
   const { subject, html, attachments } = await renderReminderReturnEmail({
     store,
@@ -739,31 +763,31 @@ export async function sendReminderReturnEmail({
     reservation,
     additionalMessage,
     locale,
-  })
+  });
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments, fromName: store.name })
+    const result = await sendEmail({ to, subject, html, attachments, fromName: store.name });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'reminder_return',
-      status: 'sent',
+      templateType: "reminder_return",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'reminder_return',
-      status: 'failed',
+      templateType: "reminder_return",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -774,69 +798,80 @@ export async function sendReminderPickupAdminEmail({
   customer,
   reservation,
   dashboardUrl,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: Store
-  customer: { firstName: string; lastName: string; email: string; phone?: string | null }
+  to: string;
+  store: Store;
+  customer: {
+    firstName?: string | null;
+    lastName?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  };
   reservation: {
-    id: string
-    number: string
-    startDate: Date
-    totalAmount: number
-  }
-  dashboardUrl: string
-  locale?: EmailLocale
+    id: string;
+    number: string;
+    startDate: Date;
+    totalAmount: number;
+  };
+  dashboardUrl: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const subject = t.reminderPickupAdmin.subject.replace('{number}', reservation.number)
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const t = getEmailTranslations(locale);
+  const subject = t.reminderPickupAdmin.subject.replace("{number}", reservation.number);
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const html = await render(
     ReminderPickupAdminEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       storeAddress: store.address,
       storeEmail: store.email,
       storePhone: store.phone,
       storeTimezone: store.settings?.timezone,
       storeCountry: store.settings?.country,
-      customerFirstName: customer.firstName,
-      customerLastName: customer.lastName,
-      customerEmail: customer.email,
+      customerFirstName: customer.firstName ?? "",
+      customerLastName: customer.lastName ?? "",
+      customerEmail: customer.email ?? "",
       customerPhone: customer.phone,
       reservationNumber: reservation.number,
       startDate: reservation.startDate,
       total: reservation.totalAmount,
       dashboardUrl,
-      currency: store.settings?.currency || 'PLN',
+      currency: store.settings?.currency || "PLN",
       locale,
-    })
-  )
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments: logo.attachments, fromName: store.name })
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      attachments: logo.attachments,
+      fromName: store.name,
+    });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'reminder_pickup_admin',
-      status: 'sent',
+      templateType: "reminder_pickup_admin",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'reminder_pickup_admin',
-      status: 'failed',
+      templateType: "reminder_pickup_admin",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -847,69 +882,80 @@ export async function sendReminderReturnAdminEmail({
   customer,
   reservation,
   dashboardUrl,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: Store
-  customer: { firstName: string; lastName: string; email: string; phone?: string | null }
+  to: string;
+  store: Store;
+  customer: {
+    firstName?: string | null;
+    lastName?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  };
   reservation: {
-    id: string
-    number: string
-    endDate: Date
-    totalAmount: number
-  }
-  dashboardUrl: string
-  locale?: EmailLocale
+    id: string;
+    number: string;
+    endDate: Date;
+    totalAmount: number;
+  };
+  dashboardUrl: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const subject = t.reminderReturnAdmin.subject.replace('{number}', reservation.number)
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const t = getEmailTranslations(locale);
+  const subject = t.reminderReturnAdmin.subject.replace("{number}", reservation.number);
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const html = await render(
     ReminderReturnAdminEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       storeAddress: store.address,
       storeEmail: store.email,
       storePhone: store.phone,
       storeTimezone: store.settings?.timezone,
       storeCountry: store.settings?.country,
-      customerFirstName: customer.firstName,
-      customerLastName: customer.lastName,
-      customerEmail: customer.email,
+      customerFirstName: customer.firstName ?? "",
+      customerLastName: customer.lastName ?? "",
+      customerEmail: customer.email ?? "",
       customerPhone: customer.phone,
       reservationNumber: reservation.number,
       endDate: reservation.endDate,
       total: reservation.totalAmount,
       dashboardUrl,
-      currency: store.settings?.currency || 'PLN',
+      currency: store.settings?.currency || "PLN",
       locale,
-    })
-  )
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments: logo.attachments, fromName: store.name })
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      attachments: logo.attachments,
+      fromName: store.name,
+    });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'reminder_return_admin',
-      status: 'sent',
+      templateType: "reminder_return_admin",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'reminder_return_admin',
-      status: 'failed',
+      templateType: "reminder_return_admin",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -921,24 +967,24 @@ export async function sendReminderDigestAdminEmail({
   pickups,
   returns,
   dashboardUrl,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: Store
-  dateLabel: string
-  pickups: DigestEntry[]
-  returns: DigestEntry[]
-  dashboardUrl: string
-  locale?: EmailLocale
+  to: string;
+  store: Store;
+  dateLabel: string;
+  pickups: DigestEntry[];
+  returns: DigestEntry[];
+  dashboardUrl: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const subject = t.reminderDigestAdmin.subject.replace('{date}', dateLabel)
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const t = getEmailTranslations(locale);
+  const subject = t.reminderDigestAdmin.subject.replace("{date}", dateLabel);
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const html = await render(
     ReminderDigestAdminEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       storeAddress: store.address,
       storeEmail: store.email,
       storePhone: store.phone,
@@ -947,30 +993,36 @@ export async function sendReminderDigestAdminEmail({
       returns,
       dashboardUrl,
       locale,
-    })
-  )
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments: logo.attachments, fromName: store.name })
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      attachments: logo.attachments,
+      fromName: store.name,
+    });
     await logEmail({
       storeId: store.id,
       to,
       subject,
-      templateType: 'reminder_digest_admin',
-      status: 'sent',
+      templateType: "reminder_digest_admin",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       to,
       subject,
-      templateType: 'reminder_digest_admin',
-      status: 'failed',
+      templateType: "reminder_digest_admin",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -981,33 +1033,33 @@ export async function sendNewRequestLandlordEmail({
   customer,
   reservation,
   dashboardUrl,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: StoreWithEmailDateSettings
-  customer: Customer
+  to: string;
+  store: StoreWithEmailDateSettings;
+  customer: Customer;
   reservation: {
-    id: string
-    number: string
-    startDate: Date
-    endDate: Date
-    totalAmount: number
-    customerNotes?: string | null
-  }
-  dashboardUrl: string
-  locale?: EmailLocale
+    id: string;
+    number: string;
+    startDate: Date;
+    endDate: Date;
+    totalAmount: number;
+    customerNotes?: string | null;
+  };
+  dashboardUrl: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const subject = t.newRequestLandlord.subject.replace('{number}', reservation.number)
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const t = getEmailTranslations(locale);
+  const subject = t.newRequestLandlord.subject.replace("{number}", reservation.number);
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const html = await render(
     NewRequestLandlordEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
-      customerFirstName: customer.firstName,
-      customerLastName: customer.lastName,
-      customerEmail: customer.email,
+      primaryColor: store.theme?.primaryColor || "#0066FF",
+      customerFirstName: customer.firstName ?? "",
+      customerLastName: customer.lastName ?? "",
+      customerEmail: customer.email ?? "",
       reservationNumber: reservation.number,
       startDate: reservation.startDate,
       endDate: reservation.endDate,
@@ -1015,35 +1067,41 @@ export async function sendNewRequestLandlordEmail({
       customerNotes: reservation.customerNotes,
       dashboardUrl,
       locale,
-      currency: store.settings?.currency || 'PLN',
+      currency: store.settings?.currency || "PLN",
       storeTimezone: store.settings?.timezone,
       storeCountryCode: store.settings?.country,
-    })
-  )
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments: logo.attachments, fromName: store.name })
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      attachments: logo.attachments,
+      fromName: store.name,
+    });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'new_request_landlord',
-      status: 'sent',
+      templateType: "new_request_landlord",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'new_request_landlord',
-      status: 'failed',
+      templateType: "new_request_landlord",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -1056,51 +1114,51 @@ export async function sendPhoneCallbackLandlordEmail({
   callerPhone,
   message,
   conversationUrl,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  storeId: string
-  storeName: string
-  primaryColor?: string
-  callerPhone: string
-  message: string
-  conversationUrl: string
-  locale?: EmailLocale
+  to: string;
+  storeId: string;
+  storeName: string;
+  primaryColor?: string;
+  callerPhone: string;
+  message: string;
+  conversationUrl: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const subject = t.phoneCallbackLandlord.subject.replace('{store}', storeName)
+  const t = getEmailTranslations(locale);
+  const subject = t.phoneCallbackLandlord.subject.replace("{store}", storeName);
   const html = await render(
     PhoneCallbackLandlordEmail({
       storeName,
-      primaryColor: primaryColor || '#0066FF',
+      primaryColor: primaryColor || "#0066FF",
       callerPhone,
       message,
       conversationUrl,
       locale,
-    })
-  )
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, fromName: storeName })
+    const result = await sendEmail({ to, subject, html, fromName: storeName });
     await logEmail({
       storeId,
       to,
       subject,
-      templateType: 'phone_callback_landlord',
-      status: 'sent',
+      templateType: "phone_callback_landlord",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId,
       to,
       subject,
-      templateType: 'phone_callback_landlord',
-      status: 'failed',
+      templateType: "phone_callback_landlord",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -1114,33 +1172,33 @@ export async function sendContactMessageEmail({
   senderEmail,
   senderPhone,
   message,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  storeId: string
-  storeName: string
-  primaryColor?: string
-  senderName: string
-  senderEmail: string
-  senderPhone: string | null
-  message: string
-  locale?: EmailLocale
+  to: string;
+  storeId: string;
+  storeName: string;
+  primaryColor?: string;
+  senderName: string;
+  senderEmail: string;
+  senderPhone: string | null;
+  message: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
+  const t = getEmailTranslations(locale);
   const subject = t.contactMessage.subject
-    .replace('{name}', senderName)
-    .replace('{store}', storeName)
+    .replace("{name}", senderName)
+    .replace("{store}", storeName);
   const html = await render(
     ContactMessageEmail({
       storeName,
-      primaryColor: primaryColor || '#0066FF',
+      primaryColor: primaryColor || "#0066FF",
       senderName,
       senderEmail,
       senderPhone,
       message,
       locale,
-    })
-  )
+    }),
+  );
 
   try {
     const result = await sendEmail({
@@ -1149,26 +1207,26 @@ export async function sendContactMessageEmail({
       html,
       fromName: storeName,
       replyTo: senderEmail,
-    })
+    });
     await logEmail({
       storeId,
       to,
       subject,
-      templateType: 'contact_message',
-      status: 'sent',
+      templateType: "contact_message",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId,
       to,
       subject,
-      templateType: 'contact_message',
-      status: 'failed',
+      templateType: "contact_message",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -1182,57 +1240,57 @@ export async function sendVoiceNumberBillingEmail({
   e164,
   credits,
   deadline,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  variant: 'warning' | 'failed' | 'released'
-  to: string
-  storeId: string
-  storeName: string
-  primaryColor?: string
-  e164: string
-  credits: number
-  deadline?: Date | null
-  locale?: EmailLocale
+  variant: "warning" | "failed" | "released";
+  to: string;
+  storeId: string;
+  storeName: string;
+  primaryColor?: string;
+  e164: string;
+  credits: number;
+  deadline?: Date | null;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const subject = t.voiceNumberBilling[variant].subject.replace('{number}', e164)
+  const t = getEmailTranslations(locale);
+  const subject = t.voiceNumberBilling[variant].subject.replace("{number}", e164);
   const deadlineText = deadline
-    ? new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(deadline)
-    : null
+    ? new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(deadline)
+    : null;
   const html = await render(
     VoiceNumberBillingEmail({
       variant,
       storeName,
-      primaryColor: primaryColor || '#0066FF',
+      primaryColor: primaryColor || "#0066FF",
       e164,
       credits,
       deadlineText,
       ctaUrl: `${env.NEXT_PUBLIC_APP_URL}/dashboard/ai-assistant/voice`,
       locale,
-    })
-  )
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, fromName: 'Louez.io' })
+    const result = await sendEmail({ to, subject, html, fromName: "Louez.io" });
     await logEmail({
       storeId,
       to,
       subject,
       templateType: `voice_number_${variant}`,
-      status: 'sent',
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId,
       to,
       subject,
       templateType: `voice_number_${variant}`,
-      status: 'failed',
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -1243,18 +1301,20 @@ export async function sendTeamInvitationEmail({
   storeLogoUrl,
   inviterName,
   invitationUrl,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  storeName: string
-  storeLogoUrl?: string | null
-  inviterName: string
-  invitationUrl: string
-  locale?: EmailLocale
+  to: string;
+  storeName: string;
+  storeLogoUrl?: string | null;
+  inviterName: string;
+  invitationUrl: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const subject = t.teamInvitation.subject.replace('{inviterName}', inviterName).replace('{storeName}', storeName)
-  const logo = await resolveEmailLogo(storeLogoUrl)
+  const t = getEmailTranslations(locale);
+  const subject = t.teamInvitation.subject
+    .replace("{inviterName}", inviterName)
+    .replace("{storeName}", storeName);
+  const logo = await resolveEmailLogo(storeLogoUrl);
   const html = await render(
     TeamInvitationEmail({
       storeName,
@@ -1262,15 +1322,21 @@ export async function sendTeamInvitationEmail({
       inviterName,
       invitationUrl,
       locale,
-    })
-  )
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments: logo.attachments, fromName: storeName })
-    return { success: true, messageId: result.messageId }
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      attachments: logo.attachments,
+      fromName: storeName,
+    });
+    return { success: true, messageId: result.messageId };
   } catch (error) {
-    console.error('Failed to send team invitation email:', error)
-    throw error
+    console.error("Failed to send team invitation email:", error);
+    throw error;
   }
 }
 
@@ -1285,26 +1351,24 @@ export async function sendRewardUnlockedEmail({
   freeReservations,
   rewardValue,
   ctaUrl,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  storeName: string
-  storeLogoUrl?: string | null
-  primaryColor?: string
-  referredStoreName: string
-  kind: 'free_reservations' | 'invoice_credit'
-  freeReservations: number
-  rewardValue: string
-  ctaUrl: string
-  locale?: EmailLocale
+  to: string;
+  storeName: string;
+  storeLogoUrl?: string | null;
+  primaryColor?: string;
+  referredStoreName: string;
+  kind: "free_reservations" | "invoice_credit";
+  freeReservations: number;
+  rewardValue: string;
+  ctaUrl: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
+  const t = getEmailTranslations(locale);
   const subjectLine =
-    kind === 'invoice_credit'
-      ? t.rewardUnlocked.subjectCredit
-      : t.rewardUnlocked.subject
-  const subject = `${subjectLine} - ${storeName}`
-  const logo = await resolveEmailLogo(storeLogoUrl)
+    kind === "invoice_credit" ? t.rewardUnlocked.subjectCredit : t.rewardUnlocked.subject;
+  const subject = `${subjectLine} - ${storeName}`;
+  const logo = await resolveEmailLogo(storeLogoUrl);
   const html = await render(
     RewardUnlockedEmail({
       storeName,
@@ -1316,34 +1380,40 @@ export async function sendRewardUnlockedEmail({
       rewardValue,
       ctaUrl,
       locale,
-    })
-  )
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments: logo.attachments, fromName: storeName })
-    return { success: true, messageId: result.messageId }
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      attachments: logo.attachments,
+      fromName: storeName,
+    });
+    return { success: true, messageId: result.messageId };
   } catch (error) {
-    console.error('Failed to send reward unlocked email:', error)
-    throw error
+    console.error("Failed to send reward unlocked email:", error);
+    throw error;
   }
 }
 
 // Instant Access Email (for sending access links to customers)
 interface InstantAccessEmailParams {
-  store: Store
-  customer: Customer
+  store: Store;
+  customer: Customer;
   reservation: {
-    id: string
-    number: string
-    startDate: Date
-    endDate: Date
-    totalAmount: number
-  }
-  items: { name: string; quantity: number; totalPrice: number }[]
-  accessUrl: string
-  showPaymentCta: boolean
-  additionalMessage?: string | null
-  locale?: EmailLocale
+    id: string;
+    number: string;
+    startDate: Date;
+    endDate: Date;
+    totalAmount: number;
+  };
+  items: { name: string; quantity: number; totalPrice: number }[];
+  accessUrl: string;
+  showPaymentCta: boolean;
+  additionalMessage?: string | null;
+  locale?: EmailLocale;
 }
 
 export async function renderInstantAccessEmail({
@@ -1354,9 +1424,9 @@ export async function renderInstantAccessEmail({
   accessUrl,
   showPaymentCta,
   additionalMessage,
-  locale = 'fr',
+  locale = "fr",
 }: InstantAccessEmailParams): Promise<RenderedEmail> {
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const { subject, element } = composeInstantAccessEmail({
     store,
     customer,
@@ -1372,9 +1442,9 @@ export async function renderInstantAccessEmail({
     additionalMessage,
     locale,
     logoUrl: logo.url,
-  })
+  });
 
-  return { subject, html: await render(element), attachments: logo.attachments }
+  return { subject, html: await render(element), attachments: logo.attachments };
 }
 
 export async function sendInstantAccessEmail({
@@ -1386,7 +1456,7 @@ export async function sendInstantAccessEmail({
   accessUrl,
   showPaymentCta,
   additionalMessage,
-  locale = 'fr',
+  locale = "fr",
 }: InstantAccessEmailParams & { to: string }) {
   const { subject, html, attachments } = await renderInstantAccessEmail({
     store,
@@ -1397,31 +1467,31 @@ export async function sendInstantAccessEmail({
     showPaymentCta,
     additionalMessage,
     locale,
-  })
+  });
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments, fromName: store.name })
+    const result = await sendEmail({ to, subject, html, attachments, fromName: store.name });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'instant_access',
-      status: 'sent',
+      templateType: "instant_access",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'instant_access',
-      status: 'failed',
+      templateType: "instant_access",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -1432,79 +1502,85 @@ export async function sendThankYouReviewEmail({
   customer,
   reservation,
   reviewUrl,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
+  to: string;
   store: {
-    id: string
-    name: string
-    logoUrl?: string | null
-    darkLogoUrl?: string | null
-    email?: string | null
-    phone?: string | null
-    address?: string | null
-    theme?: { mode?: 'light' | 'dark'; primaryColor?: string } | null
+    id: string;
+    name: string;
+    logoUrl?: string | null;
+    darkLogoUrl?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    address?: string | null;
+    theme?: { mode?: "light" | "dark"; primaryColor?: string } | null;
     settings?: {
-      country?: string
-      timezone?: string
-    } | null
-  }
-  customer: { firstName: string }
+      country?: string;
+      timezone?: string;
+    } | null;
+  };
+  customer: { firstName?: string | null };
   reservation: {
-    id: string
-    number: string
-    startDate: Date
-    endDate: Date
-  }
-  reviewUrl: string
-  locale?: EmailLocale
+    id: string;
+    number: string;
+    startDate: Date;
+    endDate: Date;
+  };
+  reviewUrl: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const subject = `${t.thankYouReview.subject} - ${store.name}`
+  const t = getEmailTranslations(locale);
+  const subject = `${t.thankYouReview.subject} - ${store.name}`;
 
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const html = await render(
     ThankYouReviewEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       storeAddress: store.address,
       storePhone: store.phone,
       storeEmail: store.email,
       storeTimezone: store.settings?.timezone,
       storeCountry: store.settings?.country,
-      customerFirstName: customer.firstName,
+      customerFirstName: customer.firstName || "",
       reservationNumber: reservation.number,
       startDate: reservation.startDate,
       endDate: reservation.endDate,
       reviewUrl,
       locale,
-    })
-  )
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments: logo.attachments, fromName: store.name })
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      attachments: logo.attachments,
+      fromName: store.name,
+    });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'thank_you_review',
-      status: 'sent',
+      templateType: "thank_you_review",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'thank_you_review',
-      status: 'failed',
+      templateType: "thank_you_review",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -1516,68 +1592,74 @@ export async function sendReservationCancelledEmail({
   reservation,
   reason,
   storefrontUrl,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: Store
-  customer: Customer
+  to: string;
+  store: Store;
+  customer: Customer;
   reservation: {
-    id: string
-    number: string
-    startDate: Date
-    endDate: Date
-  }
-  reason?: string | null
-  storefrontUrl?: string
-  locale?: EmailLocale
+    id: string;
+    number: string;
+    startDate: Date;
+    endDate: Date;
+  };
+  reason?: string | null;
+  storefrontUrl?: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const subject = `${t.reservationCancelled.subject.replace('{number}', reservation.number)} - ${store.name}`
+  const t = getEmailTranslations(locale);
+  const subject = `${t.reservationCancelled.subject.replace("{number}", reservation.number)} - ${store.name}`;
 
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const html = await render(
     ReservationCancelledEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       storeAddress: store.address,
       storeEmail: store.email,
       storePhone: store.phone,
       storeTimezone: store.settings?.timezone,
       storeCountry: store.settings?.country,
-      customerFirstName: customer.firstName,
+      customerFirstName: customer.firstName ?? "",
       reservationNumber: reservation.number,
       startDate: reservation.startDate,
       endDate: reservation.endDate,
       reason,
       storefrontUrl,
       locale,
-    })
-  )
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments: logo.attachments, fromName: store.name })
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      attachments: logo.attachments,
+      fromName: store.name,
+    });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'reservation_cancelled',
-      status: 'sent',
+      templateType: "reservation_cancelled",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'reservation_cancelled',
-      status: 'failed',
+      templateType: "reservation_cancelled",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -1590,37 +1672,37 @@ export async function sendReservationCompletedEmail({
   depositAmount,
   depositReturned,
   storefrontUrl,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: Store
-  customer: Customer
+  to: string;
+  store: Store;
+  customer: Customer;
   reservation: {
-    id: string
-    number: string
-    startDate: Date
-    endDate: Date
-  }
-  depositAmount?: number | null
-  depositReturned?: boolean
-  storefrontUrl?: string
-  locale?: EmailLocale
+    id: string;
+    number: string;
+    startDate: Date;
+    endDate: Date;
+  };
+  depositAmount?: number | null;
+  depositReturned?: boolean;
+  storefrontUrl?: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const subject = `${t.reservationCompleted.subject.replace('{number}', reservation.number)} - ${store.name}`
+  const t = getEmailTranslations(locale);
+  const subject = `${t.reservationCompleted.subject.replace("{number}", reservation.number)} - ${store.name}`;
 
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const html = await render(
     ReservationCompletedEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       storeAddress: store.address,
       storeEmail: store.email,
       storePhone: store.phone,
       storeTimezone: store.settings?.timezone,
       storeCountry: store.settings?.country,
-      customerFirstName: customer.firstName,
+      customerFirstName: customer.firstName ?? "",
       reservationNumber: reservation.number,
       startDate: reservation.startDate,
       endDate: reservation.endDate,
@@ -1628,33 +1710,39 @@ export async function sendReservationCompletedEmail({
       depositReturned,
       storefrontUrl,
       locale,
-      currency: store.settings?.currency || 'PLN',
-    })
-  )
+      currency: store.settings?.currency || "PLN",
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments: logo.attachments, fromName: store.name })
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      attachments: logo.attachments,
+      fromName: store.name,
+    });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'reservation_completed',
-      status: 'sent',
+      templateType: "reservation_completed",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'reservation_completed',
-      status: 'failed',
+      templateType: "reservation_completed",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -1670,38 +1758,38 @@ export async function sendPaymentConfirmationEmail({
   reservationUrl,
   documentAttachments = [],
   contractSignatureUrl,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: Store
-  customer: Customer
+  to: string;
+  store: Store;
+  customer: Customer;
   reservation: {
-    id: string
-    number: string
-  }
-  paymentAmount: number
-  paymentDate: Date
-  paymentMethod?: string | null
-  reservationUrl?: string
-  documentAttachments?: EmailAttachment[]
-  contractSignatureUrl?: string
-  locale?: EmailLocale
+    id: string;
+    number: string;
+  };
+  paymentAmount: number;
+  paymentDate: Date;
+  paymentMethod?: string | null;
+  reservationUrl?: string;
+  documentAttachments?: EmailAttachment[];
+  contractSignatureUrl?: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const subject = `${t.paymentConfirmation.subject.replace('{number}', reservation.number)} - ${store.name}`
+  const t = getEmailTranslations(locale);
+  const subject = `${t.paymentConfirmation.subject.replace("{number}", reservation.number)} - ${store.name}`;
 
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const html = await render(
     PaymentConfirmationEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       storeAddress: store.address,
       storeEmail: store.email,
       storePhone: store.phone,
       storeTimezone: store.settings?.timezone,
       storeCountry: store.settings?.country,
-      customerFirstName: customer.firstName,
+      customerFirstName: customer.firstName ?? "",
       reservationNumber: reservation.number,
       paymentAmount,
       paymentDate,
@@ -1709,9 +1797,9 @@ export async function sendPaymentConfirmationEmail({
       reservationUrl,
       contractSignatureUrl,
       locale,
-      currency: store.settings?.currency || 'PLN',
-    })
-  )
+      currency: store.settings?.currency || "PLN",
+    }),
+  );
 
   try {
     const result = await sendEmail({
@@ -1720,28 +1808,28 @@ export async function sendPaymentConfirmationEmail({
       html,
       attachments: [...logo.attachments, ...documentAttachments],
       fromName: store.name,
-    })
+    });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'payment_confirmation',
-      status: 'sent',
+      templateType: "payment_confirmation",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'payment_confirmation',
-      status: 'failed',
+      templateType: "payment_confirmation",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -1754,65 +1842,71 @@ export async function sendPaymentFailedEmail({
   paymentAmount,
   errorMessage,
   paymentUrl,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: Store
-  customer: Customer
+  to: string;
+  store: Store;
+  customer: Customer;
   reservation: {
-    id: string
-    number: string
-  }
-  paymentAmount: number
-  errorMessage?: string | null
-  paymentUrl?: string
-  locale?: EmailLocale
+    id: string;
+    number: string;
+  };
+  paymentAmount: number;
+  errorMessage?: string | null;
+  paymentUrl?: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const subject = `${t.paymentFailed.subject.replace('{number}', reservation.number)} - ${store.name}`
+  const t = getEmailTranslations(locale);
+  const subject = `${t.paymentFailed.subject.replace("{number}", reservation.number)} - ${store.name}`;
 
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const html = await render(
     PaymentFailedEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       storeAddress: store.address,
       storeEmail: store.email,
       storePhone: store.phone,
-      customerFirstName: customer.firstName,
+      customerFirstName: customer.firstName ?? "",
       reservationNumber: reservation.number,
       paymentAmount,
       errorMessage,
       paymentUrl,
       locale,
-      currency: store.settings?.currency || 'PLN',
-    })
-  )
+      currency: store.settings?.currency || "PLN",
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments: logo.attachments, fromName: store.name })
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      attachments: logo.attachments,
+      fromName: store.name,
+    });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'payment_failed',
-      status: 'sent',
+      templateType: "payment_failed",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'payment_failed',
-      status: 'failed',
+      templateType: "payment_failed",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -1826,67 +1920,73 @@ export async function sendPaymentRequestEmail({
   description,
   paymentUrl,
   customMessage,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: Store
-  customer: Customer
+  to: string;
+  store: Store;
+  customer: Customer;
   reservation: {
-    id: string
-    number: string
-  }
-  amount: number
-  description: string
-  paymentUrl: string
-  customMessage?: string
-  locale?: EmailLocale
+    id: string;
+    number: string;
+  };
+  amount: number;
+  description: string;
+  paymentUrl: string;
+  customMessage?: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const subject = `${t.paymentRequest.subject.replace('{number}', reservation.number)} - ${store.name}`
+  const t = getEmailTranslations(locale);
+  const subject = `${t.paymentRequest.subject.replace("{number}", reservation.number)} - ${store.name}`;
 
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const html = await render(
     PaymentRequestEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       storeAddress: store.address,
       storeEmail: store.email,
       storePhone: store.phone,
-      customerFirstName: customer.firstName,
+      customerFirstName: customer.firstName ?? "",
       reservationNumber: reservation.number,
       amount,
       description,
       paymentUrl,
       customMessage,
       locale,
-      currency: store.settings?.currency || 'PLN',
-    })
-  )
+      currency: store.settings?.currency || "PLN",
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments: logo.attachments, fromName: store.name })
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      attachments: logo.attachments,
+      fromName: store.name,
+    });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'payment_request',
-      status: 'sent',
+      templateType: "payment_request",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'payment_request',
-      status: 'failed',
+      templateType: "payment_request",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -1899,65 +1999,71 @@ export async function sendDepositAuthorizationRequestEmail({
   depositAmount,
   authorizationUrl,
   customMessage,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: Store
-  customer: Customer
+  to: string;
+  store: Store;
+  customer: Customer;
   reservation: {
-    id: string
-    number: string
-  }
-  depositAmount: number
-  authorizationUrl: string
-  customMessage?: string
-  locale?: EmailLocale
+    id: string;
+    number: string;
+  };
+  depositAmount: number;
+  authorizationUrl: string;
+  customMessage?: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const subject = `${t.depositAuthorizationRequest.subject.replace('{number}', reservation.number)} - ${store.name}`
+  const t = getEmailTranslations(locale);
+  const subject = `${t.depositAuthorizationRequest.subject.replace("{number}", reservation.number)} - ${store.name}`;
 
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const html = await render(
     DepositAuthorizationRequestEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       storeAddress: store.address,
       storeEmail: store.email,
       storePhone: store.phone,
-      customerFirstName: customer.firstName,
+      customerFirstName: customer.firstName ?? "",
       reservationNumber: reservation.number,
       depositAmount,
       authorizationUrl,
       customMessage,
       locale,
-      currency: store.settings?.currency || 'PLN',
-    })
-  )
+      currency: store.settings?.currency || "PLN",
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments: logo.attachments, fromName: store.name })
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      attachments: logo.attachments,
+      fromName: store.name,
+    });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'deposit_authorization_request',
-      status: 'sent',
+      templateType: "deposit_authorization_request",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'deposit_authorization_request',
-      status: 'failed',
+      templateType: "deposit_authorization_request",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -1969,37 +2075,37 @@ export async function sendQuoteSentEmail({
   reservation,
   items,
   reservationUrl,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: Store
-  customer: Customer
+  to: string;
+  store: Store;
+  customer: Customer;
   reservation: {
-    id: string
-    number: string
-    startDate: Date
-    endDate: Date
-    totalAmount: number
-  }
-  items: { name: string; quantity: number; totalPrice: number }[]
-  reservationUrl: string
-  locale?: EmailLocale
+    id: string;
+    number: string;
+    startDate: Date;
+    endDate: Date;
+    totalAmount: number;
+  };
+  items: { name: string; quantity: number; totalPrice: number }[];
+  reservationUrl: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const subject = `${t.quoteSent.subject.replace('{number}', reservation.number)} - ${store.name}`
+  const t = getEmailTranslations(locale);
+  const subject = `${t.quoteSent.subject.replace("{number}", reservation.number)} - ${store.name}`;
 
-  const logo = await resolveEmailLogo(getLogoForLightBackground(store))
+  const logo = await resolveEmailLogo(getLogoForLightBackground(store));
   const html = await render(
     QuoteSentEmail({
       storeName: store.name,
       logoUrl: logo.url,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       storeAddress: store.address,
       storeEmail: store.email,
       storePhone: store.phone,
       storeTimezone: store.settings?.timezone,
       storeCountry: store.settings?.country,
-      customerFirstName: customer.firstName,
+      customerFirstName: customer.firstName ?? "",
       reservationNumber: reservation.number,
       startDate: reservation.startDate,
       endDate: reservation.endDate,
@@ -2007,33 +2113,39 @@ export async function sendQuoteSentEmail({
       total: reservation.totalAmount,
       reservationUrl,
       locale,
-      currency: store.settings?.currency || 'PLN',
-    })
-  )
+      currency: store.settings?.currency || "PLN",
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, attachments: logo.attachments, fromName: store.name })
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      attachments: logo.attachments,
+      fromName: store.name,
+    });
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'quote_sent',
-      status: 'sent',
+      templateType: "quote_sent",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       reservationId: reservation.id,
       to,
       subject,
-      templateType: 'quote_sent',
-      status: 'failed',
+      templateType: "quote_sent",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }
 
@@ -2043,54 +2155,54 @@ export async function sendSupplierInvoiceReceivedEmail({
   store,
   invoice,
   dashboardUrl,
-  locale = 'fr',
+  locale = "fr",
 }: {
-  to: string
-  store: Store
+  to: string;
+  store: Store;
   invoice: {
-    sellerName: string
-    number: string
-    totalInclTax: string
-    currency: string
-  }
-  dashboardUrl: string
-  locale?: EmailLocale
+    sellerName: string;
+    number: string;
+    totalInclTax: string;
+    currency: string;
+  };
+  dashboardUrl: string;
+  locale?: EmailLocale;
 }) {
-  const t = getEmailTranslations(locale)
-  const subject = t.supplierInvoiceReceived.subject
+  const t = getEmailTranslations(locale);
+  const subject = t.supplierInvoiceReceived.subject;
   const html = await render(
     SupplierInvoiceReceivedEmail({
       storeName: store.name,
-      primaryColor: store.theme?.primaryColor || '#0066FF',
+      primaryColor: store.theme?.primaryColor || "#0066FF",
       sellerName: invoice.sellerName,
       invoiceNumber: invoice.number,
       totalInclTax: invoice.totalInclTax,
       currency: invoice.currency,
       dashboardUrl,
       locale,
-    })
-  )
+    }),
+  );
 
   try {
-    const result = await sendEmail({ to, subject, html, fromName: 'Louez.io' })
+    const result = await sendEmail({ to, subject, html, fromName: "Louez.io" });
     await logEmail({
       storeId: store.id,
       to,
       subject,
-      templateType: 'supplier_invoice_received',
-      status: 'sent',
+      templateType: "supplier_invoice_received",
+      status: "sent",
       messageId: result.messageId,
-    })
-    return { success: true }
+    });
+    return { success: true };
   } catch (error) {
     await logEmail({
       storeId: store.id,
       to,
       subject,
-      templateType: 'supplier_invoice_received',
-      status: 'failed',
+      templateType: "supplier_invoice_received",
+      status: "failed",
       error: String(error),
-    })
-    throw error
+    });
+    throw error;
   }
 }

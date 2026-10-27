@@ -1,11 +1,11 @@
-import { db } from '@louez/db'
-import { discordLogs } from '@louez/db'
-import { formatCurrency } from '@louez/utils'
-import { format } from 'date-fns'
+import { db } from "@louez/db";
+import { discordLogs } from "@louez/db";
+import { formatCurrency } from "@louez/utils";
+import { format } from "date-fns";
 
-import { sendDiscordNotification, type DiscordEmbed } from './client'
-import type { NotificationEventType } from '@louez/types'
-import { getConfiguredFormatLocale } from '@/lib/i18n/configured-format-locale'
+import { sendDiscordNotification, type DiscordEmbed } from "./client";
+import type { NotificationEventType } from "@louez/types";
+import { getConfiguredFormatLocale } from "@/lib/i18n/configured-format-locale";
 
 // Discord embed colors
 const COLORS = {
@@ -13,44 +13,49 @@ const COLORS = {
   success: 0x22c55e, // green
   warning: 0xf59e0b, // amber
   error: 0xef4444, // red
-}
+};
 
 interface DiscordNotificationContext {
   store: {
-    id: string
-    name: string
-    discordWebhookUrl: string | null
-  }
+    id: string;
+    name: string;
+    discordWebhookUrl: string | null;
+  };
   reservation?: {
-    id: string
-    number: string
-    startDate: Date
-    endDate: Date
-    totalAmount: number
-    currency?: string
-  }
+    id: string;
+    number: string;
+    startDate: Date;
+    endDate: Date;
+    totalAmount: number;
+    currency?: string;
+  };
   customer?: {
-    firstName: string
-    lastName: string
-    email: string
-    phone?: string | null
-  }
+    firstName?: string | null;
+    lastName?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  };
   payment?: {
-    amount: number
-    currency?: string
-  }
+    amount: number;
+    currency?: string;
+  };
 }
 
 function formatDate(date: Date): string {
-  return format(date, 'dd MMM yyyy', { locale: getConfiguredFormatLocale().dateFns })
+  return format(date, "dd MMM yyyy", { locale: getConfiguredFormatLocale().dateFns });
+}
+
+function formatCustomerName(customer?: DiscordNotificationContext["customer"]): string {
+  if (!customer) return "—";
+  return [customer.firstName, customer.lastName].filter(Boolean).join(" ") || "—";
 }
 
 async function logDiscordNotification(
   storeId: string,
   eventType: NotificationEventType,
   reservationId?: string,
-  status: 'sent' | 'failed' = 'sent',
-  error?: string
+  status: "sent" | "failed" = "sent",
+  error?: string,
 ) {
   try {
     await db.insert(discordLogs).values({
@@ -59,310 +64,310 @@ async function logDiscordNotification(
       eventType,
       status,
       error,
-    })
+    });
   } catch (e) {
-    console.error('Failed to log Discord notification:', e)
+    console.error("Failed to log Discord notification:", e);
   }
 }
 
 async function sendAndLog(
   ctx: DiscordNotificationContext,
   eventType: NotificationEventType,
-  embed: DiscordEmbed
+  embed: DiscordEmbed,
 ) {
-  if (!ctx.store.discordWebhookUrl) return { success: false, error: 'No webhook configured' }
+  if (!ctx.store.discordWebhookUrl) return { success: false, error: "No webhook configured" };
 
   const result = await sendDiscordNotification(ctx.store.discordWebhookUrl, {
     embeds: [embed],
-  })
+  });
 
   await logDiscordNotification(
     ctx.store.id,
     eventType,
     ctx.reservation?.id,
-    result.success ? 'sent' : 'failed',
-    result.error
-  )
+    result.success ? "sent" : "failed",
+    result.error,
+  );
 
-  return result
+  return result;
 }
 
 export async function sendNewReservationDiscord(ctx: DiscordNotificationContext) {
-  if (!ctx.reservation || !ctx.customer) return
+  if (!ctx.reservation || !ctx.customer) return;
 
   const embed: DiscordEmbed = {
     title: `Nouvelle demande #${ctx.reservation.number}`,
     color: COLORS.info,
     fields: [
       {
-        name: 'Client',
-        value: `${ctx.customer.firstName} ${ctx.customer.lastName}`,
+        name: "Client",
+        value: formatCustomerName(ctx.customer),
         inline: true,
       },
       {
-        name: 'Email',
-        value: ctx.customer.email,
+        name: "Email",
+        value: ctx.customer.email || "—",
         inline: true,
       },
       {
-        name: 'Dates',
+        name: "Dates",
         value: `${formatDate(ctx.reservation.startDate)} - ${formatDate(ctx.reservation.endDate)}`,
         inline: false,
       },
       {
-        name: 'Montant',
+        name: "Montant",
         value: formatCurrency(ctx.reservation.totalAmount, ctx.reservation.currency),
         inline: true,
       },
     ],
     timestamp: new Date().toISOString(),
     footer: { text: ctx.store.name },
-  }
+  };
 
-  return sendAndLog(ctx, 'reservation_new', embed)
+  return sendAndLog(ctx, "reservation_new", embed);
 }
 
 export async function sendReservationConfirmedDiscord(ctx: DiscordNotificationContext) {
-  if (!ctx.reservation || !ctx.customer) return
+  if (!ctx.reservation || !ctx.customer) return;
 
   const embed: DiscordEmbed = {
     title: `Réservation confirmée #${ctx.reservation.number}`,
     color: COLORS.success,
     fields: [
       {
-        name: 'Client',
-        value: `${ctx.customer.firstName} ${ctx.customer.lastName}`,
+        name: "Client",
+        value: formatCustomerName(ctx.customer),
         inline: true,
       },
       {
-        name: 'Dates',
+        name: "Dates",
         value: `${formatDate(ctx.reservation.startDate)} - ${formatDate(ctx.reservation.endDate)}`,
         inline: false,
       },
       {
-        name: 'Montant',
+        name: "Montant",
         value: formatCurrency(ctx.reservation.totalAmount, ctx.reservation.currency),
         inline: true,
       },
     ],
     timestamp: new Date().toISOString(),
     footer: { text: ctx.store.name },
-  }
+  };
 
-  return sendAndLog(ctx, 'reservation_confirmed', embed)
+  return sendAndLog(ctx, "reservation_confirmed", embed);
 }
 
 export async function sendReservationRejectedDiscord(ctx: DiscordNotificationContext) {
-  if (!ctx.reservation || !ctx.customer) return
+  if (!ctx.reservation || !ctx.customer) return;
 
   const embed: DiscordEmbed = {
     title: `Réservation rejetée #${ctx.reservation.number}`,
     color: COLORS.error,
     fields: [
       {
-        name: 'Client',
-        value: `${ctx.customer.firstName} ${ctx.customer.lastName}`,
+        name: "Client",
+        value: formatCustomerName(ctx.customer),
         inline: true,
       },
       {
-        name: 'Dates',
+        name: "Dates",
         value: `${formatDate(ctx.reservation.startDate)} - ${formatDate(ctx.reservation.endDate)}`,
         inline: false,
       },
     ],
     timestamp: new Date().toISOString(),
     footer: { text: ctx.store.name },
-  }
+  };
 
-  return sendAndLog(ctx, 'reservation_rejected', embed)
+  return sendAndLog(ctx, "reservation_rejected", embed);
 }
 
 export async function sendReservationCancelledDiscord(ctx: DiscordNotificationContext) {
-  if (!ctx.reservation || !ctx.customer) return
+  if (!ctx.reservation || !ctx.customer) return;
 
   const embed: DiscordEmbed = {
     title: `Réservation annulée #${ctx.reservation.number}`,
     color: COLORS.warning,
     fields: [
       {
-        name: 'Client',
-        value: `${ctx.customer.firstName} ${ctx.customer.lastName}`,
+        name: "Client",
+        value: formatCustomerName(ctx.customer),
         inline: true,
       },
       {
-        name: 'Dates',
+        name: "Dates",
         value: `${formatDate(ctx.reservation.startDate)} - ${formatDate(ctx.reservation.endDate)}`,
         inline: false,
       },
     ],
     timestamp: new Date().toISOString(),
     footer: { text: ctx.store.name },
-  }
+  };
 
-  return sendAndLog(ctx, 'reservation_cancelled', embed)
+  return sendAndLog(ctx, "reservation_cancelled", embed);
 }
 
 export async function sendReservationPickedUpDiscord(ctx: DiscordNotificationContext) {
-  if (!ctx.reservation || !ctx.customer) return
+  if (!ctx.reservation || !ctx.customer) return;
 
   const embed: DiscordEmbed = {
     title: `Équipement récupéré #${ctx.reservation.number}`,
     color: COLORS.success,
     fields: [
       {
-        name: 'Client',
-        value: `${ctx.customer.firstName} ${ctx.customer.lastName}`,
+        name: "Client",
+        value: formatCustomerName(ctx.customer),
         inline: true,
       },
       {
-        name: 'Retour prévu',
+        name: "Retour prévu",
         value: formatDate(ctx.reservation.endDate),
         inline: true,
       },
     ],
     timestamp: new Date().toISOString(),
     footer: { text: ctx.store.name },
-  }
+  };
 
-  return sendAndLog(ctx, 'reservation_picked_up', embed)
+  return sendAndLog(ctx, "reservation_picked_up", embed);
 }
 
 export async function sendReservationCompletedDiscord(ctx: DiscordNotificationContext) {
-  if (!ctx.reservation || !ctx.customer) return
+  if (!ctx.reservation || !ctx.customer) return;
 
   const embed: DiscordEmbed = {
     title: `Réservation terminée #${ctx.reservation.number}`,
     color: COLORS.success,
     fields: [
       {
-        name: 'Client',
-        value: `${ctx.customer.firstName} ${ctx.customer.lastName}`,
+        name: "Client",
+        value: formatCustomerName(ctx.customer),
         inline: true,
       },
       {
-        name: 'Montant',
+        name: "Montant",
         value: formatCurrency(ctx.reservation.totalAmount, ctx.reservation.currency),
         inline: true,
       },
     ],
     timestamp: new Date().toISOString(),
     footer: { text: ctx.store.name },
-  }
+  };
 
-  return sendAndLog(ctx, 'reservation_completed', embed)
+  return sendAndLog(ctx, "reservation_completed", embed);
 }
 
 export async function sendReminderPickupAdminDiscord(ctx: DiscordNotificationContext) {
-  if (!ctx.reservation || !ctx.customer) return
+  if (!ctx.reservation || !ctx.customer) return;
 
   const embed: DiscordEmbed = {
     title: `Rappel : retrait à venir #${ctx.reservation.number}`,
     color: COLORS.info,
     fields: [
       {
-        name: 'Client',
-        value: `${ctx.customer.firstName} ${ctx.customer.lastName}`,
+        name: "Client",
+        value: formatCustomerName(ctx.customer),
         inline: true,
       },
       {
-        name: 'Retrait prévu',
+        name: "Retrait prévu",
         value: formatDate(ctx.reservation.startDate),
         inline: true,
       },
       {
-        name: 'Montant',
+        name: "Montant",
         value: formatCurrency(ctx.reservation.totalAmount, ctx.reservation.currency),
         inline: true,
       },
     ],
     timestamp: new Date().toISOString(),
     footer: { text: ctx.store.name },
-  }
+  };
 
-  return sendAndLog(ctx, 'reservation_reminder_pickup', embed)
+  return sendAndLog(ctx, "reservation_reminder_pickup", embed);
 }
 
 export async function sendReminderReturnAdminDiscord(ctx: DiscordNotificationContext) {
-  if (!ctx.reservation || !ctx.customer) return
+  if (!ctx.reservation || !ctx.customer) return;
 
   const embed: DiscordEmbed = {
     title: `Rappel : retour à venir #${ctx.reservation.number}`,
     color: COLORS.warning,
     fields: [
       {
-        name: 'Client',
-        value: `${ctx.customer.firstName} ${ctx.customer.lastName}`,
+        name: "Client",
+        value: formatCustomerName(ctx.customer),
         inline: true,
       },
       {
-        name: 'Retour prévu',
+        name: "Retour prévu",
         value: formatDate(ctx.reservation.endDate),
         inline: true,
       },
       {
-        name: 'Montant',
+        name: "Montant",
         value: formatCurrency(ctx.reservation.totalAmount, ctx.reservation.currency),
         inline: true,
       },
     ],
     timestamp: new Date().toISOString(),
     footer: { text: ctx.store.name },
-  }
+  };
 
-  return sendAndLog(ctx, 'reservation_reminder_return', embed)
+  return sendAndLog(ctx, "reservation_reminder_return", embed);
 }
 
 interface DigestLine {
-  number: string
-  customerName: string
-  timeLabel: string
+  number: string;
+  customerName: string;
+  timeLabel: string;
 }
 
 function formatDigestLines(lines: DigestLine[]): string {
   // Discord embed field values are capped at 1024 chars. Keep whole lines and
   // append an overflow marker rather than slicing mid-line and silently dropping.
-  const rendered = lines.map((l) => `\`${l.timeLabel}\` #${l.number} — ${l.customerName}`)
-  const out: string[] = []
-  let length = 0
+  const rendered = lines.map((l) => `\`${l.timeLabel}\` #${l.number} — ${l.customerName}`);
+  const out: string[] = [];
+  let length = 0;
   for (let i = 0; i < rendered.length; i++) {
-    const line = rendered[i]
-    const remaining = rendered.length - i
-    const marker = `… +${remaining} more`
+    const line = rendered[i];
+    const remaining = rendered.length - i;
+    const marker = `… +${remaining} more`;
     // Stop if adding this line would leave no room for an overflow marker.
     if (length + line.length + 1 > 1024 - (marker.length + 1) && remaining > 1) {
-      out.push(marker)
-      break
+      out.push(marker);
+      break;
     }
-    out.push(line)
-    length += line.length + 1
+    out.push(line);
+    length += line.length + 1;
   }
-  return out.join('\n').slice(0, 1024)
+  return out.join("\n").slice(0, 1024);
 }
 
 export async function sendReminderDigestAdminDiscord(ctx: {
-  store: { id: string; name: string; discordWebhookUrl: string | null }
-  dateLabel: string
-  pickupsLabel: string
-  returnsLabel: string
-  pickups: DigestLine[]
-  returns: DigestLine[]
+  store: { id: string; name: string; discordWebhookUrl: string | null };
+  dateLabel: string;
+  pickupsLabel: string;
+  returnsLabel: string;
+  pickups: DigestLine[];
+  returns: DigestLine[];
 }): Promise<{ success: boolean; error?: string }> {
-  if (!ctx.store.discordWebhookUrl) return { success: false, error: 'No webhook configured' }
+  if (!ctx.store.discordWebhookUrl) return { success: false, error: "No webhook configured" };
 
-  const fields: DiscordEmbed['fields'] = []
+  const fields: DiscordEmbed["fields"] = [];
   if (ctx.pickups.length > 0) {
     fields.push({
       name: ctx.pickupsLabel,
       value: formatDigestLines(ctx.pickups),
       inline: false,
-    })
+    });
   }
   if (ctx.returns.length > 0) {
     fields.push({
       name: ctx.returnsLabel,
       value: formatDigestLines(ctx.returns),
       inline: false,
-    })
+    });
   }
 
   const embed: DiscordEmbed = {
@@ -371,76 +376,72 @@ export async function sendReminderDigestAdminDiscord(ctx: {
     fields,
     timestamp: new Date().toISOString(),
     footer: { text: ctx.store.name },
-  }
+  };
 
-  const result = await sendDiscordNotification(ctx.store.discordWebhookUrl, { embeds: [embed] })
+  const result = await sendDiscordNotification(ctx.store.discordWebhookUrl, { embeds: [embed] });
 
   try {
     await db.insert(discordLogs).values({
       storeId: ctx.store.id,
-      eventType: 'admin_digest',
-      status: result.success ? 'sent' : 'failed',
+      eventType: "admin_digest",
+      status: result.success ? "sent" : "failed",
       error: result.error,
-    })
+    });
   } catch (e) {
-    console.error('Failed to log Discord digest notification:', e)
+    console.error("Failed to log Discord digest notification:", e);
   }
 
-  return result
+  return result;
 }
 
 export async function sendPaymentReceivedDiscord(ctx: DiscordNotificationContext) {
-  if (!ctx.reservation || !ctx.payment) return
+  if (!ctx.reservation || !ctx.payment) return;
 
   const embed: DiscordEmbed = {
     title: `Paiement reçu #${ctx.reservation.number}`,
     color: COLORS.success,
     fields: [
       {
-        name: 'Montant',
+        name: "Montant",
         value: formatCurrency(ctx.payment.amount, ctx.payment.currency),
         inline: true,
       },
       {
-        name: 'Client',
-        value: ctx.customer
-          ? `${ctx.customer.firstName} ${ctx.customer.lastName}`
-          : 'N/A',
+        name: "Client",
+        value: formatCustomerName(ctx.customer),
         inline: true,
       },
     ],
     timestamp: new Date().toISOString(),
     footer: { text: ctx.store.name },
-  }
+  };
 
-  return sendAndLog(ctx, 'payment_received', embed)
+  return sendAndLog(ctx, "payment_received", embed);
 }
 
 export async function sendPaymentFailedDiscord(ctx: DiscordNotificationContext) {
-  if (!ctx.reservation) return
+  if (!ctx.reservation) return;
 
   const embed: DiscordEmbed = {
     title: `Échec de paiement #${ctx.reservation.number}`,
     color: COLORS.error,
     fields: [
       {
-        name: 'Montant',
+        name: "Montant",
         value: ctx.payment
           ? formatCurrency(ctx.payment.amount, ctx.payment.currency)
           : formatCurrency(ctx.reservation.totalAmount, ctx.reservation.currency),
         inline: true,
       },
       {
-        name: 'Client',
-        value: ctx.customer
-          ? `${ctx.customer.firstName} ${ctx.customer.lastName}`
-          : 'N/A',
+        name: "Client",
+        value: formatCustomerName(ctx.customer),
         inline: true,
       },
     ],
     timestamp: new Date().toISOString(),
     footer: { text: ctx.store.name },
-  }
+  };
 
-  return sendAndLog(ctx, 'payment_failed', embed)
+  return sendAndLog(ctx, "payment_failed", embed);
 }

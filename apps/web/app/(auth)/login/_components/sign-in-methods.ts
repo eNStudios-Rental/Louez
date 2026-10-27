@@ -9,7 +9,7 @@
  * - google: requires Google OAuth credentials
  */
 export interface SignInMethods {
-  password: 'primary' | 'secondary' | false;
+  password: "primary" | "secondary" | false;
   emailOtp: boolean;
   google: boolean;
 }
@@ -25,7 +25,7 @@ export const resolveSignInMethods = ({
   emailConfigured,
   googleAuthConfigured,
 }: InstanceCapabilities): SignInMethods => ({
-  password: standalone ? 'primary' : 'secondary',
+  password: standalone ? "primary" : "secondary",
   emailOtp: emailConfigured,
   google: googleAuthConfigured,
 });

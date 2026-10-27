@@ -1,19 +1,10 @@
-import { getLocale, getTranslations } from 'next-intl/server'
-import { redirect } from 'next/navigation'
+import { getLocale, getTranslations } from "next-intl/server";
+import { redirect } from "next/navigation";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@louez/ui'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@louez/ui";
 
-import { isCurrentUserPlatformAdmin } from '@/lib/platform-admin'
-import {
-  getPlatformFinance,
-  getRecentPlatformFees,
-} from '@/lib/pay-as-you-go'
+import { isCurrentUserPlatformAdmin } from "@/lib/platform-admin";
+import { getPlatformFinance, getRecentPlatformFees } from "@/lib/pay-as-you-go";
 
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
@@ -21,54 +12,52 @@ export const instant = false;
 
 function formatMoney(cents: number, currency: string, locale: string): string {
   return new Intl.NumberFormat(locale, {
-    style: 'currency',
+    style: "currency",
     currency: currency.toUpperCase(),
-  }).format(cents / 100)
+  }).format(cents / 100);
 }
 
 /** `2026-06` -> a localized month label. */
 function formatMonth(billingMonth: string, locale: string): string {
-  const [year, month] = billingMonth.split('-').map(Number)
-  if (!year || !month) return billingMonth
+  const [year, month] = billingMonth.split("-").map(Number);
+  if (!year || !month) return billingMonth;
   return new Intl.DateTimeFormat(locale, {
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(new Date(Date.UTC(year, month - 1, 1)))
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, 1)));
 }
 
 export default async function PlatformFinancePage() {
   // Defense-in-depth: the /admin layout already gates platform-admin access, but the
   // page re-checks so it can never render for a non-admin even if reached directly.
-  const isAdmin = await isCurrentUserPlatformAdmin()
+  const isAdmin = await isCurrentUserPlatformAdmin();
   if (!isAdmin) {
-    redirect('/dashboard')
+    redirect("/dashboard");
   }
 
   const [t, locale, finance, recent] = await Promise.all([
-    getTranslations('dashboard.settings.finance'),
+    getTranslations("dashboard.settings.finance"),
     getLocale(),
     getPlatformFinance(),
     getRecentPlatformFees(50),
-  ])
+  ]);
 
-  const { currency } = finance
-  const money = (cents: number) => formatMoney(cents, currency, locale)
+  const { currency } = finance;
+  const money = (cents: number) => formatMoney(cents, currency, locale);
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold">{t('title')}</h2>
-        <p className="text-muted-foreground text-sm">{t('description')}</p>
+        <h2 className="text-lg font-semibold">{t("title")}</h2>
+        <p className="text-muted-foreground text-sm">{t("description")}</p>
       </div>
 
       {finance.currencies.length > 1 && (
         <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
-          {t('multiCurrencyWarning', {
+          {t("multiCurrencyWarning", {
             currency: currency.toUpperCase(),
-            currencies: finance.currencies
-              .map((c) => c.toUpperCase())
-              .join(', '),
+            currencies: finance.currencies.map((c) => c.toUpperCase()).join(", "),
           })}
         </div>
       )}
@@ -76,69 +65,61 @@ export default async function PlatformFinancePage() {
       {/* Headline KPIs */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
-          label={t('kpi.realizedAllTime')}
+          label={t("kpi.realizedAllTime")}
           value={money(finance.overall.realizedCents)}
-          hint={t('kpi.realizedHint')}
+          hint={t("kpi.realizedHint")}
         />
         <KpiCard
-          label={t('kpi.thisMonth', {
+          label={t("kpi.thisMonth", {
             month: formatMonth(finance.currentMonth, locale),
           })}
           value={money(finance.thisMonth.realizedCents)}
         />
         <KpiCard
-          label={t('kpi.pending')}
+          label={t("kpi.pending")}
           value={money(finance.overall.pendingCents)}
-          hint={t('kpi.pendingHint')}
+          hint={t("kpi.pendingHint")}
         />
         <KpiCard
-          label={t('kpi.reversed')}
+          label={t("kpi.reversed")}
           value={money(finance.overall.reversedCents)}
-          hint={t('kpi.reversedHint')}
+          hint={t("kpi.reversedHint")}
         />
       </div>
 
       {/* Rental counts (all time) */}
       <div className="grid gap-4 sm:grid-cols-2">
         <KpiCard
-          label={t('kpi.paidRentals')}
+          label={t("kpi.paidRentals")}
           value={String(finance.overall.reservationCount)}
-          hint={t('kpi.paidRentalsHint')}
+          hint={t("kpi.paidRentalsHint")}
         />
         <KpiCard
-          label={t('kpi.freeRentals')}
+          label={t("kpi.freeRentals")}
           value={String(finance.overall.freeCount)}
-          hint={t('kpi.freeRentalsHint')}
+          hint={t("kpi.freeRentalsHint")}
         />
       </div>
 
       {/* By month */}
       <Card>
         <CardHeader>
-          <CardTitle>{t('byMonth.title')}</CardTitle>
-          <CardDescription>{t('byMonth.description')}</CardDescription>
+          <CardTitle>{t("byMonth.title")}</CardTitle>
+          <CardDescription>{t("byMonth.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           {finance.byMonth.length === 0 ? (
-            <p className="text-muted-foreground text-sm">{t('empty')}</p>
+            <p className="text-muted-foreground text-sm">{t("empty")}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-muted-foreground border-b text-left">
-                    <th className="py-2 pr-4 font-medium">{t('table.month')}</th>
-                    <th className="py-2 pr-4 text-right font-medium">
-                      {t('table.rentals')}
-                    </th>
-                    <th className="py-2 pr-4 text-right font-medium">
-                      {t('table.free')}
-                    </th>
-                    <th className="py-2 pr-4 text-right font-medium">
-                      {t('table.realized')}
-                    </th>
-                    <th className="py-2 text-right font-medium">
-                      {t('table.pending')}
-                    </th>
+                    <th className="py-2 pr-4 font-medium">{t("table.month")}</th>
+                    <th className="py-2 pr-4 text-right font-medium">{t("table.rentals")}</th>
+                    <th className="py-2 pr-4 text-right font-medium">{t("table.free")}</th>
+                    <th className="py-2 pr-4 text-right font-medium">{t("table.realized")}</th>
+                    <th className="py-2 text-right font-medium">{t("table.pending")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -147,9 +128,7 @@ export default async function PlatformFinancePage() {
                       <td className="py-2 pr-4 font-medium">
                         {formatMonth(row.billingMonth, locale)}
                       </td>
-                      <td className="py-2 pr-4 text-right tabular-nums">
-                        {row.reservationCount}
-                      </td>
+                      <td className="py-2 pr-4 text-right tabular-nums">{row.reservationCount}</td>
                       <td className="text-muted-foreground py-2 pr-4 text-right tabular-nums">
                         {row.freeCount}
                       </td>
@@ -171,31 +150,23 @@ export default async function PlatformFinancePage() {
       {/* By store */}
       <Card>
         <CardHeader>
-          <CardTitle>{t('byStore.title')}</CardTitle>
-          <CardDescription>{t('byStore.description')}</CardDescription>
+          <CardTitle>{t("byStore.title")}</CardTitle>
+          <CardDescription>{t("byStore.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           {finance.byStore.length === 0 ? (
-            <p className="text-muted-foreground text-sm">{t('empty')}</p>
+            <p className="text-muted-foreground text-sm">{t("empty")}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-muted-foreground border-b text-left">
-                    <th className="py-2 pr-4 font-medium">{t('table.store')}</th>
-                    <th className="py-2 pr-4 font-medium">{t('table.mode')}</th>
-                    <th className="py-2 pr-4 text-right font-medium">
-                      {t('table.rentals')}
-                    </th>
-                    <th className="py-2 pr-4 text-right font-medium">
-                      {t('table.free')}
-                    </th>
-                    <th className="py-2 pr-4 text-right font-medium">
-                      {t('table.realized')}
-                    </th>
-                    <th className="py-2 text-right font-medium">
-                      {t('table.pending')}
-                    </th>
+                    <th className="py-2 pr-4 font-medium">{t("table.store")}</th>
+                    <th className="py-2 pr-4 font-medium">{t("table.mode")}</th>
+                    <th className="py-2 pr-4 text-right font-medium">{t("table.rentals")}</th>
+                    <th className="py-2 pr-4 text-right font-medium">{t("table.free")}</th>
+                    <th className="py-2 pr-4 text-right font-medium">{t("table.realized")}</th>
+                    <th className="py-2 text-right font-medium">{t("table.pending")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -205,9 +176,7 @@ export default async function PlatformFinancePage() {
                       <td className="text-muted-foreground py-2 pr-4">
                         {t(`mode.${row.billingMode}`)}
                       </td>
-                      <td className="py-2 pr-4 text-right tabular-nums">
-                        {row.reservationCount}
-                      </td>
+                      <td className="py-2 pr-4 text-right tabular-nums">{row.reservationCount}</td>
                       <td className="text-muted-foreground py-2 pr-4 text-right tabular-nums">
                         {row.freeCount}
                       </td>
@@ -229,23 +198,21 @@ export default async function PlatformFinancePage() {
       {/* Recent ledger entries */}
       <Card>
         <CardHeader>
-          <CardTitle>{t('recent.title')}</CardTitle>
-          <CardDescription>{t('recent.description')}</CardDescription>
+          <CardTitle>{t("recent.title")}</CardTitle>
+          <CardDescription>{t("recent.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           {recent.length === 0 ? (
-            <p className="text-muted-foreground text-sm">{t('empty')}</p>
+            <p className="text-muted-foreground text-sm">{t("empty")}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-muted-foreground border-b text-left">
-                    <th className="py-2 pr-4 text-right font-medium">
-                      {t('recent.amount')}
-                    </th>
-                    <th className="py-2 pr-4 font-medium">{t('recent.source')}</th>
-                    <th className="py-2 pr-4 font-medium">{t('recent.status')}</th>
-                    <th className="py-2 font-medium">{t('table.month')}</th>
+                    <th className="py-2 pr-4 text-right font-medium">{t("recent.amount")}</th>
+                    <th className="py-2 pr-4 font-medium">{t("recent.source")}</th>
+                    <th className="py-2 pr-4 font-medium">{t("recent.status")}</th>
+                    <th className="py-2 font-medium">{t("table.month")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -272,18 +239,10 @@ export default async function PlatformFinancePage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
-function KpiCard({
-  label,
-  value,
-  hint,
-}: {
-  label: string
-  value: string
-  hint?: string
-}) {
+function KpiCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <Card>
       <CardContent className="space-y-1 p-4">
@@ -292,6 +251,5 @@ function KpiCard({
         {hint && <p className="text-muted-foreground text-xs">{hint}</p>}
       </CardContent>
     </Card>
-  )
+  );
 }
-

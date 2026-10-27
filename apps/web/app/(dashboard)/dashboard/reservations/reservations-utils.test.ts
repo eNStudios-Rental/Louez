@@ -1,34 +1,34 @@
-import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import assert from "node:assert/strict";
+import { test } from "node:test";
 
-import type { Reservation } from './reservations-types';
-import { getPaymentStatus, getReservationCustomerName } from './reservations-utils';
+import type { Reservation } from "./reservations-types";
+import { getPaymentStatus, getReservationCustomerName } from "./reservations-utils";
 
 const createReservation = (overrides: Partial<Reservation>): Reservation => ({
-  id: 'reservation-1',
-  number: 'R-1',
-  status: 'confirmed',
-  startDate: new Date('2026-06-01T10:00:00Z'),
-  endDate: new Date('2026-06-02T10:00:00Z'),
-  subtotalAmount: '100.00',
-  depositAmount: '0.00',
-  totalAmount: '100.00',
+  id: "reservation-1",
+  number: "R-1",
+  status: "confirmed",
+  startDate: new Date("2026-06-01T10:00:00Z"),
+  endDate: new Date("2026-06-02T10:00:00Z"),
+  subtotalAmount: "100.00",
+  depositAmount: "0.00",
+  totalAmount: "100.00",
   customer: {
-    id: 'customer-1',
-    firstName: 'Ada',
-    lastName: 'Lovelace',
-    email: 'ada@example.com',
+    id: "customer-1",
+    firstName: "Ada",
+    lastName: "Lovelace",
+    email: "ada@example.com",
     companyName: null,
   },
   items: [
     {
-      id: 'item-1',
+      id: "item-1",
       quantity: 1,
       isCustomItem: false,
-      productSnapshot: { name: 'Videoprojecteur' },
+      productSnapshot: { name: "Videoprojecteur" },
       product: {
-        id: 'product-1',
-        name: 'Videoprojecteur',
+        id: "product-1",
+        name: "Videoprojecteur",
       },
     },
   ],
@@ -36,155 +36,155 @@ const createReservation = (overrides: Partial<Reservation>): Reservation => ({
   ...overrides,
 });
 
-test('reservation list payment status ignores uncollected deposit', () => {
+test("reservation list payment status ignores uncollected deposit", () => {
   const status = getPaymentStatus(
     createReservation({
-      subtotalAmount: '31.00',
-      depositAmount: '200.00',
-      totalAmount: '31.00',
+      subtotalAmount: "31.00",
+      depositAmount: "200.00",
+      totalAmount: "31.00",
       payments: [
         {
-          id: 'payment-1',
-          amount: '31.00',
-          type: 'rental',
-          method: 'stripe',
-          status: 'completed',
+          id: "payment-1",
+          amount: "31.00",
+          type: "rental",
+          method: "stripe",
+          status: "completed",
         },
       ],
     }),
   );
 
-  assert.equal(status.status, 'paid');
+  assert.equal(status.status, "paid");
   assert.equal(status.totalPaid, 31);
   assert.equal(status.totalDue, 31);
 });
 
-test('reservation list displays company name when personal customer details are missing', () => {
+test("reservation list displays company name when personal customer details are missing", () => {
   assert.equal(
     getReservationCustomerName({
       firstName: null,
       lastName: null,
-      companyName: 'Acme Ltd',
+      companyName: "Acme Ltd",
       email: null,
     }),
-    'Acme Ltd',
+    "Acme Ltd",
   );
 });
 
-test('reservation list payment status ignores deposit collections', () => {
+test("reservation list payment status ignores deposit collections", () => {
   const status = getPaymentStatus(
     createReservation({
-      subtotalAmount: '31.00',
-      depositAmount: '200.00',
-      totalAmount: '31.00',
+      subtotalAmount: "31.00",
+      depositAmount: "200.00",
+      totalAmount: "31.00",
       payments: [
         {
-          id: 'payment-1',
-          amount: '200.00',
-          type: 'deposit',
-          method: 'card',
-          status: 'completed',
+          id: "payment-1",
+          amount: "200.00",
+          type: "deposit",
+          method: "card",
+          status: "completed",
         },
       ],
     }),
   );
 
-  assert.equal(status.status, 'unpaid');
+  assert.equal(status.status, "unpaid");
   assert.equal(status.totalPaid, 0);
   assert.equal(status.depositCollected, 200);
 });
 
-test('reservation list payment status keeps partial for rental payments only', () => {
+test("reservation list payment status keeps partial for rental payments only", () => {
   const status = getPaymentStatus(
     createReservation({
-      subtotalAmount: '100.00',
-      depositAmount: '200.00',
-      totalAmount: '100.00',
+      subtotalAmount: "100.00",
+      depositAmount: "200.00",
+      totalAmount: "100.00",
       payments: [
         {
-          id: 'payment-1',
-          amount: '40.00',
-          type: 'rental',
-          method: 'cash',
-          status: 'completed',
+          id: "payment-1",
+          amount: "40.00",
+          type: "rental",
+          method: "cash",
+          status: "completed",
         },
         {
-          id: 'payment-2',
-          amount: '200.00',
-          type: 'deposit',
-          method: 'card',
-          status: 'completed',
+          id: "payment-2",
+          amount: "200.00",
+          type: "deposit",
+          method: "card",
+          status: "completed",
         },
       ],
     }),
   );
 
-  assert.equal(status.status, 'partial');
+  assert.equal(status.status, "partial");
   assert.equal(status.totalPaid, 40);
   assert.equal(status.totalDue, 100);
 });
 
-test('reservation list payment status handles legacy totals that included deposit', () => {
+test("reservation list payment status handles legacy totals that included deposit", () => {
   const status = getPaymentStatus(
     createReservation({
-      subtotalAmount: '100.00',
-      depositAmount: '200.00',
-      totalAmount: '300.00',
+      subtotalAmount: "100.00",
+      depositAmount: "200.00",
+      totalAmount: "300.00",
       payments: [
         {
-          id: 'payment-1',
-          amount: '100.00',
-          type: 'rental',
-          method: 'stripe',
-          status: 'completed',
+          id: "payment-1",
+          amount: "100.00",
+          type: "rental",
+          method: "stripe",
+          status: "completed",
         },
       ],
     }),
   );
 
-  assert.equal(status.status, 'paid');
+  assert.equal(status.status, "paid");
   assert.equal(status.totalDue, 100);
 });
 
-test('reservation list payment status subtracts refunds and ignores Stripe refund rows', () => {
+test("reservation list payment status subtracts refunds and ignores Stripe refund rows", () => {
   const manualRefund = getPaymentStatus(
     createReservation({
       payments: [
-        { id: 'payment-1', amount: '100.00', type: 'rental', method: 'cash', status: 'completed' },
+        { id: "payment-1", amount: "100.00", type: "rental", method: "cash", status: "completed" },
         {
-          id: 'payment-2',
-          amount: '30.00',
-          type: 'rental',
-          method: 'cash',
-          status: 'completed',
-          refundOfPaymentId: 'payment-1',
+          id: "payment-2",
+          amount: "30.00",
+          type: "rental",
+          method: "cash",
+          status: "completed",
+          refundOfPaymentId: "payment-1",
         },
       ],
     }),
   );
   assert.equal(manualRefund.totalPaid, 70);
-  assert.equal(manualRefund.status, 'partial');
+  assert.equal(manualRefund.status, "partial");
 
   // Stripe brings the charge down to its net amount and adds a positive refund row.
   const stripeRefund = getPaymentStatus(
     createReservation({
       payments: [
         {
-          id: 'payment-1',
-          amount: '70.00',
-          type: 'rental',
-          method: 'stripe',
-          status: 'completed',
-          stripePaymentIntentId: 'pi_1',
+          id: "payment-1",
+          amount: "70.00",
+          type: "rental",
+          method: "stripe",
+          status: "completed",
+          stripePaymentIntentId: "pi_1",
           stripeCheckoutSessionId: null,
         },
         {
-          id: 'payment-2',
-          amount: '30.00',
-          type: 'rental',
-          method: 'stripe',
-          status: 'completed',
-          stripeRefundId: 're_1',
+          id: "payment-2",
+          amount: "30.00",
+          type: "rental",
+          method: "stripe",
+          status: "completed",
+          stripeRefundId: "re_1",
           stripePaymentIntentId: null,
           stripeCheckoutSessionId: null,
         },
@@ -192,5 +192,5 @@ test('reservation list payment status subtracts refunds and ignores Stripe refun
     }),
   );
   assert.equal(stripeRefund.totalPaid, 70);
-  assert.equal(stripeRefund.status, 'partial');
+  assert.equal(stripeRefund.status, "partial");
 });

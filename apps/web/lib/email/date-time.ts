@@ -1,20 +1,20 @@
-import { formatStoreDate } from '@/lib/utils/store-date'
-import type { EmailLocale } from './i18n'
-import { getTimezoneForCountry } from '@/lib/utils/countries'
+import { formatStoreDate } from "@/lib/utils/store-date";
+import type { EmailLocale } from "./i18n";
+import { getTimezoneForCountry } from "@/lib/utils/countries";
 
 export function resolveStoreTimezone(
   timezone?: string | null,
-  countryCode?: string | null
+  countryCode?: string | null,
 ): string {
   if (timezone && timezone.trim().length > 0) {
-    return timezone
+    return timezone;
   }
 
   if (countryCode && countryCode.trim().length > 0) {
-    return getTimezoneForCountry(countryCode)
+    return getTimezoneForCountry(countryCode);
   }
 
-  return 'UTC'
+  return "UTC";
 }
 
 export function formatEmailDateInStoreTimezone(
@@ -22,26 +22,26 @@ export function formatEmailDateInStoreTimezone(
   locale: EmailLocale,
   pattern: string,
   timezone?: string | null,
-  countryCode?: string | null
+  countryCode?: string | null,
 ): string {
-  const resolvedTimezone = resolveStoreTimezone(timezone, countryCode)
-  return formatStoreDate(date, resolvedTimezone, pattern, locale)
+  const resolvedTimezone = resolveStoreTimezone(timezone, countryCode);
+  return formatStoreDate(date, resolvedTimezone, pattern, locale);
 }
 
 export function getStoreTimezoneLabel(
   date: Date,
   timezone?: string | null,
-  countryCode?: string | null
+  countryCode?: string | null,
 ): string {
-  const resolvedTimezone = resolveStoreTimezone(timezone, countryCode)
+  const resolvedTimezone = resolveStoreTimezone(timezone, countryCode);
 
   try {
     // The numeric UTC offset is locale-invariant, but the formatter requires
     // callers to make that choice explicit so human-readable dates cannot fall
     // back silently.
-    const offset = formatStoreDate(date, resolvedTimezone, 'xxx', 'en')
-    return `${resolvedTimezone} (UTC${offset})`
+    const offset = formatStoreDate(date, resolvedTimezone, "xxx", "en");
+    return `${resolvedTimezone} (UTC${offset})`;
   } catch {
-    return 'UTC (UTC+00:00)'
+    return "UTC (UTC+00:00)";
   }
 }

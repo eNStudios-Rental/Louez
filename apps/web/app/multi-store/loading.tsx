@@ -1,5 +1,5 @@
-import { Skeleton } from '@louez/ui'
-import { Card, CardContent, CardHeader } from '@louez/ui'
+import { Skeleton } from "@louez/ui";
+import { Card, CardContent, CardHeader } from "@louez/ui";
 
 function StatCardSkeleton() {
   return (
@@ -15,7 +15,7 @@ function StatCardSkeleton() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function TableSkeleton() {
@@ -40,7 +40,7 @@ function TableSkeleton() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function ChartSkeleton() {
@@ -54,7 +54,7 @@ function ChartSkeleton() {
         <Skeleton className="h-[300px] w-full" />
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export default function MultiStoreLoading() {
@@ -89,5 +89,5 @@ export default function MultiStoreLoading() {
         <ChartSkeleton />
       </div>
     </div>
-  )
+  );
 }

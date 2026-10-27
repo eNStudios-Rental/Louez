@@ -46,6 +46,10 @@ interface QuickCustomerValues {
 const toFormValues = (prefill: CustomerQueryPrefill): QuickCustomerValues => ({
   ...prefill,
   customerType: "individual",
+  email: prefill.email ?? "",
+  firstName: prefill.firstName ?? "",
+  lastName: prefill.lastName ?? "",
+  phone: prefill.phone ?? "",
 });
 
 export const CustomerCreateDialog = ({
@@ -65,15 +69,16 @@ export const CustomerCreateDialog = ({
     mutationFn: async (values: QuickCustomerValues) => {
       const customer = {
         email: values.email?.trim().toLowerCase() || null,
-        firstName: values.firstName?.trim() || "",
-        lastName: values.lastName?.trim() || "",
+        firstName: values.firstName?.trim() || null,
+        lastName: values.lastName?.trim() || null,
         phone: values.phone?.trim() || null,
       };
 
       const result = await createCustomer({
-        ...customer,
-        email: customer.email ?? undefined,
         customerType: values.customerType,
+        email: customer.email ?? undefined,
+        firstName: customer.firstName ?? undefined,
+        lastName: customer.lastName ?? undefined,
         phone: customer.phone ?? undefined,
       });
 
@@ -81,7 +86,10 @@ export const CustomerCreateDialog = ({
         throw new Error(result.error ?? "errors.createCustomerError");
       }
 
-      return { id: result.customerId, ...customer } satisfies DashboardCustomer;
+      return {
+        id: result.customerId,
+        ...customer,
+      } satisfies DashboardCustomer;
     },
   });
 

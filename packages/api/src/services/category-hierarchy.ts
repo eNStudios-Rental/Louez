@@ -92,9 +92,7 @@ export function getCategoryDisplayPath(
   while (category && !visited.has(category.id)) {
     visited.add(category.id);
     path.push(category.name);
-    category = category.parentId
-      ? categoriesById.get(category.parentId)
-      : undefined;
+    category = category.parentId ? categoriesById.get(category.parentId) : undefined;
   }
 
   return path.length > 0 ? path.reverse().join(" > ") : null;

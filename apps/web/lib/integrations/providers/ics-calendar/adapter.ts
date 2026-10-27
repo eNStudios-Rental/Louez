@@ -1,9 +1,9 @@
 import type {
   IntegrationAdapter,
   IntegrationRuntimeStatus,
-} from '@/lib/integrations/registry/types';
+} from "@/lib/integrations/registry/types";
 
-import { IcsCalendarConfigurationPanel } from './ics-calendar-configuration-panel';
+import { IcsCalendarConfigurationPanel } from "./ics-calendar-configuration-panel";
 
 function getIcsCalendarRuntimeStatus(): IntegrationRuntimeStatus {
   return {
@@ -18,7 +18,7 @@ export const icsCalendarIntegrationAdapter: IntegrationAdapter = {
   getStatus: getIcsCalendarRuntimeStatus,
   setEnabled: (settings) =>
     settings || {
-      reservationMode: 'payment',
+      reservationMode: "payment",
       advanceNoticeMinutes: 1440,
     },
   getConfigurationPanel: () => IcsCalendarConfigurationPanel,

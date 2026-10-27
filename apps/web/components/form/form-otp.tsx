@@ -1,17 +1,11 @@
-'use client';
+"use client";
 
-import { REGEXP_ONLY_DIGITS } from 'input-otp';
+import { REGEXP_ONLY_DIGITS } from "input-otp";
 
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSeparator,
-  InputOTPSlot,
-  Label,
-} from '@louez/ui';
-import { cn } from '@louez/utils';
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot, Label } from "@louez/ui";
+import { cn } from "@louez/utils";
 
-import { getFieldError, useFieldContext } from '@/hooks/form/form-context';
+import { getFieldError, useFieldContext } from "@/hooks/form/form-context";
 
 interface FormOtpProps {
   autoFocus?: boolean;
@@ -42,9 +36,8 @@ export const FormOtp = ({
   const field = useFieldContext<string>();
   const errors = field.state.meta.errors;
 
-  const slotClass = cn('h-12 w-10 text-lg sm:h-14 sm:w-12', slotClassName);
-  const shouldSplit =
-    separatorAt !== undefined && separatorAt > 0 && separatorAt < length;
+  const slotClass = cn("h-12 w-10 text-lg sm:h-14 sm:w-12", slotClassName);
+  const shouldSplit = separatorAt !== undefined && separatorAt > 0 && separatorAt < length;
 
   return (
     <div className="space-y-2">
@@ -58,9 +51,7 @@ export const FormOtp = ({
         name={field.name}
         maxLength={length}
         pattern={REGEXP_ONLY_DIGITS}
-        pasteTransformer={(pastedText) =>
-          pastedText.replace(/\D/g, '').slice(0, length)
-        }
+        pasteTransformer={(pastedText) => pastedText.replace(/\D/g, "").slice(0, length)}
         value={field.state.value}
         onChange={field.handleChange}
         onComplete={onComplete}
@@ -97,12 +88,8 @@ export const FormOtp = ({
           </InputOTPGroup>
         )}
       </InputOTP>
-      {description && (
-        <p className="text-muted-foreground text-sm">{description}</p>
-      )}
-      {errors.length > 0 && (
-        <p className="text-destructive text-sm">{getFieldError(errors[0])}</p>
-      )}
+      {description && <p className="text-muted-foreground text-sm">{description}</p>}
+      {errors.length > 0 && <p className="text-destructive text-sm">{getFieldError(errors[0])}</p>}
     </div>
   );
 };

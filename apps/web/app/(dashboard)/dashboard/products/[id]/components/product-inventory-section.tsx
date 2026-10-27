@@ -1,4 +1,7 @@
-import { ProductInventorySectionView, type ProductInventorySectionProps } from './product-inventory-section-view';
+import {
+  ProductInventorySectionView,
+  type ProductInventorySectionProps,
+} from "./product-inventory-section-view";
 
 export const ProductInventorySection = ({
   productId,

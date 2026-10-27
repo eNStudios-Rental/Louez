@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState } from "react";
 
-import { format, isValid, parseISO } from 'date-fns'
-import { Info } from 'lucide-react'
+import { format, isValid, parseISO } from "date-fns";
+import { Info } from "lucide-react";
 
 import {
   Combobox,
@@ -18,72 +18,72 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@louez/ui'
+} from "@louez/ui";
 
-import { ReservationDatePickerControl } from '@/components/form/form-reservation-date-picker'
+import { ReservationDatePickerControl } from "@/components/form/form-reservation-date-picker";
 import type {
   TulipCatalogItem,
   TulipComboboxOption,
   TulipProductDraft,
-} from '@/lib/integrations/tulip/product-form-utils'
+} from "@/lib/integrations/tulip/product-form-utils";
 import {
   normalizeCatalogValue,
   resolveProductSubtype,
   toUniqueSortedOptions,
-} from '@/lib/integrations/tulip/product-form-utils'
+} from "@/lib/integrations/tulip/product-form-utils";
 
 interface TulipProductFormFieldsProps {
-  draft: TulipProductDraft
-  onDraftChange: (updater: (prev: TulipProductDraft) => TulipProductDraft) => void
-  disabled: boolean
-  supportsMargin: boolean
-  disableMargin?: boolean
-  defaultPrice: number
-  defaultTitle: string
-  resolvedCatalog: TulipCatalogItem[]
+  draft: TulipProductDraft;
+  onDraftChange: (updater: (prev: TulipProductDraft) => TulipProductDraft) => void;
+  disabled: boolean;
+  supportsMargin: boolean;
+  disableMargin?: boolean;
+  defaultPrice: number;
+  defaultTitle: string;
+  resolvedCatalog: TulipCatalogItem[];
   tulipProducts: Array<{
-    brand: string | null
-    model: string | null
-  }>
+    brand: string | null;
+    model: string | null;
+  }>;
   t: {
-    (key: 'fields.productTitle'): string
-    (key: 'fields.category'): string
-    (key: 'fields.productSubtype'): string
-    (key: 'fields.brand'): string
-    (key: 'fields.model'): string
-    (key: 'fields.purchasedDate'): string
-    (key: 'fields.purchasePriceHt'): string
-    (key: 'fields.margin'): string
-    (key: 'productTitlePlaceholder', values: { defaultTitle: string }): string
-    (key: 'categoryPlaceholder'): string
-    (key: 'productSubtypePlaceholder'): string
-    (key: 'brandPlaceholder'): string
-    (key: 'modelPlaceholder'): string
-    (key: 'createOption', values: { value: string }): string
-    (key: 'noResults'): string
-    (key: 'noBrandResults'): string
-    (key: 'noModelResults'): string
-    (key: 'categoryRequired'): string
-    (key: 'productSubtypeRequired'): string
-    (key: 'brandRequired'): string
-    (key: 'modelRequired'): string
-    (key: 'purchasePriceRequired'): string
-    (key: 'invalidPurchasePrice'): string
-    (key: 'invalidMargin'): string
-    (key: 'marginTooltip'): string
-    (key: 'marginLockedTooltip'): string
-    (key: 'invalidPurchasedDate'): string
-  }
+    (key: "fields.productTitle"): string;
+    (key: "fields.category"): string;
+    (key: "fields.productSubtype"): string;
+    (key: "fields.brand"): string;
+    (key: "fields.model"): string;
+    (key: "fields.purchasedDate"): string;
+    (key: "fields.purchasePriceHt"): string;
+    (key: "fields.margin"): string;
+    (key: "productTitlePlaceholder", values: { defaultTitle: string }): string;
+    (key: "categoryPlaceholder"): string;
+    (key: "productSubtypePlaceholder"): string;
+    (key: "brandPlaceholder"): string;
+    (key: "modelPlaceholder"): string;
+    (key: "createOption", values: { value: string }): string;
+    (key: "noResults"): string;
+    (key: "noBrandResults"): string;
+    (key: "noModelResults"): string;
+    (key: "categoryRequired"): string;
+    (key: "productSubtypeRequired"): string;
+    (key: "brandRequired"): string;
+    (key: "modelRequired"): string;
+    (key: "purchasePriceRequired"): string;
+    (key: "invalidPurchasePrice"): string;
+    (key: "invalidMargin"): string;
+    (key: "marginTooltip"): string;
+    (key: "marginLockedTooltip"): string;
+    (key: "invalidPurchasedDate"): string;
+  };
   validation: {
-    hasInvalidValueExcl: boolean
-    hasInvalidMargin: boolean
-    hasInvalidPurchasedDate: boolean
-    hasMissingProductType: boolean
-    hasMissingSubtype: boolean
-    hasMissingBrand: boolean
-    hasMissingModel: boolean
-    hasMissingValueExcl: boolean
-  }
+    hasInvalidValueExcl: boolean;
+    hasInvalidMargin: boolean;
+    hasInvalidPurchasedDate: boolean;
+    hasMissingProductType: boolean;
+    hasMissingSubtype: boolean;
+    hasMissingBrand: boolean;
+    hasMissingModel: boolean;
+    hasMissingValueExcl: boolean;
+  };
 }
 
 export function TulipProductFormFields({
@@ -99,151 +99,133 @@ export function TulipProductFormFields({
   t,
   validation,
 }: TulipProductFormFieldsProps) {
-  const [brandInputValue, setBrandInputValue] = useState(draft.brand)
-  const [modelInputValue, setModelInputValue] = useState(draft.model)
-  const isMarginDisabled = disabled || disableMargin
-  const parsedPurchasedDate = draft.purchasedDate
-    ? parseISO(draft.purchasedDate)
-    : undefined
+  const [brandInputValue, setBrandInputValue] = useState(draft.brand);
+  const [modelInputValue, setModelInputValue] = useState(draft.model);
+  const isMarginDisabled = disabled || disableMargin;
+  const parsedPurchasedDate = draft.purchasedDate ? parseISO(draft.purchasedDate) : undefined;
   const purchasedDate =
-    parsedPurchasedDate && isValid(parsedPurchasedDate)
-      ? parsedPurchasedDate
-      : undefined
+    parsedPurchasedDate && isValid(parsedPurchasedDate) ? parsedPurchasedDate : undefined;
 
-  const currentProductType = draft.productType ?? resolvedCatalog[0]?.type ?? 'event'
+  const currentProductType = draft.productType ?? resolvedCatalog[0]?.type ?? "event";
 
   const categoryItems = useMemo(() => {
     const items = resolvedCatalog.map((item) => ({
       label: item.label || item.type,
       value: item.type,
-    }))
-    const currentType = normalizeCatalogValue(draft.productType)
+    }));
+    const currentType = normalizeCatalogValue(draft.productType);
     if (currentType && !items.some((item) => item.value === currentType)) {
-      items.unshift({ label: currentType, value: currentType })
+      items.unshift({ label: currentType, value: currentType });
     }
-    return items
-  }, [draft.productType, resolvedCatalog])
+    return items;
+  }, [draft.productType, resolvedCatalog]);
 
   const subtypeItems = useMemo(() => {
     const typeFromCatalog =
-      resolvedCatalog.find((item) => item.type === currentProductType)?.subtypes ?? []
+      resolvedCatalog.find((item) => item.type === currentProductType)?.subtypes ?? [];
     const items = typeFromCatalog.map((item) => ({
       label: item.label || item.type,
       value: item.type,
-    }))
-    const currentSubtype = normalizeCatalogValue(draft.productSubtype)
+    }));
+    const currentSubtype = normalizeCatalogValue(draft.productSubtype);
     if (currentSubtype && !items.some((item) => item.value === currentSubtype)) {
-      items.unshift({ label: currentSubtype, value: currentSubtype })
+      items.unshift({ label: currentSubtype, value: currentSubtype });
     }
-    return items
-  }, [currentProductType, draft.productSubtype, resolvedCatalog])
+    return items;
+  }, [currentProductType, draft.productSubtype, resolvedCatalog]);
 
   const knownBrandItems = useMemo(
     () => toUniqueSortedOptions(tulipProducts.map((item) => item.brand)),
     [tulipProducts],
-  )
+  );
 
   const knownModelItems = useMemo(() => {
-    const selectedBrand = draft.brand.trim().toLowerCase()
+    const selectedBrand = draft.brand.trim().toLowerCase();
     const sourceProducts = selectedBrand
-      ? tulipProducts.filter(
-          (item) => item.brand?.trim().toLowerCase() === selectedBrand,
-        )
-      : tulipProducts
-    return toUniqueSortedOptions(sourceProducts.map((item) => item.model))
-  }, [draft.brand, tulipProducts])
+      ? tulipProducts.filter((item) => item.brand?.trim().toLowerCase() === selectedBrand)
+      : tulipProducts;
+    return toUniqueSortedOptions(sourceProducts.map((item) => item.model));
+  }, [draft.brand, tulipProducts]);
 
   const brandItems = useMemo(() => {
-    const customValue = brandInputValue.trim()
-    if (!customValue) return knownBrandItems
-    if (
-      knownBrandItems.some(
-        (item) => item.value.toLowerCase() === customValue.toLowerCase(),
-      )
-    ) {
-      return knownBrandItems
+    const customValue = brandInputValue.trim();
+    if (!customValue) return knownBrandItems;
+    if (knownBrandItems.some((item) => item.value.toLowerCase() === customValue.toLowerCase())) {
+      return knownBrandItems;
     }
     return [
-      { label: customValue, value: customValue, kind: 'create' as const },
+      { label: customValue, value: customValue, kind: "create" as const },
       ...knownBrandItems,
-    ]
-  }, [brandInputValue, knownBrandItems])
+    ];
+  }, [brandInputValue, knownBrandItems]);
 
   const modelItems = useMemo(() => {
-    const customValue = modelInputValue.trim()
-    if (!customValue) return knownModelItems
-    if (
-      knownModelItems.some(
-        (item) => item.value.toLowerCase() === customValue.toLowerCase(),
-      )
-    ) {
-      return knownModelItems
+    const customValue = modelInputValue.trim();
+    if (!customValue) return knownModelItems;
+    if (knownModelItems.some((item) => item.value.toLowerCase() === customValue.toLowerCase())) {
+      return knownModelItems;
     }
     return [
-      { label: customValue, value: customValue, kind: 'create' as const },
+      { label: customValue, value: customValue, kind: "create" as const },
       ...knownModelItems,
-    ]
-  }, [knownModelItems, modelInputValue])
+    ];
+  }, [knownModelItems, modelInputValue]);
 
   const handleBrandChange = (value: string) => {
-    setBrandInputValue(value)
-    onDraftChange((prev) => ({ ...prev, brand: value }))
-  }
+    setBrandInputValue(value);
+    onDraftChange((prev) => ({ ...prev, brand: value }));
+  };
 
   const handleBrandSelect = (item: TulipComboboxOption | null) => {
-    if (!item) return
-    setBrandInputValue(item.value)
-    onDraftChange((prev) => ({ ...prev, brand: item.value }))
-  }
+    if (!item) return;
+    setBrandInputValue(item.value);
+    onDraftChange((prev) => ({ ...prev, brand: item.value }));
+  };
 
   const handleBrandBlur = () => {
-    const nextValue = brandInputValue.trim()
-    setBrandInputValue(nextValue)
-    onDraftChange((prev) => ({ ...prev, brand: nextValue }))
-  }
+    const nextValue = brandInputValue.trim();
+    setBrandInputValue(nextValue);
+    onDraftChange((prev) => ({ ...prev, brand: nextValue }));
+  };
 
   const handleModelChange = (value: string) => {
-    setModelInputValue(value)
-    onDraftChange((prev) => ({ ...prev, model: value }))
-  }
+    setModelInputValue(value);
+    onDraftChange((prev) => ({ ...prev, model: value }));
+  };
 
   const handleModelSelect = (item: TulipComboboxOption | null) => {
-    if (!item) return
-    setModelInputValue(item.value)
-    onDraftChange((prev) => ({ ...prev, model: item.value }))
-  }
+    if (!item) return;
+    setModelInputValue(item.value);
+    onDraftChange((prev) => ({ ...prev, model: item.value }));
+  };
 
   const handleModelBlur = () => {
-    const nextValue = modelInputValue.trim()
-    setModelInputValue(nextValue)
-    onDraftChange((prev) => ({ ...prev, model: nextValue }))
-  }
+    const nextValue = modelInputValue.trim();
+    setModelInputValue(nextValue);
+    onDraftChange((prev) => ({ ...prev, model: nextValue }));
+  };
 
   return (
     <>
       {/* Product title */}
       <div className="space-y-2">
-        <Label>{t('fields.productTitle')}</Label>
+        <Label>{t("fields.productTitle")}</Label>
         <Input
           value={draft.title}
-          placeholder={t('productTitlePlaceholder', { defaultTitle })}
-          onChange={(event) =>
-            onDraftChange((prev) => ({ ...prev, title: event.target.value }))
-          }
+          placeholder={t("productTitlePlaceholder", { defaultTitle })}
+          onChange={(event) => onDraftChange((prev) => ({ ...prev, title: event.target.value }))}
           disabled={disabled}
         />
       </div>
 
       {/* Category */}
       <div className="space-y-2">
-        <Label>{t('fields.category')}</Label>
+        <Label>{t("fields.category")}</Label>
         <Combobox
           items={categoryItems}
-          value={
-            categoryItems.find((item) => item.value === draft.productType) ?? null
-          }
+          value={categoryItems.find((item) => item.value === draft.productType) ?? null}
           onValueChange={(item) => {
-            if (!item) return
+            if (!item) return;
             onDraftChange((prev) => ({
               ...prev,
               productType: item.value,
@@ -252,16 +234,12 @@ export function TulipProductFormFields({
                 item.value,
                 prev.productSubtype,
               ),
-            }))
+            }));
           }}
         >
-          <ComboboxInput
-            showTrigger
-            placeholder={t('categoryPlaceholder')}
-            disabled={disabled}
-          />
+          <ComboboxInput showTrigger placeholder={t("categoryPlaceholder")} disabled={disabled} />
           <ComboboxPopup>
-            <ComboboxEmpty>{t('noResults')}</ComboboxEmpty>
+            <ComboboxEmpty>{t("noResults")}</ComboboxEmpty>
             <ComboboxList>
               {(item) => (
                 <ComboboxItem key={item.value} value={item}>
@@ -272,30 +250,28 @@ export function TulipProductFormFields({
           </ComboboxPopup>
         </Combobox>
         {validation.hasMissingProductType && (
-          <p className="text-destructive text-xs">{t('categoryRequired')}</p>
+          <p className="text-destructive text-xs">{t("categoryRequired")}</p>
         )}
       </div>
 
       {/* Subtype */}
       <div className="space-y-2">
-        <Label>{t('fields.productSubtype')}</Label>
+        <Label>{t("fields.productSubtype")}</Label>
         <Combobox
           items={subtypeItems}
-          value={
-            subtypeItems.find((item) => item.value === draft.productSubtype) ?? null
-          }
+          value={subtypeItems.find((item) => item.value === draft.productSubtype) ?? null}
           onValueChange={(item) => {
-            if (!item) return
-            onDraftChange((prev) => ({ ...prev, productSubtype: item.value }))
+            if (!item) return;
+            onDraftChange((prev) => ({ ...prev, productSubtype: item.value }));
           }}
         >
           <ComboboxInput
             showTrigger
-            placeholder={t('productSubtypePlaceholder')}
+            placeholder={t("productSubtypePlaceholder")}
             disabled={disabled}
           />
           <ComboboxPopup>
-            <ComboboxEmpty>{t('noResults')}</ComboboxEmpty>
+            <ComboboxEmpty>{t("noResults")}</ComboboxEmpty>
             <ComboboxList>
               {(item) => (
                 <ComboboxItem key={item.value} value={item}>
@@ -306,105 +282,97 @@ export function TulipProductFormFields({
           </ComboboxPopup>
         </Combobox>
         {validation.hasMissingSubtype && (
-          <p className="text-destructive text-xs">
-            {t('productSubtypeRequired')}
-          </p>
+          <p className="text-destructive text-xs">{t("productSubtypeRequired")}</p>
         )}
       </div>
 
       {/* Brand */}
       <div className="space-y-2">
-        <Label>{t('fields.brand')}</Label>
+        <Label>{t("fields.brand")}</Label>
         <Combobox
           items={brandItems}
           value={
             brandItems.find(
-              (item) =>
-                item.value.toLowerCase() === draft.brand.trim().toLowerCase(),
+              (item) => item.value.toLowerCase() === draft.brand.trim().toLowerCase(),
             ) ?? null
           }
           inputValue={brandInputValue}
           onInputValueChange={(value) => {
-            if (value === undefined) return
-            handleBrandChange(value)
+            if (value === undefined) return;
+            handleBrandChange(value);
           }}
           onValueChange={handleBrandSelect}
         >
           <ComboboxInput
             showTrigger
-            placeholder={t('brandPlaceholder')}
+            placeholder={t("brandPlaceholder")}
             disabled={disabled}
             onKeyDown={(event) => {
-              if (event.key !== 'Enter') return
-              event.preventDefault()
-              handleBrandBlur()
-              event.currentTarget.blur()
+              if (event.key !== "Enter") return;
+              event.preventDefault();
+              handleBrandBlur();
+              event.currentTarget.blur();
             }}
             onBlur={handleBrandBlur}
           />
           <ComboboxPopup>
-            <ComboboxEmpty>{t('noBrandResults')}</ComboboxEmpty>
+            <ComboboxEmpty>{t("noBrandResults")}</ComboboxEmpty>
             <ComboboxList>
               {(item) => (
                 <ComboboxItem key={item.value} value={item}>
-                  {item.kind === 'create'
-                    ? t('createOption', { value: item.value })
-                    : item.label}
+                  {item.kind === "create" ? t("createOption", { value: item.value }) : item.label}
                 </ComboboxItem>
               )}
             </ComboboxList>
           </ComboboxPopup>
         </Combobox>
         {validation.hasMissingBrand && (
-          <p className="text-destructive text-xs">{t('brandRequired')}</p>
+          <p className="text-destructive text-xs">{t("brandRequired")}</p>
         )}
       </div>
 
       {/* Model */}
       <div className="space-y-2">
-        <Label>{t('fields.model')}</Label>
+        <Label>{t("fields.model")}</Label>
         <Combobox
           items={modelItems}
           value={
             modelItems.find(
-              (item) =>
-                item.value.toLowerCase() === draft.model.trim().toLowerCase(),
+              (item) => item.value.toLowerCase() === draft.model.trim().toLowerCase(),
             ) ?? null
           }
           inputValue={modelInputValue}
           onInputValueChange={(value) => {
-            if (value === undefined) return
-            handleModelChange(value)
+            if (value === undefined) return;
+            handleModelChange(value);
           }}
           onValueChange={handleModelSelect}
         >
           <ComboboxInput
             showTrigger
-            placeholder={t('modelPlaceholder')}
+            placeholder={t("modelPlaceholder")}
             disabled={disabled}
             onKeyDown={(event) => {
-              if (event.key !== 'Enter') return
-              event.preventDefault()
-              handleModelBlur()
-              event.currentTarget.blur()
+              if (event.key !== "Enter") return;
+              event.preventDefault();
+              handleModelBlur();
+              event.currentTarget.blur();
             }}
             onBlur={handleModelBlur}
           />
           <ComboboxPopup>
-            <ComboboxEmpty>{t('noModelResults')}</ComboboxEmpty>
+            <ComboboxEmpty>{t("noModelResults")}</ComboboxEmpty>
             <ComboboxList>
               {(item) => (
                 <ComboboxItem key={item.value} value={item}>
-                  {item.kind === 'create'
-                    ? t('createOption', { value: item.value })
-                    : item.label}
+                  {item.kind === "create" ? t("createOption", { value: item.value }) : item.label}
                 </ComboboxItem>
               )}
             </ComboboxList>
           </ComboboxPopup>
         </Combobox>
         {validation.hasMissingModel && (
-          <p className="text-destructive text-xs">{t('modelRequired')}</p>
+          <p className="text-destructive text-xs">{t("modelRequired")}</p>
         )}
       </div>
 
@@ -415,22 +383,18 @@ export function TulipProductFormFields({
         onChange={(date) =>
           onDraftChange((prev) => ({
             ...prev,
-            purchasedDate: date ? format(date, 'yyyy-MM-dd') : '',
+            purchasedDate: date ? format(date, "yyyy-MM-dd") : "",
           }))
         }
-        label={t('fields.purchasedDate')}
+        label={t("fields.purchasedDate")}
         showTime={false}
         disabled={disabled}
-        error={
-          validation.hasInvalidPurchasedDate
-            ? t('invalidPurchasedDate')
-            : undefined
-        }
+        error={validation.hasInvalidPurchasedDate ? t("invalidPurchasedDate") : undefined}
       />
 
       {/* Purchase price */}
       <div className="space-y-2">
-        <Label>{t('fields.purchasePriceHt')}</Label>
+        <Label>{t("fields.purchasePriceHt")}</Label>
         <Input
           value={draft.valueExcl}
           placeholder={defaultPrice.toFixed(2)}
@@ -440,11 +404,9 @@ export function TulipProductFormFields({
           disabled={disabled}
         />
         {validation.hasMissingValueExcl ? (
-          <p className="text-destructive text-xs">
-            {t('purchasePriceRequired')}
-          </p>
+          <p className="text-destructive text-xs">{t("purchasePriceRequired")}</p>
         ) : validation.hasInvalidValueExcl ? (
-          <p className="text-destructive text-xs">{t('invalidPurchasePrice')}</p>
+          <p className="text-destructive text-xs">{t("invalidPurchasePrice")}</p>
         ) : null}
       </div>
 
@@ -452,18 +414,16 @@ export function TulipProductFormFields({
       {supportsMargin && (
         <div className="space-y-2">
           <div className="flex items-center gap-1.5">
-            <Label>{t('fields.margin')}</Label>
+            <Label>{t("fields.margin")}</Label>
             <TooltipProvider delay={100}>
               <Tooltip>
                 <TooltipTrigger className="text-muted-foreground hover:text-foreground transition-colors">
                   <Info className="size-3.5" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{t('marginTooltip')}</p>
+                  <p>{t("marginTooltip")}</p>
                   {disableMargin && (
-                    <p className="text-muted-foreground mt-1">
-                      {t('marginLockedTooltip')}
-                    </p>
+                    <p className="text-muted-foreground mt-1">{t("marginLockedTooltip")}</p>
                   )}
                 </TooltipContent>
               </Tooltip>
@@ -472,16 +432,14 @@ export function TulipProductFormFields({
           <Input
             value={draft.margin}
             placeholder="0.00"
-            onChange={(event) =>
-              onDraftChange((prev) => ({ ...prev, margin: event.target.value }))
-            }
+            onChange={(event) => onDraftChange((prev) => ({ ...prev, margin: event.target.value }))}
             disabled={isMarginDisabled}
           />
           {validation.hasInvalidMargin && (
-            <p className="text-destructive text-xs">{t('invalidMargin')}</p>
+            <p className="text-destructive text-xs">{t("invalidMargin")}</p>
           )}
         </div>
       )}
     </>
-  )
+  );
 }

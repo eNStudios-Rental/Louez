@@ -1,5 +1,5 @@
-import { TulipApiError, tulipCreateContract, tulipUpdateContract } from './client';
-import { getTulipErrorCode } from './contracts-errors';
+import { TulipApiError, tulipCreateContract, tulipUpdateContract } from "./client";
+import { getTulipErrorCode } from "./contracts-errors";
 
 function getOptionVariants(options: string[]): string[][] {
   const normalized = Array.from(new Set(options.map((option) => option.trim()).filter(Boolean)));
@@ -7,21 +7,19 @@ function getOptionVariants(options: string[]): string[][] {
     return [[]];
   }
 
-  const hasBreak = normalized.includes('break');
-  const hasTheft = normalized.includes('theft');
-  const identityOptions = normalized.filter(
-    (option) => option !== 'break' && option !== 'theft',
-  );
+  const hasBreak = normalized.includes("break");
+  const hasTheft = normalized.includes("theft");
+  const identityOptions = normalized.filter((option) => option !== "break" && option !== "theft");
 
   const variants: string[][] = [normalized];
   if (hasBreak && hasTheft) {
-    variants.push([...identityOptions, 'break']);
-    variants.push([...identityOptions, 'theft']);
+    variants.push([...identityOptions, "break"]);
+    variants.push([...identityOptions, "theft"]);
   }
 
   const seen = new Set<string>();
   return variants.filter((variant) => {
-    const key = [...variant].sort().join('|');
+    const key = [...variant].sort().join("|");
     if (seen.has(key)) {
       return false;
     }
@@ -39,7 +37,7 @@ export async function tulipCreateContractWithOptionsFallback(params: {
 }) {
   const originalOptions = Array.isArray(params.payload.options)
     ? (params.payload.options as unknown[]).filter(
-        (option): option is string => typeof option === 'string',
+        (option): option is string => typeof option === "string",
       )
     : [];
 
@@ -67,7 +65,7 @@ export async function tulipCreateContractWithOptionsFallback(params: {
         isTulipApiError && tulipErrorCode === 1010 && index < optionVariants.length - 1;
 
       if (canRetryWithAnotherVariant) {
-        console.warn('[tulip][contract-options] retrying with fallback options', {
+        console.warn("[tulip][contract-options] retrying with fallback options", {
           storeId: params.storeIdForLog,
           reservationId: params.reservationIdForLog,
           preview: params.preview,
@@ -83,7 +81,7 @@ export async function tulipCreateContractWithOptionsFallback(params: {
     }
   }
 
-  throw lastError instanceof Error ? lastError : new Error('errors.tulipQuoteFailed');
+  throw lastError instanceof Error ? lastError : new Error("errors.tulipQuoteFailed");
 }
 
 export async function tulipUpdateContractWithOptionsFallback(params: {
@@ -96,7 +94,7 @@ export async function tulipUpdateContractWithOptionsFallback(params: {
 }) {
   const originalOptions = Array.isArray(params.payload.options)
     ? (params.payload.options as unknown[]).filter(
-        (option): option is string => typeof option === 'string',
+        (option): option is string => typeof option === "string",
       )
     : [];
 
@@ -125,7 +123,7 @@ export async function tulipUpdateContractWithOptionsFallback(params: {
         isTulipApiError && tulipErrorCode === 1010 && index < optionVariants.length - 1;
 
       if (canRetryWithAnotherVariant) {
-        console.warn('[tulip][contract-options] retrying update with fallback options', {
+        console.warn("[tulip][contract-options] retrying update with fallback options", {
           storeId: params.storeIdForLog,
           reservationId: params.reservationIdForLog,
           preview: params.preview,
@@ -141,7 +139,5 @@ export async function tulipUpdateContractWithOptionsFallback(params: {
     }
   }
 
-  throw lastError instanceof Error
-    ? lastError
-    : new Error('errors.tulipContractUpdateFailed');
+  throw lastError instanceof Error ? lastError : new Error("errors.tulipContractUpdateFailed");
 }
