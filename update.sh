@@ -10,7 +10,25 @@ echo "🚀 Rozpoczynam wdrożenie wersji: ${TARGET_TAG}"
 # 2. Ustawienie taga obrazu w środowisku i pobranie
 export LOUEZ_IMAGE_TAG="${TARGET_TAG}"
 echo "📦 Pobieram najnowsze obrazy z GHCR dla tagu ${TARGET_TAG}..."
-docker compose pull louez background-removal
+
+if ! docker compose pull louez background-removal; then
+  # Jeśli tag zaczyna się od 'v' (np. v3.0.0), spróbuj bez prefiksu 'v' (np. 3.0.0)
+  if [[ "${TARGET_TAG}" =~ ^v[0-9] ]]; then
+    FALLBACK_TAG="${TARGET_TAG#v}"
+    echo "⚠️ Nie znaleziono tagu ${TARGET_TAG} na GHCR. Próbuję z tagiem semver bez 'v': ${FALLBACK_TAG}..."
+    export LOUEZ_IMAGE_TAG="${FALLBACK_TAG}"
+    docker compose pull louez background-removal
+    TARGET_TAG="${FALLBACK_TAG}"
+  elif [[ "${TARGET_TAG}" =~ ^[0-9] ]]; then
+    FALLBACK_TAG="v${TARGET_TAG}"
+    echo "⚠️ Nie znaleziono tagu ${TARGET_TAG} na GHCR. Próbuję z prefiksem 'v': ${FALLBACK_TAG}..."
+    export LOUEZ_IMAGE_TAG="${FALLBACK_TAG}"
+    docker compose pull louez background-removal
+    TARGET_TAG="${FALLBACK_TAG}"
+  else
+    exit 1
+  fi
+fi
 
 # 3. Restart kontenerów z nowym obrazem
 echo "🔄 Aktualizuję kontenery..."
