@@ -9,7 +9,7 @@ import { getCanonicalUrl } from "@/lib/seo";
 
 const handleGet = async (
   request: NextRequest,
-  context: RouteContext<"/api/booking/v1/bookings/[reservationId]">,
+  context: { params: Promise<{ reservationId: string }> },
 ) => {
   const logger = useLogger();
   try {

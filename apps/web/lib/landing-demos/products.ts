@@ -190,6 +190,7 @@ export const createDemoProductDetail = (
   const infoProduct: ProductInfoSectionProps["product"] = {
     description: product.id === "demo-city-bike" ? getDemoProductsText(locale).description : null,
     price: product.price,
+    priceNegotiable: false,
     pricingKind: "duration",
     pricingMode: "day",
     basePeriodMinutes: 1440,

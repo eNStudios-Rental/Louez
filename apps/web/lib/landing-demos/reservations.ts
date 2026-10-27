@@ -138,13 +138,14 @@ export function createDemoReservationPages(
         id: `demo-reservation-${index}`,
         number: String(1042 + index),
         source: "online",
+        internalTitle: null,
         status,
         startDate: start,
         endDate: end,
         subtotalAmount: display.subtotalAmount,
         depositAmount: display.depositAmount,
         totalAmount: display.subtotalAmount,
-        customer: getDemoCustomer(index),
+        customer: { ...getDemoCustomer(index), companyName: null },
         items: (display.items ?? []).map((item, lineIndex) => ({
           id: item.id,
           quantity: item.quantity,
@@ -174,6 +175,7 @@ export function createDemoReservationPages(
   );
   const calendar: CalendarReservation[] = rows.map((row) => ({
     ...row,
+    internalTitle: row.internalTitle ?? null,
     outboundMethod: "pickup",
     returnMethod: "pickup",
     deliveryAddress: null,

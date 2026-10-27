@@ -468,9 +468,9 @@ async function sendAdminReminder(
       totalAmount: Number(reservation.totalAmount),
     },
     customer: {
-      firstName: customer.firstName,
-      lastName: customer.lastName,
-      email: customer.email,
+      firstName: customer.firstName ?? customer.companyName ?? "",
+      lastName: customer.lastName ?? "",
+      email: customer.email ?? "",
       phone: customer.phone,
     },
     dashboardUrl,
@@ -563,7 +563,10 @@ async function processAdminDigest(
   const locale = getLocaleFromCountry(storeSettings?.country)
   const toEntry = (row: DigestReservationRow): DigestEntry => ({
     number: row.number,
-    customerName: `${row.firstName} ${row.lastName}`.trim(),
+    customerName:
+      row.companyName?.trim() ||
+      [row.firstName, row.lastName].filter(Boolean).join(" ") ||
+      "Unknown",
     timeLabel: formatStoreDate(row.date, timezone, 'TIME_ONLY', locale),
   })
   const pickups = pickupRows.map(toEntry)
@@ -629,8 +632,9 @@ async function processAdminDigest(
 type DigestReservationRow = {
   number: string
   date: Date
-  firstName: string
-  lastName: string
+  firstName: string | null
+  lastName: string | null
+  companyName: string | null
 }
 
 /** Channels for which today's digest has already been sent (per store/day). */
@@ -664,6 +668,7 @@ async function findDigestReservations(
       date: dateColumn,
       firstName: customers.firstName,
       lastName: customers.lastName,
+      companyName: customers.companyName,
     })
     .from(reservations)
     .innerJoin(customers, eq(customers.id, reservations.customerId))

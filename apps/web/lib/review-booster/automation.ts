@@ -144,6 +144,7 @@ async function processEmailRequests(
 
   for (const { reservation, customer } of eligibleReservations) {
     if (sentReservationIds.has(reservation.id)) continue;
+    if (!customer.email) continue;
 
     try {
       await sendThankYouReviewEmail({
@@ -158,7 +159,7 @@ async function processEmailRequests(
           address: store.address,
           theme: store.theme as { mode?: "light" | "dark"; primaryColor?: string } | null,
         },
-        customer: { firstName: customer.firstName },
+        customer: { firstName: customer.firstName ?? customer.companyName ?? "" },
         reservation: {
           id: reservation.id,
           number: reservation.number,
@@ -246,8 +247,8 @@ async function processSmsRequests(
         store: { id: store.id, name: store.name },
         customer: {
           id: customer.id,
-          firstName: customer.firstName,
-          lastName: customer.lastName,
+          firstName: customer.firstName ?? customer.companyName ?? "",
+          lastName: customer.lastName ?? "",
           phone: customer.phone,
         },
         reservation: { id: reservation.id, number: reservation.number },
@@ -315,6 +316,10 @@ export async function sendManualReviewRequest(
 
   try {
     if (channel === "email") {
+      if (!customer.email) {
+        return { success: false, error: "Customer has no email address" };
+      }
+
       await sendThankYouReviewEmail({
         to: customer.email,
         store: {
@@ -327,7 +332,7 @@ export async function sendManualReviewRequest(
           address: store.address,
           theme: store.theme as { mode?: "light" | "dark"; primaryColor?: string } | null,
         },
-        customer: { firstName: customer.firstName },
+        customer: { firstName: customer.firstName ?? customer.companyName ?? "" },
         reservation: {
           id: reservation.id,
           number: reservation.number,
@@ -346,8 +351,8 @@ export async function sendManualReviewRequest(
         store: { id: store.id, name: store.name },
         customer: {
           id: customer.id,
-          firstName: customer.firstName,
-          lastName: customer.lastName,
+          firstName: customer.firstName ?? customer.companyName ?? "",
+          lastName: customer.lastName ?? "",
           phone: customer.phone,
         },
         reservation: { id: reservation.id, number: reservation.number },

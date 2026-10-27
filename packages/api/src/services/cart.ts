@@ -55,6 +55,7 @@ type CartLineResolution =
       productName: string;
       productImage: string | null;
       price: number;
+      priceNegotiable: boolean;
       promotion?: ProductPromotion | null;
       deposit: number;
       maxQuantity: StockQuantityLimit;

@@ -79,9 +79,9 @@ export type PublicStoreData = {
 export type CustomerData = {
   id: string;
   storeId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
   phone: string | null;
 };
 

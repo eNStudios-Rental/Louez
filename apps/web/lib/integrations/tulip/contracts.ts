@@ -37,9 +37,9 @@ export type { TulipCoverageSummary, TulipQuotePreviewResult } from "./contracts-
 type ReservationCustomerLike = {
   customerType?: "individual" | "business" | null;
   companyName?: string | null;
-  firstName: string;
-  lastName: string;
-  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
   phone: string | null;
   address: string | null;
   city: string | null;

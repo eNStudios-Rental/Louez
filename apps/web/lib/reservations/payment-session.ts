@@ -83,6 +83,9 @@ export async function createReservationPaymentSessionForCustomer(
     if (!reservation) {
       return { error: "errors.reservationNotFound" };
     }
+    if (!reservation.customer.email) {
+      return { error: "errors.emailRequired" };
+    }
 
     const allowedStatuses = allowPendingReservation
       ? ["pending", "confirmed", "ongoing"]
@@ -150,7 +153,10 @@ export async function createReservationPaymentSessionForCustomer(
       reservationId,
       reservationNumber: reservation.number,
       customerEmail: reservation.customer.email,
-      customerName: `${reservation.customer.firstName} ${reservation.customer.lastName}`,
+      customerName:
+        [reservation.customer.firstName, reservation.customer.lastName]
+          .filter(Boolean)
+          .join(" ") || reservation.customer.companyName || "",
       lineItems,
       depositAmount: toStripeCents(Number.parseFloat(reservation.depositAmount), currency),
       currency,

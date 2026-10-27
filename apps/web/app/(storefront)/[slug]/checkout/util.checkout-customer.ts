@@ -1,9 +1,9 @@
 import type { CheckoutInitialCustomer } from "./checkout.types";
 
 interface CustomerRowLike {
-  email: string;
-  firstName: string;
-  lastName: string;
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
   phone: string | null;
   customerType?: "individual" | "business" | null;
   companyName: string | null;
@@ -16,9 +16,9 @@ interface CustomerRowLike {
 
 /** Form-ready customer from a `customers` row (session or OTP login). */
 export const toCheckoutInitialCustomer = (customer: CustomerRowLike): CheckoutInitialCustomer => ({
-  email: customer.email,
-  firstName: customer.firstName,
-  lastName: customer.lastName,
+  email: customer.email ?? "",
+  firstName: customer.firstName ?? "",
+  lastName: customer.lastName ?? "",
   phone: customer.phone ?? "",
   isBusinessCustomer: customer.customerType === "business",
   companyName: customer.companyName ?? "",

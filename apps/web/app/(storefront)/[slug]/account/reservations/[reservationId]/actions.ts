@@ -257,6 +257,8 @@ export async function acceptQuote(storeSlug: string, reservationId: string) {
     log.error("reservation", `quote accepted notification failed: ${describeError(error)}`);
   });
 
+  // Walk-in customers may not have an email address, so only create a magic link when present.
+  if (reservation.customer.email) {
   // Notify the customer with confirmation email
   const reservationUrl = getStorefrontUrl(storeSlug, `/account/reservations/${reservationId}`);
 
@@ -317,6 +319,7 @@ export async function acceptQuote(storeSlug: string, reservationId: string) {
     });
   } catch (error) {
     log.error("reservation", `quote accepted customer email failed: ${describeError(error)}`);
+  }
   }
 
   revalidatePath(`/${storeSlug}/account`);
@@ -452,7 +455,7 @@ export async function cancelReservationRequest(
       totalAmount: true,
       tulipContractId: true,
     },
-    with: { customer: { columns: { firstName: true, lastName: true, email: true, phone: true } } },
+    with: { customer: { columns: { firstName: true, lastName: true, email: true, phone: true, companyName: true } } },
   });
   if (!reservation) return { error: "reservationNotFound" };
 
@@ -528,7 +531,11 @@ export async function cancelReservationRequest(
           endDate: reservation.endDate,
           totalAmount: Number(reservation.totalAmount),
         },
-        customer: reservation.customer,
+        customer: {
+          firstName: reservation.customer.firstName ?? reservation.customer.companyName ?? "",
+          lastName: reservation.customer.lastName ?? "",
+          email: reservation.customer.email,
+        },
       });
     } catch (error) {
       log.error("reservation", `request cancellation notification failed: ${describeError(error)}`);
@@ -543,7 +550,10 @@ export async function cancelReservationRequest(
       await sendRequestCancelledEmail({
         store: { ...store, email: store.email },
         reservation,
-        customer: reservation.customer,
+        customer: {
+          firstName: reservation.customer.firstName ?? reservation.customer.companyName ?? "",
+          lastName: reservation.customer.lastName ?? "",
+        },
       });
     } catch (error) {
       log.error("reservation", `request cancellation email failed: ${describeError(error)}`);
@@ -605,6 +615,7 @@ export async function createDepositAuthorizationLink(
     },
   });
   if (!reservation) return { error: "reservationNotFound" as const };
+  if (!session.customer.email) return { error: "emailRequired" as const };
 
   const allowed = canAuthorizeDepositOnline({
     view: getCustomerDepositView(reservation),
@@ -617,7 +628,6 @@ export async function createDepositAuthorizationLink(
   const token = nanoid(64);
   const now = new Date();
   await db.insert(verificationCodes).values({
-    id: nanoid(),
     email: session.customer.email,
     storeId: store.id,
     code: "",

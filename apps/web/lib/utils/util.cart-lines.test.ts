@@ -195,6 +195,7 @@ const resolvedLine = (
   productImage: null,
   price: 42,
   deposit: 10,
+  priceNegotiable: false,
   maxQuantity: 5,
   quantity: line.quantity,
   pricingKind: "duration",

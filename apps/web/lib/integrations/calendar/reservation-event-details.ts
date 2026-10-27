@@ -22,8 +22,9 @@ type CalendarReservationLogistics = {
 
 type CalendarReservationDescription = CalendarReservationLogistics & {
   customer: {
-    firstName: string;
-    lastName: string;
+    firstName: string | null;
+    lastName: string | null;
+    companyName?: string | null;
     email?: string | null;
     phone?: string | null;
   };
@@ -117,10 +118,16 @@ export function buildReservationCalendarDescription({
   productNames: string;
   reservationUrl: string;
 }): string {
+  const customerName =
+    reservation.customer.companyName?.trim() ||
+    [reservation.customer.firstName, reservation.customer.lastName].filter(Boolean).join(" ") ||
+    reservation.customer.email ||
+    "Customer";
+
   return [
     joinSection([
       'CLIENT',
-      `Nom: ${reservation.customer.firstName} ${reservation.customer.lastName}`,
+      `Nom: ${customerName}`,
       reservation.customer.email
         ? `Email: ${reservation.customer.email}`
         : null,

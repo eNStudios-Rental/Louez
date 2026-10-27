@@ -37,9 +37,9 @@ interface CustomerCreateDialogProps {
 
 interface QuickCustomerValues {
   customerType: CustomerType;
-  email: string;
-  firstName: string;
-  lastName: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
   phone?: string;
 }
 
@@ -64,14 +64,15 @@ export const CustomerCreateDialog = ({
   const createCustomerMutation = useMutation({
     mutationFn: async (values: QuickCustomerValues) => {
       const customer = {
-        email: values.email.trim().toLowerCase(),
-        firstName: values.firstName.trim(),
-        lastName: values.lastName.trim(),
+        email: values.email?.trim().toLowerCase() || null,
+        firstName: values.firstName?.trim() || "",
+        lastName: values.lastName?.trim() || "",
         phone: values.phone?.trim() || null,
       };
 
       const result = await createCustomer({
         ...customer,
+        email: customer.email ?? undefined,
         customerType: values.customerType,
         phone: customer.phone ?? undefined,
       });

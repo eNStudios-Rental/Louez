@@ -68,9 +68,10 @@ export interface NotificationContext {
     totalAmount: number;
   };
   customer?: {
-    firstName: string;
-    lastName: string;
-    email: string;
+    firstName: string | null;
+    lastName: string | null;
+    email: string | null;
+    companyName?: string | null;
     phone?: string | null;
   };
   payment?: {
@@ -607,7 +608,11 @@ function buildAdminSmsMessage(
   const vars: AdminSmsTemplateVars = {
     storeName: ctx.store.name,
     number: ctx.reservation?.number || "",
-    customerName: ctx.customer ? `${ctx.customer.firstName} ${ctx.customer.lastName}` : "",
+    customerName: ctx.customer
+      ? ctx.customer.companyName?.trim() ||
+        [ctx.customer.firstName, ctx.customer.lastName].filter(Boolean).join(" ") ||
+        "Unknown"
+      : "",
     amount: ctx.payment
       ? formatCurrencyForSms(ctx.payment.amount, ctx.store.settings?.currency)
       : ctx.reservation
@@ -815,7 +820,14 @@ export async function dispatchNotification(
             currency: ctx.store.settings?.currency,
           }
         : undefined,
-      customer: ctx.customer,
+      customer: ctx.customer
+        ? {
+            firstName: ctx.customer.firstName ?? ctx.customer.companyName ?? "",
+            lastName: ctx.customer.lastName ?? "",
+            email: ctx.customer.email ?? "",
+            phone: ctx.customer.phone,
+          }
+        : undefined,
       payment: ctx.payment
         ? {
             ...ctx.payment,

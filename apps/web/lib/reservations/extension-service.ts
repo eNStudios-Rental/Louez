@@ -193,7 +193,7 @@ export const startExtension = async (input: {
     {
       mode: "payment",
       payment_method_types: ["card"],
-      customer_email: reservation.customer.email,
+      ...(reservation.customer.email ? { customer_email: reservation.customer.email } : {}),
       expires_at: Math.floor(attempt.expiresMs / 1000),
       success_url: `${url}/extension-return?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: url,
@@ -414,7 +414,12 @@ export const finishExtensionEffects = async (
   await markReservationForCalendarSync(storeId, reservationId);
   const email = {
     store: reservation.store,
-    customer: reservation.customer,
+    customer: {
+      ...reservation.customer,
+      firstName: reservation.customer.firstName ?? reservation.customer.companyName ?? "",
+      lastName: reservation.customer.lastName ?? "",
+      email: reservation.customer.email ?? "",
+    },
     reservation,
     previousPeriod: {
       startDate: reservation.startDate,
@@ -423,14 +428,16 @@ export const finishExtensionEffects = async (
     locale: getLocaleFromCountry(reservation.store.settings?.country),
   };
   const deliveries = await Promise.allSettled([
-    sendReservationModifiedEmail({
-      ...email,
-      to: reservation.customer.email,
-      reservationUrl: getStorefrontUrl(
-        reservation.store.slug,
-        `/account/reservations/${reservationId}`,
-      ),
-    }),
+    ...(reservation.customer.email
+      ? [sendReservationModifiedEmail({
+          ...email,
+          to: reservation.customer.email,
+          reservationUrl: getStorefrontUrl(
+            reservation.store.slug,
+            `/account/reservations/${reservationId}`,
+          ),
+        })]
+      : []),
     ...(reservation.store.email
       ? [
           sendReservationModifiedEmail({

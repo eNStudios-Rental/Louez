@@ -136,7 +136,9 @@ export const getPaymentRequestData = async (
       currency: paymentRequest.currency,
       description: paymentRequest.description,
     },
-    customer: { firstName: reservation.customer.firstName },
+    customer: {
+      firstName: reservation.customer.firstName ?? reservation.customer.companyName ?? "",
+    },
   };
 };
 
@@ -155,6 +157,7 @@ export const initiatePayment = async (
   }
 
   const { store, reservation, paymentRequest } = context;
+  if (!reservation.customer.email) return { ok: false, error: "invalid_token" };
   if (paymentRequest.id !== parsed.data.paymentRequestId || paymentRequest.status !== "pending") {
     return { ok: false, error: "invalid_token" };
   }
@@ -201,7 +204,9 @@ export const initiatePayment = async (
       reservationId: reservation.id,
       reservationNumber: reservation.number,
       customerEmail: reservation.customer.email,
-      customerName: `${reservation.customer.firstName} ${reservation.customer.lastName}`,
+      customerName: [reservation.customer.firstName, reservation.customer.lastName]
+        .filter(Boolean)
+        .join(" ") || reservation.customer.companyName || "",
       amount: chargeCents,
       description: paymentRequest.description,
       currency,

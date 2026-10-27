@@ -899,7 +899,7 @@ type BookingRow = {
   attemptStatus: string;
   bookingAttemptId: string;
   bookingNumber: string;
-  customerEmail: string;
+  customerEmail: string | null;
   depositAmount: string;
   endAt: Date;
   expiresAt: Date;
@@ -964,7 +964,7 @@ async function snapshotsFromRows(
     currency: row.storeSettings?.currency ?? "PLN",
     totalAmount: row.totalAmount,
     depositAmount: row.depositAmount,
-    customerEmail: row.customerEmail,
+    customerEmail: requireMarketplaceCustomerEmail(row.customerEmail),
     marketplaceUserId: row.marketplaceUserId,
     items: itemsByReservation.get(row.id) ?? [],
     manageUrl: getCanonicalUrl(
@@ -999,6 +999,13 @@ function bookingSelection() {
     totalAmount: reservations.totalAmount,
     updatedAt: bookingUpdatedAt,
   };
+}
+
+function requireMarketplaceCustomerEmail(email: string | null): string {
+  if (!email) {
+    throw new ApiServiceError("INTERNAL_SERVER_ERROR", "errors.internalServerError");
+  }
+  return email;
 }
 
 export async function getMarketplaceBooking(params: {
@@ -1343,6 +1350,7 @@ export async function getMarketplaceReservationContext(reservationId: string): P
   }
   return {
     ...row,
+    customerEmail: requireMarketplaceCustomerEmail(row.customerEmail),
     contractAvailable: CONTRACT_READY_RESERVATION_STATUSES.includes(row.reservationStatus),
   };
 }

@@ -536,7 +536,10 @@ const findResumableCheckout = async (
     },
   });
   if (!existing) return null;
-  if (existing.customer.email.trim().toLowerCase() !== customerEmail.trim().toLowerCase()) {
+  if (
+    !existing.customer.email ||
+    existing.customer.email.trim().toLowerCase() !== customerEmail.trim().toLowerCase()
+  ) {
     return null;
   }
   if (
@@ -560,6 +563,9 @@ const findMarketplaceReplay = async (
   });
   if (!existing) return null;
   if (existing.storeId !== storeId || existing.source !== "marketplace") {
+    return failReservation("errors.invalidData");
+  }
+  if (!existing.customer.email) {
     return failReservation("errors.invalidData");
   }
   return {
@@ -880,7 +886,7 @@ const writeReservation = async (
         reservationId: resumable.id,
         reservationNumber: resumable.number,
         customerId: customer.id,
-        customerEmail: customer.email,
+        customerEmail: request.customer.email,
       };
     }
 
@@ -955,7 +961,7 @@ const writeReservation = async (
       reservationId,
       reservationNumber,
       customerId: customer.id,
-      customerEmail: customer.email,
+      customerEmail: request.customer.email,
     };
   });
 
