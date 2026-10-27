@@ -173,6 +173,7 @@ export const BookingPanelView = ({
 
           <PriceSummary
             price={price}
+            priceNegotiable={product.priceNegotiable}
             seasons={product.seasonalPricings}
             durationLabel={durationLabel}
           />
@@ -197,6 +198,7 @@ export const BookingPanelView = ({
 
       <StickyBookingBar
         amount={price.isPriced ? price.total : (parseStorefrontDecimal(product.price) ?? 0)}
+        priceText={product.priceNegotiable ? t("storefront.product.priceNegotiable") : null}
         per={price.isPriced ? null : basePer}
         label={price.isPriced ? null : isFixed ? t("storefront.product.fixedPricingLabel") : null}
         ctaLabel={ctaLabel}

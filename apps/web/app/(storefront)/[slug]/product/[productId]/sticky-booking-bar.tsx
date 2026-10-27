@@ -10,6 +10,8 @@ import { StickyActionBar } from "@/components/storefront/ui/sticky-action-bar";
 
 interface StickyBookingBarProps {
   amount: number;
+  /** Copy shown instead of an amount when the final price is unknown. */
+  priceText?: string | null;
   /** Period suffix for a base rate ("jour"); omitted for a computed total. */
   per?: string | null;
   /** Plain suffix ("Forfait"). */
@@ -29,6 +31,7 @@ interface StickyBookingBarProps {
  */
 export const StickyBookingBar = ({
   amount,
+  priceText,
   per,
   label,
   ctaLabel,
@@ -51,7 +54,11 @@ export const StickyBookingBar = ({
       />
       <StickyActionBar desktop="hidden" placement="fixed" className={className}>
         <div className="flex min-w-0 flex-1 flex-col">
-          <Price amount={amount} per={per} label={label} size="lg" tone="primary" />
+          {priceText ? (
+            <span className="text-lg font-semibold text-primary">{priceText}</span>
+          ) : (
+            <Price amount={amount} per={per} label={label} size="lg" tone="primary" />
+          )}
           {blockedReason ? (
             <span className="truncate text-xs text-muted-foreground">{blockedReason}</span>
           ) : null}
