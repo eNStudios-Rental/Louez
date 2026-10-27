@@ -92,6 +92,7 @@ interface ReservationDetailClientProps {
   invoices: ReservationInvoiceDocument[];
   canGenerateInvoice: boolean;
   readOnly?: boolean;
+  canDeleteReservation?: boolean;
   onBack?: () => void;
   onPreviewEmail?: () => void;
 }
@@ -134,6 +135,7 @@ export function ReservationDetailClient({
   invoices,
   canGenerateInvoice,
   readOnly = false,
+  canDeleteReservation = false,
   onBack,
   onPreviewEmail,
 }: ReservationDetailClientProps) {
@@ -257,6 +259,7 @@ export function ReservationDetailClient({
     <div className={cn("space-y-4 sm:space-y-6", showMobileQuickActions && "pb-28 md:pb-0")}>
       <ReservationHeader
         readOnly={readOnly}
+        canDelete={canDeleteReservation}
         onBack={onBack}
         onPreviewEmail={onPreviewEmail}
         reservationId={reservation.id}

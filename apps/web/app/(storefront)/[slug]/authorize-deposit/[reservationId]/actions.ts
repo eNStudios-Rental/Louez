@@ -158,7 +158,7 @@ export const getDepositAuthorizationData = async (
     },
     reservation: { id: reservation.id, number: reservation.number, depositAmount },
     customer: {
-      firstName: reservation.customer.firstName ?? "",
+      firstName: reservation.customer.firstName ?? reservation.customer.companyName ?? "",
       email: reservation.customer.email ?? "",
     },
     currency,
@@ -190,10 +190,9 @@ export const createDepositPaymentIntent = async (
       currency,
       reservationId: reservation.id,
       reservationNumber: reservation.number,
-      customerName:
-        [reservation.customer.firstName, reservation.customer.lastName].filter(Boolean).join(" ") ||
-        reservation.customer.companyName ||
-        "",
+      customerName: [reservation.customer.firstName, reservation.customer.lastName]
+        .filter(Boolean)
+        .join(" ") || reservation.customer.companyName || "",
     });
     return { ok: true, clientSecret: intent.clientSecret };
   } catch (error) {
@@ -221,12 +220,14 @@ export const confirmDepositAuthorization = async (
   }
 
   const { store, reservation, currency, depositAmount } = context;
+  if (!reservation.customer.email) return { ok: false, error: "invalid_token" };
+  const customerEmail = reservation.customer.email;
   const { paymentIntentId } = parsed.data;
   const buildRedirectUrl = () =>
     createReservationInstantAccessUrl({
       storeId: store.id,
       storeSlug: store.slug,
-      customerEmail: reservation.customer.email ?? "",
+      customerEmail,
       reservationId: reservation.id,
       redirectPath: `/account/reservations/${reservation.id}?event=deposit_authorized`,
       ttlMs: INSTANT_ACCESS_SHORT_TTL_MS,

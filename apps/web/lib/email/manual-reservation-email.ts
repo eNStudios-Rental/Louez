@@ -43,7 +43,12 @@ interface ManualReservationEmailReservation {
   endDate: Date;
   totalAmount: string;
   depositAmount: string;
-  customer: { firstName: string | null; lastName: string | null; email: string | null };
+  customer: {
+    firstName: string | null;
+    lastName: string | null;
+    email: string | null;
+    companyName?: string | null;
+  };
   items: { productSnapshot: { name: string }; quantity: number; totalPrice: string }[];
   payments?: { type: string; status: string }[];
 }
@@ -97,7 +102,7 @@ export async function toManualEmailRenderContext(
       emailSettings: store.emailSettings,
     },
     customer: {
-      firstName: reservation.customer.firstName ?? "",
+      firstName: reservation.customer.firstName ?? reservation.customer.companyName ?? "",
       lastName: reservation.customer.lastName ?? "",
       email: reservation.customer.email ?? "",
     },
@@ -127,10 +132,6 @@ export async function buildManualReservationEmail({
   mode,
   accessUrl,
 }: BuildManualReservationEmailParams): Promise<BuildManualReservationEmailResult> {
-  if (mode === "send" && !reservation.customer.email) {
-    return { error: "errors.emailSendFailed" };
-  }
-
   const context = await toManualEmailRenderContext(store, reservation);
 
   if (mode === "preview") {
@@ -138,7 +139,8 @@ export async function buildManualReservationEmail({
     return "error" in result ? result : { ...result, attachments: [] };
   }
 
-  if (!reservation.customer.email) {
+  const customerEmail = reservation.customer.email;
+  if (!customerEmail) {
     return { error: "errors.emailSendFailed" };
   }
 
@@ -151,7 +153,7 @@ export async function buildManualReservationEmail({
     options.contractUrl = await createReservationInstantAccessUrl({
       storeId: store.id,
       storeSlug: store.slug,
-      customerEmail: reservation.customer.email,
+      customerEmail,
       reservationId: reservation.id,
       redirectPath: `/account/reservations/${reservation.id}/contract`,
     });
@@ -163,7 +165,7 @@ export async function buildManualReservationEmail({
       (await createReservationInstantAccessUrl({
         storeId: store.id,
         storeSlug: store.slug,
-        customerEmail: reservation.customer.email,
+        customerEmail,
         reservationId: reservation.id,
       }));
   }

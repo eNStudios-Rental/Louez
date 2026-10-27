@@ -185,6 +185,9 @@ export async function generateContract({
         customer: {
           ...reservation.customer,
           ...resolveReservationBilling(reservation, reservation.customer),
+          firstName: reservation.customer.firstName ?? reservation.customer.companyName ?? "",
+          lastName: reservation.customer.lastName ?? "",
+          email: reservation.customer.email ?? "",
         },
         outboundMethod: reservation.outboundMethod,
         returnMethod: reservation.returnMethod,

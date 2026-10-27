@@ -32,6 +32,7 @@ const line = (overrides: Partial<PricedCartLine> & { productId: string }): Price
   originalSubtotal: 100,
   savings: 0,
   totalDeposit: 0,
+  priceNegotiable: false,
   taxSettings: null,
   ...overrides,
 });

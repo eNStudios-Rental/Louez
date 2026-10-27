@@ -10,7 +10,7 @@ import { getCanonicalUrl } from "@/lib/seo";
 
 const handlePost = async (
   request: NextRequest,
-  context: RouteContext<"/api/booking/v1/bookings/[reservationId]/cancel">,
+  context: { params: Promise<{ reservationId: string }> },
 ) => {
   const logger = useLogger();
   try {

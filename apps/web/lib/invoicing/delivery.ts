@@ -91,15 +91,14 @@ export async function prepareInitialInvoiceEmailDelivery(
   }
 
   const reservation = initialInvoice.reservation;
-  const contractSignatureUrl =
-    reservation.signedAt || !reservation.customer.email
-      ? undefined
-      : await createReservationInstantAccessUrl({
-          storeId: reservation.store.id,
-          storeSlug: reservation.store.slug,
-          customerEmail: reservation.customer.email,
-          reservationId,
-        });
+  const contractSignatureUrl = reservation.signedAt || !reservation.customer.email
+    ? undefined
+    : await createReservationInstantAccessUrl({
+        storeId: reservation.store.id,
+        storeSlug: reservation.store.slug,
+        customerEmail: reservation.customer.email,
+        reservationId,
+      });
 
   return { attachments, contractSignatureUrl };
 }
@@ -133,7 +132,7 @@ export async function trySendInitialInvoicePaymentConfirmation(paymentId: string
           columns: { id: true, number: true },
           with: {
             customer: {
-              columns: { firstName: true, lastName: true, email: true },
+              columns: { firstName: true, lastName: true, email: true, companyName: true },
             },
             store: {
               columns: {
@@ -161,7 +160,12 @@ export async function trySendInitialInvoicePaymentConfirmation(paymentId: string
     await sendPaymentConfirmationEmail({
       to: reservation.customer.email,
       store: reservation.store,
-      customer: reservation.customer,
+      customer: {
+        ...reservation.customer,
+        firstName: reservation.customer.firstName ?? reservation.customer.companyName ?? "",
+        lastName: reservation.customer.lastName ?? "",
+        email: reservation.customer.email,
+      },
       reservation,
       paymentAmount: Number(payment.amount),
       paymentDate: payment.paidAt ?? payment.createdAt,

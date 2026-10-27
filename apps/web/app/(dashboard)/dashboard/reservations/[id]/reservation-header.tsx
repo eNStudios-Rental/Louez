@@ -6,6 +6,7 @@ import {
   Mail,
   FileText,
   MoreHorizontal,
+  Trash2,
   Printer,
   Copy,
   ExternalLink,
@@ -23,11 +24,19 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Checkbox,
 } from "@louez/ui";
 
 import { ReservationIdentity } from "./reservation-identity";
 import { ContractDownloadContext } from "@/lib/document-previews/contract-download-context";
 import { SendEmailModal } from "./send-email-modal";
+import { deleteReservation } from "./delete-reservation-action";
 import { generateAccessUrl } from "@/app/(dashboard)/dashboard/reservations/actions";
 import { ReservationBackButton } from "./reservation-back-button";
 import { reservationAnalyticsActions } from "@/lib/product-analytics/analytics-events";
@@ -75,6 +84,7 @@ interface ReservationHeaderProps {
   sentEmails?: string[];
   currency?: string;
   readOnly?: boolean;
+  canDelete?: boolean;
   onBack?: () => void;
   onDownloadContract?: () => void;
   /** Opens the caller's own email window, which a read-only file cannot send from. */
@@ -100,6 +110,7 @@ export function ReservationHeader({
   sentEmails = [],
   currency: _currency = "PLN",
   readOnly = false,
+  canDelete = false,
   onBack,
   onDownloadContract,
   onPreviewEmail,
@@ -114,6 +125,10 @@ export function ReservationHeader({
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [finishedDeleteDialogOpen, setFinishedDeleteDialogOpen] = useState(false);
+  const [notifyCustomer, setNotifyCustomer] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const isFullyPaid =
     rentalPaid >= rentalAmount && (depositAmount === 0 || depositCollected >= depositAmount);
@@ -223,6 +238,50 @@ export function ReservationHeader({
     captureReservationActionSucceeded({ reservationId, reservationStatus: status, action });
   };
 
+  const handleDeleteReservation = async (confirmFinishedReservation = false) => {
+    setIsDeleting(true);
+    try {
+      const result = await deleteReservation({
+        reservationId,
+        notifyCustomer,
+        confirmFinishedReservation,
+      });
+      if (!result.success) {
+        const message = {
+          unauthorized: t("deleteDialog.errors.unauthorized"),
+          "invalid-input": t("deleteDialog.errors.failed"),
+          "not-found": t("deleteDialog.errors.notFound"),
+          "email-required": t("deleteDialog.errors.emailRequired"),
+          "email-unavailable": t("deleteDialog.errors.emailUnavailable"),
+          "active-rental": t("deleteDialog.errors.activeRental"),
+          "confirmation-required": t("deleteDialog.errors.confirmationRequired"),
+          "financial-records": t("deleteDialog.errors.financialRecords"),
+          "external-sync": t("deleteDialog.errors.externalSync"),
+          failed: t("deleteDialog.errors.failed"),
+        }[result.reason];
+        toastManager.add({ title: message, type: "error" });
+        return;
+      }
+
+      setDeleteDialogOpen(false);
+      setFinishedDeleteDialogOpen(false);
+      toastManager.add({
+        title: result.emailSent
+          ? t("deleteDialog.deletedWithEmail")
+          : notifyCustomer
+            ? t("deleteDialog.deletedEmailFailed")
+            : t("deleteDialog.deleted"),
+        type: result.emailSent || !notifyCustomer ? "success" : "error",
+      });
+      router.push("/dashboard/reservations");
+      router.refresh();
+    } catch {
+      toastManager.add({ title: t("deleteDialog.errors.failed"), type: "error" });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <>
       <div className="flex flex-col gap-4 pb-6 border-b">
@@ -278,7 +337,7 @@ export function ReservationHeader({
                 <MoreHorizontal className="h-4 w-4" />
                 <span className="sr-only">{tCommon("actions")}</span>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-56">
                 {/* Mobile-only items */}
                 <DropdownMenuItem onClick={() => setEmailModalOpen(true)} className="sm:hidden">
                   <Mail className="h-4 w-4 mr-2" />
@@ -321,6 +380,21 @@ export function ReservationHeader({
                   )}
                   {t("actions.viewAsCustomer")}
                 </DropdownMenuItem>
+                {canDelete && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => {
+                        setNotifyCustomer(false);
+                        setDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      {t("deleteDialog.actionLabel")}
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -340,6 +414,96 @@ export function ReservationHeader({
           sentEmails={sentEmails}
         />
       )}
+
+      <AlertDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!isDeleting) setDeleteDialogOpen(open);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("deleteDialog.title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("deleteDialog.description", { number: reservationNumber })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <label className="flex items-start gap-3 rounded-md border p-3">
+            <Checkbox
+              checked={notifyCustomer}
+              disabled={!customer.email || isDeleting}
+              onCheckedChange={(checked) => setNotifyCustomer(checked === true)}
+              aria-label={t("deleteDialog.emailLabel")}
+            />
+            <span className="space-y-1">
+              <span className="block text-sm font-medium">{t("deleteDialog.emailLabel")}</span>
+              <span className="block text-sm text-muted-foreground">
+                {customer.email
+                  ? t("deleteDialog.emailDescription", { email: customer.email })
+                  : t("deleteDialog.emailUnavailable")}
+              </span>
+            </span>
+          </label>
+
+          <AlertDialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={isDeleting}
+            >
+              {t("deleteDialog.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (status === "completed") {
+                  setDeleteDialogOpen(false);
+                  setFinishedDeleteDialogOpen(true);
+                  return;
+                }
+                void handleDeleteReservation();
+              }}
+              disabled={isDeleting}
+            >
+              {isDeleting ? t("deleteDialog.deleting") : t("deleteDialog.confirm")}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={finishedDeleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!isDeleting) setFinishedDeleteDialogOpen(open);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("deleteDialog.finishedWarningTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("deleteDialog.finishedWarningDescription", { number: reservationNumber })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setFinishedDeleteDialogOpen(false)}
+              disabled={isDeleting}
+            >
+              {t("deleteDialog.changedMind")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => handleDeleteReservation(true)}
+              disabled={isDeleting}
+            >
+              {isDeleting ? t("deleteDialog.deleting") : t("deleteDialog.knowWhatDoing")}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

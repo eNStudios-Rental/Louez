@@ -233,6 +233,7 @@ export default async function ReservationDetailPage({ params }: ReservationDetai
         invoices={reservationInvoices}
         canGenerateInvoice={Boolean(legalProfile?.invoicingEnabled && uninvoicedPayment)}
         readOnly={!hasPermission(store.role, "write")}
+        canDeleteReservation={store.role === "owner" || store.role === "admin"}
       />
     </>
   );

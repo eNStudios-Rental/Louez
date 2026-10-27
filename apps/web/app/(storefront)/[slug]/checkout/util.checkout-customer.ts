@@ -1,10 +1,10 @@
 import type { CheckoutInitialCustomer } from "./checkout.types";
 
 interface CustomerRowLike {
-  email?: string | null;
-  firstName?: string | null;
-  lastName?: string | null;
-  phone?: string | null;
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  phone: string | null;
   customerType?: "individual" | "business" | null;
   companyName?: string | null;
   companyNumber?: string | null;

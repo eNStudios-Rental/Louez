@@ -400,7 +400,7 @@ export default async function ReservationDetailPage({
           isRentalPaid: rentalPaid,
           checkoutFailure: getCheckoutFailure(reservation.status, reservation.activity),
           paymentRequired: status === "confirmed" && actions.canPay,
-          customerEmail: session.customer.email,
+          customerEmail: session.customer.email ?? "",
         }}
         actions={{
           storeSlug: slug,

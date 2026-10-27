@@ -43,7 +43,7 @@ export const ProductDetail = ({
       <ProductHeader
         product={{
           ...data.product,
-          categories: data.product.categories ?? [],
+          categories: [],
         }}
         storeSlug="maison-du-velo"
         readOnly

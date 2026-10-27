@@ -34,7 +34,7 @@ const RANK_VARIANTS = ["review", "expired", "pending"] as const;
 const getDisplayName = (customer: TopCustomer) =>
   customer.customerType === "business" && customer.companyName
     ? customer.companyName
-    : `${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim();
+    : [customer.firstName, customer.lastName].filter(Boolean).join(" ") || customer.companyName || "—";
 
 export const TopCustomersTable = ({
   customers,

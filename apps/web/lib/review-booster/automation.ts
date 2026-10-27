@@ -159,7 +159,7 @@ async function processEmailRequests(
           address: store.address,
           theme: store.theme as { mode?: "light" | "dark"; primaryColor?: string } | null,
         },
-        customer: { firstName: customer.firstName },
+        customer: { firstName: customer.firstName ?? customer.companyName ?? "" },
         reservation: {
           id: reservation.id,
           number: reservation.number,
@@ -247,8 +247,8 @@ async function processSmsRequests(
         store: { id: store.id, name: store.name },
         customer: {
           id: customer.id,
-          firstName: customer.firstName,
-          lastName: customer.lastName,
+          firstName: customer.firstName ?? customer.companyName ?? "",
+          lastName: customer.lastName ?? "",
           phone: customer.phone,
         },
         reservation: { id: reservation.id, number: reservation.number },
@@ -332,7 +332,7 @@ export async function sendManualReviewRequest(
           address: store.address,
           theme: store.theme as { mode?: "light" | "dark"; primaryColor?: string } | null,
         },
-        customer: { firstName: customer.firstName },
+        customer: { firstName: customer.firstName ?? customer.companyName ?? "" },
         reservation: {
           id: reservation.id,
           number: reservation.number,
@@ -351,8 +351,8 @@ export async function sendManualReviewRequest(
         store: { id: store.id, name: store.name },
         customer: {
           id: customer.id,
-          firstName: customer.firstName,
-          lastName: customer.lastName,
+          firstName: customer.firstName ?? customer.companyName ?? "",
+          lastName: customer.lastName ?? "",
           phone: customer.phone,
         },
         reservation: { id: reservation.id, number: reservation.number },

@@ -53,6 +53,7 @@ const row: PricingProductRow = {
   images: [],
   price: "55",
   deposit: "1200",
+  priceNegotiable: false,
   pricingKind: "duration",
   pricingMode: "hour",
   basePeriodMinutes: 240,

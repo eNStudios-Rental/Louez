@@ -35,7 +35,16 @@ interface CustomerCreateDialogProps {
   onCreated: (customer: DashboardCustomer) => void;
 }
 
-const toFormValues = (prefill: CustomerQueryPrefill): CustomerInput => ({
+interface QuickCustomerValues {
+  customerType: CustomerType;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+}
+
+const toFormValues = (prefill: CustomerQueryPrefill): QuickCustomerValues => ({
+  ...prefill,
   customerType: "individual",
   email: prefill.email ?? "",
   firstName: prefill.firstName ?? "",
@@ -57,18 +66,17 @@ export const CustomerCreateDialog = ({
   const customerSchema = useMemo(() => createCustomerSchema(tValidation), [tValidation]);
 
   const createCustomerMutation = useMutation({
-    mutationFn: async (values: CustomerInput) => {
-      const email = values.email?.trim().toLowerCase() || null;
-      const firstName = values.firstName?.trim() || null;
-      const lastName = values.lastName?.trim() || null;
-      const phone = values.phone?.trim() || null;
+    mutationFn: async (values: QuickCustomerValues) => {
+      const customer = {
+        email: values.email?.trim().toLowerCase() || null,
+        firstName: values.firstName?.trim() || "",
+        lastName: values.lastName?.trim() || "",
+        phone: values.phone?.trim() || null,
+      };
 
       const result = await createCustomer({
-        ...values,
-        email: email ?? undefined,
-        firstName: firstName ?? undefined,
-        lastName: lastName ?? undefined,
-        phone: phone ?? undefined,
+        ...customer,
+        email: customer.email ?? undefined,
         customerType: values.customerType,
       });
 
