@@ -68,9 +68,9 @@ export interface NotificationContext {
     totalAmount: number;
   };
   customer?: {
-    firstName: string | null;
-    lastName: string | null;
-    email: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    email?: string | null;
     companyName?: string | null;
     phone?: string | null;
   };

@@ -63,7 +63,6 @@ const row: PricingProductRow = {
   trackUnits: false,
   bookingAttributeAxes: null,
   taxSettings: null,
-  priceNegotiable: false,
   promotion,
 };
 const catalogProduct = toPricingCatalogProduct(

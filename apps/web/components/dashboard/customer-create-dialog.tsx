@@ -16,7 +16,7 @@ import {
   DialogPopup,
   DialogTitle,
 } from "@louez/ui";
-import { type CustomerInput, createCustomerSchema } from "@louez/validations";
+import { type CustomerType, createCustomerSchema } from "@louez/validations";
 
 import { createCustomer } from "@/app/(dashboard)/dashboard/customers/actions";
 
@@ -69,15 +69,17 @@ export const CustomerCreateDialog = ({
     mutationFn: async (values: QuickCustomerValues) => {
       const customer = {
         email: values.email?.trim().toLowerCase() || null,
-        firstName: values.firstName?.trim() || "",
-        lastName: values.lastName?.trim() || "",
+        firstName: values.firstName?.trim() || null,
+        lastName: values.lastName?.trim() || null,
         phone: values.phone?.trim() || null,
       };
 
       const result = await createCustomer({
-        ...customer,
-        email: customer.email ?? undefined,
         customerType: values.customerType,
+        email: customer.email ?? undefined,
+        firstName: customer.firstName ?? undefined,
+        lastName: customer.lastName ?? undefined,
+        phone: customer.phone ?? undefined,
       });
 
       if (result.error || !result.customerId) {
@@ -86,10 +88,7 @@ export const CustomerCreateDialog = ({
 
       return {
         id: result.customerId,
-        email,
-        firstName,
-        lastName,
-        phone,
+        ...customer,
       } satisfies DashboardCustomer;
     },
   });
