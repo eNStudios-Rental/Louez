@@ -2175,7 +2175,6 @@
       "deleteDialog": {
         "actionLabel": "Usuń rezerwację",
         "finishedWarningTitle": "Trwale usunąć zakończoną rezerwację?",
-        "finishedWarningDescription": "Zakończone rezerwacje usuwaj wyłącznie w celu usunięcia rezerwacji testowych, utworzonych przez pomyłkę lub z innych czysto technicznych powodów. Ta operacja trwale usuwa wszystkie dane tej rezerwacji w Louez, w tym rejestry płatności, protokoły wydania i zwrotu, historię pozycji z tych dni oraz inne powiązane dane. Nie można jej cofnąć. Usuwane są wyłącznie dane Louez; płatności nie zostaną zwrócone, a dane w usługach zewnętrznych nie zostaną usunięte.",
         "knowWhatDoing": "Wiem, co robię",
         "changedMind": "Jednak zmieniłem(-am) zdanie",
         "title": "Trwale usunąć rezerwację nr {number}?",
@@ -2199,7 +2198,15 @@
           "financialRecords": "Ta rezerwacja ma powiązane płatności, faktury lub opłaty i nie może zostać usunięta.",
           "externalSync": "Ta rezerwacja jest powiązana z zewnętrznym kalendarzem lub marketplace i nie może zostać usunięta.",
           "failed": "Nie udało się usunąć rezerwacji. Spróbuj ponownie."
-        }
+        },
+        "finishedWarningIntro": "Zakończone rezerwacje usuwaj wyłącznie w celu usunięcia rezerwacji testowych, utworzonych przez pomyłkę lub z innych czysto technicznych powodów. Ta operacja trwale usuwa wszystkie dane tej rezerwacji, takie jak:",
+        "finishedWarningPayments": "rejestry płatności",
+        "finishedWarningProtocols": "protokoły wydania i zwrotu",
+        "finishedWarningHistory": "historię pozycji z tych dni",
+        "finishedWarningRelated": "oraz inne powiązane dane.",
+        "finishedWarningConclusion": "Tych zmian nie można cofnąć.",
+        "cancellableWarningDescription": "Tę rezerwację można anulować zamiast usuwać. Usunięcie trwale kasuje rezerwację i powiązane z nią dane oraz nie może zostać cofnięte. Czy na pewno chcesz kontynuować?",
+        "cancellableWarningTitle": "Usunąć rezerwację zamiast ją anulować?"
       },
       "notesSaved": "Notatki zapisane",
       "createdAt": "Utworzono",

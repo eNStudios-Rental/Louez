@@ -2207,7 +2207,6 @@
       "deleteDialog": {
         "actionLabel": "Delete reservation",
         "finishedWarningTitle": "Delete finished reservation permanently?",
-        "finishedWarningDescription": "Only delete finished reservation #{number} to remove test bookings, bookings made by mistake, or for other purely technical reasons. This permanently deletes all Louez data connected to this reservation, including payment records, handover and return protocols, item history for these dates, and other related data. This cannot be undone. It removes Louez records only; it does not refund payments or remove records held by external services.",
         "knowWhatDoing": "I know what I'm doing",
         "changedMind": "I've changed my mind",
         "title": "Permanently delete reservation #{number}?",
@@ -2231,7 +2230,15 @@
           "financialRecords": "This reservation has payment, invoice, or fee records and cannot be deleted.",
           "externalSync": "This reservation is linked to an external calendar or marketplace and cannot be deleted.",
           "failed": "The reservation could not be deleted. Please try again."
-        }
+        },
+        "finishedWarningIntro": "Only delete finished reservations to remove test bookings, bookings made by mistake, or for other purely technical reasons. This permanently deletes all data for this reservation, including:",
+        "finishedWarningPayments": "payment records",
+        "finishedWarningProtocols": "handover and return protocols",
+        "finishedWarningHistory": "item history for these dates",
+        "finishedWarningRelated": "other related data.",
+        "finishedWarningConclusion": "These changes cannot be undone.",
+        "cancellableWarningDescription": "You can cancel this reservation instead of deleting it. Deletion permanently removes the reservation and its related data and cannot be undone. Are you sure you want to continue?",
+        "cancellableWarningTitle": "Delete reservation instead of cancelling it?"
       },
       "notesSaved": "메모가 저장되었습니다.",
       "createdAt": "생성 날짜",
