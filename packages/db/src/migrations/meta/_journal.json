@@ -638,6 +638,13 @@
       "when": 1792134917000,
       "tag": "0085_motionless_thunderbolts",
       "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "5",
+      "when": 1793189600000,
+      "tag": "0086_add_quote_reservation_status",
+      "breakpoints": true
     }
   ]
 }

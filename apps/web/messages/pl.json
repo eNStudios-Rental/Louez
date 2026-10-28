@@ -8457,6 +8457,7 @@
     "copy": "(kopia)",
     "forbidden": "Dostęp zabroniony",
     "serverError": "Błąd serwera",
+    "internalServerError": "Wystąpił wewnętrzny błąd serwera. Spróbuj ponownie później.",
     "networkError": "Błąd połączenia",
     "criticalError": "Nieoczekiwany błąd",
     "criticalErrorMessage": "Wystąpił krytyczny błąd. Proszę odświeżyć stronę.",

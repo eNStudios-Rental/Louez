@@ -8435,6 +8435,7 @@
     "copy": "(salinan)",
     "forbidden": "Akses dilarang",
     "serverError": "Kesalahan server",
+    "internalServerError": "Terjadi kesalahan server internal. Silakan coba lagi nanti.",
     "networkError": "Kesalahan koneksi",
     "criticalError": "Kesalahan yang tidak terduga",
     "criticalErrorMessage": "Terjadi kesalahan kritis. Silakan muat ulang halaman tersebut.",

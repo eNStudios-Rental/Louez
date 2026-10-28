@@ -8435,6 +8435,7 @@
     "copy": "(コピー)",
     "forbidden": "アクセス禁止",
     "serverError": "サーバーエラー",
+    "internalServerError": "内部サーバーエラーが発生しました。しばらくしてからもう一度お試しください。",
     "networkError": "接続エラー",
     "criticalError": "予期しないエラー",
     "criticalErrorMessage": "重大なエラーが発生しました。ページをリロードしてください。",
