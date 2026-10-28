@@ -8435,6 +8435,7 @@
     "copy": "(복사)",
     "forbidden": "접근금지",
     "serverError": "서버 오류",
+    "internalServerError": "내부 서버 오류가 발생했습니다. 나중에 다시 시도해 주세요.",
     "networkError": "연결 오류",
     "criticalError": "예상치 못한 오류",
     "criticalErrorMessage": "심각한 오류가 발생했습니다. 페이지를 새로고침하세요.",

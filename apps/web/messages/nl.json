@@ -8435,6 +8435,7 @@
     "copy": "(kopie)",
     "forbidden": "Toegang verboden",
     "serverError": "Serverfout",
+    "internalServerError": "Er is een interne serverfout opgetreden. Probeer het later opnieuw.",
     "networkError": "Verbindingsfout",
     "criticalError": "Onverwachte fout",
     "criticalErrorMessage": "Er is een kritieke fout opgetreden. Herlaad de pagina.",

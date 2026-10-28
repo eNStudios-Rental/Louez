@@ -8435,6 +8435,7 @@
     "copy": "(copia)",
     "forbidden": "Accesso vietato",
     "serverError": "Errore del server",
+    "internalServerError": "Si è verificato un errore interno del server. Riprova più tardi.",
     "networkError": "Errore di connessione",
     "criticalError": "Errore imprevisto",
     "criticalErrorMessage": "Si e verificato un errore critico. Ricarica la pagina.",

@@ -8435,6 +8435,7 @@
     "copy": "（副本）",
     "forbidden": "禁止访问",
     "serverError": "服务器错误",
+    "internalServerError": "发生内部服务器错误。请稍后重试。",
     "networkError": "连接错误",
     "criticalError": "意外错误",
     "criticalErrorMessage": "发生严重错误。请重新加载页面。",
