@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq, inArray, or } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
 import { isEmailConfigured } from "@louez/email";
@@ -74,9 +74,8 @@ export type DeleteReservationResult =
         | "not-found"
         | "email-required"
         | "email-unavailable"
-        | "active-rental"
         | "confirmation-required"
-        | "financial-records"
+        | "tulip-contract"
         | "external-sync"
         | "failed";
     };
@@ -104,7 +103,6 @@ export async function deleteReservation(
           status: reservations.status,
           startDate: reservations.startDate,
           endDate: reservations.endDate,
-          depositPaymentIntentId: reservations.depositPaymentIntentId,
           tulipContractId: reservations.tulipContractId,
           customerId: reservations.customerId,
         })
@@ -143,18 +141,8 @@ export async function deleteReservation(
         .from(invoices)
         .where(and(eq(invoices.reservationId, reservationId), eq(invoices.storeId, store.id)));
       const invoiceIds = reservationInvoiceRows.map(({ id }) => id);
-      const [fee] = await tx
-        .select({ id: platformFees.id })
-        .from(platformFees)
-        .where(and(eq(platformFees.reservationId, reservationId), eq(platformFees.storeId, store.id)))
-        .limit(1);
-
-      if (
-        reservation.tulipContractId ||
-        (!isConfirmedFinishedDeletion &&
-          (paymentIds.length > 0 || invoiceIds.length > 0 || fee || reservation.depositPaymentIntentId))
-      ) {
-        return { success: false as const, reason: "financial-records" as const };
+      if (reservation.tulipContractId) {
+        return { success: false as const, reason: "tulip-contract" as const };
       }
 
       const [calendarEvent] = await tx
@@ -205,41 +193,34 @@ export async function deleteReservation(
         await tx.delete(inspections).where(inArray(inspections.id, inspectionIds));
       }
 
-      if (isConfirmedFinishedDeletion) {
-        if (invoiceIds.length > 0) {
-          await tx.delete(invoicePayments).where(inArray(invoicePayments.invoiceId, invoiceIds));
-        }
-        if (paymentIds.length > 0) {
-          await tx.delete(invoicePayments).where(inArray(invoicePayments.paymentId, paymentIds));
-        }
-        await tx.delete(platformFees).where(
-          and(eq(platformFees.reservationId, reservationId), eq(platformFees.storeId, store.id)),
-        );
-        if (invoiceIds.length > 0) {
-          await tx.delete(invoices).where(inArray(invoices.id, invoiceIds));
-        }
-        if (paymentIds.length > 0) {
-          await tx.delete(payments).where(inArray(payments.id, paymentIds));
-        }
-
-        const invoiceDocumentIds = reservationInvoiceRows.map(({ documentId }) => documentId);
-        if (invoiceDocumentIds.length > 0) {
-          await tx.delete(documents).where(
-            or(
-              eq(documents.reservationId, reservationId),
-              inArray(documents.id, invoiceDocumentIds),
-            ),
-          );
-        } else {
-          await tx.delete(documents).where(eq(documents.reservationId, reservationId));
-        }
+      if (invoiceIds.length > 0) {
+        await tx.delete(invoicePayments).where(inArray(invoicePayments.invoiceId, invoiceIds));
+      }
+      if (paymentIds.length > 0) {
+        await tx.delete(invoicePayments).where(inArray(invoicePayments.paymentId, paymentIds));
         await tx.delete(referralRewards).where(
-          or(
-            eq(referralRewards.qualifyingReservationId, reservationId),
-            ...(paymentIds.length > 0
-              ? [inArray(referralRewards.qualifyingPaymentId, paymentIds)]
-              : []),
-          ),
+          inArray(referralRewards.qualifyingPaymentId, paymentIds),
+        );
+      }
+      await tx.delete(platformFees).where(
+        and(eq(platformFees.reservationId, reservationId), eq(platformFees.storeId, store.id)),
+      );
+      if (invoiceIds.length > 0) {
+        await tx.delete(invoices).where(inArray(invoices.id, invoiceIds));
+      }
+      if (paymentIds.length > 0) {
+        await tx.delete(payments).where(inArray(payments.id, paymentIds));
+      }
+
+      const invoiceDocumentIds = reservationInvoiceRows.map(({ documentId }) => documentId);
+      if (invoiceDocumentIds.length > 0) {
+        await tx.delete(documents).where(inArray(documents.id, invoiceDocumentIds));
+      }
+
+      if (isConfirmedFinishedDeletion) {
+        await tx.delete(documents).where(eq(documents.reservationId, reservationId));
+        await tx.delete(referralRewards).where(
+          eq(referralRewards.qualifyingReservationId, reservationId),
         );
       }
 

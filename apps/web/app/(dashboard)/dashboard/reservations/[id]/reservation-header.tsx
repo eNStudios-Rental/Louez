@@ -253,9 +253,8 @@ export function ReservationHeader({
           "not-found": t("deleteDialog.errors.notFound"),
           "email-required": t("deleteDialog.errors.emailRequired"),
           "email-unavailable": t("deleteDialog.errors.emailUnavailable"),
-          "active-rental": t("deleteDialog.errors.activeRental"),
           "confirmation-required": t("deleteDialog.errors.confirmationRequired"),
-          "financial-records": t("deleteDialog.errors.financialRecords"),
+          "tulip-contract": t("deleteDialog.errors.tulipContract"),
           "external-sync": t("deleteDialog.errors.externalSync"),
           failed: t("deleteDialog.errors.failed"),
         }[result.reason];
