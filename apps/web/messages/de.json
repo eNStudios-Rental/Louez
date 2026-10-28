@@ -2225,11 +2225,10 @@
           "notFound": "This reservation could not be found.",
           "emailRequired": "The customer has no email address.",
           "emailUnavailable": "Email sending is not configured. Turn off the notice option to continue.",
-          "activeRental": "Ongoing reservations cannot be deleted.",
-          "confirmationRequired": "Confirm the additional warning before deleting this finished reservation.",
-          "financialRecords": "This reservation has payment, invoice, or fee records and cannot be deleted.",
+          "confirmationRequired": "Confirm the additional warning before deleting this reservation.",
           "externalSync": "This reservation is linked to an external calendar or marketplace and cannot be deleted.",
-          "failed": "The reservation could not be deleted. Please try again."
+          "failed": "The reservation could not be deleted. Please try again.",
+          "tulipContract": "This reservation is linked to a Tulip contract and cannot be deleted."
         },
         "finishedWarningIntro": "Only delete finished reservations to remove test bookings, bookings made by mistake, or for other purely technical reasons. This permanently deletes all data for this reservation, including:",
         "finishedWarningPayments": "payment records",
@@ -2237,8 +2236,10 @@
         "finishedWarningHistory": "item history for these dates",
         "finishedWarningRelated": "other related data.",
         "finishedWarningConclusion": "These changes cannot be undone.",
-        "cancellableWarningDescription": "You can cancel this reservation instead of deleting it. Deletion permanently removes the reservation and its related data and cannot be undone. Are you sure you want to continue?",
-        "cancellableWarningTitle": "Delete reservation instead of cancelling it?"
+        "cancellableWarningDescription": "You can cancel this reservation instead of deleting it. Deletion permanently removes its Louez data, including payment records, and cannot be undone. Payments will not be refunded.",
+        "cancellableWarningTitle": "Delete reservation instead of cancelling it?",
+        "permanentWarningTitle": "Delete reservation permanently?",
+        "permanentWarningDescription": "This permanently removes the reservation and its Louez data, including payment records. This action cannot be undone, and payments will not be refunded."
       },
       "notesSaved": "Notizen gespeichert",
       "createdAt": "Erstellt am",
