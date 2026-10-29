@@ -49,9 +49,6 @@ export const CustomerCommunicationsForm = ({
           <form.AppField name="emailReminders">
             {(field) => <field.Switch label={t("storefront.account.communications.email")} />}
           </form.AppField>
-          <form.AppField name="smsReminders">
-            {(field) => <field.Switch label={t("storefront.account.communications.sms")} />}
-          </form.AppField>
           <p className="text-sm text-muted-foreground">
             {t("storefront.account.communications.essential")}
           </p>
