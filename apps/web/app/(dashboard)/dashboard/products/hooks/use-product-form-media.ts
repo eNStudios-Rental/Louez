@@ -712,25 +712,46 @@ export function useProductFormMedia({
       setIsCropDialogOpen(true);
 
       try {
-        const response = await fetch("/api/files/source", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: imageUrl, productId }),
-          signal: controller.signal,
-        });
-        if (!response.ok) {
-          throw new Error("Failed to load existing image");
-        }
+        let dataUrl: string;
+        let mimeType: string;
+        let imageSize: ProductImageSize;
 
-        const payload = (await response.json()) as {
-          dataUrl?: string;
-          mimeType?: string;
-        };
-        const dataUrl = payload.dataUrl;
-        const mimeType = (payload.mimeType || "image/jpeg").toLowerCase();
+        // If the image is already a data URL (from previous crop in same session),
+        // use it directly without fetching from API
+        if (imageUrl.startsWith("data:")) {
+          dataUrl = imageUrl;
+          // Extract MIME type from data URL header
+          const headerEnd = dataUrl.indexOf(",");
+          mimeType = dataUrl.slice(5, headerEnd).split(";")[0] || "image/jpeg";
+          imageSize = await getImageSizeFromSource(dataUrl);
+          if (controller.signal.aborted) return;
+        } else {
+          const response = await fetch("/api/files/source", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: imageUrl, productId }),
+            signal: controller.signal,
+          });
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(
+              errorData.error ?? "Failed to load existing image",
+            );
+          }
 
-        if (!dataUrl) {
-          throw new Error("Missing source image data");
+          const payload = (await response.json()) as {
+            dataUrl?: string;
+            mimeType?: string;
+          };
+          dataUrl = payload.dataUrl;
+          mimeType = (payload.mimeType || "image/jpeg").toLowerCase();
+
+          if (!dataUrl) {
+            throw new Error("Missing source image data");
+          }
+
+          imageSize = await getImageSizeFromSource(dataUrl);
+          if (controller.signal.aborted) return;
         }
 
         if (!isCropSupportedMime(mimeType)) {
@@ -741,9 +762,6 @@ export function useProductFormMedia({
           });
           return;
         }
-
-        const imageSize = await getImageSizeFromSource(dataUrl);
-        if (controller.signal.aborted) return;
 
         const initialCrop = createMaxCenteredAspectCropPercent(imageSize);
 
@@ -766,7 +784,8 @@ export function useProductFormMedia({
 
         resetCropSession();
         console.error("Image recrop prepare error:", error);
-        toastManager.add({ title: t("imageUploadError"), type: "error" });
+        const errorMessage = error instanceof Error ? error.message : t("imageUploadError");
+        toastManager.add({ title: errorMessage, type: "error" });
       } finally {
         if (recropAbortControllerRef.current === controller) {
           recropAbortControllerRef.current = null;
