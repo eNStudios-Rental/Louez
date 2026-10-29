@@ -130,6 +130,7 @@ export function useProductFormMedia({
   imageBackgroundRemovalEnabled = false,
 }: UseProductFormMediaParams) {
   const t = useTranslations("dashboard.products.form");
+  const tErrors = useTranslations("errors");
   const { uploadImage, deleteImage } = useImageUpload("product");
   const pendingUploadsRef = useRef(new Set<string>());
   const imageHistoryRef = useRef(imageHistory);
@@ -788,7 +789,12 @@ export function useProductFormMedia({
 
         resetCropSession();
         console.error("Image recrop prepare error:", error);
-        const errorMessage = error instanceof Error ? error.message : t("imageUploadError");
+        let errorMessage = t("imageUploadError");
+        if (error instanceof Error) {
+          errorMessage = error.message.startsWith("errors.")
+            ? tErrors(error.message.slice("errors.".length))
+            : error.message;
+        }
         toastManager.add({ title: errorMessage, type: "error" });
       } finally {
         if (recropAbortControllerRef.current === controller) {
@@ -797,7 +803,7 @@ export function useProductFormMedia({
         }
       }
     },
-    [imagesPreviews, productId, resetCropSession, t],
+    [imagesPreviews, productId, resetCropSession, t, tErrors],
   );
 
   const uploadCropQueue = useCallback(
