@@ -712,8 +712,8 @@ export function useProductFormMedia({
       setIsCropDialogOpen(true);
 
       try {
-        let dataUrl: string;
-        let mimeType: string;
+        let dataUrl: string | undefined;
+        let mimeType: string | undefined;
         let imageSize: ProductImageSize;
 
         // If the image is already a data URL (from previous crop in same session),
@@ -752,6 +752,10 @@ export function useProductFormMedia({
 
           imageSize = await getImageSizeFromSource(dataUrl);
           if (controller.signal.aborted) return;
+        }
+
+        if (!dataUrl || !mimeType) {
+          throw new Error("Missing image data or MIME type");
         }
 
         if (!isCropSupportedMime(mimeType)) {
