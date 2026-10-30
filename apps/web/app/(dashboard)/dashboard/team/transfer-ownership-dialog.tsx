@@ -30,12 +30,25 @@ export const TransferOwnershipDialog = ({
   onClose,
 }: TransferOwnershipDialogProps) => {
   const t = useTranslations("dashboard.team");
+  const tCommon = useTranslations("common");
+  const tErrors = useTranslations("errors");
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const eligibleMembers = members.filter(
     (member) => member.userId !== currentUserId && member.role !== "owner",
   );
+
+  const resolveErrorMessage = (code: string | undefined) => {
+    if (!code) return tErrors("generic");
+    const teamKey = code.replace("dashboard.team.", "");
+    if (t.has(teamKey)) return t(teamKey);
+
+    const errorKey = code.replace("errors.", "");
+    if (tErrors.has(errorKey)) return tErrors(errorKey);
+
+    return tErrors("generic");
+  };
 
   const handleTransfer = async () => {
     if (!selectedMemberId) return;
@@ -44,9 +57,8 @@ export const TransferOwnershipDialog = ({
       const result = await transferOwnership(selectedMemberId);
 
       if (result.error) {
-        const key = result.error.replace("dashboard.team.", "");
         toastManager.add({
-          title: t.has(key) ? t(key) : t(result.error),
+          title: resolveErrorMessage(result.error),
           type: "error",
         });
         return;
@@ -66,9 +78,7 @@ export const TransferOwnershipDialog = ({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <p className="text-sm text-muted-foreground">
-            {t("selectNewOwner")}:
-          </p>
+          <p className="text-sm text-muted-foreground">{t("selectNewOwner")}:</p>
           <div className="max-h-64 overflow-y-auto space-y-2">
             {eligibleMembers.length > 0 ? (
               eligibleMembers.map((member) => (
@@ -76,9 +86,7 @@ export const TransferOwnershipDialog = ({
                   key={member.id}
                   onClick={() => setSelectedMemberId(member.id)}
                   className={`w-full rounded-lg border p-3 text-left transition-colors hover:bg-muted ${
-                    selectedMemberId === member.id
-                      ? "border-primary bg-muted/50"
-                      : "border-muted"
+                    selectedMemberId === member.id ? "border-primary bg-muted/50" : "border-muted"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -104,13 +112,13 @@ export const TransferOwnershipDialog = ({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isPending}>
-            {t("common.cancel")}
+            {tCommon("cancel")}
           </Button>
           <Button
             onClick={handleTransfer}
             disabled={!selectedMemberId || isPending || eligibleMembers.length === 0}
           >
-            {isPending ? t("common.loading") : t("transferOwnership")}
+            {isPending ? tCommon("loading") : t("transferOwnership")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -38,6 +38,7 @@ export const TeamMemberRow = ({
   readOnly = false,
 }: TeamMemberRowProps) => {
   const t = useTranslations("dashboard.team");
+  const tCommon = useTranslations("common");
   const tErrors = useTranslations("errors");
   const format = useFormatter();
   const [isPending, startTransition] = useTransition();
@@ -46,15 +47,25 @@ export const TeamMemberRow = ({
   const isCurrentUserOwner = currentUserId === member.userId;
   const [showTransferDialog, setShowTransferDialog] = useState(false);
 
+  const resolveErrorMessage = (code: string | undefined) => {
+    if (!code) return tErrors("generic");
+    const teamKey = code.replace("dashboard.team.", "");
+    if (t.has(teamKey)) return t(teamKey);
+
+    const errorKey = code.replace("errors.", "");
+    if (tErrors.has(errorKey)) return tErrors(errorKey);
+
+    return tErrors("generic");
+  };
+
   const handleRemove = () => {
     if (readOnly) return;
     startTransition(async () => {
       const result = await removeMember(member.id);
 
       if (result.error) {
-        const key = result.error.replace("dashboard.team.", "");
         toastManager.add({
-          title: t.has(key) ? t(key) : tErrors("generic"),
+          title: resolveErrorMessage(result.error),
           type: "error",
         });
         return;
@@ -76,7 +87,13 @@ export const TeamMemberRow = ({
             className="gap-1"
           >
             {isOwner ? <StarSolidIcon /> : <UserSolidIcon />}
-            {isOwner ? t("ownerBadge") : member.role === "admin" ? "Admin" : t("memberBadge")}
+            {isOwner
+              ? t("ownerBadge")
+              : member.role === "admin"
+                ? t.has("adminBadge")
+                  ? t("adminBadge")
+                  : "Admin"
+                : t("memberBadge")}
           </Badge>
         </div>
         {member.user.name && (
@@ -102,7 +119,7 @@ export const TeamMemberRow = ({
                   variant="ghost"
                   size="icon-sm"
                   disabled={readOnly || isPending}
-                  aria-label={t("removeMember")}
+                  aria-label={tCommon("actions")}
                 />
               }
             >
@@ -126,8 +143,7 @@ export const TeamMemberRow = ({
                     startTransition(async () => {
                       const res = await changeRole(member.id, "admin");
                       if (res.error) {
-                        const key = res.error.replace("dashboard.team.", "");
-                        toastManager.add({ title: t.has(key) ? t(key) : tErrors("generic"), type: "error" });
+                        toastManager.add({ title: resolveErrorMessage(res.error), type: "error" });
                       } else {
                         toastManager.add({ title: t("roleChangedAdmin"), type: "success" });
                       }
@@ -144,8 +160,7 @@ export const TeamMemberRow = ({
                     startTransition(async () => {
                       const res = await changeRole(member.id, "member");
                       if (res.error) {
-                        const key = res.error.replace("dashboard.team.", "");
-                        toastManager.add({ title: t.has(key) ? t(key) : tErrors("generic"), type: "error" });
+                        toastManager.add({ title: resolveErrorMessage(res.error), type: "error" });
                       } else {
                         toastManager.add({ title: t("roleChangedMember"), type: "success" });
                       }
@@ -162,7 +177,7 @@ export const TeamMemberRow = ({
               )}
             </DropdownMenuContent>
           </DropdownMenu>
-          
+
           {showTransferDialog && (
             <TransferOwnershipDialog
               members={allMembers}

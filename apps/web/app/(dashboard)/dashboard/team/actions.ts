@@ -14,12 +14,13 @@ import { auth } from "@/lib/auth";
 import { notifyTeamMemberInvited } from "@/lib/discord/platform-notifications";
 import { getLocaleFromCountry } from "@/lib/email/i18n";
 import { sendTeamInvitationEmail } from "@/lib/email/send";
+import { log } from "@/lib/evlog";
 import { canAddTeamMember } from "@/lib/plan-limits";
 import { currentUserHasPermission, getCurrentStore } from "@/lib/store-context";
 import { isPlatformAdmin } from "@/lib/platform-admin";
 
 import { env } from "@/env";
-import { MemberRole } from "@louez/utils";
+import type { MemberRole } from "@louez/utils";
 
 const addMemberSchema = z.object({
   email: z.email(),
@@ -364,6 +365,11 @@ export async function transferOwnership(newOwnerMemberId: string): Promise<{
   success: boolean;
   error?: string;
 }> {
+  const validated = z.string().min(1).safeParse(newOwnerMemberId);
+  if (!validated.success) {
+    return { success: false, error: "errors.invalidData" };
+  }
+
   const session = await auth();
   if (!session?.user?.id) {
     return { success: false, error: "errors.unauthorized" };
@@ -376,20 +382,17 @@ export async function transferOwnership(newOwnerMemberId: string): Promise<{
 
   // Check permission - only current owner or platform admin can transfer ownership
   const currentRole = await db.query.storeMembers.findFirst({
-    where: and(
-      eq(storeMembers.storeId, store.id),
-      eq(storeMembers.userId, session.user.id),
-    ),
+    where: and(eq(storeMembers.storeId, store.id), eq(storeMembers.userId, session.user.id)),
   });
 
   const isAdmin = isPlatformAdmin(session.user.email);
-  if (!currentRole || (currentRole.role !== "owner" && !isAdmin)) {
+  if (!isAdmin && currentRole?.role !== "owner") {
     return { success: false, error: "errors.unauthorized" };
   }
 
   // Get the new owner member
   const newOwner = await db.query.storeMembers.findFirst({
-    where: and(eq(storeMembers.id, newOwnerMemberId), eq(storeMembers.storeId, store.id)),
+    where: and(eq(storeMembers.id, validated.data), eq(storeMembers.storeId, store.id)),
     with: { user: true },
   });
 
@@ -407,21 +410,17 @@ export async function transferOwnership(newOwnerMemberId: string): Promise<{
     return { success: false, error: "dashboard.team.newOwnerAlreadyOwner" };
   }
 
-  // Get the current owner member - must be the authenticated user
+  // Get the current owner member of the store
   const currentOwner = await db.query.storeMembers.findFirst({
-    where: and(
-      eq(storeMembers.storeId, store.id),
-      eq(storeMembers.userId, session.user.id),
-      eq(storeMembers.role, "owner"),
-    ),
+    where: and(eq(storeMembers.storeId, store.id), eq(storeMembers.role, "owner")),
   });
 
   if (!currentOwner) {
     return { success: false, error: "errors.noCurrentOwner" };
   }
 
-  // Verify that the current user is indeed the store owner (stores.userId)
-  if (store.userId !== session.user.id && !isAdmin) {
+  // If not platform admin, verify that the authenticated caller is the current store owner
+  if (!isAdmin && currentOwner.userId !== session.user.id) {
     return { success: false, error: "errors.unauthorized" };
   }
 
@@ -438,19 +437,16 @@ export async function transferOwnership(newOwnerMemberId: string): Promise<{
       await tx
         .update(storeMembers)
         .set({ role: "owner" as const })
-        .where(eq(storeMembers.id, newOwnerMemberId));
+        .where(eq(storeMembers.id, newOwner.id));
 
       // Update the store's userId to the new owner
-      await tx
-        .update(stores)
-        .set({ userId: newOwner.userId })
-        .where(eq(stores.id, store.id));
+      await tx.update(stores).set({ userId: newOwner.userId }).where(eq(stores.id, store.id));
     });
 
     revalidatePath("/dashboard/team");
     return { success: true };
   } catch (error) {
-    console.error("Ownership transfer failed:", error);
+    log.error({ error, message: "Ownership transfer failed" });
     return { success: false, error: "dashboard.team.transferFailed" };
   }
 }

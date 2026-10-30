@@ -50,7 +50,12 @@ export const TeamPageContent = ({
         readOnly={readOnly}
       />
 
-      <TeamMembersCard members={members} canManageMembers={canManageMembers} currentUserId={currentUserId} readOnly={readOnly} />
+      <TeamMembersCard
+        members={members}
+        canManageMembers={canManageMembers}
+        currentUserId={currentUserId}
+        readOnly={readOnly}
+      />
       {canManageMembers && (
         <p className="text-muted-foreground text-sm">
           {t("googleAccessReminder")}{" "}
