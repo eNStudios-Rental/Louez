@@ -14,12 +14,14 @@ import type { TeamMember } from "./team-types";
 interface TeamMembersCardProps {
   members: TeamMember[];
   canManageMembers: boolean;
+  currentUserId: string;
   readOnly?: boolean;
 }
 
 export const TeamMembersCard = ({
   members,
   canManageMembers,
+  currentUserId,
   readOnly = false,
 }: TeamMembersCardProps) => {
   const t = useTranslations("dashboard.team");
@@ -44,7 +46,9 @@ export const TeamMembersCard = ({
             <TeamMemberRow
               key={member.id}
               member={member}
+              allMembers={members}
               canManageMembers={canManageMembers}
+              currentUserId={currentUserId}
               readOnly={readOnly}
             />
           ))}

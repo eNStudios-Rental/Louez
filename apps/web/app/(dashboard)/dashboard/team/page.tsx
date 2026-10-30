@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { auth } from "@/lib/auth";
 import { getCurrentStore, currentUserHasPermission } from "@/lib/store-context";
 import { getTeamData } from "./actions";
 import { TeamPageContent } from "./team-page-content";
@@ -10,8 +11,9 @@ export const instant = false;
 
 export default async function TeamPage() {
   const store = await getCurrentStore();
+  const session = await auth();
 
-  if (!store) {
+  if (!store || !session?.user?.id) {
     redirect("/onboarding");
   }
 
@@ -24,6 +26,7 @@ export default async function TeamPage() {
       invitations={invitations}
       limits={limits}
       canManageMembers={canManageMembers}
+      currentUserId={session.user.id}
     />
   );
 }

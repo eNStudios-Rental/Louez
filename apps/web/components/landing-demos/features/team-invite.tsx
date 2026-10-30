@@ -19,6 +19,7 @@ export const TeamInviteScene = ({ period }: FeatureSceneProps) => {
         invitations={invitations}
         limits={team.limits}
         canManageMembers
+        currentUserId="demo-team-user-0"
         readOnly
         onInvite={(email) =>
           setInvitations((current) => addDemoTeamInvitation(current, email, getDemoToday(period)))

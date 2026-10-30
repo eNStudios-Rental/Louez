@@ -7,7 +7,7 @@ import { nanoid } from "nanoid";
 import { z } from "zod";
 
 import { db } from "@louez/db";
-import { storeInvitations, storeMembers, users } from "@louez/db";
+import { stores, storeInvitations, storeMembers, users } from "@louez/db";
 import { isEmailConfigured } from "@louez/email";
 
 import { auth } from "@/lib/auth";
@@ -16,6 +16,7 @@ import { getLocaleFromCountry } from "@/lib/email/i18n";
 import { sendTeamInvitationEmail } from "@/lib/email/send";
 import { canAddTeamMember } from "@/lib/plan-limits";
 import { currentUserHasPermission, getCurrentStore } from "@/lib/store-context";
+import { isPlatformAdmin } from "@/lib/platform-admin";
 
 import { env } from "@/env";
 import { MemberRole } from "@louez/utils";
@@ -351,4 +352,105 @@ export async function getTeamData() {
   ]);
 
   return { members, invitations, limits };
+}
+
+/**
+ * Transfer ownership of the store from the current owner to another member.
+ * Only the current owner or a platform admin can transfer ownership.
+ * The new owner must already be a member of the store.
+ * This updates both the store_members.role and stores.userId fields.
+ */
+export async function transferOwnership(newOwnerMemberId: string): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "errors.unauthorized" };
+  }
+
+  const store = await getCurrentStore();
+  if (!store) {
+    return { success: false, error: "errors.storeNotFound" };
+  }
+
+  // Check permission - only current owner or platform admin can transfer ownership
+  const currentRole = await db.query.storeMembers.findFirst({
+    where: and(
+      eq(storeMembers.storeId, store.id),
+      eq(storeMembers.userId, session.user.id),
+    ),
+  });
+
+  const isAdmin = isPlatformAdmin(session.user.email);
+  if (!currentRole || (currentRole.role !== "owner" && !isAdmin)) {
+    return { success: false, error: "errors.unauthorized" };
+  }
+
+  // Get the new owner member
+  const newOwner = await db.query.storeMembers.findFirst({
+    where: and(eq(storeMembers.id, newOwnerMemberId), eq(storeMembers.storeId, store.id)),
+    with: { user: true },
+  });
+
+  if (!newOwner) {
+    return { success: false, error: "errors.memberNotFound" };
+  }
+
+  // Cannot transfer ownership to self
+  if (newOwner.userId === session.user.id) {
+    return { success: false, error: "dashboard.team.cannotTransferToSelf" };
+  }
+
+  // Cannot transfer ownership to someone who is already owner
+  if (newOwner.role === "owner") {
+    return { success: false, error: "dashboard.team.newOwnerAlreadyOwner" };
+  }
+
+  // Get the current owner member - must be the authenticated user
+  const currentOwner = await db.query.storeMembers.findFirst({
+    where: and(
+      eq(storeMembers.storeId, store.id),
+      eq(storeMembers.userId, session.user.id),
+      eq(storeMembers.role, "owner"),
+    ),
+  });
+
+  if (!currentOwner) {
+    return { success: false, error: "errors.noCurrentOwner" };
+  }
+
+  // Verify that the current user is indeed the store owner (stores.userId)
+  if (store.userId !== session.user.id && !isAdmin) {
+    return { success: false, error: "errors.unauthorized" };
+  }
+
+  try {
+    // Use a transaction to ensure all updates succeed or fail together
+    await db.transaction(async (tx) => {
+      // Update current owner to admin
+      await tx
+        .update(storeMembers)
+        .set({ role: "admin" as const })
+        .where(eq(storeMembers.id, currentOwner.id));
+
+      // Update new owner to owner role
+      await tx
+        .update(storeMembers)
+        .set({ role: "owner" as const })
+        .where(eq(storeMembers.id, newOwnerMemberId));
+
+      // Update the store's userId to the new owner
+      await tx
+        .update(stores)
+        .set({ userId: newOwner.userId })
+        .where(eq(stores.id, store.id));
+    });
+
+    revalidatePath("/dashboard/team");
+    return { success: true };
+  } catch (error) {
+    console.error("Ownership transfer failed:", error);
+    return { success: false, error: "dashboard.team.transferFailed" };
+  }
 }
