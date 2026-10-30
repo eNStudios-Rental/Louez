@@ -17,6 +17,7 @@ export const createDemoTeam = (
       const customer = getDemoCustomer(index);
       return {
         id: `demo-member-${index}`,
+        userId: `demo-team-user-${index}`,
         role: index === 0 ? "owner" : "member",
         createdAt: subDays(today, index === 0 ? 90 : 30),
         user: {
