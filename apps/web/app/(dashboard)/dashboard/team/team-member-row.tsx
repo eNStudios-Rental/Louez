@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 
 import { MoreHorizontal } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
@@ -19,17 +19,22 @@ import { StarSolidIcon, UserSolidIcon } from "@louez/ui/icons";
 import { UserAvatar } from "@/components/dashboard/shared/user-avatar";
 
 import { removeMember, changeRole } from "./actions";
+import { TransferOwnershipDialog } from "./transfer-ownership-dialog";
 import type { TeamMember } from "./team-types";
 
 interface TeamMemberRowProps {
   member: TeamMember;
+  allMembers: TeamMember[];
   canManageMembers: boolean;
+  currentUserId: string;
   readOnly?: boolean;
 }
 
 export const TeamMemberRow = ({
   member,
+  allMembers,
   canManageMembers,
+  currentUserId,
   readOnly = false,
 }: TeamMemberRowProps) => {
   const t = useTranslations("dashboard.team");
@@ -38,6 +43,8 @@ export const TeamMemberRow = ({
   const [isPending, startTransition] = useTransition();
 
   const isOwner = member.role === "owner";
+  const isCurrentUserOwner = currentUserId === member.userId;
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
 
   const handleRemove = () => {
     if (readOnly) return;
@@ -86,60 +93,84 @@ export const TeamMemberRow = ({
         </p>
       </div>
 
-      {canManageMembers && !isOwner && (
-        <DropdownMenu modal={readOnly ? false : undefined}>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                disabled={readOnly || isPending}
-                aria-label={t("removeMember")}
-              />
-            }
-          >
-            <MoreHorizontal />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {member.role !== "admin" && (
-              <DropdownMenuItem
-                onClick={() => {
-                  if (readOnly) return;
-                  startTransition(async () => {
-                    const res = await changeRole(member.id, "admin");
-                    if (res.error) {
-                      toastManager.add({ title: "Error changing role", type: "error" });
-                    } else {
-                      toastManager.add({ title: "Role changed to Admin", type: "success" });
-                    }
-                  });
-                }}
-              >
-                Make Admin
-              </DropdownMenuItem>
-            )}
-            {member.role !== "member" && (
-              <DropdownMenuItem
-                onClick={() => {
-                  if (readOnly) return;
-                  startTransition(async () => {
-                    const res = await changeRole(member.id, "member");
-                    if (res.error) {
-                      toastManager.add({ title: "Error changing role", type: "error" });
-                    } else {
-                      toastManager.add({ title: "Role changed to Member", type: "success" });
-                    }
-                  });
-                }}
-              >
-                Make Member
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem className="text-destructive" onClick={handleRemove}>
-              {t("removeMember")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      {canManageMembers && (
+        <>
+          <DropdownMenu modal={readOnly ? false : undefined}>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled={readOnly || isPending}
+                  aria-label={t("removeMember")}
+                />
+              }
+            >
+              <MoreHorizontal />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {isOwner && isCurrentUserOwner && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (readOnly) return;
+                    setShowTransferDialog(true);
+                  }}
+                >
+                  {t("transferOwnership")}
+                </DropdownMenuItem>
+              )}
+              {member.role !== "admin" && !isOwner && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (readOnly) return;
+                    startTransition(async () => {
+                      const res = await changeRole(member.id, "admin");
+                      if (res.error) {
+                        const key = res.error.replace("dashboard.team.", "");
+                        toastManager.add({ title: t.has(key) ? t(key) : tErrors("generic"), type: "error" });
+                      } else {
+                        toastManager.add({ title: t("roleChangedAdmin"), type: "success" });
+                      }
+                    });
+                  }}
+                >
+                  {t("makeAdmin")}
+                </DropdownMenuItem>
+              )}
+              {member.role !== "member" && !isOwner && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (readOnly) return;
+                    startTransition(async () => {
+                      const res = await changeRole(member.id, "member");
+                      if (res.error) {
+                        const key = res.error.replace("dashboard.team.", "");
+                        toastManager.add({ title: t.has(key) ? t(key) : tErrors("generic"), type: "error" });
+                      } else {
+                        toastManager.add({ title: t("roleChangedMember"), type: "success" });
+                      }
+                    });
+                  }}
+                >
+                  {t("makeMember")}
+                </DropdownMenuItem>
+              )}
+              {!isOwner && (
+                <DropdownMenuItem className="text-destructive" onClick={handleRemove}>
+                  {t("removeMember")}
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          {showTransferDialog && (
+            <TransferOwnershipDialog
+              members={allMembers}
+              currentUserId={currentUserId}
+              onClose={() => setShowTransferDialog(false)}
+            />
+          )}
+        </>
       )}
     </div>
   );

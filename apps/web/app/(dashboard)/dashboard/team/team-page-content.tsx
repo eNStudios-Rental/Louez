@@ -17,6 +17,7 @@ interface TeamPageContentProps {
   invitations: TeamInvitation[];
   limits: TeamLimits | null;
   canManageMembers: boolean;
+  currentUserId: string;
   readOnly?: boolean;
   onInvite?: (email: string) => void | Promise<void>;
 }
@@ -26,6 +27,7 @@ export const TeamPageContent = ({
   invitations,
   limits,
   canManageMembers,
+  currentUserId,
   readOnly = false,
   onInvite,
 }: TeamPageContentProps) => {
@@ -48,7 +50,7 @@ export const TeamPageContent = ({
         readOnly={readOnly}
       />
 
-      <TeamMembersCard members={members} canManageMembers={canManageMembers} readOnly={readOnly} />
+      <TeamMembersCard members={members} canManageMembers={canManageMembers} currentUserId={currentUserId} readOnly={readOnly} />
       {canManageMembers && (
         <p className="text-muted-foreground text-sm">
           {t("googleAccessReminder")}{" "}
