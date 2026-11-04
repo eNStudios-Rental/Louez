@@ -2455,7 +2455,10 @@
           "tooFar": "地址超出最大距离（{maxDistance} 公里）",
           "savings": "储蓄",
           "deliveryFee": "送货费"
-        }
+        },
+        "bookedByName": "预订提交人",
+        "bookedByNamePlaceholder": "例如：张三",
+        "bookedByNameHelp": "输入预订的人员姓名。"
       },
       "contract": {
         "title": "合同",
@@ -2692,7 +2695,10 @@
           "label": "折扣",
           "add": "添加折扣",
           "remove": "删除折扣"
-        }
+        },
+        "bookedByName": "预订提交人",
+        "bookedByNamePlaceholder": "例如：张三",
+        "bookedByNameHelp": "输入预订的人员姓名（例如使用共享账户时的员工）。"
       },
       "rejectDialog": {
         "title": "拒绝请求",
@@ -3097,7 +3103,8 @@
         "planning": "规划"
       },
       "displayCards": "卡片视图",
-      "displayTable": "表格视图"
+      "displayTable": "表格视图",
+      "bookedBy": "预订人"
     },
     "customers": {
       "title": "客户",

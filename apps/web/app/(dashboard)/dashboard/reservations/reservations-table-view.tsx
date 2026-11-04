@@ -252,7 +252,14 @@ export function ReservationsTableView({
                     </TableCell>
 
                     {/* Customer */}
-                    <TableCell>{getReservationCustomerName(reservation.customer)}</TableCell>
+                    <TableCell>
+                      <div>{getReservationCustomerName(reservation.customer)}</div>
+                      {reservation.bookedByName && (
+                        <span className="text-xs text-muted-foreground block">
+                          {t("bookedBy")}: {reservation.bookedByName}
+                        </span>
+                      )}
+                    </TableCell>
 
                     {/* Items (hidden on mobile) */}
                     <TableCell className="hidden md:table-cell">

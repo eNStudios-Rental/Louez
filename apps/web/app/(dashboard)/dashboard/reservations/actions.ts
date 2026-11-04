@@ -1159,6 +1159,7 @@ interface CreateReservationData {
     };
   };
   internalTitle?: string;
+  bookedByName?: string;
   internalNotes?: string;
   /** Flat commercial discount in currency units; clamped to the subtotal. */
   discountAmount?: number;
@@ -1944,6 +1945,7 @@ export async function createManualReservation(data: CreateReservationData) {
       totalAmount: totalAmount.toFixed(2),
       discountAmount: manualDiscountAmount.toFixed(2),
       internalTitle: data.internalTitle?.trim() || null,
+      bookedByName: data.bookedByName?.trim() || null,
       internalNotes: data.internalNotes || null,
       source: "manual",
       // Staff books on the customer's behalf: the profile's default identity
@@ -2102,6 +2104,7 @@ export async function createManualReservation(data: CreateReservationData) {
     status: initialReservationStatus,
     tulipInsuranceOptIn: appliedTulipInsuranceOptIn,
     tulipInsuranceAmount,
+    ...(data.bookedByName?.trim() && { bookedByName: data.bookedByName.trim() }),
     ...(overbookingShortfalls && {
       overbooked: true,
       overbookingShortfalls,
@@ -2399,6 +2402,7 @@ interface UpdateDeliveryLeg {
 
 interface UpdateReservationData {
   internalTitle?: string | null;
+  bookedByName?: string | null;
   startDate?: Date;
   endDate?: Date;
   notifyCustomerByEmail?: boolean;
@@ -3902,6 +3906,9 @@ export async function updateReservation(
           .set({
             ...(data.internalTitle !== undefined
               ? { internalTitle: data.internalTitle?.trim() || null }
+              : {}),
+            ...(data.bookedByName !== undefined
+              ? { bookedByName: data.bookedByName?.trim() || null }
               : {}),
             startDate: newStartDate,
             endDate: newEndDate,

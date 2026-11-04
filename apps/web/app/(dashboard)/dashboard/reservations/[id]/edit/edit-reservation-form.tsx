@@ -292,6 +292,7 @@ export function EditReservationForm({
   // State
   const [isLoading, setIsLoading] = useState(false);
   const [internalTitle, setInternalTitle] = useState(reservation.internalTitle ?? "");
+  const [bookedByName, setBookedByName] = useState(reservation.bookedByName ?? "");
   const [startDate, setStartDate] = useState<Date | undefined>(new Date(reservation.startDate));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date(reservation.endDate));
   const endMinTime =
@@ -814,6 +815,7 @@ export function EditReservationForm({
           startDate,
           endDate,
           internalTitle,
+          bookedByName: bookedByName.trim() || null,
           notifyCustomerByEmail,
           tulipInsuranceOptIn: effectiveTulipInsuranceOptIn,
           overrideTurnoverBuffer,
@@ -1029,6 +1031,7 @@ export function EditReservationForm({
 
   const hasChanges =
     internalTitle.trim() !== (reservation.internalTitle ?? "") ||
+    bookedByName.trim() !== (reservation.bookedByName ?? "") ||
     (startDate?.getTime() ?? 0) !== new Date(reservation.startDate).getTime() ||
     (endDate?.getTime() ?? 0) !== new Date(reservation.endDate).getTime() ||
     calculations.subtotal !== originalSubtotal ||
@@ -1178,7 +1181,7 @@ export function EditReservationForm({
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-4 sm:space-y-6 min-w-0">
               <Card>
-                <CardContent className="p-4 sm:p-6">
+                <CardContent className="p-4 sm:p-6 space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="reservation-internal-title">{t("edit.internalTitle")}</Label>
                     <Input
@@ -1189,6 +1192,20 @@ export function EditReservationForm({
                       maxLength={255}
                     />
                     <p className="text-xs text-muted-foreground">{t("edit.internalTitleHelp")}</p>
+                  </div>
+                  <div className="space-y-2 border-t pt-4">
+                    <Label htmlFor="reservation-booked-by-name">
+                      {t("edit.bookedByName")}
+                      <span className="ml-1 text-muted-foreground font-normal">({tCommon("optional")})</span>
+                    </Label>
+                    <Input
+                      id="reservation-booked-by-name"
+                      value={bookedByName}
+                      onChange={(event) => setBookedByName(event.target.value)}
+                      placeholder={t("edit.bookedByNamePlaceholder")}
+                      maxLength={255}
+                    />
+                    <p className="text-xs text-muted-foreground">{t("edit.bookedByNameHelp")}</p>
                   </div>
                 </CardContent>
               </Card>

@@ -2455,7 +2455,10 @@
           "tooFar": "住所が最大距離 ({maxDistance} km) を超えています",
           "savings": "貯蓄",
           "deliveryFee": "配送料"
-        }
+        },
+        "bookedByName": "予約作成者",
+        "bookedByNamePlaceholder": "例：山田 太郎",
+        "bookedByNameHelp": "予約を入力した担当者の氏名。"
       },
       "contract": {
         "title": "契約書",
@@ -2692,7 +2695,10 @@
           "label": "割引",
           "add": "割引を追加する",
           "remove": "割引を削除する"
-        }
+        },
+        "bookedByName": "予約作成者",
+        "bookedByNamePlaceholder": "例：山田 太郎",
+        "bookedByNameHelp": "予約を入力した担当者の氏名（共有アカウント使用時のスタッフなど）。"
       },
       "rejectDialog": {
         "title": "リクエストを拒否する",
@@ -3097,7 +3103,8 @@
         "planning": "企画"
       },
       "displayCards": "カードビュー",
-      "displayTable": "テーブルビュー"
+      "displayTable": "テーブルビュー",
+      "bookedBy": "予約担当者"
     },
     "customers": {
       "title": "お客様",

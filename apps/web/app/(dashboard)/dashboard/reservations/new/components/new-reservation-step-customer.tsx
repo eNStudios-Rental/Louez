@@ -5,7 +5,7 @@ import { useState } from "react";
 import { User, UserPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@louez/ui";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from "@louez/ui";
 
 import { CustomerCombobox } from "@/components/dashboard/customer-combobox";
 import { CustomerCreateDialog } from "@/components/dashboard/customer-create-dialog";
@@ -32,6 +32,7 @@ export function NewReservationStepCustomer({
 }: NewReservationStepCustomerProps) {
   const t = useTranslations("dashboard.reservations.manualForm");
   const tCustomerSearch = useTranslations("common.customerSearch");
+  const tCommon = useTranslations("common");
   const { dismissFeature } = useWhatsNew();
   const [createDialog, setCreateDialog] = useState({ isOpen: false, query: "" });
 
@@ -50,7 +51,7 @@ export function NewReservationStepCustomer({
           </CardTitle>
           <CardDescription>{t("customerStepDescription")}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <form.Field name="customerId">
             {(field) => (
               <div className="space-y-2">
@@ -89,6 +90,27 @@ export function NewReservationStepCustomer({
               </div>
             )}
           </form.Field>
+
+          <div className="space-y-2 border-t pt-4">
+            <Label htmlFor="reservation-booked-by-name">
+              {t("bookedByName")}
+              <span className="ml-1 font-normal text-muted-foreground">({tCommon("optional")})</span>
+            </Label>
+            <form.Field name="bookedByName">
+              {(field) => (
+                <Input
+                  id="reservation-booked-by-name"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder={t("bookedByNamePlaceholder")}
+                  maxLength={255}
+                />
+              )}
+            </form.Field>
+            <p className="text-xs text-muted-foreground">
+              {t("bookedByNameHelp")}
+            </p>
+          </div>
         </CardContent>
       </Card>
 

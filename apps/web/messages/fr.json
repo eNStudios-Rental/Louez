@@ -2455,7 +2455,10 @@
           "tooFar": "L'adresse dépasse la distance maximale ({maxDistance} km)",
           "savings": "Économies",
           "deliveryFee": "Frais de livraison"
-        }
+        },
+        "bookedByName": "Personne qui effectue la réservation",
+        "bookedByNamePlaceholder": "Ex. : Jean Dupont",
+        "bookedByNameHelp": "Nom de la personne qui a saisi la réservation."
       },
       "accessLink": {
         "send": "Envoyer le lien",
@@ -2701,7 +2704,10 @@
           "label": "Remise",
           "add": "Ajouter une remise",
           "remove": "Retirer la remise"
-        }
+        },
+        "bookedByName": "Personne qui effectue la réservation",
+        "bookedByNamePlaceholder": "Ex. : Jean Dupont",
+        "bookedByNameHelp": "Nom de la personne qui saisit la réservation (ex. : collaborateur sur un compte partagé)."
       },
       "rejectDialog": {
         "title": "Refuser la demande",
@@ -3097,7 +3103,8 @@
         "planning": "Planning"
       },
       "displayCards": "Vue cartes",
-      "displayTable": "Vue tableau"
+      "displayTable": "Vue tableau",
+      "bookedBy": "Réservé par"
     },
     "customers": {
       "title": "Clients",

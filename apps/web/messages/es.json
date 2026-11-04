@@ -2455,7 +2455,10 @@
           "tooFar": "La dirección supera la distancia máxima ({maxDistance} km)",
           "savings": "Ahorro",
           "deliveryFee": "Gastos de envío"
-        }
+        },
+        "bookedByName": "Persona que realiza la reserva",
+        "bookedByNamePlaceholder": "Ej.: Juan Pérez",
+        "bookedByNameHelp": "Nombre de la persona que introdujo la reserva."
       },
       "contract": {
         "title": "Contrato",
@@ -2692,7 +2695,10 @@
           "label": "Descuento",
           "add": "Añadir un descuento",
           "remove": "Quitar el descuento"
-        }
+        },
+        "bookedByName": "Persona que realiza la reserva",
+        "bookedByNamePlaceholder": "Ej.: Juan Pérez",
+        "bookedByNameHelp": "Nombre de la persona que introduce la reserva (ej.: empleado en una cuenta compartida)."
       },
       "rejectDialog": {
         "title": "Rechazar solicitud",
@@ -3097,7 +3103,8 @@
         "planning": "Planning"
       },
       "displayCards": "Vista de tarjetas",
-      "displayTable": "Vista de tabla"
+      "displayTable": "Vista de tabla",
+      "bookedBy": "Reservado por"
     },
     "customers": {
       "title": "Clientes",

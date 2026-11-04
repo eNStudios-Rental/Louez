@@ -442,6 +442,8 @@ export function ActivityTimelineV2({
     const Icon = isCreationEvent ? (activitySource === "manual" ? UserPlus : Globe) : config.icon;
 
     const paymentAmount = parseActivityAmount(activity.metadata?.amount);
+    const bookedByName =
+      typeof activity.metadata?.bookedByName === "string" ? activity.metadata.bookedByName : null;
     const paymentCurrency =
       typeof activity.metadata?.currency === "string" ? activity.metadata.currency : currency;
     const isStripePayment = activity.metadata?.method === "stripe";
@@ -586,8 +588,23 @@ export function ActivityTimelineV2({
               <span className="text-xs text-muted-foreground">
                 {t("activityBy")}{" "}
                 <span className="font-medium text-foreground">
-                  {activity.user.name || activity.user.email}
+                  {bookedByName
+                    ? `${bookedByName} (${activity.user.name || activity.user.email})`
+                    : activity.user.name || activity.user.email}
                 </span>
+              </span>
+            </div>
+          )}
+
+          {/* Show bookedByName when no user object is attached */}
+          {!activity.user && Boolean(bookedByName) && (
+            <div className="flex items-center gap-2 mt-1">
+              <div className="flex h-4 w-4 items-center justify-center rounded-full bg-muted">
+                <User className="h-2.5 w-2.5 text-muted-foreground" />
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {t("activityBy")}{" "}
+                <span className="font-medium text-foreground">{bookedByName}</span>
               </span>
             </div>
           )}

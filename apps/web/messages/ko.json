@@ -2455,7 +2455,10 @@
           "tooFar": "주소가 최대 거리({maxDistance}km)를 초과합니다.",
           "savings": "절약",
           "deliveryFee": "배송비"
-        }
+        },
+        "bookedByName": "예약 작성자",
+        "bookedByNamePlaceholder": "예: 홍길동",
+        "bookedByNameHelp": "예약을 등록한 사람의 이름."
       },
       "contract": {
         "title": "계약",
@@ -2692,7 +2695,10 @@
           "label": "할인",
           "add": "할인 추가",
           "remove": "할인 삭제"
-        }
+        },
+        "bookedByName": "예약 작성자",
+        "bookedByNamePlaceholder": "예: 홍길동",
+        "bookedByNameHelp": "예약을 등록한 사람의 이름 (예: 공용 계정 사용 시 직원 이름)."
       },
       "rejectDialog": {
         "title": "요청 거부",
@@ -3097,7 +3103,8 @@
         "planning": "기획"
       },
       "displayCards": "카드 보기",
-      "displayTable": "테이블 보기"
+      "displayTable": "테이블 보기",
+      "bookedBy": "예약 담당자"
     },
     "customers": {
       "title": "고객",

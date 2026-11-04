@@ -46,6 +46,7 @@ export interface Reservation {
   id: string;
   number: string;
   internalTitle?: string | null;
+  bookedByName?: string | null;
   source?: string | null;
   status: ReservationStatus | null;
   startDate: Date;

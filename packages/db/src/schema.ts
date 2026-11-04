@@ -1294,6 +1294,8 @@ export const reservations = mysqlTable(
     number: varchar("number", { length: 50 }).notNull(),
     // Company-only label to help identify a reservation in the dashboard.
     internalTitle: varchar("internal_title", { length: 255 }),
+    // Name of the person who placed/entered the reservation (e.g. staff member when using a shared account).
+    bookedByName: varchar("booked_by_name", { length: 255 }),
 
     // Status
     status: reservationStatus.default("pending").notNull(),

@@ -167,6 +167,7 @@ export async function getDashboardReservationsList(params: {
     const term = `%${search.trim()}%`;
     const searchCondition = or(
       like(reservations.number, term),
+      like(reservations.bookedByName, term),
       like(customers.firstName, term),
       like(customers.lastName, term),
       sql`CONCAT(${customers.firstName}, ' ', ${customers.lastName}) LIKE ${term}`,

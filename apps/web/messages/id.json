@@ -2455,7 +2455,10 @@
           "tooFar": "Alamat melebihi jarak maksimum ({maxDistance} km)",
           "savings": "Tabungan",
           "deliveryFee": "Biaya pengiriman"
-        }
+        },
+        "bookedByName": "Orang yang membuat reservasi",
+        "bookedByNamePlaceholder": "mis. Budi Santoso",
+        "bookedByNameHelp": "Nama orang yang memasukkan reservasi."
       },
       "contract": {
         "title": "Kontrak",
@@ -2692,7 +2695,10 @@
           "label": "Diskon",
           "add": "Tambahkan diskon",
           "remove": "Hapus diskon"
-        }
+        },
+        "bookedByName": "Orang yang membuat reservasi",
+        "bookedByNamePlaceholder": "mis. Budi Santoso",
+        "bookedByNameHelp": "Nama orang yang memasukkan reservasi (mis. staf pada akun bersama)."
       },
       "rejectDialog": {
         "title": "Tolak permintaan",
@@ -3097,7 +3103,8 @@
         "planning": "Perencanaan"
       },
       "displayCards": "Tampilan kartu",
-      "displayTable": "Tampilan tabel"
+      "displayTable": "Tampilan tabel",
+      "bookedBy": "Dipesan oleh"
     },
     "customers": {
       "title": "Pelanggan",

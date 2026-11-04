@@ -94,6 +94,7 @@ export interface Reservation {
   id: string;
   number: string;
   internalTitle?: string | null;
+  bookedByName?: string | null;
   status: string;
   startDate: Date;
   endDate: Date;

@@ -204,6 +204,11 @@ export function ReservationsCardView({
                         <span className="flex items-center gap-1.5 text-foreground">
                           <User className="h-3.5 w-3.5 text-muted-foreground" />
                           {getReservationCustomerName(reservation.customer)}
+                          {reservation.bookedByName && (
+                            <span className="text-xs text-muted-foreground">
+                              ({t("bookedBy")}: {reservation.bookedByName})
+                            </span>
+                          )}
                         </span>
                         <span className="text-muted-foreground truncate">{itemsText}</span>
                       </div>

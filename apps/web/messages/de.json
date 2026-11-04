@@ -2455,7 +2455,10 @@
           "tooFar": "Adresse überschreitet maximale Entfernung ({maxDistance} km)",
           "savings": "Ersparnis",
           "deliveryFee": "Liefergebühr"
-        }
+        },
+        "bookedByName": "Person, die die Reservierung vornimmt",
+        "bookedByNamePlaceholder": "z. B. Max Mustermann",
+        "bookedByNameHelp": "Name der Person, die die Reservierung eingegeben hat."
       },
       "contract": {
         "title": "Vertrag",
@@ -2692,7 +2695,10 @@
           "label": "Rabatt",
           "add": "Rabatt hinzufügen",
           "remove": "Rabatt entfernen"
-        }
+        },
+        "bookedByName": "Person, die die Reservierung vornimmt",
+        "bookedByNamePlaceholder": "z. B. Max Mustermann",
+        "bookedByNameHelp": "Name der Person, die die Reservierung eingibt (z. B. Mitarbeiter bei einem geteilten Konto)."
       },
       "rejectDialog": {
         "title": "Anfrage ablehnen",
@@ -3097,7 +3103,8 @@
         "planning": "Planning"
       },
       "displayCards": "Kartenansicht",
-      "displayTable": "Tabellenansicht"
+      "displayTable": "Tabellenansicht",
+      "bookedBy": "Gebucht von"
     },
     "customers": {
       "title": "Kunden",

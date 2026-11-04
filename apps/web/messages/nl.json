@@ -2416,7 +2416,10 @@
           "tooFar": "Adres overschrijdt maximale afstand ({maxDistance} km)",
           "savings": "Besparing",
           "deliveryFee": "Bezorgkosten"
-        }
+        },
+        "bookedByName": "Persoon die de reservering plaatst",
+        "bookedByNamePlaceholder": "Bijv. Jan Jansen",
+        "bookedByNameHelp": "Naam van de persoon die de reservering heeft ingevoerd."
       },
       "contract": {
         "title": "Contract",
@@ -2653,7 +2656,10 @@
           "label": "Korting",
           "add": "Korting toevoegen",
           "remove": "Korting verwijderen"
-        }
+        },
+        "bookedByName": "Persoon die de reservering plaatst",
+        "bookedByNamePlaceholder": "Bijv. Jan Jansen",
+        "bookedByNameHelp": "Naam van de persoon die de reservering invoert (bijv. medewerker op een gedeeld account)."
       },
       "rejectDialog": {
         "title": "Aanvraag afwijzen",
@@ -3058,7 +3064,8 @@
         "planning": "Planning"
       },
       "displayCards": "Kaartweergave",
-      "displayTable": "Tabelweergave"
+      "displayTable": "Tabelweergave",
+      "bookedBy": "Geboekt door"
     },
     "customers": {
       "title": "Klanten",

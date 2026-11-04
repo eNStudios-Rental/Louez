@@ -67,6 +67,7 @@ interface ReservationHeaderProps {
   reservationId: string;
   reservationNumber: string;
   internalTitle?: string | null;
+  bookedByName?: string | null;
   status: ReservationStatus;
   createdAt: Date;
   startDate: Date;
@@ -95,6 +96,7 @@ export function ReservationHeader({
   reservationId,
   reservationNumber,
   internalTitle,
+  bookedByName,
   status,
   createdAt: _createdAt,
   startDate: _startDate,
@@ -292,6 +294,7 @@ export function ReservationHeader({
             <ReservationIdentity
               reservationNumber={reservationNumber}
               internalTitle={internalTitle}
+              bookedByName={bookedByName}
               status={status}
               rentalAmount={rentalAmount}
               rentalPaid={rentalPaid}

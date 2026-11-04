@@ -11,6 +11,7 @@ export function createManualReservationSchema(t: ValidationTranslator) {
       ),
       endDate: z.custom<Date | undefined>((value) => value === undefined || value instanceof Date),
       internalTitle: z.string().max(255),
+      bookedByName: z.string().max(255),
       internalNotes: z.string(),
     })
     .superRefine((data, ctx) => {
