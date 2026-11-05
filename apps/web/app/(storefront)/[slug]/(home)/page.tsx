@@ -105,6 +105,7 @@ const StorefrontPage = async ({ params }: StorefrontPageProps) => {
         tagline={tagline}
         description={description}
         backgroundImages={heroImages}
+        backgroundImageAlts={theme?.heroImageAlts}
         backgroundYouTubeUrl={heroYoutubeUrl}
         shape={hero.shape}
         align={hero.align}

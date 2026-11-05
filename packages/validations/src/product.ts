@@ -38,6 +38,7 @@ export const productImageVersionSchema = z.object({
 
 export const productImageHistorySchema = z.object({
   id: z.string().min(1).max(128),
+  alt: z.string().max(255).optional(),
   versions: z.array(productImageVersionSchema).min(1).max(50),
 });
 

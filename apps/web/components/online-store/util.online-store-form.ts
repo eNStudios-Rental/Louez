@@ -48,6 +48,7 @@ export interface OnlineStoreIdentityValues {
 
 export interface OnlineStoreHomeValues {
   heroImages: string[];
+  heroImageAlts: Record<string, string>;
   heroYoutubeUrl: string;
   heroLayout: "cover" | "split";
   heroAlign: "start" | "center" | "end";
@@ -170,6 +171,7 @@ export const onlineStoreFormSchema = z.object({
   }),
   home: z.object({
     heroImages: z.array(z.string()).max(MAX_HERO_IMAGES),
+    heroImageAlts: z.record(z.string(), z.string()),
     heroYoutubeUrl: optionalYouTubeUrl,
     heroLayout: z.enum(["cover", "split"]),
     heroAlign: z.enum(["start", "center", "end"]),
@@ -276,6 +278,7 @@ export const buildOnlineStoreDefaults = (store: OnlineStoreEditorStore): OnlineS
     },
     home: {
       heroImages: theme?.heroImages ?? [],
+      heroImageAlts: theme?.heroImageAlts ?? {},
       heroYoutubeUrl: getHeroYoutubeUrl(theme),
       heroLayout: theme?.heroLayout ?? "cover",
       heroAlign: theme?.heroAlign ?? "center",
@@ -438,7 +441,7 @@ export const buildOnlineStorePayload = ({
       ...(home.heroYoutubeUrl !== baseline.home.heroYoutubeUrl
         ? { heroYoutubeUrl: home.heroYoutubeUrl.trim() }
         : {}),
-      ...(keepsLegacyHero ? {} : { heroImages: home.heroImages }),
+      ...(keepsLegacyHero ? {} : { heroImages: home.heroImages, heroImageAlts: home.heroImageAlts }),
     };
   }
 

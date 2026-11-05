@@ -46,12 +46,18 @@ export const HomeSection = withForm({
         <PanelGroup title={t("header")}>
           <form.Field name="home.heroImages">
             {(field) => (
-              <HeroImagesField
-                value={field.state.value}
-                savedValue={savedValues.home.heroImages}
-                uploads={uploads}
-                onChange={field.handleChange}
-              />
+              <form.Field name="home.heroImageAlts">
+                {(altsField) => (
+                  <HeroImagesField
+                    value={field.state.value}
+                    savedValue={savedValues.home.heroImages}
+                    uploads={uploads}
+                    onChange={field.handleChange}
+                    alts={altsField.state.value}
+                    onAltsChange={altsField.handleChange}
+                  />
+                )}
+              </form.Field>
             )}
           </form.Field>
 

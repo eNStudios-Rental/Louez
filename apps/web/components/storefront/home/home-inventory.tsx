@@ -31,7 +31,10 @@ export const HomeInventory = async ({ inventory }: HomeInventoryProps) => {
           showTitle={false}
         />
       ) : inventory.products.length > 0 ? (
-        <HomeProductGrid products={inventory.products} />
+        <>
+          <h2 className="sr-only">{t("catalog.title")}</h2>
+          <HomeProductGrid products={inventory.products} />
+        </>
       ) : (
         <EmptyState
           icon={<PackageIcon />}

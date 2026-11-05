@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import type { AbstractIntlMessages } from "next-intl";
 import { getMessages } from "next-intl/server";
 
 import { MarketplaceChannelBadge } from "@/components/storefront/shell/marketplace-channel-badge";
@@ -21,6 +22,30 @@ interface StorefrontLayoutProps {
   children: React.ReactNode;
   params: Promise<{ slug: string }>;
 }
+
+const STOREFRONT_MESSAGE_NAMESPACES = [
+  "storefront",
+  "common",
+  "errors",
+  "validation",
+  "categories",
+  "auth",
+  "app",
+] as const;
+
+/**
+ * Filter the full 400KB+ dictionary to only the namespaces needed on the storefront client.
+ * Prevents massive JSON payload bloat in the RSC HTML of every public storefront page.
+ */
+const pickStorefrontMessages = (messages: AbstractIntlMessages): AbstractIntlMessages => {
+  const picked: AbstractIntlMessages = {};
+  for (const key of STOREFRONT_MESSAGE_NAMESPACES) {
+    if (key in messages) {
+      picked[key] = messages[key];
+    }
+  }
+  return picked;
+};
 
 /**
  * Embed and marketplace are decided by the proxy alone: it strips any
@@ -66,7 +91,7 @@ export const StorefrontLayoutContent = async ({ children, params }: StorefrontLa
       store={store}
       variant={variant}
       basePath={basePath}
-      messages={messages}
+      messages={pickStorefrontMessages(messages)}
       advisorEnabled={advisorEnabled}
     >
       <StorefrontShell

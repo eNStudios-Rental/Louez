@@ -52,6 +52,7 @@ export const ProductPageContent = ({
         <ProductGallery
           allowLightbox={allowLightbox}
           images={product.images}
+          imageAlts={product.imageAlts}
           videoUrl={product.videoUrl}
           productName={product.name}
           className="lg:col-start-1 lg:row-start-1"

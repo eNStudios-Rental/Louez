@@ -9,6 +9,7 @@ import { CatalogSortSelect } from "./catalog-sort-select";
 
 export const CatalogLayout = ({
   title,
+  categoryDescription,
   count,
   totalCount,
   showSidebar,
@@ -20,6 +21,7 @@ export const CatalogLayout = ({
   children,
 }: {
   title: string;
+  categoryDescription?: string | null;
   count: number;
   totalCount: number;
   showSidebar: boolean;
@@ -51,7 +53,13 @@ export const CatalogLayout = ({
             {totalCount > 1 ? <CatalogSortSelect value={sort} onChange={onSortChange} /> : null}
           </div>
         </div>
+        {categoryDescription ? (
+          <p className="max-w-3xl whitespace-pre-line text-sm text-muted-foreground sm:text-base text-pretty">
+            {categoryDescription}
+          </p>
+        ) : null}
         {activeFilters}
+        <h2 className="sr-only">{title}</h2>
         {children}
       </div>
     </div>

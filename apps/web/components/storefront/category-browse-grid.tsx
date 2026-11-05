@@ -99,7 +99,9 @@ export const CategoryBrowseGrid = ({
     <div className={cn("flex flex-col gap-3", className)} data-slot="category-browse-grid">
       {showTitle ? (
         <h2 className="text-lg font-semibold leading-snug">{t("categoryBrowse.title")}</h2>
-      ) : null}
+      ) : (
+        <h2 className="sr-only">{t("categoryBrowse.title")}</h2>
+      )}
 
       <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
         {entries.map((entry) => {
@@ -119,7 +121,7 @@ export const CategoryBrowseGrid = ({
                     {entry.imageUrl ? (
                       <SharedImage
                         src={entry.imageUrl}
-                        alt=""
+                        alt={entry.name}
                         fill
                         sizes="(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
                         fallbackIcon={Icon}

@@ -1,4 +1,5 @@
 {$NEXT_PUBLIC_APP_DOMAIN} {
     tls /etc/caddy/certs/certkey.pem /etc/caddy/certs/privkey.pem
-        reverse_proxy louez:3000
+    encode zstd gzip
+    reverse_proxy louez:3000
 }

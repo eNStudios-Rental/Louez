@@ -198,15 +198,20 @@ export function generateStoreMetadata(
   const { title, description, path = "", noIndex = false, images = [], locale } = options;
 
   const pageTitle = title || store.name;
+  const isPl = locale === "pl" || env.NEXT_PUBLIC_FORMAT_LOCALE?.startsWith("pl");
+  const fallbackStoreDesc = isPl
+    ? `Wypożyczalnia sprzętu ${store.name}`
+    : `Location de matériel chez ${store.name}`;
+
   const pageDescription =
     description ||
     stripHtml(store.tagline || "") ||
     stripHtml(store.description || "") ||
-    `Location de matériel chez ${store.name}`;
+    fallbackStoreDesc;
   const canonicalUrl = getCanonicalUrl(store.slug, path);
   const iconUrl = store.faviconUrl || store.logoUrl;
 
-  // OG image: the page's own, else the share image, the first hero photo, the logo.
+  // OG image: the page's own, else the share image, the first hero photo, the logo, favicon, or site icon.
   const ogImages = (
     images.length > 0
       ? images
@@ -216,7 +221,9 @@ export function generateStoreMetadata(
           ? [store.theme.heroImages[0]]
           : store.logoUrl
             ? [store.logoUrl]
-            : []
+            : store.faviconUrl
+              ? [store.faviconUrl]
+              : ["/apple-touch-icon.png"]
   ).map(absoluteAssetUrl);
 
   const metadata: Metadata = {
@@ -287,13 +294,31 @@ export function generateProductMetadata(
   const currency = store.settings?.currency || "PLN";
   const priceFormatted = formatPrice(parseFloat(product.price), currency, locale);
 
-  const title = options.title || `${product.name} - Location ${priceFormatted}`;
+  const isPl = locale === "pl" || env.NEXT_PUBLIC_FORMAT_LOCALE?.startsWith("pl");
+  const defaultTitle = isPl
+    ? `${product.name} - Wynajem ${priceFormatted}`
+    : `${product.name} - Location ${priceFormatted}`;
+  const defaultDesc = isPl
+    ? `Wynajmij ${product.name} w ${store.name} od ${priceFormatted}`
+    : `Louez ${product.name} chez ${store.name} à partir de ${priceFormatted}`;
+
+  const title = options.title || defaultTitle;
   const description = product.description
     ? truncateText(stripHtml(product.description), 160)
-    : options.description ||
-      `Louez ${product.name} chez ${store.name} à partir de ${priceFormatted}`;
+    : options.description || defaultDesc;
 
-  const images = (product.images?.length ? product.images : []).map(absoluteAssetUrl);
+  const rawImages = product.images?.length
+    ? product.images
+    : store.theme?.shareImageUrl
+      ? [store.theme.shareImageUrl]
+      : store.theme?.heroImages?.length
+        ? [store.theme.heroImages[0]]
+        : store.logoUrl
+          ? [store.logoUrl]
+          : store.faviconUrl
+            ? [store.faviconUrl]
+            : ["/apple-touch-icon.png"];
+  const images = rawImages.map(absoluteAssetUrl);
   const canonicalUrl = getCanonicalUrl(store.slug, path || getProductPath(product));
 
   return {
@@ -363,6 +388,11 @@ export function generateLocalBusinessSchema(
     schema.image = absoluteAssetUrl(store.logoUrl);
   } else if (store.theme?.heroImages?.length) {
     schema.image = absoluteAssetUrl(store.theme.heroImages[0]);
+  } else if (store.faviconUrl) {
+    schema.logo = absoluteAssetUrl(store.faviconUrl);
+    schema.image = absoluteAssetUrl(store.faviconUrl);
+  } else {
+    schema.image = absoluteAssetUrl("/apple-touch-icon.png");
   }
 
   if (store.email) {
@@ -479,6 +509,14 @@ export function generateProductSchema(store: StoreSeoData, product: ProductSeoDa
   // standalone deployment would never be fetched.
   if (product.images?.length) {
     schema.image = product.images.map(absoluteAssetUrl);
+  } else if (store.logoUrl) {
+    schema.image = [absoluteAssetUrl(store.logoUrl)];
+  } else if (store.theme?.heroImages?.length) {
+    schema.image = [absoluteAssetUrl(store.theme.heroImages[0])];
+  } else if (store.faviconUrl) {
+    schema.image = [absoluteAssetUrl(store.faviconUrl)];
+  } else {
+    schema.image = [absoluteAssetUrl("/apple-touch-icon.png")];
   }
 
   if (product.category) {

@@ -16,6 +16,7 @@ import {
   Pencil,
   Play,
   Sparkles,
+  Tag,
   Video,
   WandSparkles,
   X,
@@ -55,7 +56,7 @@ import { extractYouTubeVideoId, getYouTubeThumbnailUrl } from "@/lib/youtube";
 import type { ProductImageEnhanceControls } from "../hooks/use-product-image-enhance";
 import type { ProductFormComponentApi } from "../types";
 import { PRODUCT_IMAGE_ASPECT_RATIO } from "../utils/product-image-crop";
-import { findProductImageHistory } from "../utils/util.product-image-history";
+import { findProductImageHistory, setProductImageAlt } from "../utils/util.product-image-history";
 import { ProductImageAiLearnMoreDialog } from "./product-image-ai-learn-more";
 import {
   ProductImageAiInlineStatus,
@@ -128,7 +129,22 @@ export function ProductMediaFields({
   const [aspectRatios, setAspectRatios] = useState<Record<string, number>>({});
   const [isLearnMoreOpen, setIsLearnMoreOpen] = useState(false);
   const [isSortingImages, setIsSortingImages] = useState(false);
+  const [altDialogImage, setAltDialogImage] = useState<string | null>(null);
+  const [currentAltValue, setCurrentAltValue] = useState("");
   const thumbnailsRef = useRef(new Map<string, HTMLImageElement>());
+
+  const openAltDialog = (url: string) => {
+    const history = findProductImageHistory(imageHistory, url);
+    setCurrentAltValue(history?.alt ?? "");
+    setAltDialogImage(url);
+  };
+
+  const saveAltValue = () => {
+    if (!altDialogImage) return;
+    const nextHistory = setProductImageAlt(imageHistory, altDialogImage, currentAltValue.trim());
+    form.setFieldValue("imageHistory", nextHistory);
+    setAltDialogImage(null);
+  };
 
   const openLightbox = (index: number) => {
     setLightboxIndex(index);
@@ -341,6 +357,12 @@ export function ProductMediaFields({
                               <Eraser className="size-3" />
                             </TileActionButton>
                           )}
+                          <TileActionButton
+                            label="Tekst alternatywny (ALT / SEO)"
+                            onClick={() => openAltDialog(preview)}
+                          >
+                            <Tag className="size-3" />
+                          </TileActionButton>
                           {canRecrop && (
                             <TileActionButton
                               label={t("recropImage")}
@@ -364,6 +386,18 @@ export function ProductMediaFields({
                           >
                             <StarSolidIcon className="size-2.5 fill-current" />
                             {t("mainBadge")}
+                          </Badge>
+                        )}
+                        {findProductImageHistory(imageHistory, preview)?.alt && (
+                          <Badge
+                            variant="secondary"
+                            className={cn(
+                              "pointer-events-none absolute bottom-1.5 h-5 gap-1 px-1.5 text-[10px] shadow-xs backdrop-blur-sm",
+                              index === 0 ? "left-18" : "left-1.5",
+                            )}
+                            title={`ALT: ${findProductImageHistory(imageHistory, preview)?.alt}`}
+                          >
+                            ALT
                           </Badge>
                         )}
                         {/* Provenance and review state share the bottom-right
@@ -514,6 +548,47 @@ export function ProductMediaFields({
             </div>
           )}
         </form.Field>
+
+        <Dialog
+          open={altDialogImage !== null}
+          onOpenChange={(open) => !open && setAltDialogImage(null)}
+        >
+          <DialogPanel>
+            <DialogPopup>
+              <DialogHeader>
+                <DialogTitle>Tekst alternatywny (ALT / SEO)</DialogTitle>
+                <DialogDescription>
+                  Opis zdjęcia dla wyszukiwarek (Google) i czytników ekranowych.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2 py-2">
+                <Label htmlFor="product-image-alt-input">Tekst ALT</Label>
+                <Input
+                  id="product-image-alt-input"
+                  value={currentAltValue}
+                  onChange={(e) => setCurrentAltValue(e.target.value)}
+                  placeholder="np. Agregat prądotwórczy 3-fazowy - panel sterowania"
+                  maxLength={255}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      saveAltValue();
+                    }
+                  }}
+                />
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setAltDialogImage(null)}>
+                  {tCommon("cancel")}
+                </Button>
+                <Button type="button" onClick={saveAltValue}>
+                  {tCommon("save")}
+                </Button>
+              </DialogFooter>
+            </DialogPopup>
+          </DialogPanel>
+        </Dialog>
 
         <ProductImageAiLearnMoreDialog
           operation="enhance"

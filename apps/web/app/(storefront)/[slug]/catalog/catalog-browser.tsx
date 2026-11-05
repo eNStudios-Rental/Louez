@@ -152,6 +152,14 @@ export const CatalogBrowser = ({
     catalog: t("catalog.title"),
     others: t("availability.categoryBrowse.others"),
   });
+  const currentCategory = useMemo(() => {
+    if (!filters.category || isReservedCategoryValue(filters.category)) return null;
+    return (
+      categories.find(
+        (category) => category.id === filters.category || category.slug === filters.category,
+      ) ?? null
+    );
+  }, [categories, filters.category]);
   const count = pages.totalCount;
   const trackedCategoryId =
     filters.category && !isReservedCategoryValue(filters.category) ? filters.category : undefined;
@@ -182,6 +190,7 @@ export const CatalogBrowser = ({
 
       <CatalogLayout
         title={title}
+        categoryDescription={currentCategory?.description ?? null}
         count={count}
         totalCount={totalCount}
         showSidebar={showSidebar}

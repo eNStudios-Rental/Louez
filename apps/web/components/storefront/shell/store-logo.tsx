@@ -31,7 +31,13 @@ export const StoreLogo = ({
     )}
   >
     {logoUrl ? (
-      <img src={logoUrl} alt={storeName} className="h-8 w-auto max-w-32 object-contain md:h-9" />
+      <img
+        src={logoUrl}
+        alt={storeName}
+        width={140}
+        height={36}
+        className="h-8 w-auto max-w-32 object-contain md:h-9"
+      />
     ) : (
       <span className="truncate text-base font-semibold tracking-tight">{storeName}</span>
     )}

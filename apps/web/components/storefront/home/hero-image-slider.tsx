@@ -18,8 +18,10 @@ const AUTOPLAY_INTERVAL_MS = 6_000;
 
 interface HeroImageSliderProps {
   images: string[];
+  imageAlts?: Record<string, string>;
   youtubeUrl?: string | null;
   className?: string;
+  storeName?: string;
 }
 
 /**
@@ -40,7 +42,13 @@ const dotClassName = cn(controlBaseClassName, "w-4 pointer-coarse:w-5");
  * until a visitor advances. Autoplay pauses on hover and never runs for a
  * visitor who asked for reduced motion.
  */
-export const HeroImageSlider = ({ images, youtubeUrl, className }: HeroImageSliderProps) => {
+export const HeroImageSlider = ({
+  images,
+  imageAlts,
+  youtubeUrl,
+  className,
+  storeName,
+}: HeroImageSliderProps) => {
   const t = useTranslations("storefront.hero");
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -90,7 +98,12 @@ export const HeroImageSlider = ({ images, youtubeUrl, className }: HeroImageSlid
           {media.kind === "image" ? (
             <Image
               src={media.src}
-              alt=""
+              alt={
+                (imageAlts && imageAlts[media.src]) ||
+                (storeName
+                  ? `${storeName} - ${t("goToImage", { index: slide + 1, count: images.length })}`
+                  : t("goToImage", { index: slide + 1, count: images.length }))
+              }
               fill
               priority={slide === 0}
               sizes="100vw"
