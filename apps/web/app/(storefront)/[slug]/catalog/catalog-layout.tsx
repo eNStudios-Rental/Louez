@@ -52,6 +52,7 @@ export const CatalogLayout = ({
           </div>
         </div>
         {activeFilters}
+        <h2 className="sr-only">{title}</h2>
         {children}
       </div>
     </div>

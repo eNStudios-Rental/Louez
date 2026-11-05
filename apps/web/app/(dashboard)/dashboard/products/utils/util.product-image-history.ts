@@ -71,6 +71,7 @@ export const findProductImageHistory = (
 export const addProductImageHistory = (
   histories: ProductImageHistory[],
   imageUrl: string,
+  alt?: string,
 ): ProductImageHistory[] => {
   if (findProductImageHistory(histories, imageUrl)) return histories;
 
@@ -78,9 +79,23 @@ export const addProductImageHistory = (
     ...histories,
     {
       id: createHistoryId(),
+      alt,
       versions: [createVersion(imageUrl, "original")],
     },
   ];
+};
+
+export const setProductImageAlt = (
+  histories: ProductImageHistory[],
+  imageUrl: string,
+  alt: string,
+): ProductImageHistory[] => {
+  const sourceHistory = findProductImageHistory(histories, imageUrl);
+  if (!sourceHistory) return histories;
+
+  return histories.map((history) =>
+    history.id === sourceHistory.id ? { ...history, alt } : history,
+  );
 };
 
 export const appendProductImageVersion = (

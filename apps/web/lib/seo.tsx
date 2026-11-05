@@ -198,11 +198,16 @@ export function generateStoreMetadata(
   const { title, description, path = "", noIndex = false, images = [], locale } = options;
 
   const pageTitle = title || store.name;
+  const isPl = locale === "pl" || env.NEXT_PUBLIC_FORMAT_LOCALE?.startsWith("pl");
+  const fallbackStoreDesc = isPl
+    ? `Wypożyczalnia sprzętu ${store.name}`
+    : `Location de matériel chez ${store.name}`;
+
   const pageDescription =
     description ||
     stripHtml(store.tagline || "") ||
     stripHtml(store.description || "") ||
-    `Location de matériel chez ${store.name}`;
+    fallbackStoreDesc;
   const canonicalUrl = getCanonicalUrl(store.slug, path);
   const iconUrl = store.faviconUrl || store.logoUrl;
 
@@ -287,11 +292,18 @@ export function generateProductMetadata(
   const currency = store.settings?.currency || "PLN";
   const priceFormatted = formatPrice(parseFloat(product.price), currency, locale);
 
-  const title = options.title || `${product.name} - Location ${priceFormatted}`;
+  const isPl = locale === "pl" || env.NEXT_PUBLIC_FORMAT_LOCALE?.startsWith("pl");
+  const defaultTitle = isPl
+    ? `${product.name} - Wynajem ${priceFormatted}`
+    : `${product.name} - Location ${priceFormatted}`;
+  const defaultDesc = isPl
+    ? `Wynajmij ${product.name} w ${store.name} od ${priceFormatted}`
+    : `Louez ${product.name} chez ${store.name} à partir de ${priceFormatted}`;
+
+  const title = options.title || defaultTitle;
   const description = product.description
     ? truncateText(stripHtml(product.description), 160)
-    : options.description ||
-      `Louez ${product.name} chez ${store.name} à partir de ${priceFormatted}`;
+    : options.description || defaultDesc;
 
   const images = (product.images?.length ? product.images : []).map(absoluteAssetUrl);
   const canonicalUrl = getCanonicalUrl(store.slug, path || getProductPath(product));

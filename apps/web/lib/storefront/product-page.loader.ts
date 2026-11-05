@@ -76,6 +76,7 @@ export interface ProductPageProduct {
   slug: string | null;
   description: string | null;
   images: string[];
+  imageAlts?: Record<string, string>;
   videoUrl: string | null;
   price: string;
   promotion?: ProductPromotion | null;
@@ -381,6 +382,15 @@ export const loadProductPage = cache(
           ? "required_accessory_out_of_stock"
           : "unavailable";
 
+    const imageAlts: Record<string, string> = {};
+    for (const item of (product.imageHistory as { alt?: string; versions?: { url: string }[] }[] | null) ?? []) {
+      if (item.alt) {
+        for (const v of item.versions ?? []) {
+          imageAlts[v.url] = item.alt;
+        }
+      }
+    }
+
     return {
       store: toPageStore(store),
       product: {
@@ -389,6 +399,7 @@ export const loadProductPage = cache(
         slug: product.slug,
         description: product.description,
         images: product.images ?? [],
+        imageAlts,
         videoUrl: product.videoUrl ?? null,
         price: product.price,
         promotion: product.promotion,

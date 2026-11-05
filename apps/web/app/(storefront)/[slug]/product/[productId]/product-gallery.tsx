@@ -19,6 +19,7 @@ type GalleryItem = { kind: "image"; src: string } | { kind: "video"; src: string
 
 interface ProductGalleryProps {
   images: string[];
+  imageAlts?: Record<string, string>;
   videoUrl: string | null;
   productName: string;
   className?: string;
@@ -36,6 +37,7 @@ const prefersReducedMotion = () =>
  */
 export const ProductGallery = ({
   images,
+  imageAlts,
   videoUrl,
   productName,
   className,
@@ -63,11 +65,16 @@ export const ProductGallery = ({
   const slideRefs = useRef(new Map<number, HTMLElement>());
 
   const itemAlt = useCallback(
-    (index: number) =>
-      items.length > 1
+    (index: number) => {
+      const item = items[index];
+      if (item && item.kind === "image" && imageAlts?.[item.src]) {
+        return imageAlts[item.src];
+      }
+      return items.length > 1
         ? t("gallery.imageAlt", { name: productName, index: index + 1 })
-        : productName,
-    [items.length, productName, t],
+        : productName;
+    },
+    [items, imageAlts, productName, t],
   );
 
   const scrollToIndex = useCallback((index: number) => {

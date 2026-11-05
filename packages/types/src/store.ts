@@ -62,6 +62,7 @@ export interface ProductImageVersion {
 /** All non-destructive versions that belong to one logical product photo. */
 export interface ProductImageHistory {
   id: string;
+  alt?: string;
   versions: ProductImageVersion[];
 }
 
@@ -376,6 +377,7 @@ export interface StoreTheme {
   mode: "light" | "dark";
   primaryColor: string;
   heroImages?: string[];
+  heroImageAlts?: Record<string, string>;
   heroYoutubeUrl?: string;
   /** @deprecated Legacy uploaded MP4 setting. It is not rendered and is dropped on theme updates. */
   heroVideoUrl?: string;

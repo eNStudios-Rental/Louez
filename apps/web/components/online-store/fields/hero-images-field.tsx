@@ -6,9 +6,22 @@ import { useState } from "react";
 
 import { useTranslations } from "next-intl";
 
-import { Button, Label, Spinner, toastManager } from "@louez/ui";
+import {
+  Button,
+  Dialog,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+  Input,
+  Label,
+  Spinner,
+  toastManager,
+} from "@louez/ui";
 import { ImageIcon, PlusIcon } from "@louez/ui/icons";
-import { X } from "lucide-react";
+import { Tag, X } from "lucide-react";
 
 import { ImageUploadValidationError } from "@/hooks/use-image-upload";
 import { IMAGE_UPLOAD_MIME_TYPES } from "@/lib/uploads/image-upload";
@@ -22,15 +35,27 @@ interface HeroImagesFieldProps {
   savedValue: string[];
   uploads: PendingImageUploads;
   onChange: (next: string[]) => void;
+  alts?: Record<string, string>;
+  onAltsChange?: (next: Record<string, string>) => void;
 }
 
 /** Up to five photos as a grid of tiles; the first one is the one the page loads first. */
-export const HeroImagesField = ({ value, savedValue, uploads, onChange }: HeroImagesFieldProps) => {
+export const HeroImagesField = ({
+  value,
+  savedValue,
+  uploads,
+  onChange,
+  alts = {},
+  onAltsChange,
+}: HeroImagesFieldProps) => {
   const controlsDisabled = useControlsDisabled();
   const t = useTranslations("dashboard.settings.appearanceSettings");
   const tHome = useTranslations("dashboard.onlineStore.home");
+  const tCommon = useTranslations("common");
   const tErrors = useTranslations("errors");
   const [isUploading, setIsUploading] = useState(false);
+  const [editingImage, setEditingImage] = useState<string | null>(null);
+  const [editingAlt, setEditingAlt] = useState("");
   const canAdd = value.length < MAX_HERO_IMAGES && !isUploading;
 
   const handleFiles = async (fileList: FileList | null) => {
@@ -105,22 +130,44 @@ export const HeroImagesField = ({ value, savedValue, uploads, onChange }: HeroIm
               key={image}
               className="group relative aspect-4/3 overflow-hidden rounded-lg border"
             >
-              <img src={image} alt="" className="h-full w-full object-cover" />
+              <img src={image} alt={alts[image] || ""} className="h-full w-full object-cover" />
               {index === 0 ? (
                 <span className="absolute bottom-1 left-1 rounded bg-background/90 px-1.5 py-0.5 font-medium text-[10px]">
                   {t("heroImagesFirst")}
                 </span>
               ) : null}
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon-xs"
-                aria-label={t("removeImage")}
-                className="absolute top-1 right-1 opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
-                onClick={() => remove(image)}
-              >
-                <X aria-hidden />
-              </Button>
+              {alts[image] ? (
+                <span
+                  className="absolute bottom-1 right-1 rounded bg-background/90 px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground"
+                  title={`ALT: ${alts[image]}`}
+                >
+                  ALT
+                </span>
+              ) : null}
+              <div className="absolute top-1 right-1 z-10 flex gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="icon-xs"
+                  aria-label="Edytuj tekst alternatywny (ALT)"
+                  className="bg-background/90 shadow-xs backdrop-blur-sm"
+                  onClick={() => {
+                    setEditingImage(image);
+                    setEditingAlt(alts[image] ?? "");
+                  }}
+                >
+                  <Tag aria-hidden className="size-3" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon-xs"
+                  aria-label={t("removeImage")}
+                  onClick={() => remove(image)}
+                >
+                  <X aria-hidden />
+                </Button>
+              </div>
             </div>
           ))}
           {isUploading ? (
@@ -140,6 +187,55 @@ export const HeroImagesField = ({ value, savedValue, uploads, onChange }: HeroIm
           ) : null}
         </div>
       )}
+
+      <Dialog open={editingImage !== null} onOpenChange={(open) => !open && setEditingImage(null)}>
+        <DialogPanel>
+          <DialogPopup>
+            <DialogHeader>
+              <DialogTitle>Tekst alternatywny (ALT / SEO)</DialogTitle>
+              <DialogDescription>
+                Opis zdjęcia wyświetlany robotom wyszukiwarek (SEO) i czytnikom ekranu.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 py-2">
+              <Label htmlFor="hero-image-alt-input">Tekst ALT</Label>
+              <Input
+                id="hero-image-alt-input"
+                value={editingAlt}
+                onChange={(e) => setEditingAlt(e.target.value)}
+                placeholder="np. Wypożyczalnia sprzętu budowlanego i ogrodniczego w Krakowie"
+                maxLength={255}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (editingImage) {
+                      onAltsChange?.({ ...alts, [editingImage]: editingAlt.trim() });
+                      setEditingImage(null);
+                    }
+                  }
+                }}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditingImage(null)}>
+                {tCommon("cancel")}
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  if (editingImage) {
+                    onAltsChange?.({ ...alts, [editingImage]: editingAlt.trim() });
+                    setEditingImage(null);
+                  }
+                }}
+              >
+                {tCommon("save")}
+              </Button>
+            </DialogFooter>
+          </DialogPopup>
+        </DialogPanel>
+      </Dialog>
     </div>
   );
 };
