@@ -98,9 +98,11 @@ export async function generateMetadata({
       title: categoryName
         ? t("metaCategoryTitle", { category: categoryName, storeName: store.name })
         : t("metaTitle", { storeName: store.name }),
-      description: categoryName
-        ? t("metaCategoryDescription", { category: categoryName, storeName: store.name })
-        : t("metaDescription", { storeName: store.name }),
+      description: category?.description?.trim()
+        ? category.description.trim()
+        : categoryName
+          ? t("metaCategoryDescription", { category: categoryName, storeName: store.name })
+          : (store.description ?? t("metaDescription", { storeName: store.name })),
       path: categoryPath,
       // Dated, searched and filtered views are result pages, not landing pages.
       noIndex:

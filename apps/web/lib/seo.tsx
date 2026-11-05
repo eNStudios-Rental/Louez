@@ -211,7 +211,7 @@ export function generateStoreMetadata(
   const canonicalUrl = getCanonicalUrl(store.slug, path);
   const iconUrl = store.faviconUrl || store.logoUrl;
 
-  // OG image: the page's own, else the share image, the first hero photo, the logo.
+  // OG image: the page's own, else the share image, the first hero photo, the logo, favicon, or site icon.
   const ogImages = (
     images.length > 0
       ? images
@@ -221,7 +221,9 @@ export function generateStoreMetadata(
           ? [store.theme.heroImages[0]]
           : store.logoUrl
             ? [store.logoUrl]
-            : []
+            : store.faviconUrl
+              ? [store.faviconUrl]
+              : ["/apple-touch-icon.png"]
   ).map(absoluteAssetUrl);
 
   const metadata: Metadata = {
@@ -305,7 +307,18 @@ export function generateProductMetadata(
     ? truncateText(stripHtml(product.description), 160)
     : options.description || defaultDesc;
 
-  const images = (product.images?.length ? product.images : []).map(absoluteAssetUrl);
+  const rawImages = product.images?.length
+    ? product.images
+    : store.theme?.shareImageUrl
+      ? [store.theme.shareImageUrl]
+      : store.theme?.heroImages?.length
+        ? [store.theme.heroImages[0]]
+        : store.logoUrl
+          ? [store.logoUrl]
+          : store.faviconUrl
+            ? [store.faviconUrl]
+            : ["/apple-touch-icon.png"];
+  const images = rawImages.map(absoluteAssetUrl);
   const canonicalUrl = getCanonicalUrl(store.slug, path || getProductPath(product));
 
   return {
@@ -375,6 +388,11 @@ export function generateLocalBusinessSchema(
     schema.image = absoluteAssetUrl(store.logoUrl);
   } else if (store.theme?.heroImages?.length) {
     schema.image = absoluteAssetUrl(store.theme.heroImages[0]);
+  } else if (store.faviconUrl) {
+    schema.logo = absoluteAssetUrl(store.faviconUrl);
+    schema.image = absoluteAssetUrl(store.faviconUrl);
+  } else {
+    schema.image = absoluteAssetUrl("/apple-touch-icon.png");
   }
 
   if (store.email) {
@@ -491,6 +509,14 @@ export function generateProductSchema(store: StoreSeoData, product: ProductSeoDa
   // standalone deployment would never be fetched.
   if (product.images?.length) {
     schema.image = product.images.map(absoluteAssetUrl);
+  } else if (store.logoUrl) {
+    schema.image = [absoluteAssetUrl(store.logoUrl)];
+  } else if (store.theme?.heroImages?.length) {
+    schema.image = [absoluteAssetUrl(store.theme.heroImages[0])];
+  } else if (store.faviconUrl) {
+    schema.image = [absoluteAssetUrl(store.faviconUrl)];
+  } else {
+    schema.image = [absoluteAssetUrl("/apple-touch-icon.png")];
   }
 
   if (product.category) {
