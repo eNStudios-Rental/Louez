@@ -7847,8 +7847,8 @@
     },
     "meta": {
       "storeNotFound": "Nie znaleziono sklepu",
-      "homeTitle": "{store} · Wypożyczalnia sprzętu",
-      "description": "Wypożycz sprzęt w {store}. Zarezerwuj online."
+      "homeTitle": "{store} – Wypożyczalnia sprzętu i narzędzi | Rezerwacja online",
+      "description": "Wypożyczalnia sprzętu budowlanego i narzędzi {store}. Sprawdź pełną ofertę, aktualną dostępność i zarezerwuj sprzęt online z szybkim odbiorem."
     },
     "contact": {
       "title": "Skontaktuj się z {name}",

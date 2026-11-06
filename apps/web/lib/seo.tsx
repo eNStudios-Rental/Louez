@@ -200,8 +200,8 @@ export function generateStoreMetadata(
   const pageTitle = title || store.name;
   const isPl = locale === "pl" || env.NEXT_PUBLIC_FORMAT_LOCALE?.startsWith("pl");
   const fallbackStoreDesc = isPl
-    ? `Wypożyczalnia sprzętu ${store.name}`
-    : `Location de matériel chez ${store.name}`;
+    ? `Wypożyczalnia sprzętu budowlanego i narzędzi ${store.name}. Sprawdź pełną ofertę, aktualną dostępność i zarezerwuj sprzęt online z szybkim odbiorem.`
+    : `Location de matériel professionnel chez ${store.name}. Consultez la disponibilité et réservez votre équipement en ligne.`;
 
   const pageDescription =
     description ||
