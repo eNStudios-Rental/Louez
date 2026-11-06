@@ -106,6 +106,7 @@ const nextConfig: NextConfig = {
   // Required for PostHog proxy to work with middleware
   skipTrailingSlashRedirect: true,
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       // Google (OAuth profile pictures)
       {

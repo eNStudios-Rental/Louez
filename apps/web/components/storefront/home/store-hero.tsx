@@ -112,7 +112,8 @@ export const StoreHero = ({
       id="store-hero-title"
       className="text-balance text-2xl font-semibold leading-tight tracking-tight sm:text-3xl lg:text-4xl"
     >
-      {name}
+      <span>{name}</span>
+      <span className="sr-only"> – Wypożyczalnia sprzętu i narzędzi</span>
     </h1>
   );
   const cover = shape === "cover";

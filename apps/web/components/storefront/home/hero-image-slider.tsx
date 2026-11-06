@@ -52,6 +52,7 @@ export const HeroImageSlider = ({
   const t = useTranslations("storefront.hero");
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const youtubeEmbedUrl = youtubeUrl ? getYouTubeEmbedUrl(youtubeUrl, !reducedMotion) : null;
   const slides = [
@@ -64,6 +65,10 @@ export const HeroImageSlider = ({
   const activeIndex = count > 0 ? index % count : 0;
   const videoSlideIndex = youtubeEmbedUrl ? images.length : -1;
   const youtubeIframeRef = useYouTubeCaptionsDisabled(activeIndex === videoSlideIndex);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (count <= 1 || paused || reducedMotion || activeIndex === videoSlideIndex) return;
@@ -86,43 +91,51 @@ export const HeroImageSlider = ({
       onMouseLeave={() => setPaused(false)}
       data-slot="hero-image-slider"
     >
-      {slides.map((media, slide) => (
-        <div
-          key={media.key}
-          aria-hidden={slide !== activeIndex}
-          className={cn(
-            "absolute inset-0 transition-opacity duration-700 ease-out motion-reduce:transition-none",
-            slide === activeIndex ? "opacity-100" : "opacity-0",
-          )}
-        >
-          {media.kind === "image" ? (
-            <Image
-              src={media.src}
-              alt={
-                (imageAlts && imageAlts[media.src]) ||
-                (storeName
-                  ? `${storeName} - ${t("goToImage", { index: slide + 1, count: images.length })}`
-                  : t("goToImage", { index: slide + 1, count: images.length }))
-              }
-              fill
-              priority={slide === 0}
-              sizes="100vw"
-              className="object-cover"
-            />
-          ) : (
-            <iframe
-              src={media.src}
-              ref={youtubeIframeRef}
-              title={t("goToImage", { index: slide + 1, count })}
-              allow="autoplay; encrypted-media"
-              referrerPolicy="strict-origin-when-cross-origin"
-              aria-hidden="true"
-              tabIndex={-1}
-              className="pointer-events-none absolute left-1/2 top-1/2 h-[max(100cqh,56.25cqw)] w-[max(100cqw,177.78cqh)] max-w-none -translate-x-1/2 -translate-y-1/2 border-0"
-            />
-          )}
-        </div>
-      ))}
+      {slides.map((media, slide) => {
+        const shouldRenderMedia = slide === 0 || mounted;
+        const defaultAlt = storeName
+          ? `${storeName} – Wypożyczalnia sprzętu i narzędzi`
+          : "Wypożyczalnia sprzętu – Baner główny";
+        const altText =
+          (imageAlts && imageAlts[media.src]) ||
+          (slide === 0 ? defaultAlt : `${defaultAlt} – slajd ${slide + 1}`);
+
+        return (
+          <div
+            key={media.key}
+            aria-hidden={slide !== activeIndex}
+            className={cn(
+              "absolute inset-0 transition-opacity duration-700 ease-out motion-reduce:transition-none",
+              slide === activeIndex ? "opacity-100" : "opacity-0",
+            )}
+          >
+            {shouldRenderMedia ? (
+              media.kind === "image" ? (
+                <Image
+                  src={media.src}
+                  alt={altText}
+                  fill
+                  priority={slide === 0}
+                  fetchPriority={slide === 0 ? "high" : "auto"}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1920px"
+                  className="object-cover"
+                />
+              ) : (
+                <iframe
+                  src={media.src}
+                  ref={youtubeIframeRef}
+                  title={t("goToImage", { index: slide + 1, count })}
+                  allow="autoplay; encrypted-media"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  aria-hidden="true"
+                  tabIndex={-1}
+                  className="pointer-events-none absolute left-1/2 top-1/2 h-[max(100cqh,56.25cqw)] w-[max(100cqw,177.78cqh)] max-w-none -translate-x-1/2 -translate-y-1/2 border-0"
+                />
+              )
+            ) : null}
+          </div>
+        );
+      })}
 
       {count > 1 ? (
         <div

@@ -33,7 +33,7 @@ export const StoreLogo = ({
     {logoUrl ? (
       <img
         src={logoUrl}
-        alt={storeName}
+        alt={`${storeName} – Wypożyczalnia sprzętu`}
         width={140}
         height={36}
         className="h-8 w-auto max-w-32 object-contain md:h-9"
