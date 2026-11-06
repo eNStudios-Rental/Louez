@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
-import dynamic from "next/dynamic";
 
 import { cn } from "@louez/utils";
 
 import { AnnouncementBar } from "@/components/storefront/shell/announcement-bar";
+import { StorefrontOverlays } from "@/components/storefront/shell/storefront-overlays";
 import type { StorefrontShellVariant } from "@/components/storefront/shell/storefront-providers";
 import { StoreFooter } from "@/components/storefront/store-footer";
 import { StoreHeader } from "@/components/storefront/store-header";
@@ -15,16 +15,6 @@ import {
 } from "@/lib/theme/util.store-theme";
 import { resolveStoreAnnouncement } from "@/lib/utils/util.store-announcement";
 import { getStorePeriodRules } from "@/lib/utils/util.store-period-rules";
-
-const AdvisorWidget = dynamic(
-  () => import("@/components/storefront/advisor/advisor-widget").then((mod) => mod.AdvisorWidget),
-  { ssr: false },
-);
-
-const CartDrawer = dynamic(
-  () => import("@/components/storefront/cart/cart-drawer").then((mod) => mod.CartDrawer),
-  { ssr: false },
-);
 
 interface StorefrontShellProps {
   store: StorefrontStore;
@@ -113,8 +103,7 @@ export const StorefrontShell = ({
         footerNote={store.settings?.footerNote}
         showAccount={!isMarketplace}
       />
-      <CartDrawer />
-      {advisorEnabled ? <AdvisorWidget /> : null}
+      <StorefrontOverlays advisorEnabled={advisorEnabled} />
     </div>
   );
 };
