@@ -2723,6 +2723,9 @@
         "cancelled": "Reserva cancelada",
         "picked_up": "Articulos recogidos",
         "returned": "Articulos devueltos",
+        "inspection_departure_started": "Inspección de salida iniciada",
+        "inspection_departure_completed": "Inspección de salida realizada",
+        "inspection_signed": "Inspección firmada",
         "note_updated": "Notas actualizadas",
         "payment_added": "Pago agregado",
         "payment_updated": "Pago actualizado",
@@ -6544,7 +6547,10 @@
       "attributeChip": "{axis}: {value}",
       "priceBaseHint": "Tarifas base, antes de elegir las fechas",
       "pricePeriodHint": "Total para sus fechas",
-      "availableOfTotal": "{available} de {total} disponibles"
+      "availableOfTotal": "{available} de {total} disponibles",
+      "product": {
+        "priceNegotiable": "Precio negociable"
+      }
     },
     "product": {
       "viewDetails": "Ver producto",

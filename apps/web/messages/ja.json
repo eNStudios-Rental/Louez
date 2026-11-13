@@ -2723,6 +2723,9 @@
         "cancelled": "予約がキャンセルされました",
         "picked_up": "拾ったアイテム",
         "returned": "返品された商品",
+        "inspection_departure_started": "出発時の点検を開始",
+        "inspection_departure_completed": "集荷状況レポート完了",
+        "inspection_signed": "状態報告書に署名",
         "note_updated": "ノートが更新されました",
         "payment_added": "支払いが追加されました",
         "payment_updated": "支払いが更新されました",
@@ -6544,7 +6547,10 @@
       "attributeChip": "{axis}: {value}",
       "priceBaseHint": "日付が選択される前の基本料金",
       "pricePeriodHint": "デートの合計",
-      "availableOfTotal": "{available} または {total} が利用可能"
+      "availableOfTotal": "{available} または {total} が利用可能",
+      "product": {
+        "priceNegotiable": "価格は応相談"
+      }
     },
     "product": {
       "viewDetails": "製品を見る",

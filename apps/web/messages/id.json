@@ -2723,6 +2723,9 @@
         "cancelled": "Reservasi dibatalkan",
         "picked_up": "Barang diambil",
         "returned": "Barang dikembalikan",
+        "inspection_departure_started": "Pemeriksaan kondisi saat penyerahan dimulai",
+        "inspection_departure_completed": "Laporan kondisi penjemputan selesai",
+        "inspection_signed": "Laporan kondisi ditandatangani",
         "note_updated": "Catatan diperbarui",
         "payment_added": "Pembayaran ditambahkan",
         "payment_updated": "Pembayaran diperbarui",
@@ -6544,7 +6547,10 @@
       "attributeChip": "{axis}: {value}",
       "priceBaseHint": "Tarif dasar, sebelum tanggal dipilih",
       "pricePeriodHint": "Total untuk tanggal Anda",
-      "availableOfTotal": "{available} dari {total} tersedia"
+      "availableOfTotal": "{available} dari {total} tersedia",
+      "product": {
+        "priceNegotiable": "Harga dapat dinegosiasikan"
+      }
     },
     "product": {
       "viewDetails": "Lihat produk",

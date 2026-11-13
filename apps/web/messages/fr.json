@@ -2732,6 +2732,9 @@
         "cancelled": "Réservation annulée",
         "picked_up": "Articles récupérés",
         "returned": "Articles rendus",
+        "inspection_departure_started": "Inspection de départ commencée",
+        "inspection_departure_completed": "État des lieux de départ réalisé",
+        "inspection_signed": "État des lieux signé",
         "note_updated": "Notes modifiées",
         "payment_added": "Paiement ajouté",
         "payment_updated": "Paiement mis à jour",
@@ -6544,7 +6547,10 @@
       "attributeChip": "{axis} : {value}",
       "priceBaseHint": "Tarifs de base, avant choix des dates",
       "pricePeriodHint": "Total pour vos dates",
-      "availableOfTotal": "{available} disponibles sur {total}"
+      "availableOfTotal": "{available} disponibles sur {total}",
+      "product": {
+        "priceNegotiable": "Prix négociable"
+      }
     },
     "product": {
       "viewDetails": "Voir le produit",

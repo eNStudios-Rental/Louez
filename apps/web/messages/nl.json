@@ -2684,6 +2684,9 @@
         "cancelled": "Reservering geannuleerd",
         "picked_up": "Artikelen opgehaald",
         "returned": "Artikelen geretourneerd",
+        "inspection_departure_started": "Inspectie bij ophalen gestart",
+        "inspection_departure_completed": "Staat van oplevering bij ophalen opgemaakt",
+        "inspection_signed": "Staat van oplevering ondertekend",
         "note_updated": "Notities bijgewerkt",
         "payment_added": "Betaling toegevoegd",
         "payment_updated": "Betaling bijgewerkt",
@@ -6544,7 +6547,10 @@
       "attributeChip": "{axis}: {value}",
       "priceBaseHint": "Basistarieven, voordat u datums kiest",
       "pricePeriodHint": "Totaal voor uw datums",
-      "availableOfTotal": "{available} van {total} beschikbaar"
+      "availableOfTotal": "{available} van {total} beschikbaar",
+      "product": {
+        "priceNegotiable": "Prijs bespreekbaar"
+      }
     },
     "product": {
       "viewDetails": "Product bekijken",

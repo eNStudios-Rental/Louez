@@ -2723,6 +2723,9 @@
         "cancelled": "Reservierung storniert",
         "picked_up": "Artikel abgeholt",
         "returned": "Artikel zurückgegeben",
+        "inspection_departure_started": "Übergabeinspektion gestartet",
+        "inspection_departure_completed": "Übergabeprotokoll erstellt",
+        "inspection_signed": "Protokoll unterschrieben",
         "note_updated": "Notizen aktualisiert",
         "payment_added": "Zahlung hinzugefügt",
         "payment_updated": "Zahlung aktualisiert",
@@ -6544,7 +6547,10 @@
       "attributeChip": "{axis}: {value}",
       "priceBaseHint": "Grundtarife, vor der Wahl der Daten",
       "pricePeriodHint": "Gesamt für Ihre Daten",
-      "availableOfTotal": "{available} von {total} verfügbar"
+      "availableOfTotal": "{available} von {total} verfügbar",
+      "product": {
+        "priceNegotiable": "Preis verhandelbar"
+      }
     },
     "product": {
       "viewDetails": "Produkt ansehen",

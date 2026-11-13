@@ -18,6 +18,26 @@ test("accepts supported reservation payment method filters", async () => {
   assert.throws(() => dashboardReservationsListInputSchema.parse({ paymentMethod: "crypto" }));
 });
 
+test("requires a positive period for storefront availability", async () => {
+  const { storefrontAvailabilityInputSchema, storefrontAvailabilityRouteQuerySchema } =
+    await apiSchemas;
+  const validPeriod = {
+    startDate: "2026-07-02T07:00:00.000Z",
+    endDate: "2026-07-02T08:00:00.000Z",
+  };
+
+  assert.equal(storefrontAvailabilityInputSchema.safeParse(validPeriod).success, true);
+  assert.equal(storefrontAvailabilityRouteQuerySchema.safeParse(validPeriod).success, true);
+
+  for (const period of [
+    { startDate: validPeriod.startDate, endDate: validPeriod.startDate },
+    { startDate: validPeriod.endDate, endDate: validPeriod.startDate },
+  ]) {
+    assert.equal(storefrontAvailabilityInputSchema.safeParse(period).success, false);
+    assert.equal(storefrontAvailabilityRouteQuerySchema.safeParse(period).success, false);
+  }
+});
+
 test("normalizes manual reservation customer emails before validation", async () => {
   const { dashboardReservationCreateManualReservationInputSchema } = await apiSchemas;
   const result = dashboardReservationCreateManualReservationInputSchema.parse({

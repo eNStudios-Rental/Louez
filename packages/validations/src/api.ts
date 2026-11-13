@@ -12,11 +12,16 @@ const dateTimeOrDateSchema = z
 
 const customerEmailSchema = z.string().trim().toLowerCase().pipe(z.email().max(320));
 
-export const storefrontAvailabilityInputSchema = z.object({
-  startDate: dateTimeOrDateSchema,
-  endDate: dateTimeOrDateSchema,
-  productIds: z.array(z.string().length(21)).optional(),
-});
+export const storefrontAvailabilityInputSchema = z
+  .object({
+    startDate: dateTimeOrDateSchema,
+    endDate: dateTimeOrDateSchema,
+    productIds: z.array(z.string().length(21)).optional(),
+  })
+  .refine(
+    ({ startDate, endDate }) => Date.parse(endDate) > Date.parse(startDate),
+    "errors.invalidData",
+  );
 
 export const storefrontCalendarInputSchema = z.object({
   productId: z.string().length(21),
@@ -65,11 +70,16 @@ export const storefrontCartResolveInputSchema = z.object({
     .max(100),
 });
 
-export const storefrontAvailabilityRouteQuerySchema = z.object({
-  startDate: dateTimeOrDateSchema,
-  endDate: dateTimeOrDateSchema,
-  productIds: z.string().nullish(),
-});
+export const storefrontAvailabilityRouteQuerySchema = z
+  .object({
+    startDate: dateTimeOrDateSchema,
+    endDate: dateTimeOrDateSchema,
+    productIds: z.string().nullish(),
+  })
+  .refine(
+    ({ startDate, endDate }) => Date.parse(endDate) > Date.parse(startDate),
+    "errors.invalidData",
+  );
 
 // ---------------------------------------------------------------------------
 // Storefront procedure outputs. They mirror the `AvailabilityResponse` and

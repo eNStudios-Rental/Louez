@@ -596,6 +596,9 @@ export function NewReservationForm({
   };
 
   const hasSelectedPeriod = Boolean(watchStartDate && watchEndDate);
+  const hasValidAvailabilityPeriod = Boolean(
+    watchStartDate && watchEndDate && watchEndDate > watchStartDate,
+  );
   const availabilityProductIds = useMemo(() => products.map((product) => product.id), [products]);
   const manualAvailabilityQuery = useQuery({
     queryKey: [
@@ -605,7 +608,7 @@ export function NewReservationForm({
       availabilityProductIds,
     ],
     queryFn: async () => {
-      if (!watchStartDate || !watchEndDate) {
+      if (!hasValidAvailabilityPeriod || !watchStartDate || !watchEndDate) {
         return null;
       }
 
@@ -621,7 +624,7 @@ export function NewReservationForm({
 
       return result.availability;
     },
-    enabled: hasSelectedPeriod,
+    enabled: hasValidAvailabilityPeriod,
     staleTime: 30_000,
     refetchInterval: 30_000,
     refetchOnWindowFocus: "always",

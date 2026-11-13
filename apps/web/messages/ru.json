@@ -2723,6 +2723,9 @@
         "cancelled": "Бронирование отменено",
         "picked_up": "Подобранные предметы",
         "returned": "Товары возвращены",
+        "inspection_departure_started": "Проверка состояния при выдаче начата",
+        "inspection_departure_completed": "Отчет о состоянии самовывоза завершен",
+        "inspection_signed": "Отчет о состоянии подписан",
         "note_updated": "Примечания обновлены",
         "payment_added": "Платеж добавлен",
         "payment_updated": "Платеж обновлен",
@@ -6544,7 +6547,10 @@
       "attributeChip": "{axis}: {value}",
       "priceBaseHint": "Базовые цены до выбора дат",
       "pricePeriodHint": "Итого на ваши даты",
-      "availableOfTotal": "{available} или {total} доступны"
+      "availableOfTotal": "{available} или {total} доступны",
+      "product": {
+        "priceNegotiable": "Цена договорная"
+      }
     },
     "product": {
       "viewDetails": "Посмотреть продукт",

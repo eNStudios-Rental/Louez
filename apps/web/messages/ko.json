@@ -2723,6 +2723,9 @@
         "cancelled": "예약이 취소되었습니다",
         "picked_up": "픽업된 품목",
         "returned": "반품된 상품",
+        "inspection_departure_started": "출고 점검 시작",
+        "inspection_departure_completed": "픽업상태 보고 완료",
+        "inspection_signed": "상태 보고서 서명됨",
         "note_updated": "메모가 업데이트되었습니다.",
         "payment_added": "결제가 추가됨",
         "payment_updated": "결제가 업데이트되었습니다.",
@@ -6544,7 +6547,10 @@
       "attributeChip": "{axis}: {value}",
       "priceBaseHint": "날짜 선택 전 기본 요율",
       "pricePeriodHint": "선택한 날짜의 합계",
-      "availableOfTotal": "{total}의 {available} 사용 가능"
+      "availableOfTotal": "{total}의 {available} 사용 가능",
+      "product": {
+        "priceNegotiable": "가격 협의 가능"
+      }
     },
     "product": {
       "viewDetails": "상품보기",

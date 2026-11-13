@@ -2698,6 +2698,9 @@
         "cancelled": "Rezerwacja anulowana",
         "picked_up": "Przedmioty odebrane",
         "returned": "Przedmioty zwrócone",
+        "inspection_departure_started": "Rozpoczęto kontrolę przy wydaniu",
+        "inspection_departure_completed": "Sporządzono protokół wydania",
+        "inspection_signed": "Protokół podpisany",
         "note_updated": "Notatki zaktualizowane",
         "payment_added": "Płatność dodana",
         "payment_updated": "Płatność zaktualizowana",
@@ -6560,7 +6563,10 @@
       "attributeChip": "{axis}: {value}",
       "priceBaseHint": "Stawki podstawowe, przed wyborem dat",
       "pricePeriodHint": "Łącznie za Twoje daty",
-      "availableOfTotal": "{available} z {total} dostępnych"
+      "availableOfTotal": "{available} z {total} dostępnych",
+      "product": {
+        "priceNegotiable": "Cena do ustalenia"
+      }
     },
     "product": {
       "viewDetails": "Zobacz produkt",

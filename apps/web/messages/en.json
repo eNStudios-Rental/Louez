@@ -2737,6 +2737,9 @@
         "cancelled": "Reservation cancelled",
         "picked_up": "Items picked up",
         "returned": "Items returned",
+        "inspection_departure_started": "Departure inspection started",
+        "inspection_departure_completed": "Departure inspection completed",
+        "inspection_signed": "Condition report signed",
         "note_updated": "Notes updated",
         "payment_added": "Payment added",
         "payment_updated": "Payment updated",
@@ -6560,7 +6563,10 @@
       "attributeChip": "{axis}: {value}",
       "priceBaseHint": "Base rates, before dates are picked",
       "pricePeriodHint": "Total for your dates",
-      "availableOfTotal": "{available} of {total} available"
+      "availableOfTotal": "{available} of {total} available",
+      "product": {
+        "priceNegotiable": "Price negotiable"
+      }
     },
     "product": {
       "viewDetails": "View product",

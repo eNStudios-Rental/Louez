@@ -2723,6 +2723,9 @@
         "cancelled": "预订已取消",
         "picked_up": "拾取的物品",
         "returned": "退回的物品",
+        "inspection_departure_started": "取货检查已开始",
+        "inspection_departure_completed": "已完成拾取状况报告",
+        "inspection_signed": "已签署状况报告",
         "note_updated": "注释已更新",
         "payment_added": "已添加付款",
         "payment_updated": "付款已更新",
@@ -6544,7 +6547,10 @@
       "attributeChip": "{axis}: {value}",
       "priceBaseHint": "选择日期之前的基本费率",
       "pricePeriodHint": "您的日期总计",
-      "availableOfTotal": "{available} 或 {total} 可用"
+      "availableOfTotal": "{available} 或 {total} 可用",
+      "product": {
+        "priceNegotiable": "价格可议"
+      }
     },
     "product": {
       "viewDetails": "查看产品",
