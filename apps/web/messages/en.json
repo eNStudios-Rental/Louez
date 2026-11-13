@@ -7081,6 +7081,8 @@
       },
       "pricing": {
         "subtotal": "Rental subtotal",
+        "priceNegotiable": "Price negotiable",
+        "subtotalWithNegotiable": "{amount} + {priceNegotiable}",
         "discount": "Discount",
         "discountBadge": "-{percent}%",
         "deposit": "Deposit",

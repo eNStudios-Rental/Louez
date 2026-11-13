@@ -7062,6 +7062,8 @@
       },
       "pricing": {
         "subtotal": "Sous-total location",
+        "priceNegotiable": "Prix négociable",
+        "subtotalWithNegotiable": "{amount} + {priceNegotiable}",
         "discount": "Réduction",
         "discountBadge": "-{percent}%",
         "deposit": "Caution",

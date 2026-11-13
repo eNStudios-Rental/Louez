@@ -7062,6 +7062,8 @@
       },
       "pricing": {
         "subtotal": "Subtotale noleggio",
+        "priceNegotiable": "Prezzo negoziabile",
+        "subtotalWithNegotiable": "{amount} + {priceNegotiable}",
         "discount": "Sconto",
         "discountBadge": "-{percent}%",
         "deposit": "Deposito",

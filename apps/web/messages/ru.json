@@ -7062,6 +7062,8 @@
       },
       "pricing": {
         "subtotal": "Итого по аренде",
+        "priceNegotiable": "Цена договорная",
+        "subtotalWithNegotiable": "{amount} + {priceNegotiable}",
         "discount": "Скидка",
         "discountBadge": "-{percent}%",
         "deposit": "Залог",

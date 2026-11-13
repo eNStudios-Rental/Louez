@@ -7062,6 +7062,8 @@
       },
       "pricing": {
         "subtotal": "Subtotal alquiler",
+        "priceNegotiable": "Precio negociable",
+        "subtotalWithNegotiable": "{amount} + {priceNegotiable}",
         "discount": "Descuento",
         "discountBadge": "-{percent}%",
         "deposit": "Deposito",

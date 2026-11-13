@@ -7062,6 +7062,8 @@
       },
       "pricing": {
         "subtotal": "Subtotal sewa",
+        "priceNegotiable": "Harga dapat dinegosiasikan",
+        "subtotalWithNegotiable": "{amount} + {priceNegotiable}",
         "discount": "Diskon",
         "discountBadge": "-{percent}%",
         "deposit": "Uang jaminan",

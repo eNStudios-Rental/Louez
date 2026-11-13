@@ -7062,6 +7062,8 @@
       },
       "pricing": {
         "subtotal": "Subtotaal verhuur",
+        "priceNegotiable": "Prijs bespreekbaar",
+        "subtotalWithNegotiable": "{amount} + {priceNegotiable}",
         "discount": "Korting",
         "discountBadge": "-{percent}%",
         "deposit": "Borg",

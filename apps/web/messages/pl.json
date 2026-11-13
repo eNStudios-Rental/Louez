@@ -7081,6 +7081,8 @@
       },
       "pricing": {
         "subtotal": "Suma wynajmu",
+        "priceNegotiable": "Cena do ustalenia",
+        "subtotalWithNegotiable": "{amount} + {priceNegotiable}",
         "discount": "Zniżka",
         "discountBadge": "-{percent}%",
         "deposit": "Kaucja",
