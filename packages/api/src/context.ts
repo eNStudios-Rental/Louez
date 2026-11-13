@@ -304,6 +304,7 @@ export interface BaseContext {
         };
       };
       internalTitle?: string;
+      bookedByName: string;
       internalNotes?: string;
       discountAmount?: number;
       depositOverride?: number;

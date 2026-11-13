@@ -1159,7 +1159,7 @@ interface CreateReservationData {
     };
   };
   internalTitle?: string;
-  bookedByName?: string;
+  bookedByName: string;
   internalNotes?: string;
   /** Flat commercial discount in currency units; clamped to the subtotal. */
   discountAmount?: number;
@@ -1945,7 +1945,7 @@ export async function createManualReservation(data: CreateReservationData) {
       totalAmount: totalAmount.toFixed(2),
       discountAmount: manualDiscountAmount.toFixed(2),
       internalTitle: data.internalTitle?.trim() || null,
-      bookedByName: data.bookedByName?.trim() || null,
+      bookedByName: data.bookedByName.trim(),
       internalNotes: data.internalNotes || null,
       source: "manual",
       // Staff books on the customer's behalf: the profile's default identity

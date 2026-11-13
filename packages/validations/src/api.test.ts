@@ -47,6 +47,7 @@ test("normalizes manual reservation customer emails before validation", async ()
         firstName: "celine",
         lastName: "Toiseux",
       },
+      bookedByName: "Celine Toiseux",
       startDate: "2026-07-02T07:00:00.000Z",
       endDate: "2026-07-04T17:00:00.000Z",
       items: [{ productId, quantity: 4 }],
@@ -67,6 +68,7 @@ test("keeps rejecting malformed manual reservation customer emails", async () =>
           firstName: "celine",
           lastName: "Toiseux",
         },
+        bookedByName: "Celine Toiseux",
         startDate: "2026-07-02T07:00:00.000Z",
         endDate: "2026-07-04T17:00:00.000Z",
         items: [{ productId, quantity: 4 }],
@@ -94,18 +96,35 @@ test("normalizes manual Tulip quote preview customer emails", async () => {
   assert.equal(result.payload.newCustomer?.email, "celine@example.com");
 });
 
-test("accepts optional bookedByName in manual reservation create and update", async () => {
+test("requires bookedByName for manual reservation creation but keeps updates optional", async () => {
   const {
     dashboardReservationCreateManualReservationInputSchema,
     dashboardReservationUpdateReservationInputSchema,
   } = await apiSchemas;
 
+  const createPayload = {
+    customerId: "qdO2S5tJdj9ZbfSMcp61a",
+    startDate: "2026-07-02T07:00:00.000Z",
+    endDate: "2026-07-04T17:00:00.000Z",
+    items: [{ productId, quantity: 1 }],
+  };
+
+  assert.equal(
+    dashboardReservationCreateManualReservationInputSchema.safeParse({
+      payload: createPayload,
+    }).success,
+    false,
+  );
+  assert.equal(
+    dashboardReservationCreateManualReservationInputSchema.safeParse({
+      payload: { ...createPayload, bookedByName: "   " },
+    }).success,
+    false,
+  );
+
   const createResult = dashboardReservationCreateManualReservationInputSchema.parse({
     payload: {
-      customerId: "qdO2S5tJdj9ZbfSMcp61a",
-      startDate: "2026-07-02T07:00:00.000Z",
-      endDate: "2026-07-04T17:00:00.000Z",
-      items: [{ productId, quantity: 1 }],
+      ...createPayload,
       bookedByName: " Jan Kowalski ",
     },
   });
@@ -120,4 +139,11 @@ test("accepts optional bookedByName in manual reservation create and update", as
   });
 
   assert.equal(updateResult.payload.bookedByName, "Anna Nowak");
+  assert.equal(
+    dashboardReservationUpdateReservationInputSchema.safeParse({
+      reservationId: "qdO2S5tJdj9ZbfSMcp61b",
+      payload: {},
+    }).success,
+    true,
+  );
 });
