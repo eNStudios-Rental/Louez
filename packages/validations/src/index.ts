@@ -13,6 +13,7 @@ export * from "./legal-profile";
 export * from "./notifications";
 export * from "./onboarding";
 export * from "./phone";
+export * from "./polish-nip";
 export * from "./product";
 export * from "./promo-code";
 export * from "./reservation";

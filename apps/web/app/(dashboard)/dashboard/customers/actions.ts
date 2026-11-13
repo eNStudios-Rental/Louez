@@ -5,13 +5,7 @@ import { getCurrentStore } from "@/lib/store-context";
 import { customers, reservations } from "@louez/db";
 import { eq, and, count } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import {
-  customerSchema,
-  digitsOnly,
-  isValidCompanyNumber,
-  resolveCompanyNumberScheme,
-  type CustomerInput,
-} from "@louez/validations";
+import { customerSchema, type CustomerInput } from "@louez/validations";
 import { notifyCustomerCreated } from "@/lib/discord/platform-notifications";
 
 async function getStoreId() {
@@ -39,17 +33,11 @@ function resolveCustomerCompanyFields(validated: CustomerInput) {
     return { companyNumber: null, companyNumberScheme: null, vatNumber: null };
   }
 
-  const country = validated.country ?? "";
-  const raw = validated.companyNumber?.trim() ?? "";
-  const isUsable = raw.length > 0 && isValidCompanyNumber(country, raw);
-  const scheme = isUsable ? resolveCompanyNumberScheme(country) : null;
-  // FR/BE identifiers are pure digits; elsewhere keep what was typed.
-  const companyNumber = scheme ? digitsOnly(raw) : raw;
-  const vatNumber = validated.vatNumber?.replace(/\s/g, "").toUpperCase() ?? "";
+  const vatNumber = validated.vatNumber?.replace(/[\s-]/g, "") ?? "";
 
   return {
-    companyNumber: companyNumber.length > 0 ? companyNumber : null,
-    companyNumberScheme: scheme,
+    companyNumber: null,
+    companyNumberScheme: null,
     vatNumber: vatNumber.length > 0 ? vatNumber : null,
   };
 }
@@ -65,7 +53,7 @@ export async function createCustomer(data: CustomerInput) {
     const firstName = validated.firstName?.trim() || null;
     const lastName = validated.lastName?.trim() || null;
 
-    // Email is optional for business customers, but remains unique when provided.
+    // Email is optional for all customer types, but remains unique when provided.
     const existingCustomer = email
       ? await db.query.customers.findFirst({
           where: and(eq(customers.storeId, store.id), eq(customers.email, email)),

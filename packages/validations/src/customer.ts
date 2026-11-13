@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { isPossiblePhoneNumberInput } from "./phone";
+import { isValidPolishNip } from "./polish-nip";
 
 // Customer type enum
 export const customerTypeValues = ["individual", "business"] as const;
@@ -69,17 +70,16 @@ export const createCustomerSchema = (
             path: ["companyName"],
           });
         }
-        if (!data.companyNumber || data.companyNumber.trim().length === 0) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: t("companyNumberRequired"),
-            path: ["companyNumber"],
-          });
-        }
         if (!data.vatNumber || data.vatNumber.trim().length === 0) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: t("required"),
+            path: ["vatNumber"],
+          });
+        } else if (!isValidPolishNip(data.vatNumber)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: t("invalidNip"),
             path: ["vatNumber"],
           });
         }
@@ -98,13 +98,6 @@ export const createCustomerSchema = (
             path: ["lastName"],
           });
         }
-        if (!data.email || data.email.trim().length === 0) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: t("required"),
-            path: ["email"],
-          });
-        }
       }
     });
 
@@ -118,17 +111,16 @@ export const customerSchema = z.object(baseCustomerFields).superRefine((data, ct
         path: ["companyName"],
       });
     }
-    if (!data.companyNumber || data.companyNumber.trim().length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "validation.companyNumberRequired",
-        path: ["companyNumber"],
-      });
-    }
     if (!data.vatNumber || data.vatNumber.trim().length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "validation.required",
+        path: ["vatNumber"],
+      });
+    } else if (!isValidPolishNip(data.vatNumber)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "validation.invalidNip",
         path: ["vatNumber"],
       });
     }
@@ -145,13 +137,6 @@ export const customerSchema = z.object(baseCustomerFields).superRefine((data, ct
         code: z.ZodIssueCode.custom,
         message: "validation.required",
         path: ["lastName"],
-      });
-    }
-    if (!data.email || data.email.trim().length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "validation.required",
-        path: ["email"],
       });
     }
   }

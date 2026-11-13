@@ -146,7 +146,7 @@ export const CustomerCreateDialog = ({
                   {(field) => (
                     <field.Input
                       autoFocus
-                      label={t("form.firstName")}
+                      label={`${t("form.firstName")} *`}
                       placeholder={t("form.firstNamePlaceholder")}
                     />
                   )}
@@ -155,7 +155,7 @@ export const CustomerCreateDialog = ({
                 <form.AppField name="lastName">
                   {(field) => (
                     <field.Input
-                      label={t("form.lastName")}
+                      label={`${t("form.lastName")} *`}
                       placeholder={t("form.lastNamePlaceholder")}
                     />
                   )}
