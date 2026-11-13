@@ -32,7 +32,6 @@ export function NewReservationStepCustomer({
 }: NewReservationStepCustomerProps) {
   const t = useTranslations("dashboard.reservations.manualForm");
   const tCustomerSearch = useTranslations("common.customerSearch");
-  const tCommon = useTranslations("common");
   const { dismissFeature } = useWhatsNew();
   const [createDialog, setCreateDialog] = useState({ isOpen: false, query: "" });
 
@@ -92,14 +91,12 @@ export function NewReservationStepCustomer({
           </form.Field>
 
           <div className="space-y-2 border-t pt-4">
-            <Label htmlFor="reservation-booked-by-name">
-              {t("bookedByName")}
-              <span className="ml-1 font-normal text-muted-foreground">({tCommon("optional")})</span>
-            </Label>
+            <Label htmlFor="reservation-booked-by-name">{t("bookedByName")} *</Label>
             <form.Field name="bookedByName">
               {(field) => (
                 <Input
                   id="reservation-booked-by-name"
+                  required
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   placeholder={t("bookedByNamePlaceholder")}

@@ -243,10 +243,10 @@ export function SignaturePad({
             type="button"
             variant="ghost"
             onClick={clearSignature}
-            className="absolute right-2 top-2 h-8 w-8 p-0"
+            className="absolute right-2 top-2 h-8 gap-1 px-2 text-xs"
           >
             <Eraser className="h-4 w-4" />
-            <span className="sr-only">{t("wizard.clearSignature")}</span>
+            <span>{t("wizard.clearSignature")}</span>
           </Button>
         )}
       </div>

@@ -7,6 +7,7 @@ import { getCurrentStore } from "@/lib/store-context";
 import { ComparisonView } from "./comparison-view";
 import type { ConditionRating } from "@louez/types";
 import { DashboardBreadcrumbLabel } from "@/components/dashboard/dashboard-breadcrumbs-context";
+import { getReservationApplicantName } from "@/lib/reservations/util.reservation-applicant";
 
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
@@ -30,6 +31,7 @@ export default async function InspectionComparePage({ params }: PageProps) {
       id: reservations.id,
       number: reservations.number,
       customerId: reservations.customerId,
+      bookedByName: reservations.bookedByName,
     })
     .from(reservations)
     .where(and(eq(reservations.id, reservationId), eq(reservations.storeId, store.id)))
@@ -46,12 +48,13 @@ export default async function InspectionComparePage({ params }: PageProps) {
     .select({
       firstName: customers.firstName,
       lastName: customers.lastName,
+      companyName: customers.companyName,
     })
     .from(customers)
     .where(eq(customers.id, reservation.customerId))
     .limit(1);
 
-  const customerName = customer ? `${customer.firstName} ${customer.lastName}` : "Client";
+  const customerName = getReservationApplicantName(reservation.bookedByName, customer);
 
   // Get both inspections
   const reservationInspections = await db

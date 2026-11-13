@@ -15,6 +15,7 @@ import { eq, and, sql } from "drizzle-orm";
 import { convertImageForPdf } from "./image-utils";
 import { getLogoForLightBackground } from "@louez/utils";
 import type { ConditionRating } from "@louez/types";
+import { getReservationApplicantName } from "@/lib/reservations/util.reservation-applicant";
 
 interface GenerateInspectionReportOptions {
   inspectionId: string;
@@ -59,7 +60,7 @@ export async function generateInspectionReport({
     where: eq(customers.id, reservation.customerId),
   });
 
-  const customerName = customer ? `${customer.firstName} ${customer.lastName}` : "Client";
+  const customerName = getReservationApplicantName(reservation.bookedByName, customer);
 
   // Get performer name if available
   let performedByName: string | null = null;

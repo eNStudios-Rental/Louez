@@ -440,7 +440,7 @@ export function NewReservationForm({
           },
           internalNotes: value.internalNotes || undefined,
           internalTitle: value.internalTitle.trim() || undefined,
-          bookedByName: value.bookedByName.trim() || undefined,
+          bookedByName: value.bookedByName.trim(),
           discountAmount:
             globalDiscountAmount > 0 ? Math.round(globalDiscountAmount * 100) / 100 : undefined,
           depositOverride: depositOverride ?? undefined,

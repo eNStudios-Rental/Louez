@@ -23,6 +23,7 @@ import type { ConditionRating, InspectionType } from "@louez/types";
 import { DashboardBreadcrumbLabel } from "@/components/dashboard/dashboard-breadcrumbs-context";
 
 import { getCurrentStore } from "@/lib/store-context";
+import { getReservationApplicantName } from "@/lib/reservations/util.reservation-applicant";
 
 import { InspectionView } from "./components/inspection-view";
 import { InspectionWizard } from "./components/inspection-wizard";
@@ -90,6 +91,7 @@ export default async function InspectionPage({ params }: PageProps) {
       number: reservations.number,
       status: reservations.status,
       customerId: reservations.customerId,
+      bookedByName: reservations.bookedByName,
     })
     .from(reservations)
     .where(and(eq(reservations.id, reservationId), eq(reservations.storeId, store.id)))
@@ -120,12 +122,13 @@ export default async function InspectionPage({ params }: PageProps) {
       id: customers.id,
       firstName: customers.firstName,
       lastName: customers.lastName,
+      companyName: customers.companyName,
     })
     .from(customers)
     .where(eq(customers.id, reservation.customerId))
     .limit(1);
 
-  const customerName = customer ? `${customer.firstName} ${customer.lastName}` : "Client";
+  const customerName = getReservationApplicantName(reservation.bookedByName, customer);
 
   // Check if inspection already exists
   const [existingInspection] = await db
