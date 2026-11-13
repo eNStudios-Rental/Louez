@@ -27,6 +27,31 @@ export interface CheckoutTotals {
   remainingAmount: number;
 }
 
+export type CheckoutSubtotalDisplay =
+  | { kind: "amount"; amount: number }
+  | { kind: "negotiable" }
+  | { kind: "amountAndNegotiable"; amount: number };
+
+export const getCheckoutSubtotalDisplay = ({
+  subtotal,
+  originalSubtotal,
+  totalSavings,
+  hasNegotiableItems,
+}: {
+  subtotal: number;
+  originalSubtotal: number;
+  totalSavings: number;
+  hasNegotiableItems: boolean;
+}): CheckoutSubtotalDisplay => {
+  const amount = totalSavings > 0 ? originalSubtotal : subtotal;
+
+  if (!hasNegotiableItems) {
+    return { kind: "amount", amount };
+  }
+
+  return amount > 0 ? { kind: "amountAndNegotiable", amount } : { kind: "negotiable" };
+};
+
 export type CheckoutSubmitLabel =
   | { kind: "request" }
   | { kind: "pay"; amount: number }

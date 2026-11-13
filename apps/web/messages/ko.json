@@ -7062,6 +7062,8 @@
       },
       "pricing": {
         "subtotal": "임대소계",
+        "priceNegotiable": "가격 협의 가능",
+        "subtotalWithNegotiable": "{amount} + {priceNegotiable}",
         "discount": "할인",
         "discountBadge": "-{percent}%",
         "deposit": "보증금",

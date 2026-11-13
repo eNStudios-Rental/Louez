@@ -30,7 +30,7 @@ import type {
   ValidatedPromo,
 } from "../checkout.types";
 import { CheckoutDeposit } from "./checkout-deposit";
-import type { CheckoutTotals } from "../util.checkout-totals";
+import { getCheckoutSubtotalDisplay, type CheckoutTotals } from "../util.checkout-totals";
 import { getCheckoutInsuranceState } from "../util.checkout-insurance";
 
 interface CheckoutOrderSummaryProps {
@@ -126,6 +126,32 @@ export const CheckoutOrderSummary = ({
   const showInsurance = insuranceState !== "hidden";
   const showInsuranceLine = showInsurance && insuranceState !== "loading";
   const isCoverApplied = insuranceState === "included" || insuranceState === "selected";
+  const negotiablePriceLabel = t("pricing.priceNegotiable");
+  const subtotalDisplay = getCheckoutSubtotalDisplay({
+    subtotal,
+    originalSubtotal,
+    totalSavings,
+    hasNegotiableItems: items.some((item) => item.priceNegotiable),
+  });
+  const subtotalValue =
+    subtotalDisplay.kind === "amount"
+      ? formatMoney(subtotalDisplay.amount)
+      : subtotalDisplay.kind === "negotiable"
+        ? negotiablePriceLabel
+        : t("pricing.subtotalWithNegotiable", {
+            amount: formatMoney(subtotalDisplay.amount),
+            priceNegotiable: negotiablePriceLabel,
+          });
+  const discountedSubtotalValue =
+    subtotalDisplay.kind === "amountAndNegotiable" ? (
+      <>
+        <s>{formatMoney(subtotalDisplay.amount)}</s> + {negotiablePriceLabel}
+      </>
+    ) : subtotalDisplay.kind === "negotiable" ? (
+      negotiablePriceLabel
+    ) : (
+      <s>{formatMoney(subtotalDisplay.amount)}</s>
+    );
   const insuranceValue = (() => {
     if (insuranceState === "unavailable") return t("insuranceOptionalUnavailableShort");
     if (insuranceState === "included") return t("insuranceIncluded");
@@ -215,11 +241,13 @@ export const CheckoutOrderSummary = ({
                   </p>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  {parentName && priceResult.subtotal === 0
-                    ? t("included")
-                    : `${item.quantity} × ${formatMoney(priceResult.subtotal / Math.max(1, item.quantity))}${
-                        isFixedPriceProduct(item) ? ` · ${t("fixedPrice")}` : ""
-                      }`}
+                  {item.priceNegotiable
+                    ? negotiablePriceLabel
+                    : parentName && priceResult.subtotal === 0
+                      ? t("included")
+                      : `${item.quantity} × ${formatMoney(priceResult.subtotal / Math.max(1, item.quantity))}${
+                          isFixedPriceProduct(item) ? ` · ${t("fixedPrice")}` : ""
+                        }`}
                 </p>
                 {resolution?.status === "loading" && (
                   <p className="text-xs text-muted-foreground">{t("lineCheckingAvailability")}</p>
@@ -230,7 +258,7 @@ export const CheckoutOrderSummary = ({
               </div>
               <div className="text-right">
                 <p className="text-sm font-medium tabular-nums">
-                  {formatMoney(priceResult.subtotal)}
+                  {item.priceNegotiable ? negotiablePriceLabel : formatMoney(priceResult.subtotal)}
                 </p>
                 {showItemDiscount && priceResult.discountPercent != null && (
                   <p className="text-xs text-success">
@@ -259,7 +287,7 @@ export const CheckoutOrderSummary = ({
           <>
             <SummaryRow
               label={t("pricing.subtotal")}
-              value={<s>{formatMoney(originalSubtotal)}</s>}
+              value={discountedSubtotalValue}
               tone="muted"
             />
             <SummaryRow
@@ -269,7 +297,7 @@ export const CheckoutOrderSummary = ({
             />
           </>
         ) : (
-          <SummaryRow label={t("pricing.subtotal")} value={formatMoney(subtotal)} />
+          <SummaryRow label={t("pricing.subtotal")} value={subtotalValue} />
         )}
 
         {promo && discountAmount > 0 && (

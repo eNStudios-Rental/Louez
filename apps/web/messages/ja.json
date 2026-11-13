@@ -7062,6 +7062,8 @@
       },
       "pricing": {
         "subtotal": "レンタル小計",
+        "priceNegotiable": "価格は応相談",
+        "subtotalWithNegotiable": "{amount} + {priceNegotiable}",
         "discount": "割引",
         "discountBadge": "-{percent}%",
         "deposit": "保証金",

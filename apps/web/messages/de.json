@@ -7062,6 +7062,8 @@
       },
       "pricing": {
         "subtotal": "Miet-Zwischensumme",
+        "priceNegotiable": "Preis verhandelbar",
+        "subtotalWithNegotiable": "{amount} + {priceNegotiable}",
         "discount": "Rabatt",
         "discountBadge": "-{percent}%",
         "deposit": "Kaution",

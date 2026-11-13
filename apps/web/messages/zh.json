@@ -7062,6 +7062,8 @@
       },
       "pricing": {
         "subtotal": "租金小计",
+        "priceNegotiable": "价格可议",
+        "subtotalWithNegotiable": "{amount} + {priceNegotiable}",
         "discount": "折扣",
         "discountBadge": "-{percent}%",
         "deposit": "押金",

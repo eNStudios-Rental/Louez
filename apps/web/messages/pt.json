@@ -7062,6 +7062,8 @@
       },
       "pricing": {
         "subtotal": "Subtotal do aluguel",
+        "priceNegotiable": "Preço negociável",
+        "subtotalWithNegotiable": "{amount} + {priceNegotiable}",
         "discount": "Desconto",
         "discountBadge": "-{percent}%",
         "deposit": "Caucao",

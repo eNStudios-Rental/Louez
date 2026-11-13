@@ -1,7 +1,49 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { calculateCheckoutTotals, getCheckoutSubmitLabel } from "./util.checkout-totals";
+import {
+  calculateCheckoutTotals,
+  getCheckoutSubtotalDisplay,
+  getCheckoutSubmitLabel,
+} from "./util.checkout-totals";
+
+describe("getCheckoutSubtotalDisplay", () => {
+  it("shows only the negotiable label when the regular subtotal is zero", () => {
+    assert.deepEqual(
+      getCheckoutSubtotalDisplay({
+        subtotal: 0,
+        originalSubtotal: 0,
+        totalSavings: 0,
+        hasNegotiableItems: true,
+      }),
+      { kind: "negotiable" },
+    );
+  });
+
+  it("combines a positive regular subtotal with the negotiable label", () => {
+    assert.deepEqual(
+      getCheckoutSubtotalDisplay({
+        subtotal: 80,
+        originalSubtotal: 100,
+        totalSavings: 20,
+        hasNegotiableItems: true,
+      }),
+      { kind: "amountAndNegotiable", amount: 100 },
+    );
+  });
+
+  it("keeps the existing numeric subtotal display when no items are negotiable", () => {
+    assert.deepEqual(
+      getCheckoutSubtotalDisplay({
+        subtotal: 80,
+        originalSubtotal: 100,
+        totalSavings: 20,
+        hasNegotiableItems: false,
+      }),
+      { kind: "amount", amount: 100 },
+    );
+  });
+});
 
 describe("calculateCheckoutTotals", () => {
   it("adds delivery and insurance and removes the promo", () => {
