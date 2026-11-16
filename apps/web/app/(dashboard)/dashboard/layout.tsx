@@ -20,6 +20,7 @@ import { ReservationPollingProvider } from "@/components/dashboard/reservation-p
 import { SettingsSearchFocus } from "@/components/dashboard/settings-search-focus";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { WelcomeOverlay } from "@/components/dashboard/welcome-overlay";
+import { TimelineAnchorReset } from "./timeline-anchor-reset";
 import { DashboardSaveShortcut } from "@/components/shared/dashboard-save-shortcut";
 import { KeyboardShortcutsProvider } from "@/components/shared/keyboard-shortcuts-provider";
 import { WhatsNewProvider } from "@/components/shared/whats-new-provider";
@@ -191,6 +192,7 @@ export default async function DashboardMainLayout({ children }: { children: Reac
               <Suspense fallback={null}>
                 <WelcomeOverlay />
                 <SettingsSearchFocus />
+                <TimelineAnchorReset />
               </Suspense>
             </div>
           </ReservationPollingProvider>
