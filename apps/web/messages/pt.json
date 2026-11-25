@@ -2659,7 +2659,10 @@
         },
         "bookedByName": "Pessoa que faz a reserva",
         "bookedByNamePlaceholder": "Ex.: João Silva",
-        "bookedByNameHelp": "Nome da pessoa que insere a reserva (ex.: funcionário em uma conta partilhada)."
+        "bookedByNameHelp": "Nome da pessoa que insere a reserva (ex.: funcionário em uma conta partilhada).",
+        "returnDateUnknown": "Return date unknown",
+        "returnDateUnknownActive": "Return date unknown ?",
+        "returnDateUnknownHelp": "The end date will be set when the item is marked as returned."
       },
       "rejectDialog": {
         "title": "Rejeitar solicitacao",

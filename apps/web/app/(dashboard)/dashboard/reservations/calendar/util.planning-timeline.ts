@@ -5,13 +5,15 @@ import type { StoreTimelineReservation } from "./types";
 
 export const toStoreTimelineReservation = (
   row: PlanningTimelineEntry,
+  windowEnd?: Date,
 ): StoreTimelineReservation => ({
   id: row.id,
   productId: row.productId,
   number: row.number,
   status: row.status,
   startDate: new Date(row.startDate),
-  endDate: new Date(row.endDate),
+  endDate: row.returnDateUnknown && windowEnd ? windowEnd : new Date(row.endDate),
+  returnDateUnknown: row.returnDateUnknown,
   customerId: row.customerId,
   customerName: row.customerName,
   subtotalAmount: row.subtotalAmount,

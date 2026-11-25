@@ -2659,7 +2659,10 @@
         },
         "bookedByName": "Persona che effettua la prenotazione",
         "bookedByNamePlaceholder": "Es.: Mario Rossi",
-        "bookedByNameHelp": "Nome della persona che inserisce la prenotazione (es.: dipendente su un account condiviso)."
+        "bookedByNameHelp": "Nome della persona che inserisce la prenotazione (es.: dipendente su un account condiviso).",
+        "returnDateUnknown": "Return date unknown",
+        "returnDateUnknownActive": "Return date unknown ?",
+        "returnDateUnknownHelp": "The end date will be set when the item is marked as returned."
       },
       "rejectDialog": {
         "title": "Rifiuta richiesta",

@@ -389,7 +389,7 @@ export function NewReservationForm({
     value: NewReservationFormValues,
     options: { allowOverbooking?: boolean; sendConfirmationEmail?: boolean } = {},
   ) => {
-    if (!value.startDate || !value.endDate) {
+    if (!value.startDate || (!value.returnDateUnknown && !value.endDate)) {
       toastManager.add({ title: t("selectDatesError"), type: "error" });
       return;
     }
@@ -414,7 +414,8 @@ export function NewReservationForm({
         payload: {
           customerId: value.customerId,
           startDate: value.startDate,
-          endDate: value.endDate,
+          endDate: value.endDate ?? new Date(value.startDate.getTime() + 24 * 60 * 60 * 1000),
+          returnDateUnknown: value.returnDateUnknown,
           productionStartDate: value.productionStartDate || undefined,
           productionEndDate: value.productionEndDate || undefined,
           items: selectedProducts,
@@ -570,6 +571,7 @@ export function NewReservationForm({
       customerId: "",
       startDate: undefined as Date | undefined,
       endDate: undefined as Date | undefined,
+      returnDateUnknown: false,
       productionStartDate: undefined as Date | undefined,
       productionEndDate: undefined as Date | undefined,
       internalTitle: "",
@@ -614,6 +616,7 @@ export function NewReservationForm({
   const watchCustomerId = useStore(form.store, (s) => s.values.customerId);
   const watchStartDate = useStore(form.store, (s) => s.values.startDate as Date | undefined);
   const watchEndDate = useStore(form.store, (s) => s.values.endDate as Date | undefined);
+  const watchReturnDateUnknown = useStore(form.store, (s) => s.values.returnDateUnknown);
   const watchProductionStartDate = useStore(
     form.store,
     (s) => s.values.productionStartDate as Date | undefined,
@@ -1527,6 +1530,28 @@ export function NewReservationForm({
                           Główny termin rezerwacji widoczny w kalendarzu oraz brany pod uwagę przy
                           obliczaniu ceny i dostępności.
                         </p>
+                        <Button
+                          type="button"
+                          variant={watchReturnDateUnknown ? "default" : "outline"}
+                          size="sm"
+                          aria-pressed={watchReturnDateUnknown}
+                          onClick={() => {
+                            form.setFieldValue("returnDateUnknown", !watchReturnDateUnknown);
+                            if (!watchReturnDateUnknown && watchStartDate && !watchEndDate) {
+                              form.setFieldValue(
+                                "endDate",
+                                new Date(watchStartDate.getTime() + 24 * 60 * 60 * 1000),
+                              );
+                            }
+                          }}
+                        >
+                          {watchReturnDateUnknown
+                            ? t("returnDateUnknownActive")
+                            : t("returnDateUnknown")}
+                        </Button>
+                        {watchReturnDateUnknown && (
+                          <p className="text-xs text-muted-foreground">{t("returnDateUnknownHelp")}</p>
+                        )}
                       </div>
 
                       <div className="grid gap-6 sm:grid-cols-2">
@@ -1546,7 +1571,12 @@ export function NewReservationForm({
                                   role: "start",
                                   otherValue: watchEndDate,
                                   onOtherChange: (date) => {
-                                    form.setFieldValue("endDate", date);
+                                    form.setFieldValue(
+                                      "endDate",
+                                      watchReturnDateUnknown
+                                        ? new Date(date.getTime() + 24 * 60 * 60 * 1000)
+                                        : date,
+                                    );
                                     clearStepFieldError("endDate");
                                   },
                                 }}
@@ -1554,7 +1584,7 @@ export function NewReservationForm({
                             );
                           }}
                         </form.AppField>
-                        <form.AppField name="endDate">
+                        {!watchReturnDateUnknown && <form.AppField name="endDate">
                           {(field) => {
                             const timeSlots = getTimeSlotsForDate(field.state.value);
                             return (
@@ -1580,10 +1610,10 @@ export function NewReservationForm({
                               />
                             );
                           }}
-                        </form.AppField>
+                        </form.AppField>}
                       </div>
 
-                      {watchStartDate && watchEndDate && duration > 0 && (
+                      {!watchReturnDateUnknown && watchStartDate && watchEndDate && duration > 0 && (
                         <div className="mt-4 space-y-2.5">
                           <div className="bg-card relative flex items-center justify-between gap-3 rounded-xl border px-4 py-3 sm:gap-4">
                             <div className="min-w-0">

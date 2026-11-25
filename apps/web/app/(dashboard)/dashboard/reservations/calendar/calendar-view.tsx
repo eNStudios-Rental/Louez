@@ -273,7 +273,10 @@ export function ReservationsCalendarView({
           number: reservation.number,
           status: reservation.status,
           startDate: new Date(reservation.startDate),
-          endDate: new Date(reservation.endDate),
+          endDate: reservation.returnDateUnknown
+            ? addDays(windowStart, daysCount - 1)
+            : new Date(reservation.endDate),
+          returnDateUnknown: reservation.returnDateUnknown,
           customerId: reservation.customer?.id ?? null,
           customerName:
             reservation.internalTitle?.trim() ||

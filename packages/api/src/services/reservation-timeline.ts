@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, eq, gte, inArray, lte, or } from "drizzle-orm";
 
 import {
   customers,
@@ -24,7 +24,7 @@ export async function getReservationsForCalendarPeriod(params: {
     where: and(
       eq(reservations.storeId, storeId),
       lte(reservations.startDate, endDate),
-      gte(reservations.endDate, startDate),
+      or(gte(reservations.endDate, startDate), eq(reservations.returnDateUnknown, true)),
     ),
     columns: {
       id: true,
@@ -33,6 +33,7 @@ export async function getReservationsForCalendarPeriod(params: {
       status: true,
       startDate: true,
       endDate: true,
+      returnDateUnknown: true,
       subtotalAmount: true,
       depositAmount: true,
       totalAmount: true,
@@ -92,6 +93,7 @@ export async function getStorePlanningTimeline(params: {
       status: reservations.status,
       startDate: reservations.startDate,
       endDate: reservations.endDate,
+      returnDateUnknown: reservations.returnDateUnknown,
       customerId: customers.id,
       customerFirstName: customers.firstName,
       customerLastName: customers.lastName,
@@ -122,7 +124,7 @@ export async function getStorePlanningTimeline(params: {
       and(
         eq(reservations.storeId, storeId),
         lte(reservations.startDate, endDate),
-        gte(reservations.endDate, startDate),
+        or(gte(reservations.endDate, startDate), eq(reservations.returnDateUnknown, true)),
       ),
     );
 
@@ -166,6 +168,7 @@ export async function getStorePlanningTimeline(params: {
       status: row.status,
       startDate: row.startDate,
       endDate: row.endDate,
+      returnDateUnknown: row.returnDateUnknown,
       customerId: row.customerId,
       customerName: [row.customerFirstName, row.customerLastName].filter(Boolean).join(" ") || "—",
       subtotalAmount: row.subtotalAmount,

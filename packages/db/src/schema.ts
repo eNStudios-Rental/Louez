@@ -1425,6 +1425,7 @@ export const reservations = mysqlTable(
     // Dates
     startDate: timestamp("start_date", { mode: "date" }).notNull(),
     endDate: timestamp("end_date", { mode: "date" }).notNull(),
+    returnDateUnknown: boolean("return_date_unknown").default(false).notNull(),
 
     // Amounts
     subtotalAmount: decimal("subtotal_amount", {

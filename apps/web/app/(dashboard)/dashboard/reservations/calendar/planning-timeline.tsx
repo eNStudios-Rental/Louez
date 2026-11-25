@@ -207,7 +207,10 @@ export function PlanningTimeline({
       const byPair = new Map<string, StoreTimelineReservation>();
       for (const result of results) {
         for (const row of result.data ?? []) {
-          byPair.set(`${row.id}_${row.productId}`, toStoreTimelineReservation(row));
+          byPair.set(
+            `${row.id}_${row.productId}`,
+            toStoreTimelineReservation(row, addDays(windowStart, daysCount - 1)),
+          );
         }
       }
 

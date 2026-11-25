@@ -167,6 +167,7 @@ async function getActiveReservations(storeId: string, pendingBlocksAvailability:
       eq(reservations.storeId, storeId),
       inArray(reservations.status, blockingStatuses),
       or(
+        eq(reservations.returnDateUnknown, true),
         gte(reservations.endDate, thirtyDaysAgo),
         exists(
           db
@@ -202,6 +203,7 @@ async function getActiveReservations(storeId: string, pendingBlocksAvailability:
       id: true,
       startDate: true,
       endDate: true,
+      returnDateUnknown: true,
       status: true,
     },
   });

@@ -190,6 +190,8 @@ export function TimelineReservationBar({
     "focus-visible:ring-ring focus-visible:z-10 focus-visible:ring-2 focus-visible:outline-none",
     "shadow-[0_0_0.5px_0.5px_currentColor] dark:shadow-[0_0_1px_0px_currentColor]",
     colorClass,
+    reservation.returnDateUnknown &&
+      "after:content-[''] after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-1/3 after:bg-gradient-to-r after:from-transparent after:to-background/90",
     isConflict && "ring-destructive/60 ring-1 ring-inset",
   );
 
@@ -210,6 +212,7 @@ export function TimelineReservationBar({
             />
           }
         >
+              {reservation.returnDateUnknown && <span className="sr-only">Return date unknown</span>}
           {barLabel}
         </TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs">
@@ -260,6 +263,7 @@ export function TimelineReservationBar({
             />
           }
         >
+          {reservation.returnDateUnknown && <span className="sr-only">Return date unknown</span>}
           {barLabel}
         </DrawerTrigger>
         <DrawerPopup showCloseButton>

@@ -2698,7 +2698,10 @@
         },
         "bookedByName": "예약 작성자",
         "bookedByNamePlaceholder": "예: 홍길동",
-        "bookedByNameHelp": "예약을 등록한 사람의 이름 (예: 공용 계정 사용 시 직원 이름)."
+        "bookedByNameHelp": "예약을 등록한 사람의 이름 (예: 공용 계정 사용 시 직원 이름).",
+        "returnDateUnknown": "Return date unknown",
+        "returnDateUnknownActive": "Return date unknown ?",
+        "returnDateUnknownHelp": "The end date will be set when the item is marked as returned."
       },
       "rejectDialog": {
         "title": "요청 거부",

@@ -2713,7 +2713,10 @@
           "label": "Discount",
           "add": "Add a discount",
           "remove": "Remove discount"
-        }
+        },
+        "returnDateUnknown": "Return date unknown",
+        "returnDateUnknownActive": "Return date unknown ?",
+        "returnDateUnknownHelp": "The end date will be set when the item is marked as returned."
       },
       "rejectDialog": {
         "title": "Reject request",

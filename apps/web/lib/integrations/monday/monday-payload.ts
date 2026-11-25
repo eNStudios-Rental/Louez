@@ -34,6 +34,7 @@ export type ReservationMondayPayloadInput = {
   status: ReservationStatus;
   startDate: Date;
   endDate: Date;
+  returnDateUnknown?: boolean;
   totalAmount: string;
   customerNotes: string | null;
   internalNotes: string | null;
@@ -382,7 +383,7 @@ export function buildMondayReservationPayload(
     const toDate = endLocal.datePart >= fromDate ? endLocal.datePart : fromDate;
     columnValues[cols.timelineColumnId] = {
       from: fromDate,
-      to: toDate,
+      to: reservation.returnDateUnknown ? fromDate : toDate,
     };
   }
 
@@ -391,7 +392,9 @@ export function buildMondayReservationPayload(
   }
 
   if (cols.endDateColumnId) {
-    columnValues[cols.endDateColumnId] = formatUtcDateColumnValue(reservation.endDate);
+    columnValues[cols.endDateColumnId] = reservation.returnDateUnknown
+      ? ""
+      : formatUtcDateColumnValue(reservation.endDate);
   }
 
   if (cols.customerColumnId) {
@@ -431,7 +434,9 @@ export function buildMondayReservationPayload(
       store: reservation.store,
     });
     const noteParts = [
-      `Termin: ${startLocal.datePart} ${startLocal.timePart.slice(0, 5)} -> ${endLocal.datePart} ${endLocal.timePart.slice(0, 5)}`,
+      reservation.returnDateUnknown
+        ? `Termin: ${startLocal.datePart} ${startLocal.timePart.slice(0, 5)} -> data zwrotu nieznana`
+        : `Termin: ${startLocal.datePart} ${startLocal.timePart.slice(0, 5)} -> ${endLocal.datePart} ${endLocal.timePart.slice(0, 5)}`,
       ...logisticsLines,
       reservation.bookedByName ? `Wprowadził(a): ${reservation.bookedByName}` : null,
       reservation.customerNotes ? `Notatki klienta: ${reservation.customerNotes}` : null,

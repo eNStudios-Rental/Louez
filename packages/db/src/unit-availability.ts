@@ -44,14 +44,14 @@ export function getBlockingReservationStatuses(
 
 /** Effective stock end includes a live customer extension checkout. */
 export function reservationAvailabilityEndSql() {
-  return sql<Date>`GREATEST(${reservations.endDate}, COALESCE((
+  return sql<Date>`IF(${reservations.returnDateUnknown}, CAST('9999-12-31 23:59:59' AS DATETIME), GREATEST(${reservations.endDate}, COALESCE((
     SELECT FROM_UNIXTIME(MAX(CAST(JSON_UNQUOTE(JSON_EXTRACT(extension_hold.metadata, '$.requestedEndMs')) AS UNSIGNED)) / 1000)
     FROM reservation_activity extension_hold
     WHERE extension_hold.reservation_id = ${reservations.id}
       AND JSON_UNQUOTE(JSON_EXTRACT(extension_hold.metadata, '$.kind')) = 'rental_extension'
       AND JSON_UNQUOTE(JSON_EXTRACT(extension_hold.metadata, '$.status')) = 'checkout'
       AND CAST(JSON_UNQUOTE(JSON_EXTRACT(extension_hold.metadata, '$.expiresMs')) AS UNSIGNED) > UNIX_TIMESTAMP(CURRENT_TIMESTAMP(3)) * 1000
-  ), ${reservations.endDate}))`.mapWith(reservations.endDate);
+  ), ${reservations.endDate})))`.mapWith(reservations.endDate);
 }
 
 /**
@@ -67,10 +67,12 @@ export function reservationStillHoldsUnitsSql(now: Date = new Date()): SQL | und
 export function getReservationAvailabilityEnd(
   reservation: {
     endDate: Date;
+    returnDateUnknown?: boolean;
     activity?: Array<{ metadata: unknown }>;
   },
   now = Date.now(),
 ): Date {
+  if (reservation.returnDateUnknown) return new Date("9999-12-31T23:59:59.999Z");
   let end = reservation.endDate.getTime();
   for (const row of reservation.activity ?? []) {
     const value = row.metadata;

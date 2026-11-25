@@ -594,6 +594,10 @@ export async function updateReservationStatus(
     updateData.pickedUpAt = new Date();
   } else if (status === "completed") {
     updateData.returnedAt = new Date();
+    if (reservation.returnDateUnknown) {
+      updateData.endDate = new Date();
+      updateData.returnDateUnknown = false;
+    }
   }
 
   try {
@@ -1131,6 +1135,7 @@ interface CreateReservationData {
   };
   startDate: Date;
   endDate: Date;
+  returnDateUnknown?: boolean;
   items: Array<{
     productId: string;
     quantity: number;
@@ -1954,6 +1959,7 @@ export async function createManualReservation(data: CreateReservationData) {
           : "confirmed",
       startDate: data.startDate,
       endDate: data.endDate,
+      returnDateUnknown: data.returnDateUnknown ?? false,
       productionStartDate: data.productionStartDate ?? null,
       productionEndDate: data.productionEndDate ?? null,
       subtotalAmount: subtotalAmount.toFixed(2),

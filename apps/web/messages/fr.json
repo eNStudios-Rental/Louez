@@ -2708,7 +2708,10 @@
         },
         "bookedByName": "Personne qui effectue la réservation",
         "bookedByNamePlaceholder": "Ex. : Jean Dupont",
-        "bookedByNameHelp": "Nom de la personne qui saisit la réservation (ex. : collaborateur sur un compte partagé)."
+        "bookedByNameHelp": "Nom de la personne qui saisit la réservation (ex. : collaborateur sur un compte partagé).",
+        "returnDateUnknown": "Return date unknown",
+        "returnDateUnknownActive": "Return date unknown ?",
+        "returnDateUnknownHelp": "The end date will be set when the item is marked as returned."
       },
       "rejectDialog": {
         "title": "Refuser la demande",

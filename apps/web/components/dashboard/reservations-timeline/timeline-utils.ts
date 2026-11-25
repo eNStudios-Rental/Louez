@@ -24,6 +24,7 @@ export interface TimelineReservation {
   status: string | null;
   startDate: Date;
   endDate: Date;
+  returnDateUnknown?: boolean;
   customerId: string | null;
   customerName: string;
   /** Rental subtotal, used to identify legacy totals that included the deposit */

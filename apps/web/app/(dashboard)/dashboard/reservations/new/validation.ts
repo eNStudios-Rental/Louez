@@ -10,6 +10,7 @@ export function createManualReservationSchema(t: ValidationTranslator) {
         (value) => value === undefined || value instanceof Date,
       ),
       endDate: z.custom<Date | undefined>((value) => value === undefined || value instanceof Date),
+      returnDateUnknown: z.boolean(),
       productionStartDate: z.custom<Date | undefined>(
         (value) => value === undefined || value instanceof Date,
       ),
@@ -37,13 +38,18 @@ export function createManualReservationSchema(t: ValidationTranslator) {
         });
       }
 
-      if (!data.endDate) {
+      if (!data.returnDateUnknown && !data.endDate) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: t("required"),
           path: ["endDate"],
         });
-      } else if (data.startDate && data.endDate < data.startDate) {
+      } else if (
+        !data.returnDateUnknown &&
+        data.startDate &&
+        data.endDate &&
+        data.endDate < data.startDate
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: t("endDateBeforeStart"),

@@ -2659,7 +2659,10 @@
         },
         "bookedByName": "Persoon die de reservering plaatst",
         "bookedByNamePlaceholder": "Bijv. Jan Jansen",
-        "bookedByNameHelp": "Naam van de persoon die de reservering invoert (bijv. medewerker op een gedeeld account)."
+        "bookedByNameHelp": "Naam van de persoon die de reservering invoert (bijv. medewerker op een gedeeld account).",
+        "returnDateUnknown": "Return date unknown",
+        "returnDateUnknownActive": "Return date unknown ?",
+        "returnDateUnknownHelp": "The end date will be set when the item is marked as returned."
       },
       "rejectDialog": {
         "title": "Aanvraag afwijzen",

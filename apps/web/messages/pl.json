@@ -2674,7 +2674,10 @@
           "label": "Rabat",
           "add": "Dodaj rabat",
           "remove": "Usuń rabat"
-        }
+        },
+        "returnDateUnknown": "Nie znam daty zwrotu",
+        "returnDateUnknownActive": "Data zwrotu nieznana ?",
+        "returnDateUnknownHelp": "Data zako?czenia zostanie ustawiona podczas oznaczania przedmiotu jako zwr?conego."
       },
       "rejectDialog": {
         "title": "Odrzuć żądanie",

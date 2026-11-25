@@ -27,6 +27,7 @@ type CalendarReservationDescription = CalendarReservationLogistics & {
   number: string;
   startDate: Date;
   endDate: Date;
+  returnDateUnknown?: boolean;
   customer: {
     customerType: "individual" | "business";
     firstName: string | null;
@@ -216,6 +217,7 @@ export function buildReservationCalendarDescription({
       statusLabel ? `Numero: ${reservation.number}` : null,
       `Produits: ${productNames}`,
       `Total: ${reservation.totalAmount} EUR`,
+      reservation.returnDateUnknown ? "Return date unknown; update when the item is returned." : null,
       `Lien: ${reservationUrl}`,
     ]),
     roomNames && roomNames.length > 0 ? joinSection(["ROOMS", ...roomNames]) : null,
@@ -291,6 +293,8 @@ export function buildReservationCalendarEventDetails(params: {
       reservationUrl: params.reservationUrl,
     }),
     startDate: params.reservation.startDate,
-    endDate: params.reservation.endDate,
+    endDate: params.reservation.returnDateUnknown
+      ? new Date(params.reservation.startDate.getTime() + 24 * 60 * 60 * 1000)
+      : params.reservation.endDate,
   };
 }

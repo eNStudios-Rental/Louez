@@ -256,6 +256,7 @@ export const dashboardReservationCalendarPeriodEntrySchema = z.object({
   status: reservationStatusSchema.nullable(),
   startDate: z.date(),
   endDate: z.date(),
+  returnDateUnknown: z.boolean().default(false),
   subtotalAmount: z.string(),
   depositAmount: z.string(),
   totalAmount: z.string(),
@@ -306,6 +307,7 @@ export const dashboardReservationPlanningTimelineEntrySchema = z.object({
   status: reservationStatusSchema.nullable(),
   startDate: z.date(),
   endDate: z.date(),
+  returnDateUnknown: z.boolean().default(false),
   customerId: z.string().nullable(),
   customerName: z.string(),
   subtotalAmount: z.string(),
@@ -600,6 +602,7 @@ export const dashboardReservationCreateManualReservationInputSchema = z.object({
       .optional(),
     startDate: z.union([dateTimeOrDateSchema, z.date()]),
     endDate: z.union([dateTimeOrDateSchema, z.date()]),
+    returnDateUnknown: z.boolean().optional().default(false),
     productionStartDate: z.union([dateTimeOrDateSchema, z.date()]).optional(),
     productionEndDate: z.union([dateTimeOrDateSchema, z.date()]).optional(),
     items: z.array(

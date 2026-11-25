@@ -2698,7 +2698,10 @@
         },
         "bookedByName": "Лицо, оформляющее бронирование",
         "bookedByNamePlaceholder": "напр. Иван Иванов",
-        "bookedByNameHelp": "Имя лица, оформляющего бронирование (напр., сотрудника при общей учетной записи)."
+        "bookedByNameHelp": "Имя лица, оформляющего бронирование (напр., сотрудника при общей учетной записи).",
+        "returnDateUnknown": "Return date unknown",
+        "returnDateUnknownActive": "Return date unknown ?",
+        "returnDateUnknownHelp": "The end date will be set when the item is marked as returned."
       },
       "rejectDialog": {
         "title": "Отклонить запрос",

@@ -189,6 +189,7 @@ export interface NewReservationFormValues {
   customerId: string;
   startDate: Date | undefined;
   endDate: Date | undefined;
+  returnDateUnknown: boolean;
   productionStartDate?: Date | undefined;
   productionEndDate?: Date | undefined;
   internalTitle: string;

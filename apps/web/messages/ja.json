@@ -2698,7 +2698,10 @@
         },
         "bookedByName": "予約作成者",
         "bookedByNamePlaceholder": "例：山田 太郎",
-        "bookedByNameHelp": "予約を入力した担当者の氏名（共有アカウント使用時のスタッフなど）。"
+        "bookedByNameHelp": "予約を入力した担当者の氏名（共有アカウント使用時のスタッフなど）。",
+        "returnDateUnknown": "Return date unknown",
+        "returnDateUnknownActive": "Return date unknown ?",
+        "returnDateUnknownHelp": "The end date will be set when the item is marked as returned."
       },
       "rejectDialog": {
         "title": "リクエストを拒否する",
