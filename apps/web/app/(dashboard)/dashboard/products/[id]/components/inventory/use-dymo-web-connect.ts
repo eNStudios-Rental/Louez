@@ -92,18 +92,29 @@ const loadDymoFramework = () => {
 
 export const useDymoWebConnect = () => {
   const printLabel = useCallback(async (referenceNumber: string) => {
-    const framework = await loadDymoFramework();
-    if (framework.init) {
-      await new Promise<void>((resolve) => framework.init?.(resolve));
+    let phase = "load framework";
+    try {
+      const framework = await loadDymoFramework();
+      if (framework.init) {
+        phase = "initialize framework";
+        await new Promise<void>((resolve) => framework.init?.(resolve));
+      }
+
+      phase = "list printers";
+      const printers = await framework.getPrintersAsync();
+      const printer = printers.find((item) => item.isConnected) ?? printers[0];
+      if (!printer) throw new Error("No DYMO printer found");
+
+      phase = "open label";
+      const label = framework.openLabelXml(LABEL_XML);
+      phase = "set label text";
+      label.setObjectText("Text", referenceNumber);
+      phase = "send print request";
+      await label.print(printer.name);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`DYMO ${phase}: ${message}`, { cause: error });
     }
-
-    const printers = await framework.getPrintersAsync();
-    const printer = printers.find((item) => item.isConnected) ?? printers[0];
-    if (!printer) throw new Error("No DYMO printer found");
-
-    const label = framework.openLabelXml(LABEL_XML);
-    label.setObjectText("Text", referenceNumber);
-    await label.print(printer.name);
   }, []);
 
   return { printLabel };
