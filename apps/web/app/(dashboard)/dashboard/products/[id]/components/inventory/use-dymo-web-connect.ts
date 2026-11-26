@@ -27,15 +27,14 @@ declare global {
 const DYMO_FRAMEWORK_URL =
   "https://cdn.jsdelivr.net/gh/dymosoftware/dymo-connect-framework@master/dymo.connect.framework.min.js";
 
-const LABEL_XML = `<?xml version="1.0" encoding="utf-8"?>
-<DieCutLabel Version="8.0" Units="twips">
+const LABEL_XML = `<DieCutLabel Version="8.0" Units="twips">
   <PaperOrientation>Landscape</PaperOrientation>
   <Id>Address</Id>
   <PaperName>30252 Address</PaperName>
   <DrawCommands />
   <ObjectInfo>
     <TextObject>
-      <Name>referenceNumber</Name>
+      <Name>Text</Name>
       <ForeColor Alpha="255" Red="0" Green="0" Blue="0" />
       <BackColor Alpha="0" Red="255" Green="255" Blue="255" />
       <LinkedObjectName></LinkedObjectName>
@@ -47,17 +46,9 @@ const LABEL_XML = `<?xml version="1.0" encoding="utf-8"?>
       <TextFitMode>ShrinkToFit</TextFitMode>
       <UseFullFontHeight>True</UseFullFontHeight>
       <Verticalized>False</Verticalized>
-      <StyledText>
-        <Element>
-          <String></String>
-          <Attributes>
-            <Font Family="Arial" Size="30" Bold="True" Italic="False" Underline="False" Strikeout="False" />
-            <ForeColor Alpha="255" Red="0" Green="0" Blue="0" />
-          </Attributes>
-        </Element>
-      </StyledText>
+      <StyledText />
     </TextObject>
-    <Bounds X="120" Y="120" Width="4800" Height="1380" />
+    <Bounds X="332" Y="150" Width="4455" Height="1260" />
   </ObjectInfo>
 </DieCutLabel>`;
 
@@ -111,7 +102,7 @@ export const useDymoWebConnect = () => {
     if (!printer) throw new Error("No DYMO printer found");
 
     const label = framework.openLabelXml(LABEL_XML);
-    label.setObjectText("referenceNumber", referenceNumber);
+    label.setObjectText("Text", referenceNumber);
     await label.print(printer.name);
   }, []);
 
