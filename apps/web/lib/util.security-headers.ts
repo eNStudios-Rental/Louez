@@ -1,4 +1,12 @@
 import { getDemoParentOrigins } from "./landing-demos/policy";
+
+const DYMO_WEB_SERVICE_PORTS = Array.from({ length: 10 }, (_, index) => 41951 + index);
+
+const dymoWebServiceOrigins = DYMO_WEB_SERVICE_PORTS.flatMap((port) => [
+  `https://localhost:${port}`,
+  `https://127.0.0.1:${port}`,
+]);
+
 export interface SecurityHeadersOptions {
   appDomain?: string;
   appUrl?: string;
@@ -66,10 +74,7 @@ const buildContentSecurityPolicy = ({
       "https://maps.googleapis.com",
       "https://maps.gstatic.com",
       "https://tiles.openfreemap.org",
-      "https://localhost:41951",
-      "https://localhost:41952",
-      "https://127.0.0.1:41951",
-      "https://127.0.0.1:41952",
+      ...dymoWebServiceOrigins,
       "https://gleapjs.com",
       "https://api.gleap.io",
       "https://staticfiles.gleap.io",
