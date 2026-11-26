@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { Loader2, Package, Printer } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { log } from "evlog/next/client";
 
 import {
   Badge,
@@ -115,8 +116,14 @@ export const ProductUnitsTable = ({ units, readOnly = false }: ProductUnitsTable
     setPrintingUnitId(unit.id);
     try {
       await printLabel(unit.identifier);
-    } catch {
-      toastManager.add({ title: t("dymoPrintFailed"), type: "error" });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      log.error({ action: "dymo_label_print_failed", error: errorMessage });
+      toastManager.add({
+        title: t("dymoPrintFailed"),
+        description: errorMessage,
+        type: "error",
+      });
     } finally {
       setPrintingUnitId(null);
     }
