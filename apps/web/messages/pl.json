@@ -1857,7 +1857,9 @@
           "inDowntime": "W konserwacji",
           "busyToday": "Zajęta dziś",
           "active": "Aktywna",
-          "retired": "Wycofana"
+          "retired": "Wycofana",
+          "printLabel": "Drukuj etykietę",
+          "dymoPrintFailed": "Nie udało się wydrukować. Zainstaluj DYMO Connect i podłącz drukarkę."
         },
         "reservations": {
           "title": "Rezerwacje",

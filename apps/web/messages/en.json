@@ -1896,7 +1896,9 @@
           "inDowntime": "In maintenance",
           "busyToday": "Busy today",
           "active": "Active",
-          "retired": "Retired"
+          "retired": "Retired",
+          "printLabel": "Print the label",
+          "dymoPrintFailed": "Could not print the label. Make sure DYMO Connect is installed and a printer is connected."
         },
         "reservations": {
           "title": "Reservations",

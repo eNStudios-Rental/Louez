@@ -1850,7 +1850,9 @@
           "inDowntime": "Em manutenção",
           "busyToday": "Ocupada hoje",
           "active": "Ativa",
-          "retired": "Retirada"
+          "retired": "Retirada",
+          "printLabel": "Imprimir etiqueta",
+          "dymoPrintFailed": "Falha ao imprimir. Instale o DYMO Connect e ligue uma impressora."
         },
         "reservations": {
           "title": "Reservas",
