@@ -1889,7 +1889,9 @@
           "inDowntime": "В обслуживании",
           "busyToday": "Занят сегодня",
           "active": "Активный",
-          "retired": "Пенсионер"
+          "retired": "Пенсионер",
+          "printLabel": "Распечатать этикетку",
+          "dymoPrintFailed": "Не удалось распечатать. Установите DYMO Connect и подключите принтер."
         },
         "reservations": {
           "title": "Бронирования",

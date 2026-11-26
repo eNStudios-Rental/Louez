@@ -4,11 +4,12 @@ import { useState } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { Loader2, Package } from "lucide-react";
+import { Loader2, Package, Printer } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import {
   Badge,
+  Button,
   Table,
   TableBody,
   TableCell,
@@ -31,6 +32,7 @@ import { RetireDialog } from "./inventory/retire-dialog";
 import { UnitHistorySheet } from "./inventory/unit-history-sheet";
 import { UnitRowActions } from "./inventory/unit-row-actions";
 import { getTranslatedActionError } from "./inventory/util.inventory-format";
+import { useDymoWebConnect } from "./inventory/use-dymo-web-connect";
 
 interface ProductUnitsTableProps {
   units: ProductInventoryUnit[];
@@ -43,9 +45,11 @@ export const ProductUnitsTable = ({ units, readOnly = false }: ProductUnitsTable
   const tUnitTracking = useTranslations("dashboard.products.form.unitTracking");
   const tInventory = useTranslations("dashboard.inventory");
   const tErrors = useTranslations("errors");
+  const { printLabel } = useDymoWebConnect();
   const router = useRouter();
 
   const [pendingUnitId, setPendingUnitId] = useState<string | null>(null);
+  const [printingUnitId, setPrintingUnitId] = useState<string | null>(null);
   const [selectedDowntimeUnit, setSelectedDowntimeUnit] = useState<ProductInventoryUnit | null>(
     null,
   );
@@ -107,6 +111,17 @@ export const ProductUnitsTable = ({ units, readOnly = false }: ProductUnitsTable
     }
   };
 
+  const handlePrintLabel = async (unit: ProductInventoryUnit) => {
+    setPrintingUnitId(unit.id);
+    try {
+      await printLabel(unit.identifier);
+    } catch {
+      toastManager.add({ title: t("dymoPrintFailed"), type: "error" });
+    } finally {
+      setPrintingUnitId(null);
+    }
+  };
+
   if (units.length === 0) {
     return <EmptyState icon={Package} title={t("noUnits")} />;
   }
@@ -134,6 +149,21 @@ export const ProductUnitsTable = ({ units, readOnly = false }: ProductUnitsTable
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       <span>{unit.identifier}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="ml-auto h-7 gap-1.5 px-2 text-xs"
+                        disabled={printingUnitId === unit.id}
+                        onClick={() => void handlePrintLabel(unit)}
+                      >
+                        {printingUnitId === unit.id ? (
+                          <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+                        ) : (
+                          <Printer className="size-3.5" aria-hidden="true" />
+                        )}
+                        {t("printLabel")}
+                      </Button>
                       {pendingUnitId === unit.id ? (
                         <Loader2 className="text-muted-foreground h-3.5 w-3.5 animate-spin" />
                       ) : null}

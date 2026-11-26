@@ -1889,7 +1889,9 @@
           "inDowntime": "Dalam pemeliharaan",
           "busyToday": "Sibuk hari ini",
           "active": "Aktif",
-          "retired": "Pensiunan"
+          "retired": "Pensiunan",
+          "printLabel": "Cetak label",
+          "dymoPrintFailed": "Label tidak dapat dicetak. Pasang DYMO Connect dan sambungkan printer."
         },
         "reservations": {
           "title": "Reservasi",

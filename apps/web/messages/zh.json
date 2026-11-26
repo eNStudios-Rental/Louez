@@ -1889,7 +1889,9 @@
           "inDowntime": "维护中",
           "busyToday": "今天很忙",
           "active": "活跃",
-          "retired": "退休"
+          "retired": "退休",
+          "printLabel": "打印标签",
+          "dymoPrintFailed": "无法打印。请安装 DYMO Connect 并连接打印机。"
         },
         "reservations": {
           "title": "预订",

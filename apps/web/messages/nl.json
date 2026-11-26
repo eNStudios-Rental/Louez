@@ -1850,7 +1850,9 @@
           "inDowntime": "In onderhoud",
           "busyToday": "Vandaag bezet",
           "active": "Actief",
-          "retired": "Uitgefaseerd"
+          "retired": "Uitgefaseerd",
+          "printLabel": "Label afdrukken",
+          "dymoPrintFailed": "Afdrukken mislukt. Installeer DYMO Connect en sluit een printer aan."
         },
         "reservations": {
           "title": "Reserveringen",
