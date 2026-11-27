@@ -399,7 +399,7 @@ export async function saveMondayIntegrationSettings(
       },
     });
 
-  revalidatePath("/dashboard/settings/monday");
+  revalidatePath("/dashboard/settings/integrations/monday");
   revalidatePath("/dashboard/settings/integrations");
   return { status: "success" };
 }
@@ -569,7 +569,7 @@ export async function triggerMondayManualSync(options?: {
     limit: 25,
   });
 
-  revalidatePath("/dashboard/settings/monday");
+  revalidatePath("/dashboard/settings/integrations/monday");
   return {
     status: "success",
     enqueued,
