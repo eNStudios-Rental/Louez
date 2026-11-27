@@ -9,13 +9,14 @@ interface DymoPrinter {
 
 interface DymoLabel {
   setObjectText: (objectName: string, text: string) => void;
+  isValidLabel?: () => boolean;
   print: (printerName: string) => PromiseLike<unknown> | void;
 }
 
 interface DymoFramework {
   init?: (callback?: () => void) => void;
   getPrintersAsync: () => PromiseLike<DymoPrinter[]>;
-  openLabelXml: (labelXml: string) => DymoLabel;
+  openLabelXml: (labelXml: string) => DymoLabel | null | undefined;
 }
 
 declare global {
@@ -27,30 +28,112 @@ declare global {
 const DYMO_FRAMEWORK_URL =
   "https://cdn.jsdelivr.net/gh/dymosoftware/dymo-connect-framework@master/dymo.connect.framework.min.js";
 
-const LABEL_XML = `<DieCutLabel Version="8.0" Units="twips">
-  <PaperOrientation>Landscape</PaperOrientation>
-  <Id>Address</Id>
-  <PaperName>30252 Address</PaperName>
-  <DrawCommands />
-  <ObjectInfo>
-    <TextObject>
-      <Name>Text</Name>
-      <ForeColor Alpha="255" Red="0" Green="0" Blue="0" />
-      <BackColor Alpha="0" Red="255" Green="255" Blue="255" />
-      <LinkedObjectName></LinkedObjectName>
-      <Rotation>Rotation0</Rotation>
-      <IsMirrored>False</IsMirrored>
-      <IsVariable>True</IsVariable>
-      <HorizontalAlignment>Center</HorizontalAlignment>
-      <VerticalAlignment>Middle</VerticalAlignment>
-      <TextFitMode>ShrinkToFit</TextFitMode>
-      <UseFullFontHeight>True</UseFullFontHeight>
-      <Verticalized>False</Verticalized>
-      <StyledText />
-    </TextObject>
-    <Bounds X="332" Y="150" Width="4455" Height="1260" />
-  </ObjectInfo>
-</DieCutLabel>`;
+const LABEL_XML = `<?xml version="1.0" encoding="utf-8"?>
+<DesktopLabel Version="1">
+  <DYMOLabel Version="3">
+    <Description>DYMO Label</Description>
+    <Orientation>Landscape</Orientation>
+    <LabelName>Small1976411</LabelName>
+    <InitialLength>0</InitialLength>
+    <BorderStyle>SolidLine</BorderStyle>
+    <DYMORect>
+      <DYMOPoint>
+        <X>0.09</X>
+        <Y>0.056666665</Y>
+      </DYMOPoint>
+      <Size>
+        <Width>1.9766666</Width>
+        <Height>0.90333337</Height>
+      </Size>
+    </DYMORect>
+    <BorderColor>
+      <SolidColorBrush>
+        <Color A="1" R="0" G="0" B="0" />
+      </SolidColorBrush>
+    </BorderColor>
+    <BorderThickness>1</BorderThickness>
+    <Show_Border>False</Show_Border>
+    <DynamicLayoutManager>
+      <RotationBehavior>ClearObjects</RotationBehavior>
+      <LabelObjects>
+        <TextObject>
+          <Name>Text</Name>
+          <Brushes>
+            <BackgroundBrush>
+              <SolidColorBrush>
+                <Color A="0" R="0.1372549" G="0.1215686" B="0.1254902" />
+              </SolidColorBrush>
+            </BackgroundBrush>
+            <BorderBrush>
+              <SolidColorBrush>
+                <Color A="1" R="0" G="0" B="0" />
+              </SolidColorBrush>
+            </BorderBrush>
+            <StrokeBrush>
+              <SolidColorBrush>
+                <Color A="1" R="0" G="0" B="0" />
+              </SolidColorBrush>
+            </StrokeBrush>
+            <FillBrush>
+              <SolidColorBrush>
+                <Color A="0" R="0.1372549" G="0.1215686" B="0.1254902" />
+              </SolidColorBrush>
+            </FillBrush>
+          </Brushes>
+          <Rotation>Rotation0</Rotation>
+          <OutlineThickness>1</OutlineThickness>
+          <IsOutlined>False</IsOutlined>
+          <BorderStyle>SolidLine</BorderStyle>
+          <Margin>
+            <DYMOThickness Left="0" Top="0" Right="0" Bottom="0" />
+          </Margin>
+          <HorizontalAlignment>Center</HorizontalAlignment>
+          <VerticalAlignment>Middle</VerticalAlignment>
+          <FitMode>AlwaysFit</FitMode>
+          <IsVertical>False</IsVertical>
+          <FormattedText>
+            <FitMode>AlwaysFit</FitMode>
+            <HorizontalAlignment>Center</HorizontalAlignment>
+            <VerticalAlignment>Middle</VerticalAlignment>
+            <IsVertical>False</IsVertical>
+            <LineTextSpan>
+              <TextSpan>
+                <Text> </Text>
+                <FontInfo>
+                  <FontName>Segoe UI</FontName>
+                  <FontSize>26.4</FontSize>
+                  <IsBold>False</IsBold>
+                  <IsItalic>False</IsItalic>
+                  <IsUnderline>False</IsUnderline>
+                  <FontBrush>
+                    <SolidColorBrush>
+                      <Color A="1" R="0" G="0" B="0" />
+                    </SolidColorBrush>
+                  </FontBrush>
+                </FontInfo>
+              </TextSpan>
+            </LineTextSpan>
+          </FormattedText>
+          <ObjectLayout>
+            <DYMOPoint>
+              <X>0.13</X>
+              <Y>0.1</Y>
+            </DYMOPoint>
+            <Size>
+              <Width>1.8566666</Width>
+              <Height>0.8166667</Height>
+            </Size>
+          </ObjectLayout>
+        </TextObject>
+      </LabelObjects>
+    </DynamicLayoutManager>
+  </DYMOLabel>
+  <LabelApplication>Blank</LabelApplication>
+  <DataTable>
+    <Columns></Columns>
+    <Rows></Rows>
+  </DataTable>
+</DesktopLabel>`;
 
 let frameworkPromise: Promise<DymoFramework> | undefined;
 
@@ -107,6 +190,15 @@ export const useDymoWebConnect = () => {
 
       phase = "open label";
       const label = framework.openLabelXml(LABEL_XML);
+      if (!label || typeof label.setObjectText !== "function") {
+        throw new Error("DYMO could not open the label template");
+      }
+
+      phase = "validate label";
+      if (label.isValidLabel && !label.isValidLabel()) {
+        throw new Error("DYMO label template is invalid");
+      }
+
       phase = "set label text";
       label.setObjectText("Text", referenceNumber);
       phase = "send print request";
