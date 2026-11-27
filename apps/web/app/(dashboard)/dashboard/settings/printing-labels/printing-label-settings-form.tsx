@@ -225,7 +225,10 @@ export const PrintingLabelSettingsForm = ({
     startTransition(async () => {
       const result = await updatePrintingLabelTemplate({ version: 1, elements });
       if (result.error) {
-        setRootError(tErrors(result.error));
+        const errorKey = result.error.startsWith("errors.")
+          ? result.error.slice("errors.".length)
+          : result.error;
+        setRootError(tErrors(errorKey));
         return;
       }
 
@@ -330,6 +333,8 @@ export const PrintingLabelSettingsForm = ({
                         "absolute flex select-none items-center justify-center overflow-hidden border border-transparent p-1 text-center text-black",
                         isSelected && "z-10 border-primary ring-2 ring-primary/40",
                         element.type === "reference" && "font-bold",
+                        (element.type === "reference" || element.type === "text") &&
+                          "[container-type:size]",
                         element.type === "text" && "whitespace-pre-wrap",
                         element.type === "image" && "p-0",
                         "cursor-move",
@@ -367,13 +372,13 @@ export const PrintingLabelSettingsForm = ({
                       }}
                     >
                       {element.type === "reference" ? (
-                        <span className="break-all text-[clamp(8px,2.4vw,20px)]">
+                        <span className="break-all text-[min(18cqw,65cqh)]">
                           {PREVIEW_REFERENCE}
                         </span>
                       ) : element.type === "qr" ? (
                         <QRCodeSVG value={PREVIEW_REFERENCE} className="size-full bg-white p-1" />
                       ) : element.type === "text" ? (
-                        <span className="w-full break-words text-[clamp(8px,1.8vw,16px)]">
+                        <span className="w-full break-words text-[min(16cqw,65cqh)]">
                           {element.text || t("defaultText")}
                         </span>
                       ) : (

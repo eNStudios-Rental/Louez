@@ -21,6 +21,8 @@ const imageUrlSchema = z
     }
   });
 
+const imageKeySchema = z.string().regex(/^[a-zA-Z0-9/_-]+\.(?:jpe?g|png|gif|webp)$/i);
+
 const elementSchema = z.discriminatedUnion("type", [
   positionSchema.extend({ type: z.literal("reference") }),
   positionSchema.extend({ type: z.literal("qr") }),
@@ -30,10 +32,20 @@ const elementSchema = z.discriminatedUnion("type", [
   }),
   positionSchema.extend({
     type: z.literal("image"),
-    key: z.string().regex(/^[a-zA-Z0-9/_-]+\.(?:jpe?g|png|gif|webp)$/i),
+    key: imageKeySchema,
     url: imageUrlSchema,
   }),
 ]);
+
+export const scopePrintingLabelImageKey = (key: string, storeId: string): string | null => {
+  if (!imageKeySchema.safeParse(key).success) return null;
+
+  const prefix = `${storeId}/labels/`;
+  if (key.startsWith(prefix)) return key;
+  if (key.includes("/labels/")) return null;
+
+  return `${prefix}${key}`;
+};
 
 export const printingLabelTemplateSchema = z
   .object({
@@ -62,4 +74,3 @@ export const printingLabelTemplateSchema = z
       }
     });
   });
-

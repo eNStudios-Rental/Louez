@@ -100,9 +100,6 @@ const managementNavigation: NavigationItem[] = [
     key: "settings",
     href: "/dashboard/settings",
     icon: SettingsGlassIcon,
-    items: [
-      { key: "mondayIntegration", href: "/dashboard/settings/monday" },
-    ],
   },
 ];
 

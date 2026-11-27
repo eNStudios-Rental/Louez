@@ -73,7 +73,7 @@ const staticBreadcrumbRoutes = [
     translationKey: "settingsIntegrations",
   },
   {
-    href: "/dashboard/settings/monday",
+    href: "/dashboard/settings/integrations/monday",
     label: "monday.com",
   },
   {

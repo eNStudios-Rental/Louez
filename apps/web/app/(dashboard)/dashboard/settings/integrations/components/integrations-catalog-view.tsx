@@ -56,9 +56,12 @@ const LOUEZ_ITEMS: BuiltInItem[] = [
       variant: "expired",
     },
   },
+];
+
+const CALENDAR_ITEMS: BuiltInItem[] = [
   {
     id: "monday",
-    href: "/dashboard/settings/monday",
+    href: "/dashboard/settings/integrations/monday",
     icon: CodeIcon,
     nameKey: "dashboard.settings.mondayIntegration.navTitle",
     descriptionKey: "dashboard.settings.mondayIntegration.navDescription",
@@ -230,18 +233,36 @@ export function IntegrationsCatalogView() {
       )}
 
       {/* Calendar */}
-      {!catalogLoadError && (
-        <section className="space-y-3">
-          <h3 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
-            {resolveMessage("dashboard.settings.integrationsHub.sections.calendar", "Calendar")}
-          </h3>
+      <section className="space-y-3">
+        <h3 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
+          {resolveMessage("dashboard.settings.integrationsHub.sections.calendar", "Calendar")}
+        </h3>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {CALENDAR_ITEMS.map((item) => (
+            <IntegrationItemCard
+              key={item.id}
+              href={item.href}
+              icon={item.icon}
+              name={resolveMessage(item.nameKey, item.id)}
+              description={resolveMessage(item.descriptionKey, "")}
+              onPrefetch={() => prefetchRoute(item.href)}
+              badge={
+                item.badge
+                  ? {
+                      label: resolveMessage(item.badge.labelKey, ""),
+                      variant: item.badge.variant,
+                    }
+                  : undefined
+              }
+            />
+          ))}
           {catalogQuery.isLoading ? (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <>
               <Skeleton className="h-[84px] rounded-lg" />
               <Skeleton className="h-[84px] rounded-lg" />
-            </div>
+            </>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <>
               {calendarIntegrations.map((item) => (
                 <IntegrationItemCard
                   key={item.id}
@@ -263,7 +284,7 @@ export function IntegrationsCatalogView() {
                   }
                 />
               ))}
-              {!catalogQuery.isLoading && calendarIntegrations.length === 0 && (
+              {calendarIntegrations.length === 0 && CALENDAR_ITEMS.length === 0 && (
                 <p className="text-muted-foreground text-sm">
                   {resolveMessage(
                     "dashboard.settings.integrationsHub.noIntegrations",
@@ -271,10 +292,10 @@ export function IntegrationsCatalogView() {
                   )}
                 </p>
               )}
-            </div>
+            </>
           )}
-        </section>
-      )}
+        </div>
+      </section>
 
       {/* Insurance */}
       {!catalogLoadError && (

@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import { notifyStoreSettingsUpdated } from "@/lib/discord/platform-notifications";
 import { log } from "@/lib/evlog";
+import { getImageFiles } from "@/lib/storage/files";
 import { getCurrentStore, hasPermission } from "@/lib/store-context";
 
 import {
@@ -18,7 +19,10 @@ import {
   type CompanySettingsInput,
   type ReservationRulesInput,
 } from "./util.store-settings";
-import { printingLabelTemplateSchema } from "./printing-labels/util.printing-label-template";
+import {
+  printingLabelTemplateSchema,
+  scopePrintingLabelImageKey,
+} from "./printing-labels/util.printing-label-template";
 
 // Slug validation schema
 const slugSchema = z
@@ -33,6 +37,31 @@ const extensionRulesSchema = z.object({
   automaticExtensions: z.boolean(),
   maxExtensionDays: z.number().int().min(1).max(365).nullable(),
 });
+
+const resolvePrintingLabelTemplateImages = async (
+  template: StorePrintingLabelTemplate,
+  storeId: string,
+): Promise<StorePrintingLabelTemplate | null> => {
+  const elements: StorePrintingLabelTemplate["elements"] = [];
+
+  for (const element of template.elements) {
+    if (element.type !== "image") {
+      elements.push(element);
+      continue;
+    }
+
+    const key = scopePrintingLabelImageKey(element.key, storeId);
+    if (!key) return null;
+
+    elements.push({
+      ...element,
+      key,
+      url: await getImageFiles().url(key),
+    });
+  }
+
+  return { ...template, elements };
+};
 
 /** Country, currency and billing address (the "Entreprise" settings page). */
 export async function updateCompanySettings(data: CompanySettingsInput) {
@@ -123,16 +152,16 @@ export async function getPrintingLabelTemplate(): Promise<StorePrintingLabelTemp
     throw new Error("Stored printing label template is invalid");
   }
 
-  if (
-    parsed.data.elements.some(
-      (element) => element.type === "image" && !element.key.startsWith(`${store.id}/labels/`),
-    )
-  ) {
-    log.error("settings", `Stored printing label template contains a foreign asset for ${store.id}`);
+  const resolvedTemplate = await resolvePrintingLabelTemplateImages(parsed.data, store.id);
+  if (!resolvedTemplate) {
+    log.error(
+      "settings",
+      `Stored printing label template contains a foreign asset for ${store.id}`,
+    );
     throw new Error("Stored printing label template contains an invalid image");
   }
 
-  return parsed.data;
+  return resolvedTemplate;
 }
 
 export async function generatePrintingLabelQr(referenceNumber: string): Promise<string> {
@@ -171,18 +200,15 @@ export async function updatePrintingLabelTemplate(data: unknown) {
       return { error: "errors.permissionDenied" };
     }
 
-    const assetPrefix = `${store.id}/labels/`;
-    const hasForeignAsset = parsed.data.elements.some(
-      (element) => element.type === "image" && !element.key.startsWith(assetPrefix),
-    );
-    if (hasForeignAsset) {
+    const resolvedTemplate = await resolvePrintingLabelTemplateImages(parsed.data, store.id);
+    if (!resolvedTemplate) {
       return { error: "errors.invalidData" };
     }
 
     await db
       .update(stores)
       .set({
-        settings: buildPrintingLabelTemplateUpdate(store.settings, parsed.data),
+        settings: buildPrintingLabelTemplateUpdate(store.settings, resolvedTemplate),
         updatedAt: new Date(),
       })
       .where(eq(stores.id, store.id));
