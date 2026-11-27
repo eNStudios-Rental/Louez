@@ -1,4 +1,4 @@
-import type { StoreSettings } from "@louez/types";
+import type { StorePrintingLabelTemplate, StoreSettings } from "@louez/types";
 
 import { getTimezoneForCountry } from "@/lib/utils/countries";
 
@@ -79,5 +79,16 @@ export function buildReservationRulesUpdate(
     advanceNoticeMinutes: input.advanceNoticeMinutes,
     turnoverBufferMinutes: input.turnoverBufferMinutes,
     requireCustomerAddress: input.requireCustomerAddress,
+  };
+}
+
+export function buildPrintingLabelTemplateUpdate(
+  currentSettings: StoreSettings | null | undefined,
+  template: StorePrintingLabelTemplate,
+): StoreSettings {
+  return {
+    ...DEFAULT_STORE_SETTINGS,
+    ...currentSettings,
+    printingLabelTemplate: template,
   };
 }

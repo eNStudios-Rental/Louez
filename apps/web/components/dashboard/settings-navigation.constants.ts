@@ -197,6 +197,16 @@ export const SETTINGS_NAVIGATION_ITEMS: SettingsNavigationItem[] = [
     navigation: true,
   },
   {
+    id: "printing-labels",
+    href: "/dashboard/settings/printing-labels",
+    icon: FileTextIcon,
+    labelPath: "dashboard.settings.printingLabels.title",
+    descriptionPath: "dashboard.settings.printingLabels.description",
+    searchPaths: ["dashboard.settings.printingLabels"],
+    group: "rental",
+    navigation: true,
+  },
+  {
     id: "promo-codes",
     href: "/dashboard/settings/promo-codes",
     icon: TagIcon,

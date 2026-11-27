@@ -277,6 +277,43 @@ export interface StoreSeoSettings {
   googleSiteVerification?: string | null;
 }
 
+export interface StorePrintingLabelTemplateElementPosition {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export type StorePrintingLabelTemplateElement =
+  | (StorePrintingLabelTemplateElementPosition & { type: "reference" })
+  | (StorePrintingLabelTemplateElementPosition & { type: "qr" })
+  | (StorePrintingLabelTemplateElementPosition & { type: "text"; text: string })
+  | (StorePrintingLabelTemplateElementPosition & {
+      type: "image";
+      key: string;
+      url: string;
+    });
+
+export interface StorePrintingLabelTemplate {
+  version: 1;
+  elements: StorePrintingLabelTemplateElement[];
+}
+
+export const DEFAULT_STORE_PRINTING_LABEL_TEMPLATE = {
+  version: 1,
+  elements: [
+    {
+      id: "reference-number",
+      type: "reference",
+      x: 8,
+      y: 25,
+      width: 84,
+      height: 50,
+    },
+  ],
+} satisfies StorePrintingLabelTemplate;
+
 export interface StoreSettings {
   automaticExtensions?: boolean;
   maxExtensionDays?: number | null;
@@ -321,6 +358,8 @@ export interface StoreSettings {
   billingAddress?: BillingAddress; // Separate billing address for contracts
   delivery?: DeliverySettings; // Delivery configuration
   inspection?: InspectionSettings; // Inventory inspection (etat des lieux)
+  /** DYMO inventory label layout for 1976411 labels. */
+  printingLabelTemplate?: StorePrintingLabelTemplate;
   integrationData?: IntegrationData;
   /** Storefront contact page: channels offered and form forwarding. */
   contact?: StoreContactSettings;

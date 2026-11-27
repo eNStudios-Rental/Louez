@@ -8,7 +8,7 @@ import { env as authEnv } from "@louez/auth/env";
 import { env } from "@/env";
 import { auth } from "@/lib/auth";
 import { getImageFiles } from "@/lib/storage/files";
-import { getCurrentStore } from "@/lib/store-context";
+import { getCurrentStore, hasPermission } from "@/lib/store-context";
 
 import { IMAGE_UPLOAD_CONFIG, type ImageUploadKind } from "./image-upload";
 import { createPublicFilesRequest } from "./util.public-files-request";
@@ -50,6 +50,9 @@ const getKeyPrefix = async (kind: ImageUploadKind) => {
   const store = await getCurrentStore();
   if (!store) {
     throw new FilesError("Unauthorized", "Store access required");
+  }
+  if (kind === "label" && !hasPermission(store.role, "manage_settings")) {
+    throw new FilesError("Unauthorized", "Manage settings permission required");
   }
 
   const folder = IMAGE_UPLOAD_CONFIG[kind].folder;
