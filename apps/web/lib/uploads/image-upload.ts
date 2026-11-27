@@ -7,6 +7,7 @@ export const IMAGE_UPLOAD_KINDS = [
   "product",
   "category",
   "inspection",
+  "label",
 ] as const;
 
 export type ImageUploadKind = (typeof IMAGE_UPLOAD_KINDS)[number];
@@ -30,6 +31,7 @@ export const IMAGE_UPLOAD_CONFIG = {
   product: { folder: "products", maxSize: MAX_IMAGE_SIZE },
   category: { folder: "categories", maxSize: MAX_HERO_SIZE },
   inspection: { folder: "inspections", maxSize: MAX_IMAGE_SIZE },
+  label: { folder: "labels", maxSize: MAX_IMAGE_SIZE },
 } as const satisfies Record<ImageUploadKind, { folder: string | null; maxSize: number }>;
 
 interface ImageFileLike {
