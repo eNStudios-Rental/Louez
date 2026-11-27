@@ -3,11 +3,8 @@
 import { db, stores } from "@louez/db";
 import type { StorePrintingLabelTemplate } from "@louez/types";
 import { and, eq, ne } from "drizzle-orm";
-import sharp from "sharp";
-import { createElement } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
-import { QRCodeSVG } from "qrcode.react";
 import { revalidatePath } from "next/cache";
+import QRCode from "qrcode";
 import { z } from "zod";
 
 import { notifyStoreSettingsUpdated } from "@/lib/discord/platform-notifications";
@@ -147,17 +144,15 @@ export async function generatePrintingLabelQr(referenceNumber: string): Promise<
     throw new Error("Store not found");
   }
 
-  const svg = renderToStaticMarkup(
-    createElement(QRCodeSVG, {
-      value: parsedReference.data,
-      size: 512,
-      level: "M",
-      marginSize: 2,
-      bgColor: "#ffffff",
-      fgColor: "#000000",
-    }),
-  );
-  const png = await sharp(Buffer.from(svg)).png().toBuffer();
+  const png = await QRCode.toBuffer(parsedReference.data, {
+    errorCorrectionLevel: "M",
+    width: 512,
+    margin: 2,
+    color: {
+      dark: "#000000",
+      light: "#ffffff",
+    },
+  });
 
   return png.toString("base64");
 }
